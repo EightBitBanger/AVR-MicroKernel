@@ -1,6 +1,5 @@
 //
 // AVR Micro Kernel
-#include "strings.h"
 
 #define _KERNEL_BEGIN__       0x00000
 #define _KERNEL_END__         0x00100
@@ -13,10 +12,12 @@
 
 #define _MESSAGE_QUEUE_LENGTH__         32
 
-#include "string_const.h"
 
 #include "stack_allocator.h"
 #include "device_index.h"
+
+#include "string_const.h"
+#include "strings.h"
 
 #include "drivers/display_driver.h"
 #include "drivers/file_system.h"
@@ -216,7 +217,8 @@ uint32_t allocate_system_memory(void) {
 	
 	displayDriver.writeString(string_memory_allocator, sizeof(string_memory_allocator));
 	
-	string memoryString;
+	char memoryString[8];
+	for (uint8_t i=0; i<8; i++) memoryString[i] = 0x20;
 	
 #ifdef _TEST_RAM_EXTENSIVELY__
 	char readByteTest=0x00;
@@ -254,33 +256,31 @@ uint32_t allocate_system_memory(void) {
 #else
 		total_system_memory++;
 #endif
-	} else {
-	
-	if (total_system_memory == 0x00000) {
+		} else {
+			
+			if (total_system_memory == 0x00000) {
+				
+				// Restore the kernel memory
+				for (uint8_t address=0; address < kernelBufferSize; address++) memory_write(address, kernelBuffer[address]);
+				
+				displayDriver.writeString(error_exmem_not_installed, sizeof(error_exmem_not_installed));
+				displayDriver.cursorSetPosition(2, 0);
+				while(1) nop;
+			}
+			break;
+		}
 		
-		// Restore the kernel memory(if its installed)
-		for (uint8_t address=0; address < kernelBufferSize; address++) memory_write(address, kernelBuffer[address]);
+		// Restore the kernel memory
+		if ((total_system_memory < 0x0001f) || (total_system_memory == 0x8000)) {
+			for (uint8_t address=0; address < kernelBufferSize; address++) memory_write(address, kernelBuffer[address]);
+		}
 		
-		displayDriver.writeString(error_exmem_not_installed, sizeof(error_exmem_not_installed));
-		displayDriver.cursorSetPosition(2, 0);
-		while(1) nop;
-	}
-	break;
-	}
-	
-	// Restore the kernel memory
-	if ((total_system_memory < 0x0001f) || (total_system_memory == 0x8000)) {
-		for (uint8_t address=0; address < kernelBufferSize; address++) memory_write(address, kernelBuffer[address]);
-	}
-	
-	
-	// Update display
-	if (updateTimer > 1024) {updateTimer=0;
-		
-		string memoryString;
-		intToString(total_system_memory, memoryString);
-		displayDriver.writeString(memoryString.str, 7);
-		
+		// Update display
+		if (updateTimer > 1024) {updateTimer=0;
+			
+			intToString(total_system_memory, memoryString);
+			displayDriver.writeString(memoryString, 7);
+			
 		} else {updateTimer++;}
 		
 	}
@@ -290,7 +290,7 @@ uint32_t allocate_system_memory(void) {
 	
 	// Display available memory
 	intToString(memoryFree, memoryString);
-	displayDriver.writeString(memoryString.str, 7);
+	displayDriver.writeString(memoryString, 7);
 	
 	return total_system_memory;
 }

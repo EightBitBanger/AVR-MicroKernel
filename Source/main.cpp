@@ -12,6 +12,7 @@ int main(void) {
 	
 	// Initiate and fire up the kernel
 	kernel.initiate();
+	
 	kernel.run();
 	
 	return 0;

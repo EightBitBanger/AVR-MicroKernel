@@ -48,26 +48,25 @@ struct CommandConsole {
 		_delay_ms(100);
 	}
 	
-	// Add new string to the console
-	void addString(const char string[], uint8_t string_length, uint8_t position_offset=0) {
+	// Add a const char string to the console
+	void addString(const char charArray[], uint8_t string_length, uint8_t position_offset=0) {
 		
-		// Check last line
-		if (cursorLine < 3) {
-			
-			displayDriver.writeString(string, string_length, cursorLine, cursorPos + position_offset);
-			
-			addNewLine();
-			
-		} else {
-			
-			displayDriver.writeString(string, string_length, cursorLine, cursorPos + position_offset);
-			
-			addNewLine();
-			
-		}
+		displayDriver.writeString(charArray, string_length, cursorLine, cursorPos + position_offset);
+		addNewLine();
 		
 		return;
 	}
+	
+	// Add a string to the console
+	void addString(string& charString, uint8_t string_length, uint8_t position_offset=0) {
+		
+		displayDriver.writeString(charString, string_length, cursorLine, cursorPos + position_offset);
+		addNewLine();
+		
+		return;
+	}
+	
+	
 	
 	// Add blank new line
 	void addNewLine(void) {
@@ -172,11 +171,11 @@ void command_mem_test(void) {
 	uint32_t stackSz = stack_count();
 	uint32_t memoryFree = _STACK_END__ - (0x00100 + stackSz);
 	
-	string memorySz;
+	string memorySz(7);
 	
 	intToString(memoryFree, memorySz);
 	console.cursorPos = 0;
-	console.addString(memorySz.str, memorySz.size());
+	console.addString(memorySz, memorySz.size());
 	
 	return;
 }
@@ -212,7 +211,7 @@ void device_list(void) {
 		// Check valid device ID
 		if (deviceID != 0x00) {
 			
-			string deviceName;
+			string deviceName(8);
 			deviceName[0] = (0x31 + i); // Device slot number
 			
 			// Display console
@@ -220,7 +219,7 @@ void device_list(void) {
 				
 				deviceName.insert("Display", 8, 2);
 				
-				console.addString(deviceName.str, sizeof(deviceName.str));
+				console.addString(deviceName, deviceName.size());
 				continue;
 			}
 			
@@ -268,10 +267,10 @@ void port_output(void) {
 void command_list_files(void) {
 	
 	// Display number of files
-	string strValue("    Files", 9);
+	string strValue("    Files", 10);
 	uint32_t numberOfFiles = partition.getNumberOfFiles();
 	intToString(numberOfFiles, strValue);
-	console.addString(strValue.str, strValue.size());
+	console.addString(strValue, strValue.size());
 	
 	// List files
 	for (uint32_t i=0; i < numberOfFiles; i++) {

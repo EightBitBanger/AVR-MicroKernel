@@ -35,16 +35,13 @@ struct Partition {
 	
 	// Create a partition
 	void create(uint32_t size_bytes) {
-		
 		address_pointer = stack_alloc(size_bytes);
 		size = size_bytes;
 	}
 	
 	// Deletes the current partition
 	void destroy(void) {
-		
 		if (size > 0) stack_free(size);
-		
 	}
 	
 	//
