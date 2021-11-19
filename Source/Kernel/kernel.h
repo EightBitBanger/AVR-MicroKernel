@@ -42,25 +42,10 @@ void device_write(uint32_t address, char byte);
 //
 // Kernel core
 
-#define _MESSAGE_QUEUE_LENGTH__    16
+#define _MESSAGE_QUEUE_LENGTH__    32
 
-// Default callback procedure
-uint8_t defaultCallbackProcedure(uint8_t message) {
-	
-	switch (message) {
-		
-		case 0x00: {
-			char String[] = "Message callback";
-			console.addString(String, sizeof(String));
-			break;
-		}
-		
-		default: 
-			break;
-	}
-	
-	return 1;
-}
+// Default message callback
+uint8_t defaultCallbackProcedure(uint8_t message);
 
 struct Kernel {
 	
@@ -135,7 +120,7 @@ struct Kernel {
 		while(isActive) {
 			
 			kernelCounter++;
-			if (kernelCounter < kernelTimeOut) {continue;} else {kernelCounter=0;}
+			if (kernelCounter < kernelTimeOut) {continue;} kernelCounter=0;
 			
 			keyboardCounter++;
 			if (keyboardCounter > keyboardTimeOut) {keyboardCounter=0; checkKeyboardState();}
@@ -173,87 +158,73 @@ struct Kernel {
 		uint8_t scanCodeAccepted = 0;
 		uint8_t currentChar=0x00;
 		
-		// Read in the keyboard scan code
-		char readByteLow, readByteHigh;
-		_BUS_UPPER_OUT__ = 0x00;
-		memory_read(0x90000, readByteLow);
-		_BUS_UPPER_OUT__ = 0x00;
-		memory_read(0xa0000, readByteHigh);
+		uint8_t readKeyCode = keyboard.read();
 		
 		// Decode the scan code
 		if (console.keyboard_string_length < 19) {
-			
 			// Check current code
-			currentChar = keyboard.decodeScanCode(readByteLow, readByteHigh);
+			currentChar = readKeyCode;
 			if (currentChar > 0x1f) scanCodeAccepted=1;
-			
-			} else {
-			
+		} else {
 			// Allow backspace and enter past max length
-			uint8_t checkChar = keyboard.decodeScanCode(readByteLow, readByteHigh);
-			if (checkChar < 0x03) currentChar = checkChar;
-			
+			if (readKeyCode < 0x03) currentChar = readKeyCode;
 		}
 		
 		// Prevent wild key repeats
-		if (lastChar == currentChar) {keyboardState=1; return;}
-		lastChar = currentChar;
-		
-		// Cursor keys
-		//if (currentChar == 0x03) {console.cursorLine--; displayDriver.cursorSetPosition(console.cursorLine, console.cursorPos);}
-		//if (currentChar == 0x04) {console.cursorLine++; displayDriver.cursorSetPosition(console.cursorLine, console.cursorPos);}
-		//if (currentChar == 0x05) {console.cursorPos--; displayDriver.cursorSetPosition(console.cursorLine, console.cursorPos);}
-		//if (currentChar == 0x06) {console.cursorPos++; displayDriver.cursorSetPosition(console.cursorLine, console.cursorPos);}
+		if (lastChar == currentChar) {keyboardState=1; return;} lastChar = currentChar;
 		
 		// Backspace
 		if (currentChar == 0x01) {
 			
-			if (console.keyboard_string_length > 0) {
-				
-				keyboardState=1;
+			if (console.keyboard_string_length > 0) {keyboardState=1;
 				
 				// Remove last char from display
 				displayDriver.writeChar(0x20, console.cursorLine, console.keyboard_string_length);
-				
-				// Update cursor
 				displayDriver.cursorSetPosition(console.cursorLine, console.keyboard_string_length);
-				
+				// From keyboard string
 				console.keyboard_string_length--;
 				console.keyboard_string[console.keyboard_string_length] = 0x20;
-				
 			}
 			
 		}
 		
 		// Enter
-		if (currentChar == 0x02) {
-			
-			console.executeKeyboardString();
-			
-			keyboardState = 1;
-			return;
-		}
+		if (currentChar == 0x02) {keyboardState = 1; console.executeKeyboardString(); return;}
 		
 		// ASCII key character accepted
-		if (scanCodeAccepted == 1) {
+		if (scanCodeAccepted == 1) {keyboardState=1;
 			
 			console.keyboard_string[console.keyboard_string_length] = currentChar;
-			
-			keyboardState=1;
 			console.keyboard_string_length++;
-			
 			// Update cursor
 			displayDriver.cursorSetPosition(console.cursorLine, console.keyboard_string_length+1);
-			
 			// Display keyboard string
 			displayDriver.writeString(console.keyboard_string, console.keyboard_string_length+1, console.cursorLine, console.cursorPos);
 			displayDriver.writeChar(console.promptCharacter, console.cursorLine, 0);
-			
 		}
 	}
 	
 };
 Kernel kernel;
+
+uint8_t defaultCallbackProcedure(uint8_t message) {
+	
+	switch (message) {
+		
+		case 0x00: {
+			char String[] = "Message callback";
+			console.addString(String, sizeof(String));
+			break;
+		}
+		
+		default:
+		break;
+	}
+	
+	return 1;
+}
+
+
 
 
 //

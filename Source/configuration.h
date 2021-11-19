@@ -1,29 +1,6 @@
 //
 // Configuration
 
-/* 
-  Hardware address layout
-  
-  0x00000   Memory
-  0x03fff   
-  
-  0x40000   Slot 1
-  0x50000   Slot 2
-  0x60000   Slot 3
-  0x70000   Slot 4
-  0x80000   Slot 5
-  
-  0x90000   Keyboard register A
-  0xa0000   Keyboard register B
-  0xb0000   Keyboard reset
-  
-  0xc0000   PORT A
-  0xd0000   PORT B
-  0xe0000   
-  0xf0000   
- 
-*/
-
 //#define _CLOCK_SPEED_MHZ__  1.843
 //#define _CLOCK_SPEED_MHZ__  7.68
 //#define _CLOCK_SPEED_MHZ__  16.0
