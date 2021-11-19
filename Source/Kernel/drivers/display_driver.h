@@ -1,5 +1,5 @@
 //
-// Liquid Crystal display driver
+// Liquid Crystal display card driver
 
 #define _DEVICE_DISPLAY__    0x10
 
@@ -7,11 +7,11 @@ struct DisplayDriver {
 	
 	// Hardware IO
 	void write(uint32_t address, char byte) {
-		uint32_t deviceAddress = deviceHandler.getDeviceAddress(_DEVICE_DISPLAY__);
+		uint32_t deviceAddress = device.getAddress(_DEVICE_DISPLAY__);
 		device_write((deviceAddress+address), byte);
 	}
 	void read(uint32_t address, char& byte) {
-		uint32_t deviceAddress = deviceHandler.getDeviceAddress(_DEVICE_DISPLAY__);
+		uint32_t deviceAddress = device.getAddress(_DEVICE_DISPLAY__);
 		device_read((deviceAddress+address), byte);
 	}
 	
@@ -28,7 +28,7 @@ struct DisplayDriver {
 	
 	void writeString(const char string[], uint8_t string_size, uint8_t line=0, uint8_t position=0) {
 		
-		uint32_t deviceAddress = deviceHandler.getDeviceAddress(_DEVICE_DISPLAY__);
+		uint32_t deviceAddress = device.getAddress(_DEVICE_DISPLAY__);
 		uint32_t address = deviceAddress + ((line * 20) + position);
 		
 		uint8_t stringSz = string_size - 1;
@@ -42,7 +42,7 @@ struct DisplayDriver {
 	
 	void writeStringMask(const char string[], uint8_t string_size, uint8_t line=0, uint8_t position=0) {
 		
-		uint32_t deviceAddress = deviceHandler.getDeviceAddress(_DEVICE_DISPLAY__);
+		uint32_t deviceAddress = device.getAddress(_DEVICE_DISPLAY__);
 		uint32_t address = deviceAddress + ((line * 20) + position) + 0x50;
 		
 		uint8_t stringSz = string_size - 1;

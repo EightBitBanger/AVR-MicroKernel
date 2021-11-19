@@ -1,63 +1,44 @@
 //
-// Kernel low level API
+// AVR Micro Kernel
 #include "strings.h"
 
-// Kernel memory space   0x00000 - 0x000ff
-#define _KERNEL_BEGIN__  0x00000
-#define _KERNEL_FLAGS__  0x00020
+#define _KERNEL_BEGIN__       0x00000
+#define _KERNEL_FLAGS__       0x00020
 
-// Kernel state flags
-#define _KERNEL_STATE_NORMAL__           0x00
-#define _KERNEL_STATE_OUT_OF_MEMORY__    0xff
+#define _KERNEL_STATE_NORMAL__          0x00
+#define _KERNEL_STATE_OUT_OF_MEMORY__   0xff
 
+#define _MESSAGE_QUEUE_LENGTH__         32
 
-// Extended memory
 void memory_read(uint32_t address, char& buffer);
 void memory_write(uint32_t address, char byte);
 
-// Peripheral device
 void device_read(uint32_t address, char& byte);
 void device_write(uint32_t address, char byte);
 
-// System message strings
-#include "string_space.h"
+#include "string_const.h"
 
-// External memory stack
 #include "stack_allocator.h"
+#include "device_index.h"
 
-// Emulator
-//#include "emulator.h"
-
-// Peripheral device address handler
-#include "device_handler.h"
-
-// Device drivers
 #include "drivers/display_driver.h"
 #include "drivers/file_system.h"
 #include "drivers/keyboard.h"
 
-// Command console
 #include "console.h"
 
-//
-// Kernel core
 
-#define _MESSAGE_QUEUE_LENGTH__    32
-
-// Default message callback
+// Default message callback procedure
 uint8_t defaultCallbackProcedure(uint8_t message);
 
 struct Kernel {
 	
-	// Keyboard
 	uint8_t keyboardState;
 	uint8_t lastChar;
 	
-	// Message queue
 	uint8_t messageQueue[_MESSAGE_QUEUE_LENGTH__];
 	uint8_t queueCounter;
 	
-	// Message procedure callback function pointer
 	uint8_t (*callbackPointer)(uint8_t);
 	
 	// Post a message to the kernel
@@ -214,14 +195,14 @@ uint8_t defaultCallbackProcedure(uint8_t message) {
 		case 0x00: {
 			char String[] = "Message callback";
 			console.addString(String, sizeof(String));
-			break;
+			return 1;
 		}
 		
 		default:
-		break;
+			break;
 	}
 	
-	return 1;
+	return 0;
 }
 
 
@@ -369,6 +350,97 @@ void device_write(uint32_t address, char byte) {
 	_BUS_UPPER_OUT__ = 0x0f;
 	
 	return;
+}
+
+
+// Allocate and display total available system memory
+uint32_t allocate_system_memory(void) {
+	
+	displayDriver.cursorSetPosition(1, 0);
+	console.cursorLine = 1;
+	console.cursorPos  = 0;
+	
+	uint32_t updateTimer=0;
+	
+	displayDriver.writeString(string_memory_allocator, sizeof(string_memory_allocator));
+	
+	string memoryString;
+	
+	#ifdef _TEST_RAM_EXTENSIVELY__
+	char readByteTest=0x00;
+	#endif
+	
+	char readByte=0x00;
+	uint32_t total_system_memory;
+	
+	// Copy the kernel memory before wiping the ram
+	uint8_t kernelBuffer[0x1f];
+	uint8_t kernelBufferSize = 0x1f;
+	for (uint8_t address=0; address < kernelBufferSize; address++) {
+		memory_read(address, readByte);
+		kernelBuffer[address] = readByte;
+	}
+	
+	for (total_system_memory=0x00000; total_system_memory < 0x40000; ) {
+		
+		// Run some memory cycles
+		memory_write(total_system_memory, 0x55);
+		memory_read(total_system_memory, readByte);
+		
+		// Check if the byte(s) stuck
+#ifdef _TEST_RAM_EXTENSIVELY__
+		// Run some more memory cycles
+		memory_write(total_system_memory, 0xaa);
+		memory_read(total_system_memory, readByteTest);
+		if ((readByte == 0x55) && (readByteTest == 0xaa)) {
+#else
+		if (readByte == 0x55) {
+#endif
+		
+#ifdef _FAST_BOOT__
+		total_system_memory += 0x8000;
+#else
+		total_system_memory++;
+#endif
+	} else {
+	
+	if (total_system_memory == 0x00000) {
+		
+		// Restore the kernel memory(if its installed)
+		for (uint8_t address=0; address < kernelBufferSize; address++) memory_write(address, kernelBuffer[address]);
+		
+		displayDriver.writeString(error_exmem_not_installed, sizeof(error_exmem_not_installed));
+		displayDriver.cursorSetPosition(2, 0);
+		while(1) nop;
+	}
+	break;
+	}
+	
+	// Restore the kernel memory
+	if ((total_system_memory < 0x0001f) || (total_system_memory == 0x8000)) {
+		for (uint8_t address=0; address < kernelBufferSize; address++) memory_write(address, kernelBuffer[address]);
+	}
+	
+	
+	// Update display
+	if (updateTimer > 1024) {updateTimer=0;
+		
+		string memoryString;
+		intToString(total_system_memory, memoryString.str);
+		displayDriver.writeString(memoryString.str, 7);
+		
+		} else {updateTimer++;}
+		
+	}
+	
+	// Calculate free memory
+	uint32_t memoryFree = (total_system_memory - 0x00100);
+	
+	// Display available memory
+	intToString(memoryFree, memoryString.str);
+	displayDriver.writeString(memoryString.str, 7);
+	
+	return total_system_memory;
 }
 
 
