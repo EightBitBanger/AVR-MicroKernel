@@ -99,11 +99,9 @@ struct CommandConsole {
 	// Execute the keyboard string with command prompt
 	void executeKeyboardString(void) {
 		
-		// Begin a prompt on a new line
 		uint8_t currentKeyStringLength = keyboard_string_length;
 		keyboard_string_length = 0;
 		
-		// Check first line
 		if (cursorLine == 0) {
 			
 			// Prompt start state catch
@@ -111,7 +109,6 @@ struct CommandConsole {
 			
 			if (currentKeyStringLength > 0) execute_command(keyboard_string);
 			
-			// Clear the keyboard string
 			clearKeyboardString();
 			setPrompt();
 			
@@ -123,7 +120,6 @@ struct CommandConsole {
 			
 			if (currentKeyStringLength > 0) {shiftUp(); execute_command(keyboard_string);} else {shiftUp();}
 			
-			// Clear the keyboard string and set a prompt
 			clearKeyboardString();
 			setPrompt();
 			
@@ -174,7 +170,7 @@ CommandConsole console;
 void command_mem_test(void) {
 	
 	uint32_t stackSz = stack_count();
-	uint32_t memoryFree = _HEAP_END__ - (0x00100 + stackSz);
+	uint32_t memoryFree = _STACK_END__ - (0x00100 + stackSz);
 	
 	string memorySz(string_memory_allocator, sizeof(string_memory_allocator));
 	

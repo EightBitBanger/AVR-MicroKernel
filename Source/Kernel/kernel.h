@@ -3,18 +3,15 @@
 #include "strings.h"
 
 #define _KERNEL_BEGIN__       0x00000
-#define _KERNEL_FLAGS__       0x00020
+#define _KERNEL_END__         0x00100
 
+#define _KERNEL_FLAGS__       0x00010
+
+// Flags
 #define _KERNEL_STATE_NORMAL__          0x00
 #define _KERNEL_STATE_OUT_OF_MEMORY__   0xff
 
 #define _MESSAGE_QUEUE_LENGTH__         32
-
-void memory_read(uint32_t address, char& buffer);
-void memory_write(uint32_t address, char byte);
-
-void device_read(uint32_t address, char& byte);
-void device_write(uint32_t address, char byte);
 
 #include "string_const.h"
 
@@ -208,151 +205,6 @@ uint8_t defaultCallbackProcedure(uint8_t message) {
 
 
 
-//
-// Low level memory IO
-void memory_read(uint32_t address, char& buffer) {
-	
-	// Address the device
-	_BUS_LOWER_DIR__ = 0xff;
-	
-	_CONTROL_OUT__ = 0b00111111;
-	_BUS_LOWER_OUT__ = (address & 0xff);
-	_BUS_MIDDLE_OUT__ = (address >> 8);
-	_BUS_UPPER_OUT__ = (address >> 16);
-	_CONTROL_OUT__ = 0b00110100;
-	
-	// Set data direction
-	_BUS_LOWER_DIR__ = 0x00; // Data bus input
-	_BUS_LOWER_OUT__ = 0xff; // Pull-up resistors
-	
-	_CONTROL_OUT__ = 0b00100100;
-	
-	// Wait states
-#ifdef _MEMORY_READ_WAIT_STATE_1__
-	nop;
-#endif
-#ifdef _MEMORY_READ_WAIT_STATE_2__
-	nop; nop;
-#endif
-#ifdef _MEMORY_READ_WAIT_STATE_3__
-	nop; nop; nop;
-#endif
-	
-	// Read the data byte
-	buffer = _BUS_LOWER_IN__;
-	
-	_CONTROL_OUT__ = 0b00111111;
-	_BUS_UPPER_OUT__ = 0x0f;
-	
-	return;
-}
-
-void memory_write(uint32_t address, char byte) {
-	
-	// Address the device
-	_BUS_LOWER_DIR__ = 0xff;
-	
-	_CONTROL_OUT__ = 0b00111111;
-	//_CONTROL_OUT__ |= (1 << _CONTROL_ADDRESS_LATCH__);
-	_BUS_LOWER_OUT__ = (address & 0xff);
-	_BUS_MIDDLE_OUT__ = (address >> 8);
-	_BUS_UPPER_OUT__ = (address >> 16);
-	//_CONTROL_OUT__ &= ~(1 << _CONTROL_ADDRESS_LATCH__);
-	_CONTROL_OUT__ = 0b00110101;
-	
-	// Cast the data byte
-	_BUS_LOWER_OUT__ = byte;
-	
-	_CONTROL_OUT__ = 0b00010101;
-	
-	// Wait states
-#ifdef _MEMORY_WRITE_WAIT_STATE_1__
-	nop;
-#endif
-#ifdef _MEMORY_WRITE_WAIT_STATE_2__
-	nop; nop;
-#endif
-#ifdef _MEMORY_WRITE_WAIT_STATE_3__
-	nop; nop; nop;
-#endif
-	
-	_CONTROL_OUT__ = 0b00111111;
-	_BUS_UPPER_OUT__ = 0x0f;
-	
-	return;
-}
-
-void device_read(uint32_t address, char& byte) {
-	
-	// Address the device
-	_BUS_LOWER_DIR__ = 0xff;
-	
-	_CONTROL_OUT__ = 0b00111111;
-	_BUS_LOWER_OUT__ = (address & 0xff);
-	_BUS_MIDDLE_OUT__ = (address >> 8);
-	_BUS_UPPER_OUT__ = (address >> 16);
-	_CONTROL_OUT__ = 0b00110100;
-	
-	// Set data direction
-	_BUS_LOWER_DIR__ = 0x00; // Data bus input
-	_BUS_LOWER_OUT__ = 0xff; // Pull-up resistors
-	
-	// Read operation
-	_CONTROL_OUT__ = 0b00100100;
-	
-	// Wait states
-#ifdef _DEVICE_READ_WAIT_STATE_1__
-	for (uint8_t i=0; i<10; i++) {nop;nop;nop;nop;}
-#endif
-#ifdef _DEVICE_READ_WAIT_STATE_2__
-	for (uint8_t i=0; i<50; i++) {nop;nop;nop;nop;}
-#endif
-#ifdef _DEVICE_READ_WAIT_STATE_3__
-	for (uint8_t i=0; i<100; i++) {nop;nop;nop;nop;}
-#endif
-	
-	byte = _BUS_LOWER_IN__;
-	
-	_CONTROL_OUT__ = 0b00111111;
-	_BUS_UPPER_OUT__ = 0x0f;
-	
-	return;
-}
-
-void device_write(uint32_t address, char byte) {
-	
-	// Address the device
-	_BUS_LOWER_DIR__ = 0xff;
-	
-	_CONTROL_OUT__ = 0b00111111;
-	_BUS_LOWER_OUT__ = (address & 0xff);
-	_BUS_MIDDLE_OUT__ = (address >> 8);
-	_BUS_UPPER_OUT__ = (address >> 16);
-	_CONTROL_OUT__ = 0b00110101;
-	
-	_BUS_LOWER_OUT__ = byte;
-	
-	// Write operation
-	_CONTROL_OUT__ = 0b00010101;
-	
-	// Wait states
-#ifdef _DEVICE_WRITE_WAIT_STATE_1__
-	for (uint8_t i=0; i<10; i++) {nop;nop;nop;nop;}
-#endif
-#ifdef _DEVICE_WRITE_WAIT_STATE_2__
-	for (uint8_t i=0; i<50; i++) {nop;nop;nop;nop;}
-#endif
-#ifdef _DEVICE_WRITE_WAIT_STATE_3__
-	for (uint8_t i=0; i<100; i++) {nop;nop;nop;nop;}
-#endif
-	
-	_CONTROL_OUT__ = 0b00111111;
-	_BUS_UPPER_OUT__ = 0x0f;
-	
-	return;
-}
-
-
 // Allocate and display total available system memory
 uint32_t allocate_system_memory(void) {
 	
@@ -366,9 +218,9 @@ uint32_t allocate_system_memory(void) {
 	
 	string memoryString;
 	
-	#ifdef _TEST_RAM_EXTENSIVELY__
+#ifdef _TEST_RAM_EXTENSIVELY__
 	char readByteTest=0x00;
-	#endif
+#endif
 	
 	char readByte=0x00;
 	uint32_t total_system_memory;

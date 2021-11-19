@@ -1,8 +1,4 @@
-
 #include "main.h"
-
-
-uint32_t allocate_system_memory(void);
 
 int main(void) {
 	
@@ -11,8 +7,8 @@ int main(void) {
 	// Initiate device index
 	device.initiate();
 	
-	// Check available system memory
-	_HEAP_END__ = allocate_system_memory();
+	// Check available extended memory
+	_STACK_END__ = allocate_system_memory();
 	
 	// Initiate and fire up the kernel
 	kernel.initiate();
@@ -20,5 +16,4 @@ int main(void) {
 	
 	return 0;
 }
-
 

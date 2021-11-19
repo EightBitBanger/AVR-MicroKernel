@@ -44,10 +44,10 @@
 
 
 
-// Lower IO bus
-#define _BUS_LOWER_DIR__  DDRA
-#define _BUS_LOWER_OUT__  PORTA
-#define _BUS_LOWER_IN__   PINA
+// Lower address bus
+#define _BUS_LOWER_DIR__   DDRA
+#define _BUS_LOWER_OUT__   PORTA
+#define _BUS_LOWER_IN__    PINA
 
 // Middle address bus
 #define _BUS_MIDDLE_DIR__  DDRC
@@ -55,14 +55,14 @@
 #define _BUS_MIDDLE_IN__   PINC
 
 // Upper address bus
-#define _BUS_UPPER_DIR__    DDRD
-#define _BUS_UPPER_OUT__    PORTD
-#define _BUS_UPPER_IN__     PIND
+#define _BUS_UPPER_DIR__   DDRD
+#define _BUS_UPPER_OUT__   PORTD
+#define _BUS_UPPER_IN__    PIND
 
 // Control bus
-#define _CONTROL_DIR__    DDRB
-#define _CONTROL_OUT__    PORTB
-#define _CONTROL_IN__     PINB
+#define _CONTROL_DIR__     DDRB
+#define _CONTROL_OUT__     PORTB
+#define _CONTROL_IN__      PINB
 
 //
 // Control lines
