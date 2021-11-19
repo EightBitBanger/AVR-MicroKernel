@@ -119,7 +119,7 @@ uint8_t string_compare(const char stringA[], const char stringB[], uint8_t strin
 void string_clear(char string[], uint8_t string_size) {for (uint8_t i=0; i<string_size; i++) string[i]=0x20;}
 
 // Convert integer number to string of characters
-uint8_t intToString(uint32_t number, char String[]) {
+uint8_t intToString(uint32_t number, string& destination_string) {
 	
 	uint8_t ones = 0x30;
 	uint8_t tens = 0x30;
@@ -149,15 +149,15 @@ uint8_t intToString(uint32_t number, char String[]) {
 	while (number > 9)       {number -= 10;        tens += 1;}
 	while (number > 0)       {number -= 1;         ones += 1;}
 	
-	// Place in the string
-	if (place == 0) String[place] = ones;
-	if (place > 0) String[place-1] = ones;
-	if (place > 1) String[place-2] = tens;
-	if (place > 2) String[place-3] = hnds;
-	if (place > 3) String[place-4] = thou;
-	if (place > 4) String[place-5] = ttho;
-	if (place > 5) String[place-6] = htho;
-	if (place > 6) String[place-7] = mill;
+	// Figure length of string
+	if (place == 0) destination_string.str[place]   = ones;
+	if (place > 0)  destination_string.str[place-1] = ones;
+	if (place > 1)  destination_string.str[place-2] = tens;
+	if (place > 2)  destination_string.str[place-3] = hnds;
+	if (place > 3)  destination_string.str[place-4] = thou;
+	if (place > 4)  destination_string.str[place-5] = ttho;
+	if (place > 5)  destination_string.str[place-6] = htho;
+	if (place > 6)  destination_string.str[place-7] = mill;
 	
 	return 0;
 }

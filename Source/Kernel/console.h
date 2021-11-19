@@ -172,10 +172,11 @@ void command_mem_test(void) {
 	uint32_t stackSz = stack_count();
 	uint32_t memoryFree = _STACK_END__ - (0x00100 + stackSz);
 	
-	string memorySz(string_memory_allocator, sizeof(string_memory_allocator));
+	string memorySz;
 	
-	intToString(memoryFree, memorySz.str);
-	console.addString(memorySz.str, sizeof(string_memory_allocator));
+	intToString(memoryFree, memorySz);
+	console.cursorPos = 0;
+	console.addString(memorySz.str, memorySz.size());
 	
 	return;
 }
@@ -269,7 +270,7 @@ void command_list_files(void) {
 	// Display number of files
 	string strValue("    Files", 9);
 	uint32_t numberOfFiles = partition.getNumberOfFiles();
-	intToString(numberOfFiles, strValue.str);
+	intToString(numberOfFiles, strValue);
 	console.addString(strValue.str, strValue.size());
 	
 	// List files

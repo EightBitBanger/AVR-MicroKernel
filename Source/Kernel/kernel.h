@@ -278,7 +278,7 @@ uint32_t allocate_system_memory(void) {
 	if (updateTimer > 1024) {updateTimer=0;
 		
 		string memoryString;
-		intToString(total_system_memory, memoryString.str);
+		intToString(total_system_memory, memoryString);
 		displayDriver.writeString(memoryString.str, 7);
 		
 		} else {updateTimer++;}
@@ -286,10 +286,10 @@ uint32_t allocate_system_memory(void) {
 	}
 	
 	// Calculate free memory
-	uint32_t memoryFree = (total_system_memory - 0x00100);
+	uint32_t memoryFree = (total_system_memory);
 	
 	// Display available memory
-	intToString(memoryFree, memoryString.str);
+	intToString(memoryFree, memoryString);
 	displayDriver.writeString(memoryString.str, 7);
 	
 	return total_system_memory;
