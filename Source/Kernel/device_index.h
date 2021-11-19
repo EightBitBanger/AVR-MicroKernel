@@ -18,7 +18,7 @@ struct DeviceIndex {
 		
 		char identityByte=0xff;
 		uint32_t address=_DEVICE_ADDRESS_START__;
-		for (uint8_t i=0; i < 0x0f; i++) {
+		for (uint8_t i=0; i <= 0x0f; i++) {
 			
 			device_read(address, identityByte);
 			
@@ -37,7 +37,7 @@ struct DeviceIndex {
 		
 		uint32_t address=_DEVICE_ADDRESS_START__;
 		
-		for (uint8_t i=0; i < 0x0f; i++) {
+		for (uint8_t i=0; i <= 0x0f; i++) {
 			
 			char readIdentityByte=0x00;
 			memory_read((_DEVICE_INDEX__ + i), readIdentityByte);

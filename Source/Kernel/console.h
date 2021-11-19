@@ -49,20 +49,16 @@ struct CommandConsole {
 	}
 	
 	// Add a const char string to the console
-	void addString(const char charArray[], uint8_t string_length, uint8_t position_offset=0) {
-		
-		displayDriver.writeString(charArray, string_length, cursorLine, cursorPos + position_offset);
-		addNewLine();
-		
+	void addString(const char charArray[], uint8_t string_length) {
+		displayDriver.writeString(charArray, string_length, cursorLine, cursorPos);
+		cursorPos+=string_length;
 		return;
 	}
 	
 	// Add a string to the console
-	void addString(string& charString, uint8_t string_length, uint8_t position_offset=0) {
-		
-		displayDriver.writeString(charString, string_length, cursorLine, cursorPos + position_offset);
-		addNewLine();
-		
+	void addString(string& charString, uint8_t string_length) {
+		displayDriver.writeString(charString, string_length, cursorLine, cursorPos);
+		cursorPos+=string_length;
 		return;
 	}
 	
@@ -144,15 +140,16 @@ struct CommandConsole {
 	// Execute a command from a string
 	void execute_command(char command_string[]) {
 		
-		if (string_compare(command_string, "cls",     3) == 1) {clear_screen(); return;}
-		if (string_compare(command_string, "port",    4) == 1) {port_output(); return;}
-		if (string_compare(command_string, "device",  6) == 1) {device_list(); return;}
-		if (string_compare(command_string, "disable", 7) == 1) {device_disable(); return;}
-		if (string_compare(command_string, "mem",     3) == 1) {command_mem_test(); return;}
-		if (string_compare(command_string, "dir",     3) == 1) {command_list_files(); return;}
+		if (string_compare(command_string, "cls",     3) == 1) {cursorPos = 0;clear_screen();}
+		if (string_compare(command_string, "port",    4) == 1) {cursorPos = 0;port_output();}
+		if (string_compare(command_string, "device",  6) == 1) {cursorPos = 0;device_list();}
+		if (string_compare(command_string, "disable", 7) == 1) {cursorPos = 0;device_disable();}
+		if (string_compare(command_string, "mem",     3) == 1) {cursorPos = 0;command_mem_test();}
+		if (string_compare(command_string, "dir",     3) == 1) {cursorPos = 0;command_list_files();}
 		
-		if (string_compare(command_string, "dir",     3) == 1) {command_list_files(); return;}
+		if (string_compare(command_string, "dir",     3) == 1) {cursorPos = 0;command_list_files();}
 		
+		setPrompt();
 		
 		return;
 	}
@@ -202,28 +199,26 @@ void clear_screen(void) {
 
 void device_list(void) {
 	
-	for (uint8_t i=0; i<8; i++) {
+	for (uint8_t i=0; i <= 0x05; i++) {
 		
 		// Get the device driver IDs
 		char deviceID=0xff;
-		memory_read( (_KERNEL_BEGIN__ + i), deviceID);
+		memory_read( (_DEVICE_INDEX__ + i), deviceID);
 		
 		// Check valid device ID
 		if (deviceID != 0x00) {
 			
-			string deviceName(8);
-			deviceName[0] = (0x31 + i); // Device slot number
+			string deviceSlot(2);
+			intToString(i+1, deviceSlot);
+			console.addString(deviceSlot, 2);
 			
 			// Display console
 			if (deviceID == 0x10) {
-				
-				deviceName.insert("Display", 8, 2);
-				
+				string deviceName("con", 4);
 				console.addString(deviceName, deviceName.size());
-				continue;
 			}
 			
-			
+			console.addNewLine();
 		}
 		
 	}
