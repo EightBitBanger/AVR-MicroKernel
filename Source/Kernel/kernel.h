@@ -34,7 +34,9 @@ struct Function {
 	
 };
 
-struct Kernel {
+class Kernel {
+	
+	public:
 	
 	char  promptCharacter;
 	uint8_t promptState;
