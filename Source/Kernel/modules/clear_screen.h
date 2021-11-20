@@ -27,7 +27,7 @@ void command_clear_screen(void) {
 	kernel.console.cursorLine  = 0;
 	kernel.console.cursorPos   = 1;
 	
-	_delay_ms(100);
+	_delay_ms(64);
 	
 	// Initiate the prompt
 	kernel.console.consoleNewPrompt();

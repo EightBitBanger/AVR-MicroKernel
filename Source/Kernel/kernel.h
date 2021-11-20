@@ -31,23 +31,6 @@ uint8_t defaultCallbackProcedure(uint8_t message);
 
 struct Kernel {
 	
-	uint8_t messageQueue[8];
-	uint8_t queueCounter;
-	
-	// Message queue callback
-	uint8_t (*callbackPointer)(uint8_t);
-	
-	Kernel() {
-		
-		// Initiate message queue
-		for (uint8_t i=0; i < 8; i++) messageQueue[i] = 0xff;
-		queueCounter=0;
-		
-		// Set default message callback procedure
-		callbackPointer = &defaultCallbackProcedure;
-		
-	}
-	
 	void callCommandFunction(void) {
 		
 		// Function look up
@@ -67,52 +50,6 @@ struct Kernel {
 		
 	}
 	
-	
-	// Post a message to the kernel
-	void postMessage(uint8_t message) {
-		
-		// Shift down the queue
-		messageQueue[7] = messageQueue[6];
-		messageQueue[6] = messageQueue[5];
-		messageQueue[5] = messageQueue[4];
-		messageQueue[4] = messageQueue[3];
-		messageQueue[3] = messageQueue[2];
-		messageQueue[2] = messageQueue[1];
-		messageQueue[1] = messageQueue[0];
-		
-		// Add to queue
-		messageQueue[0] = message;
-		queueCounter++;
-		
-		return;
-	}
-	// Check the number of messages currently in the queue
-	uint8_t peekMessage(void) {return queueCounter;}
-	// Process a message from the message queue
-	void processMessageQueue(void) {
-		
-		if (queueCounter == 0) return;
-		
-		// Grab the first message
-		uint8_t message = messageQueue[0];
-		
-		// Shift up the queue
-		messageQueue[0] = messageQueue[1];
-		messageQueue[1] = messageQueue[2];
-		messageQueue[2] = messageQueue[3];
-		messageQueue[3] = messageQueue[4];
-		messageQueue[4] = messageQueue[5];
-		messageQueue[5] = messageQueue[6];
-		messageQueue[6] = messageQueue[7];
-		
-		// Decrement the queue
-		queueCounter--;
-		
-		// Call the callback procedure function with the message
-		(callbackPointer)( message );
-		
-	}
-	
 	// Initiate kernel memory
 	void initiate(void) {
 		
@@ -123,6 +60,7 @@ struct Kernel {
 		console.lastChar = keyboard.read();
 		
 	}
+	
 	// Starts the kernel loop
 	void run(void) {
 		
@@ -139,7 +77,7 @@ struct Kernel {
 			
 			kernelCounter++;
 			if (kernelCounter > kernelTimeOut) {kernelCounter=0;
-				while(peekMessage() != 0) processMessageQueue();
+				while(queue.peekMessage() != 0) queue.processMessage();
 			}
 			
 			keyboardCounter++;
@@ -152,7 +90,7 @@ struct Kernel {
 		return;
 	}
 	
-	// Update keyboard state
+	// Update keyboard string
 	void updateKeyboard(void) {
 		
 		uint8_t scanCodeAccepted = 0;
@@ -214,6 +152,73 @@ struct Kernel {
 		}
 		
 	}
+	
+	struct MessageQueue {
+		
+		uint8_t queue[8];
+		uint8_t counter;
+		
+		// Message callback
+		uint8_t (*callbackPointer)(uint8_t);
+		
+		MessageQueue() {
+			
+			// Initiate message queue
+			for (uint8_t i=0; i < 8; i++) queue[i] = 0xff;
+			counter=0;
+			
+			// Set default message callback procedure
+			callbackPointer = &defaultCallbackProcedure;
+			
+		}
+		
+		// Post a message to the kernel
+		void postMessage(uint8_t message) {
+			
+			// Shift down the queue
+			queue[7] = queue[6];
+			queue[6] = queue[5];
+			queue[5] = queue[4];
+			queue[4] = queue[3];
+			queue[3] = queue[2];
+			queue[2] = queue[1];
+			queue[1] = queue[0];
+			
+			// Add to queue
+			queue[0] = message;
+			counter++;
+			
+			return;
+		}
+		// Check the number of messages currently in the queue
+		uint8_t peekMessage(void) {return counter;}
+		// Process a message from the message queue
+		void processMessage(void) {
+			
+			if (counter == 0) return;
+			
+			// Grab the first message
+			uint8_t message = queue[0];
+			
+			// Shift up the queue
+			queue[0] = queue[1];
+			queue[1] = queue[2];
+			queue[2] = queue[3];
+			queue[3] = queue[4];
+			queue[4] = queue[5];
+			queue[5] = queue[6];
+			queue[6] = queue[7];
+			
+			// Decrement the queue
+			counter--;
+			
+			// Call the callback procedure function with the message
+			(callbackPointer)( message );
+			
+		}
+		
+	};
+	MessageQueue queue;
 	
 	struct CommandFunctionIndex {
 		
