@@ -135,8 +135,8 @@ struct Kernel {
 	// Starts the kernel loop
 	void run(void) {
 		
-		uint16_t kernelTimeOut   = 10;
-		uint16_t keyboardTimeOut = 500;
+		uint16_t kernelTimeOut   = 80;
+		uint16_t keyboardTimeOut = 18000;
 		
 		uint16_t kernelCounter   = 0;
 		uint16_t keyboardCounter = 0;
@@ -200,16 +200,16 @@ struct Kernel {
 		
 		// Decode the scan code
 		if (keyboard_string_length < 19) {
-			// Check current code
+			// ASCII char
 			currentChar = readKeyCode;
-			if (currentChar > 0x1f) scanCodeAccepted=1;
+			if (readKeyCode > 0x1f) {scanCodeAccepted=1;}
 		} else {
-			// Allow backspace and enter to pass max string length
+			// Allow backspace and enter past max string length
 			if (readKeyCode < 0x03) currentChar = readKeyCode;
 		}
 		
 		// Prevent wild key repeats
-		if (lastChar == currentChar) {return;} lastChar = currentChar;
+		if (lastChar == currentChar) {lastChar == currentChar; return;} lastChar = currentChar;
 		
 		// Backspace
 		if (currentChar == 0x01) {
