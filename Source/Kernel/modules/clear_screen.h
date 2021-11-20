@@ -1,6 +1,6 @@
 //
 // Clear screen command module
-
+namespace Modules {
 struct ModuleClearScreen {
 	
 	ModuleClearScreen() {
@@ -9,6 +9,7 @@ struct ModuleClearScreen {
 		const char name[] = "cls";
 		
 		uint8_t index = kernel.getFreeFunctionIndex();
+		if (index == 0) return; else index--;
 		
 		// Install the function pointer and command name
 		kernel.functionState[index] = 0xff;
@@ -42,4 +43,6 @@ struct ModuleClearScreen {
 	
 };
 static ModuleClearScreen moduleClearScreen;
+}
+
 

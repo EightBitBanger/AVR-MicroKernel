@@ -1,5 +1,6 @@
 //
 // Device list command module
+namespace Modules {
 
 struct ModuleDeviceList {
 	
@@ -9,6 +10,7 @@ struct ModuleDeviceList {
 		const char name[] = "device";
 		
 		uint8_t index = kernel.getFreeFunctionIndex();
+		if (index == 0) return; else index--;
 		
 		// Install the function pointer and command name
 		kernel.functionState[index] = 0xff;
@@ -30,4 +32,8 @@ struct ModuleDeviceList {
 	
 };
 static ModuleDeviceList moduleDeviceList;
+
+
+}
+
 

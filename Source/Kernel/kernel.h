@@ -78,7 +78,7 @@ struct Kernel {
 		// Set default message callback procedure
 		callbackPointer = &defaultCallbackProcedure;
 		
-		// Command function index
+		// Initiate command function look up table
 		for (uint8_t i=0; i < 16; i++) {
 			
 			functionState[i] = 0x00;
@@ -88,18 +88,31 @@ struct Kernel {
 			
 		}
 		
-		
-		//void (*command_function_ptr[16])(void);
-		//char functionNameIndex[16][8];
-		
 	}
 	
 	// Return a free command function slot index
 	uint8_t getFreeFunctionIndex(void) {
-		for (uint8_t i=0; i < _COMMAND_TABLE_SIZE__; i++) {if (functionState[i] == 0) return i;} return 0;
+		for (uint8_t i=0; i < _COMMAND_TABLE_SIZE__; i++) {if (functionState[i] == 0) return i+1;} return 0;
 	}
-	
-	
+	// Call a command function
+	void callCommandFunction(void) {
+		
+		// Function look up
+		for (uint8_t i=0; i<_COMMAND_TABLE_SIZE__; i++) {
+			
+			if (functionState[i] == 0x00) continue;
+			
+			uint8_t count=1;
+			for (uint8_t a=0; a<8; a++) {
+				// Compare to keyboard string
+				if (functionNameIndex[i][a] == keyboard_string[a]) count++;
+				// Execute the command
+				if (count == 8) {command_function_ptr[i](); return;}
+			}
+			
+		}
+		
+	}
 	
 	// Post a message to the kernel
 	void postMessage(uint8_t message) {
@@ -241,59 +254,33 @@ struct Kernel {
 		// Prevent wild key repeats
 		if (lastChar == currentChar) {lastChar == currentChar; return;} lastChar = currentChar;
 		
-		switch (currentChar) {
-			case 0x01: { // Backspace
-				if (keyboard_string_length > 0) {
-					// Remove last char from display
-					displayDriver.writeChar(0x20, cursorLine, keyboard_string_length);
-					displayDriver.cursorSetPosition(cursorLine, keyboard_string_length);
-					// and keyboard string
-					keyboard_string_length--;
-					keyboard_string[keyboard_string_length] = 0x20;
-				}break;}
-			case 0x02: { // Enter
-				uint8_t currentKeyStringLength = keyboard_string_length;
-				keyboard_string_length = 0;
-				
-				if (cursorLine == 3) {shiftUp();}
-				if (cursorLine == 2) cursorLine++;
-				if (cursorLine == 1) cursorLine++;
-				if (cursorLine == 0) {if (promptState == 0) {promptState++;} else {cursorLine++;}}
-				
-				if (currentKeyStringLength > 0) {cursorPos=0; 
-					
-					// Look up function
-					for (uint8_t i=0; i<_COMMAND_TABLE_SIZE__; i++) {
-						
-						// Check active function
-						if (functionState[i] != 0x00) {
-							
-							// Check the command name
-							uint8_t count=1;
-							for (uint8_t a=0; a<8; a++) {
-								
-								if (functionNameIndex[i][a] == keyboard_string[a]) count++;
-								
-								if (count == 8) {
-									
-									command_function_ptr[i](); // Execute the command
-									
-									return;
-								}
-								
-							}
-							
-						}
-						
-					}
-					
-					consoleNewPrompt();
-				}
-				
-				clearKeyboardString();
-				consoleNewPrompt();
-				return;}
-			default: break;
+		// Backspace
+		if (currentChar == 0x01) { 
+			if (keyboard_string_length > 0) {
+				// Remove last char from display
+				displayDriver.writeChar(0x20, cursorLine, keyboard_string_length);
+				displayDriver.cursorSetPosition(cursorLine, keyboard_string_length);
+				// and keyboard string
+				keyboard_string_length--;
+				keyboard_string[keyboard_string_length] = 0x20;
+			}
+		}
+		
+		// Enter
+		if (currentChar == 0x02) {
+			
+			uint8_t currentKeyStringLength = keyboard_string_length;
+			keyboard_string_length = 0;
+			
+			if (cursorLine == 3) {shiftUp();}
+			if (cursorLine == 2) cursorLine++;
+			if (cursorLine == 1) cursorLine++;
+			if (cursorLine == 0) {if (promptState == 0) {promptState++;} else {cursorLine++;}}
+			
+			if (currentKeyStringLength > 0) {cursorPos=0; callCommandFunction();}
+			
+			clearKeyboardString();
+			consoleNewPrompt();
 		}
 		
 		// ASCII key character accepted
@@ -312,6 +299,7 @@ struct Kernel {
 };
 Kernel kernel;
 
+// Load kernel modules
 #include "modules.h"
 
 uint8_t defaultCallbackProcedure(uint8_t message) {
