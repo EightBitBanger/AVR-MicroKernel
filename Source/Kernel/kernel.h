@@ -13,6 +13,8 @@
 #define _KERNEL_TIMEOUT__    40
 #define _KEYBOARD_TIMEOUT__  10000
 
+#define _COMMAND_TABLE_SIZE__  16
+
 #include "stack_allocator.h"
 #include "device_index.h"
 
@@ -26,40 +28,34 @@
 // Default message callback procedure
 uint8_t defaultCallbackProcedure(uint8_t message);
 
+
+
+struct Function {
+	
+};
+
 struct Kernel {
 	
-	void command_clear_screen(void) {
-		// Clear the buffer and mask
-		displayDriver.clearBuffer();
-		displayDriver.clearMask();
-		clearKeyboardString();
-		
-		// Reset the cursor
-		cursorLine  = 0;
-		cursorPos   = 1;
-		
-		_delay_ms(100);
-		
-		// Initiate the prompt
-		consoleNewPrompt();
-		
-		promptState = 1;
-	}
-	
-	char promptCharacter;
+	char  promptCharacter;
 	uint8_t promptState;
 	uint8_t cursorLine;
 	uint8_t cursorPos;
 	
 	uint8_t keyboard_string_length;
-	char keyboard_string[24];
+	char  keyboard_string[24];
 	uint8_t keyboardState;
 	uint8_t lastChar;
 	
 	uint8_t messageQueue[8];
 	uint8_t queueCounter;
 	
+	// Message queue callback
 	uint8_t (*callbackPointer)(uint8_t);
+	
+	// Command function index
+	uint8_t functionState[_COMMAND_TABLE_SIZE__];
+	void (*command_function_ptr[_COMMAND_TABLE_SIZE__])(void);
+	char functionNameIndex[_COMMAND_TABLE_SIZE__][8];
 	
 	Kernel() {
 		
@@ -82,7 +78,28 @@ struct Kernel {
 		// Set default message callback procedure
 		callbackPointer = &defaultCallbackProcedure;
 		
+		// Command function index
+		for (uint8_t i=0; i < 16; i++) {
+			
+			functionState[i] = 0x00;
+			command_function_ptr[i] = nullptr;
+			
+			for (uint8_t a=0; a < 8; a++) functionNameIndex[i][a] = 0x20;
+			
+		}
+		
+		
+		//void (*command_function_ptr[16])(void);
+		//char functionNameIndex[16][8];
+		
 	}
+	
+	// Return a free command function slot index
+	uint8_t getFreeFunctionIndex(void) {
+		for (uint8_t i=0; i < _COMMAND_TABLE_SIZE__; i++) {if (functionState[i] == 0) return i;} return 0;
+	}
+	
+	
 	
 	// Post a message to the kernel
 	void postMessage(uint8_t message) {
@@ -102,10 +119,8 @@ struct Kernel {
 		
 		return;
 	}
-	
 	// Check the number of messages currently in the queue
 	uint8_t peekMessage(void) {return queueCounter;}
-	
 	// Process a message from the message queue
 	void processMessageQueue(void) {
 		
@@ -141,8 +156,6 @@ struct Kernel {
 		lastChar = keyboard.read();
 		
 	}
-	
-	//
 	// Starts the kernel loop
 	void run(void) {
 		
@@ -249,12 +262,30 @@ struct Kernel {
 				
 				if (currentKeyStringLength > 0) {cursorPos=0; 
 					
-					if (string_compare(keyboard_string, "cls",     3) == 1) {postMessage(0x01);}
-					//if (string_compare(keyboard_string, "port",    4) == 1) {port_output();}
-					//if (string_compare(keyboard_string, "device",  6) == 1) {device_list();}
-					//if (string_compare(keyboard_string, "disable", 7) == 1) {device_disable();}
-					//if (string_compare(keyboard_string, "mem",     3) == 1) {command_mem_test();}
-					//if (string_compare(keyboard_string, "dir",     3) == 1) {command_list_files();}
+					// Look up function
+					for (uint8_t i=0; i<_COMMAND_TABLE_SIZE__; i++) {
+						
+						// Check active function
+						if (functionState[i] != 0x00) {
+							
+							// Check the command name
+							uint8_t count=1;
+							for (uint8_t a=0; a<8; a++) {
+								
+								if (functionNameIndex[i][a] == keyboard_string[a]) count++;
+								
+								if (count == 8) {
+									
+									command_function_ptr[i](); // Execute the command
+									
+									return;
+								}
+								
+							}
+							
+						}
+						
+					}
 					
 					consoleNewPrompt();
 				}
@@ -281,23 +312,12 @@ struct Kernel {
 };
 Kernel kernel;
 
+#include "modules.h"
+
 uint8_t defaultCallbackProcedure(uint8_t message) {
 	
 	switch (message) {
-		
-		case 0x00: {
-			char String[] = "Message callback";
-			kernel.addString(String, sizeof(String));
-			return 1;
-		}
-		
-		case 0x01: {
-			kernel.command_clear_screen();
-			break;
-		}
-		
-		default:
-			break;
+		default: kernel.command_function_ptr[message](); break;
 	}
 	
 	return 0;
