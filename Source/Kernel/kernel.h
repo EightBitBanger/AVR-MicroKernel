@@ -28,15 +28,9 @@
 // Default message callback procedure
 uint8_t defaultCallbackProcedure(uint8_t message);
 
+void blank_function(void) {return;};
 
-
-struct Function {
-	
-};
-
-class Kernel {
-	
-	public:
+struct Kernel {
 	
 	char  promptCharacter;
 	uint8_t promptState;
@@ -56,7 +50,7 @@ class Kernel {
 	
 	// Command function index
 	uint8_t functionState[_COMMAND_TABLE_SIZE__];
-	void (*command_function_ptr[_COMMAND_TABLE_SIZE__])(void);
+	void (*command_function_ptr[_COMMAND_TABLE_SIZE__])();
 	char functionNameIndex[_COMMAND_TABLE_SIZE__][8];
 	
 	Kernel() {
@@ -84,7 +78,7 @@ class Kernel {
 		for (uint8_t i=0; i < 16; i++) {
 			
 			functionState[i] = 0x00;
-			command_function_ptr[i] = nullptr;
+			command_function_ptr[i] = &blank_function;
 			
 			for (uint8_t a=0; a < 8; a++) functionNameIndex[i][a] = 0x20;
 			
@@ -114,6 +108,14 @@ class Kernel {
 			
 		}
 		
+	}
+	// Install a function pointer into the command function table
+	void installFunction(uint8_t index, void(*function_ptr)(), const char name[], uint8_t name_length) {
+		if (index == 0) return; else index--;
+		functionState[index] = 0xff;
+		command_function_ptr[index] = function_ptr;
+		for (uint8_t i=0; i < name_length; i++) functionNameIndex[index][i] = name[i];
+		return;
 	}
 	
 	// Post a message to the kernel
@@ -187,16 +189,12 @@ class Kernel {
 			
 			kernelCounter++;
 			if (kernelCounter > kernelTimeOut) {kernelCounter=0;
-				
 				while(peekMessage() != 0) processMessageQueue();
-				
 			}
 			
 			keyboardCounter++;
 			if (keyboardCounter > keyboardTimeOut) {
-				
 				keyboardCounter=0;checkKeyboardState();
-				
 			}
 			
 		}
@@ -312,7 +310,6 @@ uint8_t defaultCallbackProcedure(uint8_t message) {
 	
 	return 0;
 }
-
 
 
 
