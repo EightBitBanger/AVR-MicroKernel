@@ -1,31 +1,27 @@
 //
 // Device list command module
 
-void command_list_devices(void);
+void command_device(void);
 
-struct ModuleDeviceList {
+struct ModuleDeviceCommand {
 	
-	ModuleDeviceList() {
+	ModuleDeviceCommand() {
 		
-		// Command name
-		char name[] = "device";
-		
-		// Install the function pointer
-		kernel.installFunction(&command_list_devices, name, sizeof(name));
+		const char command_name[] = "device";
+		kernel.installFunction(&command_device, command_name, sizeof(command_name));
 		
 		return;
 	}
 	
 };
-static ModuleDeviceList moduleDeviceList;
+static ModuleDeviceCommand moduleDeviceList;
 
-void command_list_devices(void) {
+void command_device(void) {
 	
-	// Clear the buffer and mask
-	displayDriver.clearBuffer();
-	displayDriver.clearMask();
+	string memoryFree(string_memory_allocator, sizeof(string_memory_allocator));
 	
-	_delay_ms(100);
+	kernel.consoleAddString(memoryFree, memoryFree.size());
+	kernel.consoleNewLine();
 	
 	return;
 }

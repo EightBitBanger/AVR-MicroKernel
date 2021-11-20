@@ -13,7 +13,7 @@
 #define _KERNEL_TIMEOUT__    40
 #define _KEYBOARD_TIMEOUT__  10000
 
-#define _COMMAND_TABLE_SIZE__  16
+#define _COMMAND_TABLE_SIZE__  128
 
 #include "stack_allocator.h"
 #include "device_index.h"
@@ -59,15 +59,13 @@ struct Kernel {
 		cursorPos       = 0;
 		
 		keyboard_string_length = 0;
-		clearKeyboardString();
+		consoleClearString();
 		
 		keyboardState=0;
 		lastChar=0;
 		
 		// Initiate message queue
-		for (uint8_t i=0; i < 8; i++) 
-			messageQueue[i] = 0xff;
-		
+		for (uint8_t i=0; i < 8; i++) messageQueue[i] = 0xff;
 		queueCounter=0;
 		
 		// Set default message callback procedure
@@ -75,12 +73,9 @@ struct Kernel {
 		
 		// Initiate command function look up table
 		for (uint8_t i=0; i < 16; i++) {
-			
 			functionState[i] = 0x00;
 			command_function_ptr[i] = nullfunction;
-			
 			for (uint8_t a=0; a < 8; a++) functionNameIndex[i][a] = 0x20;
-			
 		}
 		
 	}
@@ -208,26 +203,23 @@ struct Kernel {
 	//
 	// Command console
 	
-	// Clear the keyboard string
-	void clearKeyboardString(void) {for (uint8_t i=0; i < 20; i++) {keyboard_string[i] = 0x20;} keyboard_string_length=0;}
-	
 	// Shift the display up one line
-	void shiftUp(void) {displayDriver.frameShiftUp();_delay_ms(100);}
+	void consoleShiftUp(void) {displayDriver.frameShiftUp();_delay_ms(100);}
 	
 	// Add a const char string to the console
-	void addString(const char charArray[], uint8_t string_length) {
+	void consoleAddString(const char charArray[], uint8_t string_length) {
 		displayDriver.writeString(charArray, string_length, cursorLine, cursorPos);
 		cursorPos+=string_length;
 		return;
 	}
-	void addString(string& charString, uint8_t string_length) {
+	void consoleAddString(string& charString, uint8_t string_length) {
 		displayDriver.writeString(charString, string_length, cursorLine, cursorPos);
 		cursorPos+=string_length;
 		return;
 	}
 	
 	// Add new blank line
-	void consoleNewLine(void) {cursorPos = 0; if (cursorLine < 3) {cursorLine++;} else {shiftUp();} return;}
+	void consoleNewLine(void) {cursorPos = 0; if (cursorLine < 3) {cursorLine++;} else {consoleShiftUp();} return;}
 	
 	// Display a command prompt
 	void consoleNewPrompt(void) {
@@ -235,6 +227,9 @@ struct Kernel {
 		displayDriver.writeChar(promptCharacter, cursorLine, 0);
 		displayDriver.cursorSetPosition(cursorLine, 1);
 	}
+	
+	// Clear the keyboard string
+	void consoleClearString(void) {for (uint8_t i=0; i < 20; i++) {keyboard_string[i] = 0x20;} keyboard_string_length=0;}
 	
 	// Check keyboard input
 	void checkKeyboardState(void) {
@@ -275,14 +270,14 @@ struct Kernel {
 			uint8_t currentKeyStringLength = keyboard_string_length;
 			keyboard_string_length = 0;
 			
-			if (cursorLine == 3) {shiftUp();}
+			if (cursorLine == 3) {consoleShiftUp();}
 			if (cursorLine == 2) cursorLine++;
 			if (cursorLine == 1) cursorLine++;
 			if (cursorLine == 0) {if (promptState == 0) {promptState++;} else {cursorLine++;}}
 			
 			if (currentKeyStringLength > 0) {cursorPos=0; callCommandFunction();}
 			
-			clearKeyboardString();
+			consoleClearString();
 			consoleNewPrompt();
 		}
 		

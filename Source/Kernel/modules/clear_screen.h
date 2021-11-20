@@ -7,11 +7,8 @@ struct ModuleClearScreen {
 	
 	ModuleClearScreen() {
 		
-		// Command name
-		const char name[] = "cls";
-		
-		// Install the function pointer
-		kernel.installFunction(&command_clear_screen, name, sizeof(name));
+		const char command_name[] = "cls";
+		kernel.installFunction(&command_clear_screen, command_name, sizeof(command_name));
 		
 		return;
 	}
@@ -24,7 +21,7 @@ void command_clear_screen(void) {
 	// Clear the buffer and mask
 	displayDriver.clearBuffer();
 	displayDriver.clearMask();
-	kernel.clearKeyboardString();
+	kernel.consoleClearString();
 	
 	// Reset the cursor
 	kernel.cursorLine  = 0;

@@ -13,7 +13,7 @@ struct CacheBuffer {
 	char& operator[] (uint32_t new_pointer) {
 		
 		// Check out of range
-		if ((new_pointer < current_address) || (new_pointer > (current_address + _CACHE_SIZE__))) {
+		if ((new_pointer < current_address) || (new_pointer >= (current_address + _CACHE_SIZE__))) {
 			// Dump the cache back to memory
 			for (uint8_t i=0; i<_CACHE_SIZE__; i++) {
 				memory_write(current_address + i, cache[i]);

@@ -8,6 +8,12 @@ struct string {
 	
 	char& operator[] (uint8_t index) {return memory_cache[ptr + index];}
 	
+	string() {
+		ptr = stack_alloc(20);
+		length = 20;
+		clear();
+	}
+	
 	string(uint8_t string_length) {
 		ptr = stack_alloc(string_length);
 		length = string_length;
@@ -18,6 +24,7 @@ struct string {
 		
 		ptr = stack_alloc(string_length);
 		length = string_length;
+		clear();
 		
 		for (uint8_t i=0; i<string_length; i++) memory_cache[ptr + i] = new_string[i];
 	}
