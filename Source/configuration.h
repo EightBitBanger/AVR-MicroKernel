@@ -75,7 +75,7 @@
 //#define _CONTROL__                  0x06
 //#define _CONTROL__                  0x07
 
-// JTAG - Enabled by default...
+// JTAG
 #define  _DISABLE_JTAG__   MCUCR |=(1<<JTD); MCUCR |=(1<<JTD)
 
 // Board initiation

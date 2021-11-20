@@ -28,7 +28,6 @@
 // Default message callback procedure
 uint8_t defaultCallbackProcedure(uint8_t message);
 
-void blank_function(void) {return;};
 
 struct Kernel {
 	
@@ -78,7 +77,7 @@ struct Kernel {
 		for (uint8_t i=0; i < 16; i++) {
 			
 			functionState[i] = 0x00;
-			command_function_ptr[i] = &blank_function;
+			command_function_ptr[i] = nullfunction;
 			
 			for (uint8_t a=0; a < 8; a++) functionNameIndex[i][a] = 0x20;
 			
@@ -110,11 +109,15 @@ struct Kernel {
 		
 	}
 	// Install a function pointer into the command function table
-	void installFunction(uint8_t index, void(*function_ptr)(), const char name[], uint8_t name_length) {
+	void installFunction(void(*function_ptr)(), const char name[], uint8_t name_length) {
+		
+		uint8_t index = getFreeFunctionIndex();
 		if (index == 0) return; else index--;
+		
 		functionState[index] = 0xff;
 		command_function_ptr[index] = function_ptr;
 		for (uint8_t i=0; i < name_length; i++) functionNameIndex[index][i] = name[i];
+		
 		return;
 	}
 	

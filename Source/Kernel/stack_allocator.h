@@ -14,7 +14,11 @@ void device_write(uint32_t address, char byte);
 
 #include "cache.h"
 
-#define nullptr 0x00000000
+void nullfunction(void) {return;};
+#define nullptr 0x00000
+
+
+//#define 
 
 union Pointer {
 	

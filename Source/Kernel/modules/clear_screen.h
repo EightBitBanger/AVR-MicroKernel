@@ -1,8 +1,7 @@
 //
 // Clear screen command module
-namespace ModuleClearScreen {
 
-void command_function(void);
+void command_clear_screen(void);
 
 struct ModuleClearScreen {
 	
@@ -11,11 +10,8 @@ struct ModuleClearScreen {
 		// Command name
 		const char name[] = "cls";
 		
-		// Find a free command function index for our function
-		uint8_t index = kernel.getFreeFunctionIndex();
-		
 		// Install the function pointer
-		kernel.installFunction(index, &command_function, name, sizeof(name));
+		kernel.installFunction(&command_clear_screen, name, sizeof(name));
 		
 		return;
 	}
@@ -23,7 +19,7 @@ struct ModuleClearScreen {
 };
 static ModuleClearScreen moduleClearScreen;
 
-void command_function(void) {
+void command_clear_screen(void) {
 	
 	// Clear the buffer and mask
 	displayDriver.clearBuffer();
@@ -42,8 +38,6 @@ void command_function(void) {
 	kernel.promptState = 1;
 	
 	return;
-}
-
 }
 
 
