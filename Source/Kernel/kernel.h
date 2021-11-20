@@ -27,6 +27,24 @@ uint8_t defaultCallbackProcedure(uint8_t message);
 
 struct Kernel {
 	
+	void command_clear_screen(void) {
+		// Clear the buffer and mask
+		displayDriver.clearBuffer();
+		displayDriver.clearMask();
+		clearKeyboardString();
+		
+		// Reset the cursor
+		cursorLine  = 0;
+		cursorPos   = 1;
+		
+		_delay_ms(100);
+		
+		// Initiate the prompt
+		consoleNewPrompt();
+		
+		promptState = 1;
+	}
+	
 	char promptCharacter;
 	uint8_t promptState;
 	uint8_t cursorLine;
@@ -42,27 +60,9 @@ struct Kernel {
 	
 	uint8_t (*callbackPointer)(uint8_t);
 	
-	// Post a message to the kernel
-	void postMessage(uint8_t message) {
-		
-		// Shift up the queue
-		for (uint8_t i=0; i < _MESSAGE_QUEUE_LENGTH__; i++) 
-			messageQueue[i+1] = messageQueue[i];
-		
-		// Add queue
-		messageQueue[0] = message;
-		queueCounter++;
-		
-		return;
-	}
-	
-	// Check the number of messages currently in the queue
-	uint8_t peekMessage(void) {return queueCounter;}
-	
 	Kernel() {
 		
 		promptCharacter = '>';
-		promptState     = 1;
 		cursorLine      = 0;
 		cursorPos       = 0;
 		
@@ -73,13 +73,50 @@ struct Kernel {
 		lastChar=0;
 		
 		// Initiate message queue
-		for (uint8_t i=0; i < _MESSAGE_QUEUE_LENGTH__; i++) 
+		for (uint8_t i=0; i <= _MESSAGE_QUEUE_LENGTH__; i++) 
 			messageQueue[i] = 0xff;
 		
 		queueCounter=0;
 		
 		// Set default message callback procedure
 		callbackPointer = &defaultCallbackProcedure;
+		
+	}
+	
+	// Post a message to the kernel
+	void postMessage(uint8_t message) {
+		
+		// Shift up the queue
+		for (uint8_t i=_MESSAGE_QUEUE_LENGTH__; i > 0; i--)
+			messageQueue[i] = messageQueue[1-i];
+		
+		// Add to queue
+		messageQueue[0] = message;
+		queueCounter++;
+		
+		return;
+	}
+	
+	// Check the number of messages currently in the queue
+	uint8_t peekMessage(void) {return queueCounter;}
+	
+	// Process a message from the message queue
+	void processMessageQueue(void) {
+		
+		if (queueCounter == 0) return;
+		
+		// Grab the first message
+		uint8_t message = messageQueue[0];
+		
+		// Shift down the queue
+		for (uint8_t i=0; i < _MESSAGE_QUEUE_LENGTH__; i++)
+			messageQueue[i] = messageQueue[i+1];
+		
+		// Decrement the queue
+		queueCounter--;
+		
+		// Call the callback procedure function with the message
+		(callbackPointer)( message );
 		
 	}
 	
@@ -98,8 +135,8 @@ struct Kernel {
 	// Starts the kernel loop
 	void run(void) {
 		
-		uint16_t kernelTimeOut   = 50;
-		uint16_t keyboardTimeOut = 800;
+		uint16_t kernelTimeOut   = 10;
+		uint16_t keyboardTimeOut = 500;
 		
 		uint16_t kernelCounter   = 0;
 		uint16_t keyboardCounter = 0;
@@ -113,95 +150,16 @@ struct Kernel {
 			if (kernelCounter < kernelTimeOut) {continue;} kernelCounter=0;
 			
 			keyboardCounter++;
-			if (keyboardCounter > keyboardTimeOut) {keyboardCounter=0; checkKeyboardState();}
+			if (keyboardCounter > keyboardTimeOut) {keyboardCounter=0;checkKeyboardState();}
 			
-			processMessageQueue();
+			while(peekMessage() != 0) processMessageQueue();
 			
 		}
 		
 		return;
 	}
 	
-	// Process a message from the message queue
-	void processMessageQueue(void) {
-		
-		if (queueCounter == 0) return;
-		
-		// Grab the first message
-		uint8_t message = messageQueue[0];
-		
-		// Shift down the queue
-		for (uint8_t i=0; i < _MESSAGE_QUEUE_LENGTH__; i++)
-		messageQueue[i] = messageQueue[i+1];
-		
-		// Decrement the queue
-		queueCounter--;
-		
-		// Call the callback procedure function with the message
-		(callbackPointer)( message );
-		
-	}
-	
-	// Check keyboard input
-	void checkKeyboardState(void) {
-		
-		uint8_t scanCodeAccepted = 0;
-		uint8_t currentChar=0x00;
-		
-		uint8_t readKeyCode = keyboard.read();
-		
-		// Decode the scan code
-		if (keyboard_string_length < 19) {
-			// Check current code
-			currentChar = readKeyCode;
-			if (currentChar > 0x1f) scanCodeAccepted=1;
-		} else {
-			// Allow backspace and enter past max length
-			if (readKeyCode < 0x03) currentChar = readKeyCode;
-		}
-		
-		// Prevent wild key repeats
-		if (lastChar == currentChar) {keyboardState=1; return;} lastChar = currentChar;
-		
-		// Backspace
-		if (currentChar == 0x01) {
-			
-			if (keyboard_string_length > 0) {keyboardState=1;
-				
-				// Remove last char from display
-				displayDriver.writeChar(0x20, cursorLine, keyboard_string_length);
-				displayDriver.cursorSetPosition(cursorLine, keyboard_string_length);
-				// From keyboard string
-				keyboard_string_length--;
-				keyboard_string[keyboard_string_length] = 0x20;
-			}
-			
-		}
-		
-		// Enter
-		if (currentChar == 0x02) {keyboardState = 1; executeKeyboardString(); return;}
-		
-		// ASCII key character accepted
-		if (scanCodeAccepted == 1) {keyboardState=1;
-			
-			keyboard_string[keyboard_string_length] = currentChar;
-			keyboard_string_length++;
-			// Update cursor
-			displayDriver.cursorSetPosition(cursorLine, keyboard_string_length+1);
-			// Display keyboard string
-			displayDriver.writeString(keyboard_string, keyboard_string_length+1, cursorLine, cursorPos);
-			displayDriver.writeChar(promptCharacter, cursorLine, 0);
-		}
-	}
-	
-	
-	
-	
-	
-	
-	
-	
-	
+	//
 	// Command console
 	
 	// Clear the keyboard string
@@ -232,44 +190,69 @@ struct Kernel {
 		displayDriver.cursorSetPosition(cursorLine, 1);
 	}
 	
+	// Check keyboard input
+	void checkKeyboardState(void) {
+		
+		uint8_t scanCodeAccepted = 0;
+		uint8_t currentChar=0x00;
+		
+		uint8_t readKeyCode = keyboard.read();
+		
+		// Decode the scan code
+		if (keyboard_string_length < 19) {
+			// Check current code
+			currentChar = readKeyCode;
+			if (currentChar > 0x1f) scanCodeAccepted=1;
+		} else {
+			// Allow backspace and enter to pass max string length
+			if (readKeyCode < 0x03) currentChar = readKeyCode;
+		}
+		
+		// Prevent wild key repeats
+		if (lastChar == currentChar) {return;} lastChar = currentChar;
+		
+		// Backspace
+		if (currentChar == 0x01) {
+			if (keyboard_string_length > 0) {
+				// Remove last char from display
+				displayDriver.writeChar(0x20, cursorLine, keyboard_string_length);
+				displayDriver.cursorSetPosition(cursorLine, keyboard_string_length);
+				// and keyboard string
+				keyboard_string_length--;
+				keyboard_string[keyboard_string_length] = 0x20;
+			}
+		}
+		
+		// Enter
+		if (currentChar == 0x02) {executeKeyboardString(); return;}
+		
+		// ASCII key character accepted
+		if (scanCodeAccepted == 1) {
+			keyboard_string[keyboard_string_length] = currentChar;
+			keyboard_string_length++;
+			// Update cursor
+			displayDriver.cursorSetPosition(cursorLine, keyboard_string_length+1);
+			// Display keyboard string
+			displayDriver.writeString(keyboard_string, keyboard_string_length+1, cursorLine, cursorPos);
+			displayDriver.writeChar(promptCharacter, cursorLine, 0);
+		}
+		
+	}
 	
-	//
 	// Execute the keyboard string
 	void executeKeyboardString(void) {
 		
 		uint8_t currentKeyStringLength = keyboard_string_length;
 		keyboard_string_length = 0;
 		
-		if (cursorLine == 0) {
-			
-			// Prompt start state catch
-			if (promptState == 0) {promptState++;} else {cursorLine++;}
-			
-			if (currentKeyStringLength > 0) {cursorPos=0; execute_command(keyboard_string);}
-			
-			clearKeyboardString();
-			consoleNewPrompt();
-			
-			return;
-		}
-		
-		// Shift up on last line
-		if (cursorLine == 3) {
-			if (currentKeyStringLength > 0) {shiftUp(); cursorPos=0; execute_command(keyboard_string);} else {shiftUp();}
-			clearKeyboardString();
-			consoleNewPrompt();
-			return;
-		}
-		
-		// Increment cursor
-		cursorLine++;
+		if (cursorLine == 3) {shiftUp();}
+		if (cursorLine == 2) cursorLine++;
+		if (cursorLine == 1) cursorLine++;
+		if (cursorLine == 0) {if (promptState == 0) {promptState++;} else {cursorLine++;}}
 		
 		if (currentKeyStringLength > 0) {cursorPos=0; execute_command(keyboard_string);}
 		
-		// Clear the keyboard string
 		clearKeyboardString();
-		
-		// Set a new prompt
 		consoleNewPrompt();
 		
 		return;
@@ -280,7 +263,7 @@ struct Kernel {
 	// Execute a command from a string
 	void execute_command(char command_string[]) {
 		
-		//if (string_compare(command_string, "cls",     3) == 1) {clear_screen();}
+		if (string_compare(command_string, "cls",     3) == 1) {postMessage(0x01);}
 		//if (string_compare(command_string, "port",    4) == 1) {port_output();}
 		//if (string_compare(command_string, "device",  6) == 1) {device_list();}
 		//if (string_compare(command_string, "disable", 7) == 1) {device_disable();}
@@ -305,8 +288,9 @@ uint8_t defaultCallbackProcedure(uint8_t message) {
 			kernel.addString(String, sizeof(String));
 			return 1;
 		}
+		
 		case 0x01: {
-			
+			kernel.command_clear_screen();
 			break;
 		}
 		
