@@ -10,7 +10,8 @@
 #define _KERNEL_STATE_NORMAL__          0x00
 #define _KERNEL_STATE_OUT_OF_MEMORY__   0xff
 
-#define _MESSAGE_QUEUE_LENGTH__         32
+#define _KERNEL_TIMEOUT__    40
+#define _KEYBOARD_TIMEOUT__  10000
 
 #include "stack_allocator.h"
 #include "device_index.h"
@@ -55,7 +56,7 @@ struct Kernel {
 	uint8_t keyboardState;
 	uint8_t lastChar;
 	
-	uint8_t messageQueue[_MESSAGE_QUEUE_LENGTH__];
+	uint8_t messageQueue[8];
 	uint8_t queueCounter;
 	
 	uint8_t (*callbackPointer)(uint8_t);
@@ -73,7 +74,7 @@ struct Kernel {
 		lastChar=0;
 		
 		// Initiate message queue
-		for (uint8_t i=0; i <= _MESSAGE_QUEUE_LENGTH__; i++) 
+		for (uint8_t i=0; i < 8; i++) 
 			messageQueue[i] = 0xff;
 		
 		queueCounter=0;
@@ -86,9 +87,14 @@ struct Kernel {
 	// Post a message to the kernel
 	void postMessage(uint8_t message) {
 		
-		// Shift up the queue
-		for (uint8_t i=_MESSAGE_QUEUE_LENGTH__; i > 0; i--)
-			messageQueue[i] = messageQueue[1-i];
+		// Shift down the queue
+		messageQueue[7] = messageQueue[6];
+		messageQueue[6] = messageQueue[5];
+		messageQueue[5] = messageQueue[4];
+		messageQueue[4] = messageQueue[3];
+		messageQueue[3] = messageQueue[2];
+		messageQueue[2] = messageQueue[1];
+		messageQueue[1] = messageQueue[0];
 		
 		// Add to queue
 		messageQueue[0] = message;
@@ -108,9 +114,14 @@ struct Kernel {
 		// Grab the first message
 		uint8_t message = messageQueue[0];
 		
-		// Shift down the queue
-		for (uint8_t i=0; i < _MESSAGE_QUEUE_LENGTH__; i++)
-			messageQueue[i] = messageQueue[i+1];
+		// Shift up the queue
+		messageQueue[0] = messageQueue[1];
+		messageQueue[1] = messageQueue[2];
+		messageQueue[2] = messageQueue[3];
+		messageQueue[3] = messageQueue[4];
+		messageQueue[4] = messageQueue[5];
+		messageQueue[5] = messageQueue[6];
+		messageQueue[6] = messageQueue[7];
 		
 		// Decrement the queue
 		queueCounter--;
@@ -135,8 +146,8 @@ struct Kernel {
 	// Starts the kernel loop
 	void run(void) {
 		
-		uint16_t kernelTimeOut   = 80;
-		uint16_t keyboardTimeOut = 18000;
+		uint16_t kernelTimeOut   = _KERNEL_TIMEOUT__;
+		uint16_t keyboardTimeOut = _KEYBOARD_TIMEOUT__;
 		
 		uint16_t kernelCounter   = 0;
 		uint16_t keyboardCounter = 0;
@@ -147,12 +158,18 @@ struct Kernel {
 		while(isActive) {
 			
 			kernelCounter++;
-			if (kernelCounter < kernelTimeOut) {continue;} kernelCounter=0;
+			if (kernelCounter > kernelTimeOut) {kernelCounter=0;
+				
+				while(peekMessage() != 0) processMessageQueue();
+				
+			}
 			
 			keyboardCounter++;
-			if (keyboardCounter > keyboardTimeOut) {keyboardCounter=0;checkKeyboardState();}
-			
-			while(peekMessage() != 0) processMessageQueue();
+			if (keyboardCounter > keyboardTimeOut) {
+				
+				keyboardCounter=0;checkKeyboardState();
+				
+			}
 			
 		}
 		
@@ -211,20 +228,42 @@ struct Kernel {
 		// Prevent wild key repeats
 		if (lastChar == currentChar) {lastChar == currentChar; return;} lastChar = currentChar;
 		
-		// Backspace
-		if (currentChar == 0x01) {
-			if (keyboard_string_length > 0) {
-				// Remove last char from display
-				displayDriver.writeChar(0x20, cursorLine, keyboard_string_length);
-				displayDriver.cursorSetPosition(cursorLine, keyboard_string_length);
-				// and keyboard string
-				keyboard_string_length--;
-				keyboard_string[keyboard_string_length] = 0x20;
-			}
+		switch (currentChar) {
+			case 0x01: { // Backspace
+				if (keyboard_string_length > 0) {
+					// Remove last char from display
+					displayDriver.writeChar(0x20, cursorLine, keyboard_string_length);
+					displayDriver.cursorSetPosition(cursorLine, keyboard_string_length);
+					// and keyboard string
+					keyboard_string_length--;
+					keyboard_string[keyboard_string_length] = 0x20;
+				}break;}
+			case 0x02: { // Enter
+				uint8_t currentKeyStringLength = keyboard_string_length;
+				keyboard_string_length = 0;
+				
+				if (cursorLine == 3) {shiftUp();}
+				if (cursorLine == 2) cursorLine++;
+				if (cursorLine == 1) cursorLine++;
+				if (cursorLine == 0) {if (promptState == 0) {promptState++;} else {cursorLine++;}}
+				
+				if (currentKeyStringLength > 0) {cursorPos=0; 
+					
+					if (string_compare(keyboard_string, "cls",     3) == 1) {postMessage(0x01);}
+					//if (string_compare(keyboard_string, "port",    4) == 1) {port_output();}
+					//if (string_compare(keyboard_string, "device",  6) == 1) {device_list();}
+					//if (string_compare(keyboard_string, "disable", 7) == 1) {device_disable();}
+					//if (string_compare(keyboard_string, "mem",     3) == 1) {command_mem_test();}
+					//if (string_compare(keyboard_string, "dir",     3) == 1) {command_list_files();}
+					
+					consoleNewPrompt();
+				}
+				
+				clearKeyboardString();
+				consoleNewPrompt();
+				return;}
+			default: break;
 		}
-		
-		// Enter
-		if (currentChar == 0x02) {executeKeyboardString(); return;}
 		
 		// ASCII key character accepted
 		if (scanCodeAccepted == 1) {
@@ -238,43 +277,6 @@ struct Kernel {
 		}
 		
 	}
-	
-	// Execute the keyboard string
-	void executeKeyboardString(void) {
-		
-		uint8_t currentKeyStringLength = keyboard_string_length;
-		keyboard_string_length = 0;
-		
-		if (cursorLine == 3) {shiftUp();}
-		if (cursorLine == 2) cursorLine++;
-		if (cursorLine == 1) cursorLine++;
-		if (cursorLine == 0) {if (promptState == 0) {promptState++;} else {cursorLine++;}}
-		
-		if (currentKeyStringLength > 0) {cursorPos=0; execute_command(keyboard_string);}
-		
-		clearKeyboardString();
-		consoleNewPrompt();
-		
-		return;
-	}
-	
-	
-	//
-	// Execute a command from a string
-	void execute_command(char command_string[]) {
-		
-		if (string_compare(command_string, "cls",     3) == 1) {postMessage(0x01);}
-		//if (string_compare(command_string, "port",    4) == 1) {port_output();}
-		//if (string_compare(command_string, "device",  6) == 1) {device_list();}
-		//if (string_compare(command_string, "disable", 7) == 1) {device_disable();}
-		//if (string_compare(command_string, "mem",     3) == 1) {command_mem_test();}
-		//if (string_compare(command_string, "dir",     3) == 1) {command_list_files();}
-		
-		consoleNewPrompt();
-		
-		return;
-	}
-	
 	
 };
 Kernel kernel;
