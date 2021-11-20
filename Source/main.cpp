@@ -4,7 +4,7 @@ int main(void) {
 	
 	initiate_board;
 	
-	// Initiate device index
+	// Initiate device map
 	device.initiate();
 	
 	// Check available extended memory

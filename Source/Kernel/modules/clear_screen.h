@@ -8,7 +8,7 @@ struct ModuleClearScreen {
 	ModuleClearScreen() {
 		
 		const char command_name[] = "cls";
-		kernel.installFunction(&command_clear_screen, command_name, sizeof(command_name));
+		kernel.function.install(&command_clear_screen, command_name, sizeof(command_name));
 		
 		return;
 	}
@@ -21,18 +21,18 @@ void command_clear_screen(void) {
 	// Clear the buffer and mask
 	displayDriver.clearBuffer();
 	displayDriver.clearMask();
-	kernel.consoleClearString();
+	kernel.console.consoleClearString();
 	
 	// Reset the cursor
-	kernel.cursorLine  = 0;
-	kernel.cursorPos   = 1;
+	kernel.console.cursorLine  = 0;
+	kernel.console.cursorPos   = 1;
 	
 	_delay_ms(100);
 	
 	// Initiate the prompt
-	kernel.consoleNewPrompt();
+	kernel.console.consoleNewPrompt();
 	
-	kernel.promptState = 1;
+	kernel.console.promptState = 1;
 	
 	return;
 }
