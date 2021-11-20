@@ -147,8 +147,6 @@ struct CommandConsole {
 		if (string_compare(command_string, "mem",     3) == 1) {cursorPos = 0;command_mem_test();}
 		if (string_compare(command_string, "dir",     3) == 1) {cursorPos = 0;command_list_files();}
 		
-		if (string_compare(command_string, "dir",     3) == 1) {cursorPos = 0;command_list_files();}
-		
 		setPrompt();
 		
 		return;
@@ -174,6 +172,7 @@ void command_mem_test(void) {
 	console.cursorPos = 0;
 	console.addString(memorySz, memorySz.size());
 	
+	console.addNewLine();
 	return;
 }
 
@@ -199,7 +198,7 @@ void clear_screen(void) {
 
 void device_list(void) {
 	
-	for (uint8_t i=0; i <= 0x05; i++) {
+	for (uint8_t i=0; i <= 0x0f; i++) {
 		
 		// Get the device driver IDs
 		char deviceID=0xff;
@@ -208,9 +207,9 @@ void device_list(void) {
 		// Check valid device ID
 		if (deviceID != 0x00) {
 			
-			string deviceSlot(2);
+			string deviceSlot(3);
 			intToString(i+1, deviceSlot);
-			console.addString(deviceSlot, 2);
+			console.addString(deviceSlot, 3);
 			
 			// Display console
 			if (deviceID == 0x10) {
@@ -227,8 +226,6 @@ void device_list(void) {
 }
 
 void device_disable(void) {
-	
-	console.addNewLine();
 	
 	switch (console.keyboard_string[8]) {
 		case 0x31: {memory_write(_DEVICE_INDEX__,   0xff); break;}

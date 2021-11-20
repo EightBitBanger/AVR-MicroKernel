@@ -12,7 +12,6 @@
 
 #define _MESSAGE_QUEUE_LENGTH__         32
 
-
 #include "stack_allocator.h"
 #include "device_index.h"
 
@@ -23,14 +22,18 @@
 #include "drivers/file_system.h"
 #include "drivers/keyboard.h"
 
-#include "console.h"
-
-
 // Default message callback procedure
 uint8_t defaultCallbackProcedure(uint8_t message);
 
 struct Kernel {
 	
+	char promptCharacter;
+	uint8_t promptState;
+	uint8_t cursorLine;
+	uint8_t cursorPos;
+	
+	uint8_t keyboard_string_length;
+	char keyboard_string[24];
 	uint8_t keyboardState;
 	uint8_t lastChar;
 	
@@ -57,6 +60,14 @@ struct Kernel {
 	uint8_t peekMessage(void) {return queueCounter;}
 	
 	Kernel() {
+		
+		promptCharacter = '>';
+		promptState     = 1;
+		cursorLine      = 0;
+		cursorPos       = 0;
+		
+		keyboard_string_length = 0;
+		clearKeyboardString();
 		
 		keyboardState=0;
 		lastChar=0;
@@ -93,7 +104,7 @@ struct Kernel {
 		uint16_t kernelCounter   = 0;
 		uint16_t keyboardCounter = 0;
 		
-		console.setPrompt();
+		consoleNewPrompt();
 		
 		bool isActive=1;
 		while(isActive) {
@@ -140,7 +151,7 @@ struct Kernel {
 		uint8_t readKeyCode = keyboard.read();
 		
 		// Decode the scan code
-		if (console.keyboard_string_length < 19) {
+		if (keyboard_string_length < 19) {
 			// Check current code
 			currentChar = readKeyCode;
 			if (currentChar > 0x1f) scanCodeAccepted=1;
@@ -155,33 +166,132 @@ struct Kernel {
 		// Backspace
 		if (currentChar == 0x01) {
 			
-			if (console.keyboard_string_length > 0) {keyboardState=1;
+			if (keyboard_string_length > 0) {keyboardState=1;
 				
 				// Remove last char from display
-				displayDriver.writeChar(0x20, console.cursorLine, console.keyboard_string_length);
-				displayDriver.cursorSetPosition(console.cursorLine, console.keyboard_string_length);
+				displayDriver.writeChar(0x20, cursorLine, keyboard_string_length);
+				displayDriver.cursorSetPosition(cursorLine, keyboard_string_length);
 				// From keyboard string
-				console.keyboard_string_length--;
-				console.keyboard_string[console.keyboard_string_length] = 0x20;
+				keyboard_string_length--;
+				keyboard_string[keyboard_string_length] = 0x20;
 			}
 			
 		}
 		
 		// Enter
-		if (currentChar == 0x02) {keyboardState = 1; console.executeKeyboardString(); return;}
+		if (currentChar == 0x02) {keyboardState = 1; executeKeyboardString(); return;}
 		
 		// ASCII key character accepted
 		if (scanCodeAccepted == 1) {keyboardState=1;
 			
-			console.keyboard_string[console.keyboard_string_length] = currentChar;
-			console.keyboard_string_length++;
+			keyboard_string[keyboard_string_length] = currentChar;
+			keyboard_string_length++;
 			// Update cursor
-			displayDriver.cursorSetPosition(console.cursorLine, console.keyboard_string_length+1);
+			displayDriver.cursorSetPosition(cursorLine, keyboard_string_length+1);
 			// Display keyboard string
-			displayDriver.writeString(console.keyboard_string, console.keyboard_string_length+1, console.cursorLine, console.cursorPos);
-			displayDriver.writeChar(console.promptCharacter, console.cursorLine, 0);
+			displayDriver.writeString(keyboard_string, keyboard_string_length+1, cursorLine, cursorPos);
+			displayDriver.writeChar(promptCharacter, cursorLine, 0);
 		}
 	}
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	// Command console
+	
+	// Clear the keyboard string
+	void clearKeyboardString(void) {for (uint8_t i=0; i < 20; i++) {keyboard_string[i] = 0x20;} keyboard_string_length=0;}
+	
+	// Shift the display up one line
+	void shiftUp(void) {displayDriver.frameShiftUp();_delay_ms(100);}
+	
+	// Add a const char string to the console
+	void addString(const char charArray[], uint8_t string_length) {
+		displayDriver.writeString(charArray, string_length, cursorLine, cursorPos);
+		cursorPos+=string_length;
+		return;
+	}
+	void addString(string& charString, uint8_t string_length) {
+		displayDriver.writeString(charString, string_length, cursorLine, cursorPos);
+		cursorPos+=string_length;
+		return;
+	}
+	
+	// Add new blank line
+	void consoleNewLine(void) {cursorPos = 0; if (cursorLine < 3) {cursorLine++;} else {shiftUp();} return;}
+	
+	// Display a command prompt
+	void consoleNewPrompt(void) {
+		cursorPos = 1;
+		displayDriver.writeChar(promptCharacter, cursorLine, 0);
+		displayDriver.cursorSetPosition(cursorLine, 1);
+	}
+	
+	
+	//
+	// Execute the keyboard string
+	void executeKeyboardString(void) {
+		
+		uint8_t currentKeyStringLength = keyboard_string_length;
+		keyboard_string_length = 0;
+		
+		if (cursorLine == 0) {
+			
+			// Prompt start state catch
+			if (promptState == 0) {promptState++;} else {cursorLine++;}
+			
+			if (currentKeyStringLength > 0) {cursorPos=0; execute_command(keyboard_string);}
+			
+			clearKeyboardString();
+			consoleNewPrompt();
+			
+			return;
+		}
+		
+		// Shift up on last line
+		if (cursorLine == 3) {
+			if (currentKeyStringLength > 0) {shiftUp(); cursorPos=0; execute_command(keyboard_string);} else {shiftUp();}
+			clearKeyboardString();
+			consoleNewPrompt();
+			return;
+		}
+		
+		// Increment cursor
+		cursorLine++;
+		
+		if (currentKeyStringLength > 0) {cursorPos=0; execute_command(keyboard_string);}
+		
+		// Clear the keyboard string
+		clearKeyboardString();
+		
+		// Set a new prompt
+		consoleNewPrompt();
+		
+		return;
+	}
+	
+	
+	//
+	// Execute a command from a string
+	void execute_command(char command_string[]) {
+		
+		//if (string_compare(command_string, "cls",     3) == 1) {clear_screen();}
+		//if (string_compare(command_string, "port",    4) == 1) {port_output();}
+		//if (string_compare(command_string, "device",  6) == 1) {device_list();}
+		//if (string_compare(command_string, "disable", 7) == 1) {device_disable();}
+		//if (string_compare(command_string, "mem",     3) == 1) {command_mem_test();}
+		//if (string_compare(command_string, "dir",     3) == 1) {command_list_files();}
+		
+		consoleNewPrompt();
+		
+		return;
+	}
+	
 	
 };
 Kernel kernel;
@@ -192,8 +302,12 @@ uint8_t defaultCallbackProcedure(uint8_t message) {
 		
 		case 0x00: {
 			char String[] = "Message callback";
-			console.addString(String, sizeof(String));
+			kernel.addString(String, sizeof(String));
 			return 1;
+		}
+		case 0x01: {
+			
+			break;
 		}
 		
 		default:
@@ -210,8 +324,8 @@ uint8_t defaultCallbackProcedure(uint8_t message) {
 uint32_t allocate_system_memory(void) {
 	
 	displayDriver.cursorSetPosition(1, 0);
-	console.cursorLine = 1;
-	console.cursorPos  = 0;
+	kernel.cursorLine = 1;
+	kernel.cursorPos  = 0;
 	
 	uint32_t updateTimer=0;
 	

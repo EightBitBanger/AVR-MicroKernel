@@ -1,5 +1,5 @@
 //
-// String functions
+// String structure
 
 struct string {
 	
