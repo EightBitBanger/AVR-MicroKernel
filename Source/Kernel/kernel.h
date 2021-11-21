@@ -20,6 +20,7 @@
 typedef void(*FunctionPtr)(uint8_t, uint8_t&, uint8_t&, uint8_t&, uint8_t&);
 
 #include "types.h"
+#include "enums.h"
 
 #include "stack_allocator.h"
 #include "device_index.h"
@@ -46,6 +47,25 @@ struct Kernel {
 		
 		// Setup keyboard
 		console.lastChar = keyboard.read();
+		
+		// Initiate device drivers
+		for (uint8_t i=0; i <= _DRIVER_TABLE_SIZE__; i++) {
+			
+			if ((driver.driver_function_ptr[i] != 0) && (driver.deviceNameIndex[i][0] != 0x20))
+				driver.driver_function_ptr[i](_DRIVER_INITIATE__, NULL, NULL, NULL, NULL);
+			
+		}
+		
+	}
+	
+	void shutdown(void) {
+		
+		// Initiate device drivers
+		for (uint8_t i=0; i <= _DRIVER_TABLE_SIZE__; i++) {
+			if ((driver.driver_function_ptr[i] != 0) && (driver.deviceNameIndex[i][0] != 0x20)) 
+				driver.driver_function_ptr[i](_DRIVER_SHUTDOWN__, NULL, NULL, NULL, NULL);
+			
+		}
 		
 	}
 	
@@ -88,9 +108,7 @@ struct Kernel {
 		// Find a free driver index
 		uint8_t index;
 		for (index=0; index <= _DRIVER_TABLE_SIZE__; index++) {
-			if (driver.driver_function_ptr[index] != 0) {
-				if (index == _DRIVER_TABLE_SIZE__) return 0; continue;
-			} else break;
+			if (driver.driver_function_ptr[index] == 0) break; else continue;
 		}
 		
 		// Load the library
@@ -101,9 +119,9 @@ struct Kernel {
 	}
 	
 	// Get a library function address by its device name
-	FunctionPtr getFuncAddress(const char device_name[], uint8_t name_length) {
+	FunctionPtr& getFuncAddress(const char device_name[], uint8_t name_length) {
 		
-		if (name_length > 8) return 0;
+		if (name_length > 8) return (FunctionPtr&)nullfunction;
 		
 		// Function look up
 		for (uint8_t i=0; i <= _DRIVER_TABLE_SIZE__; i++) {
@@ -117,7 +135,7 @@ struct Kernel {
 			if (count == name_length) return driver.driver_function_ptr[i];
 		}
 		
-		return 0;
+		return (FunctionPtr&)nullfunction;
 	}
 	
 	// Call an external function from a library function pointer
@@ -159,9 +177,7 @@ struct Kernel {
 		
 		CommandFunctionIndex() {
 			for (uint8_t i=0; i <= _COMMAND_TABLE_SIZE__; i++) {
-				for (uint8_t a=0; a <= 8; a++) {
-					functionNameIndex[i][a] = 0x20;
-				}
+				for (uint8_t a=0; a <= 8; a++) functionNameIndex[i][a] = 0x20;
 				command_function_ptr[i] = nullfunction;
 			}
 		}
@@ -172,9 +188,7 @@ struct Kernel {
 			// Find a free slot
 			uint8_t index;
 			for (index=0; index <= _COMMAND_TABLE_SIZE__; index++) {
-				if (command_function_ptr[index] != nullfunction) {
-					if (index == _COMMAND_TABLE_SIZE__) return 0; continue;
-				} else break;
+				if (command_function_ptr[index] == nullfunction) break; else continue;
 			}
 			
 			

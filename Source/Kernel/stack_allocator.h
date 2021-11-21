@@ -38,17 +38,17 @@ uint32_t stack_alloc(uint32_t size) {
 }
 
 // Free the last chunk of allocated memory
-uint8_t stack_free(uint32_t size) {
+void stack_free(uint32_t size) {
 	
 	Pointer numberOfAllocations;
 	for (uint8_t i=0; i<4; i++) numberOfAllocations.byte[i] = memory_cache[_ALLOCATOR_COUNTER_ADDRESS__ + i];
 	
 	if (numberOfAllocations.address >= size) {numberOfAllocations.address -= size;
 		for (uint8_t i=0; i<4; i++) memory_cache[_ALLOCATOR_COUNTER_ADDRESS__ + i] = numberOfAllocations.byte[i];
-		return 1;
+		return;
 	}
 	
-	return 0;
+	return;
 }
 
 // Zero a section of memory

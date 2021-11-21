@@ -42,12 +42,22 @@ void displayLibraryEntryPoint(uint8_t functionCall, uint8_t& paramA, uint8_t& pa
 	
 	switch(functionCall) {
 		
-		case 0x01: displayLibrary.clearDisplay(); break;
+		case _DRIVER_INITIATE__: {
+			
+			//uint32_t ptr = stack_alloc(0x100);
+			
+			//displayLibrary.clearDisplay();
+			
+			break;
+		}
+		
+		case 0x01: break;
 		case 0x05: paramA = 100; break;
 		
-		default: break;
+		default: return;
 	}
 	
+	return;
 }
 
 
