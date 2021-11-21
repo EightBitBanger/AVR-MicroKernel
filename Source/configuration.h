@@ -14,6 +14,9 @@
 // Time to allow the system to stabilize
 #define  _INITIAL_SETUP_TIME__        1000  // ms
 
+// Pointer size
+#define _32_BIT_POINTERS__
+
 
 
 
@@ -75,6 +78,8 @@
 //#define _CONTROL__                  0x06
 //#define _CONTROL__                  0x07
 
+
+
 // JTAG
 #define  _DISABLE_JTAG__   MCUCR |=(1<<JTD); MCUCR |=(1<<JTD)
 
@@ -85,6 +90,7 @@
 
 // Calculate the software delay
 #define F_CPU  _CLOCK_SPEED_MHZ__ * 1000000UL // Convert to hertz
+
 
 
 

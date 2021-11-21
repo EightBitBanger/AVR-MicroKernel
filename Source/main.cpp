@@ -20,9 +20,11 @@ int main(void) {
 	uint8_t deviceDriverID = kernel.driver.getFuncAddress("con");
 	
 	//if (deviceDriverID != 0) kernel.driver.callExtern(deviceDriverID, 0x00, 0x00);
-	kernel.driver.callExtern(deviceDriverID, 0x00, 0x00);
+	uint8_t returnValue=0;
+	kernel.driver.callExtern(deviceDriverID, 0x05, returnValue);
 	
-	kernel.run();
+	if (returnValue == 100)	kernel.run();
+	while(1) nop;
 	
 	return 0;
 }

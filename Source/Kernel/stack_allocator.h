@@ -14,23 +14,6 @@ void device_write(uint32_t address, char byte);
 
 #include "cache.h"
 
-void nullfunction(void) {return;};
-#define nullptr 0x00000
-
-
-//#define 
-
-union Pointer {
-	
-	char byte[4];
-	uint16_t word[2];
-	uint32_t address;
-	
-	Pointer() {address=0;}
-	Pointer(uint32_t newAddress) {address=newAddress;}
-	
-};
-
 // Allocate stack memory and return a pointer to the first byte in this allocation
 uint32_t stack_alloc(uint32_t size) {
 	

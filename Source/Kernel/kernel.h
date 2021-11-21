@@ -13,9 +13,12 @@
 #define _KERNEL_TIMEOUT__    40
 #define _KEYBOARD_TIMEOUT__  10000
 
+// Function tables
 #define _COMMAND_TABLE_SIZE__  64
-
 #define _DRIVER_TABLE_SIZE__   16
+
+
+#include "types.h"
 
 #include "stack_allocator.h"
 #include "device_index.h"
@@ -78,7 +81,7 @@ struct Kernel {
 	struct DriverIndex {
 		
 		char deviceNameIndex[_DRIVER_TABLE_SIZE__][3];
-		void (*driver_function_ptr[_DRIVER_TABLE_SIZE__])(uint8_t function_offset, uint8_t& func_param);
+		void (*driver_function_ptr[_DRIVER_TABLE_SIZE__])(uint8_t, uint8_t&, uint8_t&, uint8_t&, uint8_t&);
 		
 		DriverIndex() {
 			for (uint8_t i=0; i <= _DRIVER_TABLE_SIZE__; i++) {
@@ -88,7 +91,7 @@ struct Kernel {
 		}
 		
 		// Load a device driver onto the driver function table
-		uint8_t loadLibrary(void(*new_driver_ptr)(uint8_t, uint8_t&), const char device_name[]) {
+		uint8_t loadLibrary(void(*new_driver_ptr)(uint8_t, uint8_t&, uint8_t&, uint8_t&, uint8_t&), const char device_name[]) {
 			
 			// Find a free driver index
 			uint8_t index;
@@ -124,8 +127,8 @@ struct Kernel {
 		}
 		
 		// Call an external function from a library function address
-		void callExtern(uint8_t library_address, uint8_t function_call, uint8_t function_parameter=0) {
-			driver_function_ptr[library_address-1](function_call, function_parameter);
+		void callExtern(uint8_t library_address, uint8_t function_call, uint8_t& function_parameter) {
+			driver_function_ptr[library_address-1](function_call, function_parameter, NULL, NULL, NULL);
 		}
 		
 	};
