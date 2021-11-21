@@ -13,6 +13,17 @@ int main(void) {
 	// Initiate and fire up the kernel
 	kernel.initiate();
 	
+	//
+	// Load the driver
+	const char device_name[] = "shitty";
+	kernel.loadLibrary(device_name, sizeof(device_name), &displayLibraryEntryPoint);
+	
+	FunctionPtr deviceDriverID = kernel.getFuncAddress("shitty", 1);
+	
+	deviceDriverID(0x05, NULL, NULL, NULL, NULL);
+	
+	
+	
 	kernel.run();
 	
 	return 0;
