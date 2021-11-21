@@ -13,7 +13,9 @@
 #define _KERNEL_TIMEOUT__    40
 #define _KEYBOARD_TIMEOUT__  10000
 
-#define _COMMAND_TABLE_SIZE__  128
+#define _COMMAND_TABLE_SIZE__  64
+
+#define _DRIVER_TABLE_SIZE__   16
 
 #include "stack_allocator.h"
 #include "device_index.h"
@@ -24,31 +26,14 @@
 #include "drivers/display_driver.h"
 #include "drivers/file_system.h"
 #include "drivers/keyboard.h"
+#include "drivers/test_driver.h"
+
 
 // Default message callback procedure
 uint8_t defaultCallbackProcedure(uint8_t message);
 
 
 struct Kernel {
-	
-	void callCommandFunction(void) {
-		
-		// Function look up
-		for (uint8_t i=0; i<_COMMAND_TABLE_SIZE__; i++) {
-			
-			if (function.functionState[i] == 0x00) continue;
-			
-			uint8_t count=1;
-			for (uint8_t a=0; a<8; a++) {
-				// Compare to keyboard string
-				if (function.functionNameIndex[i][a] == console.keyboard_string[a]) count++;
-				// Execute the command
-				if (count == 8) {function.command_function_ptr[i](); return;}
-			}
-			
-		}
-		
-	}
 	
 	// Initiate kernel memory
 	void initiate(void) {
@@ -90,69 +75,62 @@ struct Kernel {
 		return;
 	}
 	
-	// Update keyboard string
-	void updateKeyboard(void) {
+	// Device driver function table
+	struct DriverIndex {
 		
-		uint8_t scanCodeAccepted = 0;
-		uint8_t currentChar=0x00;
+		void (*driver_function_ptr[_DRIVER_TABLE_SIZE__])();
 		
-		uint8_t readKeyCode = keyboard.read();
-		
-		// Decode the scan code
-		if (console.keyboard_string_length < 19) {
-			// ASCII char
-			currentChar = readKeyCode;
-			if (readKeyCode > 0x1f) {scanCodeAccepted=1;}
-			} else {
-			// Allow backspace and enter past max string length
-			if (readKeyCode < 0x03) currentChar = readKeyCode;
-		}
-		
-		// Prevent wild key repeats
-		if (console.lastChar == currentChar) {console.lastChar == currentChar; return;} console.lastChar = currentChar;
-		
-		// Backspace
-		if (currentChar == 0x01) {
-			if (console.keyboard_string_length > 0) {
-				// Remove last char from display
-				displayDriver.writeChar(0x20, console.cursorLine, console.keyboard_string_length);
-				displayDriver.cursorSetPosition(console.cursorLine, console.keyboard_string_length);
-				// and keyboard string
-				console.keyboard_string_length--;
-				console.keyboard_string[console.keyboard_string_length] = 0x20;
+		DriverIndex() {
+			for (uint8_t i=0; i < _DRIVER_TABLE_SIZE__; i++) {
+				driver_function_ptr[i] = nullfunction;
 			}
 		}
 		
-		// Enter
-		if (currentChar == 0x02) {
+		// Install a device driver into the driver function table
+		uint8_t install(void(*new_driver_ptr)()) {
 			
-			uint8_t currentKeyStringLength = console.keyboard_string_length;
-			console.keyboard_string_length = 0;
+			uint8_t index=0;
+			for (uint8_t i=0; i < _COMMAND_TABLE_SIZE__; i++) {if (driver_function_ptr[i] == nullfunction) index = (i + 1);}
+			if (index == 0) return 0; else index--;
 			
-			if (console.cursorLine == 3) {console.consoleShiftUp();}
-			if (console.cursorLine == 2) console.cursorLine++;
-			if (console.cursorLine == 1) console.cursorLine++;
-			if (console.cursorLine == 0) {if (console.promptState == 0) {console.promptState++;} else {console.cursorLine++;}}
+			driver_function_ptr[index] = new_driver_ptr;
 			
-			if (currentKeyStringLength > 0) {console.cursorPos=0; callCommandFunction();}
-			
-			console.consoleClearString();
-			console.consoleNewPrompt();
+			return 1;
 		}
 		
-		// ASCII key character accepted
-		if (scanCodeAccepted == 1) {
-			console.keyboard_string[console.keyboard_string_length] = currentChar;
-			console.keyboard_string_length++;
-			// Update cursor
-			displayDriver.cursorSetPosition(console.cursorLine, console.keyboard_string_length+1);
-			// Display keyboard string
-			displayDriver.writeString(console.keyboard_string, console.keyboard_string_length+1, console.cursorLine, console.cursorPos);
-			displayDriver.writeChar(console.promptCharacter, console.cursorLine, 0);
-		}
-		
-	}
+	};
+	DriverIndex driver;
 	
+	// Command line function table
+	struct CommandFunctionIndex {
+		
+		void (*command_function_ptr[_COMMAND_TABLE_SIZE__])();
+		char functionNameIndex[_COMMAND_TABLE_SIZE__][8];
+		
+		CommandFunctionIndex() {
+			for (uint8_t i=0; i < _COMMAND_TABLE_SIZE__; i++) {
+				command_function_ptr[i] = nullfunction;
+				for (uint8_t a=0; a < 8; a++) functionNameIndex[i][a] = 0x20;
+			}
+		}
+		
+		// Install a function pointer into the command function table
+		uint8_t install(void(*function_ptr)(), const char name[], uint8_t name_length) {
+			
+			uint8_t index=0;
+			for (uint8_t i=0; i < _COMMAND_TABLE_SIZE__; i++) {if (command_function_ptr[i] == nullfunction) index = (i + 1);}
+			if (index == 0) return 0; else index--;
+			
+			command_function_ptr[index] = function_ptr;
+			for (uint8_t i=0; i < name_length; i++) functionNameIndex[index][i] = name[i];
+			
+			return 1;
+		}
+		
+	};
+	CommandFunctionIndex function;
+	
+	// System message queue
 	struct MessageQueue {
 		
 		uint8_t queue[8];
@@ -220,45 +198,7 @@ struct Kernel {
 	};
 	MessageQueue queue;
 	
-	struct CommandFunctionIndex {
-		
-		// Function type index (0 = no function)
-		uint8_t functionState[_COMMAND_TABLE_SIZE__];
-		// Function pointer index
-		void (*command_function_ptr[_COMMAND_TABLE_SIZE__])();
-		// Function name index
-		char functionNameIndex[_COMMAND_TABLE_SIZE__][8];
-		
-		CommandFunctionIndex() {
-			for (uint8_t i=0; i < 16; i++) {
-				functionState[i] = 0x00;
-				command_function_ptr[i] = nullfunction;
-				for (uint8_t a=0; a < 8; a++) functionNameIndex[i][a] = 0x20;
-			}
-		}
-		
-		// Return a free command function slot index
-		uint8_t getFreeIndex(void) {
-			for (uint8_t i=0; i < _COMMAND_TABLE_SIZE__; i++) {if (functionState[i] == 0) return i+1;} return 0;
-		}
-		// Call a command function
-		
-		// Install a function pointer into the command function table
-		void install(void(*function_ptr)(), const char name[], uint8_t name_length) {
-			
-			uint8_t index = getFreeIndex();
-			if (index == 0) return; else index--;
-			
-			functionState[index] = 0xff;
-			command_function_ptr[index] = function_ptr;
-			for (uint8_t i=0; i < name_length; i++) functionNameIndex[index][i] = name[i];
-			
-			return;
-		}
-		
-	};
-	CommandFunctionIndex function;
-	
+	// Command console interface
 	struct CommandConsole {
 		
 		char  promptCharacter;
@@ -315,6 +255,87 @@ struct Kernel {
 		
 	};
 	CommandConsole console;
+	
+	void updateKeyboard(void) {
+		
+		uint8_t scanCodeAccepted = 0;
+		uint8_t currentChar=0x00;
+		
+		uint8_t readKeyCode = keyboard.read();
+		
+		// Decode the scan code
+		if (console.keyboard_string_length < 19) {
+			// ASCII char
+			currentChar = readKeyCode;
+			if (readKeyCode > 0x1f) {scanCodeAccepted=1;}
+			} else {
+			// Allow backspace and enter past max string length
+			if (readKeyCode < 0x03) currentChar = readKeyCode;
+		}
+		
+		// Prevent wild key repeats
+		if (console.lastChar == currentChar) {console.lastChar == currentChar; return;} console.lastChar = currentChar;
+		
+		// Backspace
+		if (currentChar == 0x01) {
+			if (console.keyboard_string_length > 0) {
+				// Remove last char from display
+				displayDriver.writeChar(0x20, console.cursorLine, console.keyboard_string_length);
+				displayDriver.cursorSetPosition(console.cursorLine, console.keyboard_string_length);
+				// and keyboard string
+				console.keyboard_string_length--;
+				console.keyboard_string[console.keyboard_string_length] = 0x20;
+			}
+		}
+		
+		// Enter
+		if (currentChar == 0x02) {
+			
+			uint8_t currentKeyStringLength = console.keyboard_string_length;
+			console.keyboard_string_length = 0;
+			
+			if (console.cursorLine == 3) {console.consoleShiftUp();}
+			if (console.cursorLine == 2) console.cursorLine++;
+			if (console.cursorLine == 1) console.cursorLine++;
+			if (console.cursorLine == 0) {if (console.promptState == 0) {console.promptState++;} else {console.cursorLine++;}}
+			
+			if (currentKeyStringLength > 0) {console.cursorPos=0; callCommandFunction();}
+			
+			console.consoleClearString();
+			console.consoleNewPrompt();
+		}
+		
+		// ASCII key character accepted
+		if (scanCodeAccepted == 1) {
+			console.keyboard_string[console.keyboard_string_length] = currentChar;
+			console.keyboard_string_length++;
+			// Update cursor
+			displayDriver.cursorSetPosition(console.cursorLine, console.keyboard_string_length+1);
+			// Display keyboard string
+			displayDriver.writeString(console.keyboard_string, console.keyboard_string_length+1, console.cursorLine, console.cursorPos);
+			displayDriver.writeChar(console.promptCharacter, console.cursorLine, 0);
+		}
+		
+	}
+	
+	void callCommandFunction(void) {
+		
+		// Function look up
+		for (uint8_t i=0; i<_COMMAND_TABLE_SIZE__; i++) {
+			
+			if (function.command_function_ptr[i] == 0x00) continue;
+			
+			uint8_t count=1;
+			for (uint8_t a=0; a<8; a++) {
+				// Compare to keyboard string
+				if (function.functionNameIndex[i][a] == console.keyboard_string[a]) count++;
+				// Execute the command
+				if (count == 8) {function.command_function_ptr[i](); return;}
+			}
+			
+		}
+		
+	}
 	
 };
 Kernel kernel;
