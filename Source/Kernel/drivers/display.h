@@ -7,6 +7,13 @@ void DisplayDeviceDriverEntryPoint(uint8_t, uint8_t&, uint8_t&, uint8_t&, uint8_
 
 struct DisplayDriver {
 	
+	DisplayDriver() {
+		
+		const char name[] = "con";
+		loadLibrary(name, sizeof(name), &DisplayDeviceDriverEntryPoint);
+		
+	}
+	
 	void write(uint32_t address, char byte) {device_write(device.getAddress(_DEVICE_DISPLAY__) + address, byte); return;}
 	void read(uint32_t address, char& byte) {device_read(device.getAddress(_DEVICE_DISPLAY__) + address, byte); return;}
 	

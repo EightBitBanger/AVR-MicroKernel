@@ -13,9 +13,6 @@ int main(void) {
 	// Initiate and fire up the kernel
 	kernel.initiate();
 	
-	//if (kernel.getFuncAddress("con", 3) == (FunctionPtr)nullfunction) while(1) nop;
-	
-	
 	kernel.run();
 	
 	kernel.shutdown();

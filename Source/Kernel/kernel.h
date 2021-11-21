@@ -33,18 +33,22 @@ typedef void(*FunctionPtr)(uint8_t, uint8_t&, uint8_t&, uint8_t&, uint8_t&);
 #include "drivers/keyboard.h"
 
 
+uint8_t loadLibrary(const char[], uint8_t, void(*new_driver_ptr)(uint8_t, uint8_t&, uint8_t&, uint8_t&, uint8_t&));
+FunctionPtr& getFuncAddress(const char[], uint8_t);
+uint8_t callExtern(FunctionPtr, uint8_t, uint8_t&, uint8_t&, uint8_t&, uint8_t&);
+
 // Default message callback procedure
 uint8_t defaultCallbackProcedure(uint8_t message);
 
 
 //
 // Device driver function table
-struct DriverIndex {
+struct DeviceDriverIndex {
 	
 	char deviceNameIndex[_DRIVER_TABLE_SIZE__][8];
 	void (*driver_function_ptr[_DRIVER_TABLE_SIZE__])(uint8_t, uint8_t&, uint8_t&, uint8_t&, uint8_t&);
 	
-	DriverIndex() {
+	DeviceDriverIndex() {
 		for (uint8_t i=0; i <= _DRIVER_TABLE_SIZE__; i++) {
 			for (uint8_t a=0; a <= 8; a++) deviceNameIndex[i][a] = 0x20;
 			driver_function_ptr[i] = 0;
@@ -52,7 +56,7 @@ struct DriverIndex {
 	}
 	
 };
-DriverIndex driver;
+DeviceDriverIndex deviceDriverIndex;
 
 // Load device drivers
 #include "drivers.h"
@@ -64,6 +68,60 @@ DriverIndex driver;
 
 
 
+
+
+// Load a device driver entry point function onto the driver function table
+uint8_t loadLibrary(const char device_name[], uint8_t name_length, void(*new_driver_ptr)(uint8_t, uint8_t&, uint8_t&, uint8_t&, uint8_t&)) {
+	
+	if (name_length > 8) return 0;
+	
+	// Find a free driver index
+	uint8_t index;
+	for (index=0; index <= _DRIVER_TABLE_SIZE__; index++) {
+		if (deviceDriverIndex.driver_function_ptr[index] == 0) break; else continue;
+	}
+	
+	// Load the library
+	for (uint8_t i=0; i < name_length; i++) deviceDriverIndex.deviceNameIndex[index][i] = device_name[i];
+	deviceDriverIndex.driver_function_ptr[index] = new_driver_ptr;
+	
+	return 1;
+}
+
+// Get a library function address by its device name
+FunctionPtr& getFuncAddress(const char device_name[], uint8_t name_length) {
+	
+	if (name_length > 8) return (FunctionPtr&)nullfunction;
+	
+	// Function look up
+	for (uint8_t i=0; i <= _DRIVER_TABLE_SIZE__; i++) {
+		
+		if (deviceDriverIndex.driver_function_ptr[i] == 0x00) continue;
+		
+		uint8_t count=0;
+		for (count=0; count < name_length; count++)
+		if (deviceDriverIndex.deviceNameIndex[i][count] == device_name[count]) {continue;} else {count=0; break;}
+		
+		if (count == name_length) return deviceDriverIndex.driver_function_ptr[i];
+	}
+	
+	return (FunctionPtr&)nullfunction;
+}
+
+// Call an external function from a library function pointer
+uint8_t callExtern(FunctionPtr library_function, uint8_t function_call, uint8_t& paramA=NULL, uint8_t& paramB=NULL, uint8_t& paramC=NULL, uint8_t& paramD=NULL) {
+	
+	for (uint8_t i=0; i <= _DRIVER_TABLE_SIZE__; i++) {
+		
+		if (deviceDriverIndex.driver_function_ptr[i] == library_function) {
+			library_function(function_call, paramA, paramB, paramC, paramD);
+			return 1;
+		}
+		
+	}
+	
+	return 1;
+}
 
 
 struct Kernel {
@@ -82,8 +140,8 @@ struct Kernel {
 		// Initiate device drivers
 		for (uint8_t i=0; i <= _DRIVER_TABLE_SIZE__; i++) {
 			
-			if ((driver.driver_function_ptr[i] != 0) && (driver.deviceNameIndex[i][0] != 0x20))
-				driver.driver_function_ptr[i](_DRIVER_INITIATE__, NULL, NULL, NULL, NULL);
+			if ((deviceDriverIndex.driver_function_ptr[i] != 0) && (deviceDriverIndex.deviceNameIndex[i][0] != 0x20))
+				deviceDriverIndex.driver_function_ptr[i](_DRIVER_INITIATE__, NULL, NULL, NULL, NULL);
 			
 		}
 		
@@ -93,8 +151,8 @@ struct Kernel {
 		
 		// Initiate device drivers
 		for (uint8_t i=0; i <= _DRIVER_TABLE_SIZE__; i++) {
-			if ((driver.driver_function_ptr[i] != 0) && (driver.deviceNameIndex[i][0] != 0x20)) 
-				driver.driver_function_ptr[i](_DRIVER_SHUTDOWN__, NULL, NULL, NULL, NULL);
+			if ((deviceDriverIndex.driver_function_ptr[i] != 0) && (deviceDriverIndex.deviceNameIndex[i][0] != 0x20)) 
+				deviceDriverIndex.driver_function_ptr[i](_DRIVER_SHUTDOWN__, NULL, NULL, NULL, NULL);
 			
 		}
 		
@@ -130,59 +188,6 @@ struct Kernel {
 	}
 	
 	
-	
-	// Load a device driver entry point function onto the driver function table
-	uint8_t loadLibrary(const char device_name[], uint8_t name_length, void(*new_driver_ptr)(uint8_t, uint8_t&, uint8_t&, uint8_t&, uint8_t&)) {
-		
-		if (name_length > 8) return 0;
-		
-		// Find a free driver index
-		uint8_t index;
-		for (index=0; index <= _DRIVER_TABLE_SIZE__; index++) {
-			if (driver.driver_function_ptr[index] == 0) break; else continue;
-		}
-		
-		// Load the library
-		for (uint8_t i=0; i < name_length; i++) driver.deviceNameIndex[index][i] = device_name[i];
-		driver.driver_function_ptr[index] = new_driver_ptr;
-		
-		return 1;
-	}
-	
-	// Get a library function address by its device name
-	FunctionPtr& getFuncAddress(const char device_name[], uint8_t name_length) {
-		
-		if (name_length > 8) return (FunctionPtr&)nullfunction;
-		
-		// Function look up
-		for (uint8_t i=0; i <= _DRIVER_TABLE_SIZE__; i++) {
-			
-			if (driver.driver_function_ptr[i] == 0x00) continue;
-			
-			uint8_t count=0;
-			for (count=0; count < name_length; count++)
-			if (driver.deviceNameIndex[i][count] == device_name[count]) {continue;} else {count=0; break;}
-			
-			if (count == name_length) return driver.driver_function_ptr[i];
-		}
-		
-		return (FunctionPtr&)nullfunction;
-	}
-	
-	// Call an external function from a library function pointer
-	uint8_t callExtern(FunctionPtr library_function, uint8_t function_call, uint8_t& paramA=NULL, uint8_t& paramB=NULL, uint8_t& paramC=NULL, uint8_t& paramD=NULL) {
-		
-		for (uint8_t i=0; i <= _DRIVER_TABLE_SIZE__; i++) {
-			
-			if (driver.driver_function_ptr[i] == library_function) {
-				library_function(function_call, paramA, paramB, paramC, paramD);
-				return 1;
-			}
-			
-		}
-		
-		return 1;
-	}
 	
 	// System message queue
 	struct MessageQueue {
@@ -388,7 +393,25 @@ struct Kernel {
 			if (console.cursorLine == 1) console.cursorLine++;
 			if (console.cursorLine == 0) {if (console.promptState == 0) {console.promptState++;} else {console.cursorLine++;}}
 			
-			if (currentKeyStringLength > 0) {console.cursorPos=0; callCommandFunction();}
+			// Execute the function
+			if (currentKeyStringLength > 0) {console.cursorPos=0;
+				
+				// Function look up
+				for (uint8_t i=0; i<_COMMAND_TABLE_SIZE__; i++) {
+					
+					if (function.command_function_ptr[i] == 0x00) continue;
+					
+					uint8_t count=1;
+					for (uint8_t a=0; a<8; a++) {
+						// Compare to keyboard string
+						if (function.functionNameIndex[i][a] == console.keyboard_string[a]) count++;
+						// Execute the command
+						if (count == 8) {function.command_function_ptr[i](); return;}
+					}
+					
+				}
+				
+			}
 			
 			console.consoleClearString();
 			console.consoleNewPrompt();
@@ -407,24 +430,7 @@ struct Kernel {
 		
 	}
 	
-	void callCommandFunction(void) {
-		
-		// Function look up
-		for (uint8_t i=0; i<_COMMAND_TABLE_SIZE__; i++) {
-			
-			if (function.command_function_ptr[i] == 0x00) continue;
-			
-			uint8_t count=1;
-			for (uint8_t a=0; a<8; a++) {
-				// Compare to keyboard string
-				if (function.functionNameIndex[i][a] == console.keyboard_string[a]) count++;
-				// Execute the command
-				if (count == 8) {function.command_function_ptr[i](); return;}
-			}
-			
-		}
-		
-	}
+	
 	
 };
 Kernel kernel;
