@@ -2,11 +2,12 @@
 // Define types
 
 // Nullification
-uint8_t NULLbyte = 0;
-#define NULL    NULLbyte
-#define null    NULLbyte
+void    nullfunction(void) {return;};
+uint8_t NULLvariable = 0;
 #define nullptr 0x00000
-void nullfunction(void) {return;};
+
+#define NULL    NULLvariable
+#define null    NULLvariable
 
 // Address pointer
 union Pointer {

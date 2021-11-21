@@ -77,6 +77,49 @@ struct Kernel {
 		return;
 	}
 	
+	
+	
+	// Load a device driver entry point function onto the driver function table
+	uint8_t loadLibrary(const char device_name[], void(*new_driver_ptr)(uint8_t, uint8_t&, uint8_t&, uint8_t&, uint8_t&)) {
+		
+		// Find a free driver index
+		uint8_t index;
+		for (index=0; index <= _DRIVER_TABLE_SIZE__; index++) {
+			if (driver.driver_function_ptr[index] != 0) {
+				if (index == _DRIVER_TABLE_SIZE__) return 0; continue;
+			} else break;
+		}
+		
+		// Load the library
+		for (uint8_t i=0; i < 3; i++) driver.deviceNameIndex[index][i] = device_name[i];
+		driver.driver_function_ptr[index] = new_driver_ptr;
+		
+		return 1;
+	}
+	
+	// Get a library function address by its device name
+	uint8_t getFuncAddress(const char device_name[]) {
+		
+		// Function look up
+		for (uint8_t i=0; i <= _DRIVER_TABLE_SIZE__; i++) {
+			
+			if (driver.driver_function_ptr[i] == 0x00) continue;
+			
+			uint8_t count=0;
+			for (count=0; count < 3; count++)
+			if (driver.deviceNameIndex[i][count] == device_name[count]) {continue;} else {count=0; break;}
+			
+			if (count == 3) return i+1;
+		}
+		
+		return 0;
+	}
+	
+	// Call an external function from a library function address
+	void callExtern(uint8_t library_address, uint8_t function_call, uint8_t& paramA=NULL, uint8_t& paramB=NULL, uint8_t& paramC=NULL, uint8_t& paramD=NULL) {
+		driver.driver_function_ptr[library_address-1](function_call, paramA, paramB, paramC, paramD);
+	}
+	
 	// Device driver function table
 	struct DriverIndex {
 		
@@ -90,47 +133,6 @@ struct Kernel {
 			}
 		}
 		
-		// Load a device driver onto the driver function table
-		uint8_t loadLibrary(void(*new_driver_ptr)(uint8_t, uint8_t&, uint8_t&, uint8_t&, uint8_t&), const char device_name[]) {
-			
-			// Find a free driver index
-			uint8_t index;
-			for (index=0; index <= _DRIVER_TABLE_SIZE__; index++) {
-				if (driver_function_ptr[index] != 0) {
-					if (index == _DRIVER_TABLE_SIZE__) {return 0;} continue;
-				} else {break;}
-			}
-			
-			// Load the library
-			for (uint8_t i=0; i < 3; i++) deviceNameIndex[index][i] = device_name[i];
-			driver_function_ptr[index] = new_driver_ptr;
-			
-			return 1;
-		}
-		
-		// Get a library function address by its device name
-		uint8_t getFuncAddress(const char device_name[]) {
-			
-			// Function look up
-			for (uint8_t i=0; i <= _DRIVER_TABLE_SIZE__; i++) {
-				
-				if (driver_function_ptr[i] == 0x00) continue;
-				
-				uint8_t count=0;
-				for (count=0; count < 3; count++) 
-					if (deviceNameIndex[i][count] == device_name[count]) {continue;} else {count=0; break;}
-				
-				if (count == 3) return i+1;
-			}
-			
-			return 0;
-		}
-		
-		// Call an external function from a library function address
-		void callExtern(uint8_t library_address, uint8_t function_call, uint8_t& function_parameter) {
-			driver_function_ptr[library_address-1](function_call, function_parameter, NULL, NULL, NULL);
-		}
-		
 	};
 	DriverIndex driver;
 	
@@ -142,7 +144,9 @@ struct Kernel {
 		
 		CommandFunctionIndex() {
 			for (uint8_t i=0; i <= _COMMAND_TABLE_SIZE__; i++) {
-				for (uint8_t a=0; a <= 8; a++) functionNameIndex[i][a] = 0x20;
+				for (uint8_t a=0; a <= 8; a++) {
+					functionNameIndex[i][a] = 0x20;
+				}
 				command_function_ptr[i] = nullfunction;
 			}
 		}
@@ -154,8 +158,8 @@ struct Kernel {
 			uint8_t index;
 			for (index=0; index <= _COMMAND_TABLE_SIZE__; index++) {
 				if (command_function_ptr[index] != nullfunction) {
-					if (index == _COMMAND_TABLE_SIZE__) {return 0;} continue;
-				} else {break;}
+					if (index == _COMMAND_TABLE_SIZE__) return 0; continue;
+				} else break;
 			}
 			
 			

@@ -8,7 +8,7 @@ struct DisplayLibrary {
 	DisplayLibrary() {
 		
 		const char command_name[] = "con";
-		kernel.driver.loadLibrary(&displayLibraryEntryPoint, command_name);
+		kernel.loadLibrary(command_name, &displayLibraryEntryPoint);
 		
 	}
 	
