@@ -28,8 +28,8 @@ typedef void(*FunctionPtr)(uint8_t, uint8_t&, uint8_t&, uint8_t&, uint8_t&);
 #include "string_const.h"
 #include "strings.h"
 
-#include "drivers/display_driver.h"
-#include "drivers/file_system.h"
+//#include "drivers/display_driver.h"
+//#include "drivers/file_system.h"
 #include "drivers/keyboard.h"
 
 
@@ -37,10 +37,41 @@ typedef void(*FunctionPtr)(uint8_t, uint8_t&, uint8_t&, uint8_t&, uint8_t&);
 uint8_t defaultCallbackProcedure(uint8_t message);
 
 
+//
+// Device driver function table
+struct DriverIndex {
+	
+	char deviceNameIndex[_DRIVER_TABLE_SIZE__][8];
+	void (*driver_function_ptr[_DRIVER_TABLE_SIZE__])(uint8_t, uint8_t&, uint8_t&, uint8_t&, uint8_t&);
+	
+	DriverIndex() {
+		for (uint8_t i=0; i <= _DRIVER_TABLE_SIZE__; i++) {
+			for (uint8_t a=0; a <= 8; a++) deviceNameIndex[i][a] = 0x20;
+			driver_function_ptr[i] = 0;
+		}
+	}
+	
+};
+DriverIndex driver;
+
+// Load device drivers
+#include "drivers.h"
+
+
+
+
+
+
+
+
+
+
 struct Kernel {
 	
 	// Initiate kernel memory
 	void initiate(void) {
+		
+		//console.promptCharacter = '>';
 		
 		mem_zero(_ALLOCATOR_COUNTER_ADDRESS__, 4); // Number of external memory allocations
 		mem_zero(_KERNEL_FLAGS__, 8);              // Kernel state flags
@@ -153,55 +184,6 @@ struct Kernel {
 		return 1;
 	}
 	
-	// Device driver function table
-	struct DriverIndex {
-		
-		char deviceNameIndex[_DRIVER_TABLE_SIZE__][8];
-		void (*driver_function_ptr[_DRIVER_TABLE_SIZE__])(uint8_t, uint8_t&, uint8_t&, uint8_t&, uint8_t&);
-		
-		DriverIndex() {
-			for (uint8_t i=0; i <= _DRIVER_TABLE_SIZE__; i++) {
-				for (uint8_t a=0; a <= 8; a++) deviceNameIndex[i][a] = 0x20;
-				driver_function_ptr[i] = 0;
-			}
-		}
-		
-	};
-	DriverIndex driver;
-	
-	// Command line function table
-	struct CommandFunctionIndex {
-		
-		char functionNameIndex[_COMMAND_TABLE_SIZE__][8];
-		void (*command_function_ptr[_COMMAND_TABLE_SIZE__])();
-		
-		CommandFunctionIndex() {
-			for (uint8_t i=0; i <= _COMMAND_TABLE_SIZE__; i++) {
-				for (uint8_t a=0; a <= 8; a++) functionNameIndex[i][a] = 0x20;
-				command_function_ptr[i] = nullfunction;
-			}
-		}
-		
-		// Install a function pointer into the command function table
-		uint8_t install(void(*function_ptr)(), const char name[], uint8_t name_length) {
-			
-			// Find a free slot
-			uint8_t index;
-			for (index=0; index <= _COMMAND_TABLE_SIZE__; index++) {
-				if (command_function_ptr[index] == nullfunction) break; else continue;
-			}
-			
-			
-			// Set the pointer
-			for (uint8_t i=0; i < name_length; i++) functionNameIndex[index][i] = name[i];
-			command_function_ptr[index] = function_ptr;
-			
-			return 1;
-		}
-		
-	};
-	CommandFunctionIndex function;
-	
 	// System message queue
 	struct MessageQueue {
 		
@@ -270,6 +252,39 @@ struct Kernel {
 	};
 	MessageQueue queue;
 	
+	// Command line function table
+	struct CommandFunctionIndex {
+		
+		char functionNameIndex[_COMMAND_TABLE_SIZE__][8];
+		void (*command_function_ptr[_COMMAND_TABLE_SIZE__])();
+		
+		CommandFunctionIndex() {
+			for (uint8_t i=0; i <= _COMMAND_TABLE_SIZE__; i++) {
+				for (uint8_t a=0; a <= 8; a++) functionNameIndex[i][a] = 0x20;
+				command_function_ptr[i] = nullfunction;
+			}
+		}
+		
+		// Install a function pointer into the command function table
+		uint8_t install(void(*function_ptr)(), const char name[], uint8_t name_length) {
+			
+			// Find a free slot
+			uint8_t index;
+			for (index=0; index <= _COMMAND_TABLE_SIZE__; index++) {
+				if (command_function_ptr[index] == nullfunction) break; else continue;
+			}
+			
+			
+			// Set the pointer
+			for (uint8_t i=0; i < name_length; i++) functionNameIndex[index][i] = name[i];
+			command_function_ptr[index] = function_ptr;
+			
+			return 1;
+		}
+		
+	};
+	CommandFunctionIndex function;
+	
 	// Command console interface
 	struct CommandConsole {
 		
@@ -286,6 +301,7 @@ struct Kernel {
 		CommandConsole () {
 			
 			promptCharacter = '>';
+			promptState     = 0;
 			cursorLine      = 0;
 			cursorPos       = 0;
 			
@@ -327,6 +343,7 @@ struct Kernel {
 		
 	};
 	CommandConsole console;
+	
 	
 	void updateKeyboard(void) {
 		
@@ -411,9 +428,6 @@ struct Kernel {
 	
 };
 Kernel kernel;
-
-// Load device drivers
-#include "drivers.h"
 
 // Load command modules
 #include "modules.h"

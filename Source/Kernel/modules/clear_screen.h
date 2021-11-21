@@ -1,5 +1,5 @@
 //
-// Clear screen command module
+// Clear screen command
 
 void command_clear_screen(void);
 
