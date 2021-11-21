@@ -26,7 +26,6 @@
 #include "drivers/display_driver.h"
 #include "drivers/file_system.h"
 #include "drivers/keyboard.h"
-#include "drivers/test_driver.h"
 
 
 // Default message callback procedure
@@ -78,24 +77,55 @@ struct Kernel {
 	// Device driver function table
 	struct DriverIndex {
 		
-		void (*driver_function_ptr[_DRIVER_TABLE_SIZE__])();
+		char deviceNameIndex[_DRIVER_TABLE_SIZE__][3];
+		void (*driver_function_ptr[_DRIVER_TABLE_SIZE__])(uint8_t function_offset, uint8_t& func_param);
 		
 		DriverIndex() {
-			for (uint8_t i=0; i < _DRIVER_TABLE_SIZE__; i++) {
-				driver_function_ptr[i] = nullfunction;
+			for (uint8_t i=0; i <= _DRIVER_TABLE_SIZE__; i++) {
+				for (uint8_t a=0; a <= 3; a++) deviceNameIndex[i][a] = 0x20;
+				driver_function_ptr[i] = 0;
 			}
 		}
 		
-		// Install a device driver into the driver function table
-		uint8_t install(void(*new_driver_ptr)()) {
+		// Load a device driver onto the driver function table
+		uint8_t loadLibrary(void(*new_driver_ptr)(uint8_t, uint8_t&), const char device_name[]) {
 			
-			uint8_t index=0;
-			for (uint8_t i=0; i < _COMMAND_TABLE_SIZE__; i++) {if (driver_function_ptr[i] == nullfunction) index = (i + 1);}
-			if (index == 0) return 0; else index--;
+			// Find a free driver index
+			uint8_t index;
+			for (index=0; index <= _DRIVER_TABLE_SIZE__; index++) {
+				if (driver_function_ptr[index] != 0) {
+					if (index == _DRIVER_TABLE_SIZE__) {return 0;} continue;
+				} else {break;}
+			}
 			
+			// Load the library
+			for (uint8_t i=0; i < 3; i++) deviceNameIndex[index][i] = device_name[i];
 			driver_function_ptr[index] = new_driver_ptr;
 			
 			return 1;
+		}
+		
+		// Get a library function address by its device name
+		uint8_t getFuncAddress(const char device_name[]) {
+			
+			// Function look up
+			for (uint8_t i=0; i <= _DRIVER_TABLE_SIZE__; i++) {
+				
+				if (driver_function_ptr[i] == 0x00) continue;
+				
+				uint8_t count=0;
+				for (count=0; count < 3; count++) 
+					if (deviceNameIndex[i][count] == device_name[count]) {continue;} else {count=0; break;}
+				
+				if (count == 3) return i+1;
+			}
+			
+			return 0;
+		}
+		
+		// Call an external function from a library function address
+		void callExtern(uint8_t library_address, uint8_t function_call, uint8_t function_parameter=0) {
+			driver_function_ptr[library_address-1](function_call, function_parameter);
 		}
 		
 	};
@@ -104,25 +134,31 @@ struct Kernel {
 	// Command line function table
 	struct CommandFunctionIndex {
 		
-		void (*command_function_ptr[_COMMAND_TABLE_SIZE__])();
 		char functionNameIndex[_COMMAND_TABLE_SIZE__][8];
+		void (*command_function_ptr[_COMMAND_TABLE_SIZE__])();
 		
 		CommandFunctionIndex() {
-			for (uint8_t i=0; i < _COMMAND_TABLE_SIZE__; i++) {
+			for (uint8_t i=0; i <= _COMMAND_TABLE_SIZE__; i++) {
+				for (uint8_t a=0; a <= 8; a++) functionNameIndex[i][a] = 0x20;
 				command_function_ptr[i] = nullfunction;
-				for (uint8_t a=0; a < 8; a++) functionNameIndex[i][a] = 0x20;
 			}
 		}
 		
 		// Install a function pointer into the command function table
 		uint8_t install(void(*function_ptr)(), const char name[], uint8_t name_length) {
 			
-			uint8_t index=0;
-			for (uint8_t i=0; i < _COMMAND_TABLE_SIZE__; i++) {if (command_function_ptr[i] == nullfunction) index = (i + 1);}
-			if (index == 0) return 0; else index--;
+			// Find a free slot
+			uint8_t index;
+			for (index=0; index <= _COMMAND_TABLE_SIZE__; index++) {
+				if (command_function_ptr[index] != nullfunction) {
+					if (index == _COMMAND_TABLE_SIZE__) {return 0;} continue;
+				} else {break;}
+			}
 			
-			command_function_ptr[index] = function_ptr;
+			
+			// Set the pointer
 			for (uint8_t i=0; i < name_length; i++) functionNameIndex[index][i] = name[i];
+			command_function_ptr[index] = function_ptr;
 			
 			return 1;
 		}
@@ -340,7 +376,10 @@ struct Kernel {
 };
 Kernel kernel;
 
-// Load kernel modules
+// Load device drivers
+#include "drivers/test_driver.h"
+
+// Load command modules
 #include "modules.h"
 
 uint8_t defaultCallbackProcedure(uint8_t message) {

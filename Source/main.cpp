@@ -13,6 +13,15 @@ int main(void) {
 	// Initiate and fire up the kernel
 	kernel.initiate();
 	
+	//
+	// Load the driver
+	//kernel.driver.loadLibrary(&displayLibraryEntryPoint, "con");
+	
+	uint8_t deviceDriverID = kernel.driver.getFuncAddress("con");
+	
+	//if (deviceDriverID != 0) kernel.driver.callExtern(deviceDriverID, 0x00, 0x00);
+	kernel.driver.callExtern(deviceDriverID, 0x00, 0x00);
+	
 	kernel.run();
 	
 	return 0;
