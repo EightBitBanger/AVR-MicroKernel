@@ -413,7 +413,7 @@ struct Kernel {
 Kernel kernel;
 
 // Load device drivers
-#include "drivers/test_driver.h"
+#include "drivers.h"
 
 // Load command modules
 #include "modules.h"
