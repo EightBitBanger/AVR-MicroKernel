@@ -1,8 +1,8 @@
 //
 // Stack allocator
 
-#define  _STACK_BEGIN__   _KERNEL_END__  // After kernel memory
-uint32_t _STACK_END__    =0;             // Total extended memory determined at boot
+#define  _STACK_BEGIN__   _KERNEL_END__ + 1  // After kernel memory
+uint32_t _STACK_END__    =0;                 // Total extended memory determined at boot
 
 // Memory address to the number of allocated chunks
 #define  _ALLOCATOR_COUNTER_ADDRESS__  0x000fc
@@ -45,6 +45,7 @@ union Pointer {
 	
 };
 #include "cache.h"
+
 
 // Allocate stack memory and return a pointer to the first byte in this allocation
 uint32_t stack_alloc(uint32_t size) {
@@ -95,6 +96,7 @@ uint32_t stack_size(void) {
 	return numberOfAllocations.address;
 }
 
+
 //
 // Lowest level memory/device IO
 void memory_read(uint32_t address, char& buffer) {
@@ -115,15 +117,15 @@ void memory_read(uint32_t address, char& buffer) {
 	_CONTROL_OUT__ = 0b00100100;
 	
 	// Wait states
-#ifdef _MEMORY_READ_WAIT_STATE_1__
+	#ifdef _MEMORY_READ_WAIT_STATE_1__
 	nop;
-#endif
-#ifdef _MEMORY_READ_WAIT_STATE_2__
+	#endif
+	#ifdef _MEMORY_READ_WAIT_STATE_2__
 	nop; nop;
-#endif
-#ifdef _MEMORY_READ_WAIT_STATE_3__
+	#endif
+	#ifdef _MEMORY_READ_WAIT_STATE_3__
 	nop; nop; nop;
-#endif
+	#endif
 	
 	// Read the data byte
 	buffer = _BUS_LOWER_IN__;
@@ -153,15 +155,15 @@ void memory_write(uint32_t address, char byte) {
 	_CONTROL_OUT__ = 0b00010101;
 	
 	// Wait states
-#ifdef _MEMORY_WRITE_WAIT_STATE_1__
+	#ifdef _MEMORY_WRITE_WAIT_STATE_1__
 	nop;
-#endif
-#ifdef _MEMORY_WRITE_WAIT_STATE_2__
+	#endif
+	#ifdef _MEMORY_WRITE_WAIT_STATE_2__
 	nop; nop;
-#endif
-#ifdef _MEMORY_WRITE_WAIT_STATE_3__
+	#endif
+	#ifdef _MEMORY_WRITE_WAIT_STATE_3__
 	nop; nop; nop;
-#endif
+	#endif
 	
 	_CONTROL_OUT__ = 0b00111111;
 	_BUS_UPPER_OUT__ = 0x0f;
@@ -188,15 +190,15 @@ void device_read(uint32_t address, char& byte) {
 	_CONTROL_OUT__ = 0b00100100;
 	
 	// Wait states
-#ifdef _DEVICE_READ_WAIT_STATE_1__
+	#ifdef _DEVICE_READ_WAIT_STATE_1__
 	for (uint8_t i=0; i<10; i++) {nop;nop;nop;nop;}
-#endif
-#ifdef _DEVICE_READ_WAIT_STATE_2__
+	#endif
+	#ifdef _DEVICE_READ_WAIT_STATE_2__
 	for (uint8_t i=0; i<50; i++) {nop;nop;nop;nop;}
-#endif
-#ifdef _DEVICE_READ_WAIT_STATE_3__
+	#endif
+	#ifdef _DEVICE_READ_WAIT_STATE_3__
 	for (uint8_t i=0; i<100; i++) {nop;nop;nop;nop;}
-#endif
+	#endif
 	
 	byte = _BUS_LOWER_IN__;
 	
@@ -223,15 +225,15 @@ void device_write(uint32_t address, char byte) {
 	_CONTROL_OUT__ = 0b00010101;
 	
 	// Wait states
-#ifdef _DEVICE_WRITE_WAIT_STATE_1__
+	#ifdef _DEVICE_WRITE_WAIT_STATE_1__
 	for (uint8_t i=0; i<10; i++) {nop;nop;nop;nop;}
-#endif
-#ifdef _DEVICE_WRITE_WAIT_STATE_2__
+	#endif
+	#ifdef _DEVICE_WRITE_WAIT_STATE_2__
 	for (uint8_t i=0; i<50; i++) {nop;nop;nop;nop;}
-#endif
-#ifdef _DEVICE_WRITE_WAIT_STATE_3__
+	#endif
+	#ifdef _DEVICE_WRITE_WAIT_STATE_3__
 	for (uint8_t i=0; i<100; i++) {nop;nop;nop;nop;}
-#endif
+	#endif
 	
 	_CONTROL_OUT__ = 0b00111111;
 	_BUS_UPPER_OUT__ = 0x0f;

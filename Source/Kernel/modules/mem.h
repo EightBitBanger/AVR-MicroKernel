@@ -8,7 +8,7 @@ struct ModuleMemoryCommand {
 	ModuleMemoryCommand() {
 		
 		const char command_name[] = "mem";
-		kernel.function.install(&command_memory, command_name, sizeof(command_name));
+		kernel.installFunction(&command_memory, command_name, sizeof(command_name));
 		
 		return;
 	}
@@ -25,7 +25,7 @@ void command_memory(void) {
 	intToString(ammountOfMemory, memoryAmmount);
 	
 	// Strings
-	console.print(memoryAmmount, sizeof(memoryAmmount));
+	console.print(memoryAmmount, memoryAmmount.size());
 	console.print(string_memory_allocator_bytes, sizeof(string_memory_allocator_bytes));
 	console.print(string_memory_allocator_free, sizeof(string_memory_allocator_free));
 	console.newLine();

@@ -7,10 +7,17 @@ struct CacheBuffer {
 	
 	uint32_t current_address;
 	char cache[_CACHE_SIZE__];
+	char protectionOverflowBuffer[1];
 	
 	CacheBuffer() {current_address = _STACK_END__;}
 	
 	char& operator[] (uint32_t new_pointer) {
+		
+		// Check segmentation fault
+		if (new_pointer < _STACK_BEGIN__) {
+			memory_write(_KERNEL_FLAGS__, _KERNEL_STATE_SEG_FAULT__);
+			return protectionOverflowBuffer[0];
+		}
 		
 		// Check out of range
 		if ((new_pointer < current_address) || (new_pointer >= (current_address + _CACHE_SIZE__))) {

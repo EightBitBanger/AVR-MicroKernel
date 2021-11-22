@@ -7,16 +7,12 @@ void DisplayDeviceDriverEntryPoint(uint8_t, uint8_t&, uint8_t&, uint8_t&, uint8_
 
 struct DisplayDriver {
 	
-	uint32_t address_pointer;
-	
 	void initiate(void) {
-		
-		address_pointer = stack_alloc(0x10000);
 		
 	}
 	
 	void shutdown(void) {
-		stack_free(0x10000);
+		
 	}
 	
 	DisplayDriver() {

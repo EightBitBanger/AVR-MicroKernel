@@ -2,15 +2,17 @@
 // AVR Micro Kernel
 
 #define _KERNEL_BEGIN__       0x00000
-#define _KERNEL_END__         0x00100
+#define _KERNEL_END__         0x000ff
 
 #define _KERNEL_FLAGS__       0x00010
 
 // Flags
 #define _KERNEL_STATE_NORMAL__          0x00
-#define _KERNEL_STATE_OUT_OF_MEMORY__   0xff
+#define _KERNEL_STATE_OUT_OF_MEMORY__   0xa0
+#define _KERNEL_STATE_SEG_FAULT__       0xff
 
-#define _KERNEL_TIMEOUT__    40
+// Counters
+#define _KERNEL_TIMEOUT__    1000
 #define _KEYBOARD_TIMEOUT__  10000
 
 // Function tables
@@ -113,9 +115,11 @@ struct Kernel {
 		bool isActive=1;
 		while(isActive) {
 			
+			while(queue.peekMessage() != 0) queue.processMessage();
+			
 			kernelCounter++;
 			if (kernelCounter > kernelTimeOut) {kernelCounter=0;
-				while(queue.peekMessage() != 0) queue.processMessage();
+				checkKernelState();
 			}
 			
 			keyboardCounter++;
@@ -128,7 +132,22 @@ struct Kernel {
 		return;
 	}
 	
-	
+	// Install a function pointer into the command function table
+	uint8_t installFunction(void(*function_ptr)(), const char name[], uint8_t name_length) {
+		
+		// Find a free slot
+		uint8_t index;
+		for (index=0; index <= _COMMAND_TABLE_SIZE__; index++) {
+			if (function.command_function_ptr[index] == nullfunction) break; else continue;
+		}
+		
+		
+		// Set the pointer
+		for (uint8_t i=0; i < name_length; i++) function.functionNameIndex[index][i] = name[i];
+		function.command_function_ptr[index] = function_ptr;
+		
+		return 1;
+	}
 	
 	// System message queue
 	struct MessageQueue {
@@ -211,25 +230,32 @@ struct Kernel {
 			}
 		}
 		
-		// Install a function pointer into the command function table
-		uint8_t install(void(*function_ptr)(), const char name[], uint8_t name_length) {
-			
-			// Find a free slot
-			uint8_t index;
-			for (index=0; index <= _COMMAND_TABLE_SIZE__; index++) {
-				if (command_function_ptr[index] == nullfunction) break; else continue;
-			}
-			
-			
-			// Set the pointer
-			for (uint8_t i=0; i < name_length; i++) functionNameIndex[index][i] = name[i];
-			command_function_ptr[index] = function_ptr;
-			
-			return 1;
-		}
-		
 	};
 	CommandFunctionIndex function;
+	
+	
+	// Check kernel error flags
+	char checkKernelState(void) {
+		
+		char flag=0;
+		memory_read(_KERNEL_FLAGS__, flag);
+		
+		switch (flag) {
+			
+			case _KERNEL_STATE_SEG_FAULT__: {
+				console.newLine();
+				console.print(message_error_seg_fault, sizeof(message_error_seg_fault));
+				console.newLine();
+				console.newPrompt();
+				memory_write(_KERNEL_FLAGS__, _KERNEL_STATE_NORMAL__);
+				return _KERNEL_STATE_SEG_FAULT__;
+			}
+			
+			default: break;
+		}
+		
+		return 0x00;
+	}
 	
 	
 };
@@ -386,6 +412,7 @@ uint8_t callExtern(FunctionPtr library_function, uint8_t function_call, uint8_t&
 	
 	return 1;
 }
+
 
 
 // Allocate and display total available system memory
