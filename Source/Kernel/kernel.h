@@ -19,11 +19,13 @@
 
 typedef void(*FunctionPtr)(uint8_t, uint8_t&, uint8_t&, uint8_t&, uint8_t&);
 
-#include "types.h"
 #include "enums.h"
 
+#include "types.h"
 #include "stack_allocator.h"
+
 #include "device_index.h"
+
 
 #include "string_const.h"
 #include "strings.h"
@@ -64,15 +66,6 @@ DeviceDriverIndex deviceDriverIndex;
 
 // Command console module system
 #include "console.h"
-
-
-
-
-
-
-
-
-
 
 
 struct Kernel {

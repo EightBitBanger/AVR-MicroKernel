@@ -21,14 +21,18 @@ struct string {
 	}
 	
 	string(const char new_string[], uint8_t string_length) {
-		
 		ptr = stack_alloc(string_length);
 		length = string_length;
 		clear();
 		
-		for (uint8_t i=0; i<string_length; i++) memory_cache[ptr + i] = new_string[i];
+		for (uint8_t i=0; i<=string_length; i++) memory_write(ptr + i, new_string[i]);
 	}
-	~string() {stack_free(length);}
+	
+	~string() {
+		
+		stack_free(length);
+		
+	}
 	
 	// Find a sub-string within the current string
 	uint8_t find(const char sub_string[], uint8_t sub_string_size) {

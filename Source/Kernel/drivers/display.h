@@ -2,7 +2,6 @@
 // LCD display driver
 
 #define _DEVICE_DISPLAY__    0x10
-#define _ALLOCATION_SIZE__   80
 
 void DisplayDeviceDriverEntryPoint(uint8_t, uint8_t&, uint8_t&, uint8_t&, uint8_t&);
 
@@ -11,13 +10,13 @@ struct DisplayDriver {
 	uint32_t address_pointer;
 	
 	void initiate(void) {
-		address_pointer = stack_alloc(_ALLOCATION_SIZE__);
 		
+		address_pointer = stack_alloc(0x10000);
 		
 	}
 	
 	void shutdown(void) {
-		stack_free(_ALLOCATION_SIZE__);
+		stack_free(0x10000);
 	}
 	
 	DisplayDriver() {
@@ -54,7 +53,7 @@ struct DisplayDriver {
 		
 		return;
 	}
-	void writeString(string String, uint8_t string_size, uint8_t line=0, uint8_t position=0) {
+	void writeString(string& String, uint8_t string_size, uint8_t line=0, uint8_t position=0) {
 		
 		uint32_t deviceAddress = device.getAddress(_DEVICE_DISPLAY__);
 		uint32_t address = deviceAddress + ((line * 20) + position);

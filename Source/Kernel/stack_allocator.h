@@ -12,14 +12,45 @@ void memory_write(uint32_t address, char byte);
 void device_read(uint32_t address, char& byte);
 void device_write(uint32_t address, char byte);
 
+// Address pointer
+union Pointer {
+	
+#ifdef _32_BIT_POINTERS__
+	char byte[4];
+	uint16_t word[2];
+	uint32_t dword;
+	uint32_t address;
+#endif
+#ifdef _64_BIT_POINTERS__
+	char byte[8];
+	uint16_t word[4];
+	uint32_t dword[2];
+	uint64_t address;
+#endif
+	
+	Pointer() {address=0;}
+	
+#ifdef _32_BIT_POINTERS__
+	Pointer(uint32_t newAddress) {address=newAddress;}
+#endif
+#ifdef _64_BIT_POINTERS__
+	Pointer(uint64_t newAddress) {address=newAddress;}
+#endif
+	
+	// Write the pointer to a memory location
+	void write(uint32_t address) {for (uint8_t i=0; i<4; i++) memory_write(address+i, byte[i]);}
+	
+	// Read the pointer from a memory location
+	void read(uint32_t address) {for (uint8_t i=0; i<4; i++) memory_read(address+i, byte[i]);}
+	
+};
 #include "cache.h"
 
 // Allocate stack memory and return a pointer to the first byte in this allocation
 uint32_t stack_alloc(uint32_t size) {
 	
+	//Pointer numberOfAllocations.read(_ALLOCATOR_COUNTER_ADDRESS__);
 	Pointer numberOfAllocations;
-	
-	// Increment the allocation counter
 	for (uint8_t i=0; i<4; i++) numberOfAllocations.byte[i] = memory_cache[_ALLOCATOR_COUNTER_ADDRESS__ + i];
 	
 	// Check memory limit
@@ -43,10 +74,9 @@ void stack_free(uint32_t size) {
 	Pointer numberOfAllocations;
 	for (uint8_t i=0; i<4; i++) numberOfAllocations.byte[i] = memory_cache[_ALLOCATOR_COUNTER_ADDRESS__ + i];
 	
-	if (numberOfAllocations.address >= size) {numberOfAllocations.address -= size;
-		for (uint8_t i=0; i<4; i++) memory_cache[_ALLOCATOR_COUNTER_ADDRESS__ + i] = numberOfAllocations.byte[i];
-		return;
-	}
+	numberOfAllocations.address -= size;
+	
+	for (uint8_t i=0; i<4; i++) memory_cache[_ALLOCATOR_COUNTER_ADDRESS__ + i] = numberOfAllocations.byte[i];
 	
 	return;
 }
@@ -57,7 +87,7 @@ void mem_zero(uint32_t address_pointer, uint32_t size) {
 }
 
 // Return number of allocated bytes
-uint32_t stack_count(void) {
+uint32_t stack_size(void) {
 	
 	Pointer numberOfAllocations;
 	for (uint8_t i=0; i<4; i++) numberOfAllocations.byte[i] = memory_cache[_ALLOCATOR_COUNTER_ADDRESS__ + i];
