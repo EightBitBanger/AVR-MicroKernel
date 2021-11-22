@@ -30,8 +30,6 @@ void command_clear_screen(void) {
 	_delay_ms(200);
 	
 	// Initiate the prompt
-	console.newPrompt();
-	
 	console.promptState = 1;
 	
 	return;

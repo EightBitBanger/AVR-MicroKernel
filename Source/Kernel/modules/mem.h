@@ -18,11 +18,17 @@ static ModuleMemoryCommand moduleMemoryCommand;
 
 void command_memory(void) {
 	
-	string memoryFree(string_memory_allocator, sizeof(string_memory_allocator));
+	uint32_t ammountOfMemory = (_STACK_END__ - _STACK_BEGIN__) - _KERNEL_END__;
+	string memoryAmmount(7);
+	intToString(ammountOfMemory, memoryAmmount);
 	
-	console.addString(memoryFree, memoryFree.size());
+	string memoryBytes(string_memory_allocator_bytes, sizeof(string_memory_allocator_bytes));
+	string memoryFree(string_memory_allocator_free, sizeof(string_memory_allocator_free));
+	
+	console.print(memoryAmmount, memoryAmmount.size());
+	console.print(memoryBytes, memoryBytes.size());
+	console.print(memoryFree, memoryFree.size());
 	console.newLine();
-	//console.
 	
 	return;
 }

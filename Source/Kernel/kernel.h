@@ -32,7 +32,8 @@ typedef void(*FunctionPtr)(uint8_t, uint8_t&, uint8_t&, uint8_t&, uint8_t&);
 //#include "drivers/file_system.h"
 #include "drivers/keyboard.h"
 
-
+// Prototypes
+void updateKeyboard(void);
 uint8_t loadLibrary(const char[], uint8_t, void(*new_driver_ptr)(uint8_t, uint8_t&, uint8_t&, uint8_t&, uint8_t&));
 FunctionPtr& getFuncAddress(const char[], uint8_t);
 uint8_t callExtern(FunctionPtr, uint8_t, uint8_t&, uint8_t&, uint8_t&, uint8_t&);
@@ -61,65 +62,9 @@ DeviceDriverIndex deviceDriverIndex;
 // Load device drivers
 #include "drivers.h"
 
+// Command console module system
+#include "console.h"
 
-// Command console interface
-struct CommandConsole {
-	
-	char  promptCharacter;
-	uint8_t promptState;
-	uint8_t cursorLine;
-	uint8_t cursorPos;
-	
-	uint8_t keyboard_string_length;
-	char  keyboard_string[24];
-	uint8_t keyboardState;
-	uint8_t lastChar;
-	
-	CommandConsole() {
-		
-		promptCharacter = '>';
-		promptState     = 0;
-		cursorLine      = 0;
-		cursorPos       = 0;
-		
-		keyboard_string_length = 0;
-		clearString();
-		
-		keyboardState=0;
-		lastChar=0;
-		
-	}
-	
-	// Shift the display up one line
-	void shiftUp(void) {displayDriver.frameShiftUp();_delay_ms(100);}
-	
-	// Add a const char string to the console
-	void addString(const char charArray[], uint8_t string_length) {
-		displayDriver.writeString(charArray, string_length, cursorLine, cursorPos);
-		cursorPos+=string_length;
-		return;
-	}
-	void addString(string& charString, uint8_t string_length) {
-		displayDriver.writeString(charString, string_length, cursorLine, cursorPos);
-		cursorPos+=string_length;
-		return;
-	}
-	
-	// Add new blank line
-	void newLine(void) {cursorPos = 0; if (cursorLine < 3) {cursorLine++;} else {shiftUp();} return;}
-	
-	// Display a command prompt
-	void newPrompt(void) {
-		cursorPos = 1;
-		displayDriver.writeChar(promptCharacter, cursorLine, 0);
-		displayDriver.cursorSetPosition(cursorLine, 1);
-	}
-	
-	// Clear the keyboard string
-	void clearString(void) {for (uint8_t i=0; i <= 20; i++) {keyboard_string[i] = 0x20;} keyboard_string_length=0;}
-	
-};
-CommandConsole console;
 
 
 
@@ -294,90 +239,94 @@ struct Kernel {
 	CommandFunctionIndex function;
 	
 	
-	void updateKeyboard(void) {
-		
-		uint8_t scanCodeAccepted = 0;
-		uint8_t currentChar=0x00;
-		
-		uint8_t readKeyCode = keyboard.read();
-		
-		// Decode the scan code
-		if (console.keyboard_string_length < 19) {
-			// ASCII char
-			currentChar = readKeyCode;
-			if (readKeyCode > 0x1f) {scanCodeAccepted=1;}
-			} else {
-			// Allow backspace and enter past max string length
-			if (readKeyCode < 0x03) currentChar = readKeyCode;
+};
+Kernel kernel;
+
+void updateKeyboard(void) {
+	
+	uint8_t scanCodeAccepted = 0;
+	uint8_t currentChar=0x00;
+	
+	uint8_t readKeyCode = keyboard.read();
+	
+	// Decode the scan code
+	if (console.keyboard_string_length < 19) {
+		// ASCII char
+		currentChar = readKeyCode;
+		if (readKeyCode > 0x1f) {scanCodeAccepted=1;}
+		} else {
+		// Allow backspace and enter past max string length
+		if (readKeyCode < 0x03) currentChar = readKeyCode;
+	}
+	
+	// Prevent wild key repeats
+	if (console.lastChar == currentChar) {console.lastChar == currentChar; return;} console.lastChar = currentChar;
+	
+	// Backspace
+	if (currentChar == 0x01) {
+		if (console.keyboard_string_length > 0) {
+			// Remove last char from display
+			displayDriver.writeChar(0x20, console.cursorLine, console.keyboard_string_length);
+			displayDriver.cursorSetPosition(console.cursorLine, console.keyboard_string_length);
+			// and keyboard string
+			console.keyboard_string_length--;
+			console.keyboard_string[console.keyboard_string_length] = 0x20;
 		}
+	}
+	
+	// Enter
+	if (currentChar == 0x02) {
 		
-		// Prevent wild key repeats
-		if (console.lastChar == currentChar) {console.lastChar == currentChar; return;} console.lastChar = currentChar;
+		uint8_t currentKeyStringLength = console.keyboard_string_length;
+		console.keyboard_string_length = 0;
 		
-		// Backspace
-		if (currentChar == 0x01) {
-			if (console.keyboard_string_length > 0) {
-				// Remove last char from display
-				displayDriver.writeChar(0x20, console.cursorLine, console.keyboard_string_length);
-				displayDriver.cursorSetPosition(console.cursorLine, console.keyboard_string_length);
-				// and keyboard string
-				console.keyboard_string_length--;
-				console.keyboard_string[console.keyboard_string_length] = 0x20;
-			}
-		}
+		if (console.cursorLine == 3) {console.shiftUp();}
+		if (console.cursorLine == 2) console.cursorLine++;
+		if (console.cursorLine == 1) console.cursorLine++;
+		if (console.cursorLine == 0) {if (console.promptState == 0) {console.promptState++;} else {console.cursorLine++;}}
 		
-		// Enter
-		if (currentChar == 0x02) {
+		// Execute the function
+		if (currentKeyStringLength > 0) {console.cursorPos=0;
 			
-			uint8_t currentKeyStringLength = console.keyboard_string_length;
-			console.keyboard_string_length = 0;
-			
-			if (console.cursorLine == 3) {console.shiftUp();}
-			if (console.cursorLine == 2) console.cursorLine++;
-			if (console.cursorLine == 1) console.cursorLine++;
-			if (console.cursorLine == 0) {if (console.promptState == 0) {console.promptState++;} else {console.cursorLine++;}}
-			
-			// Execute the function
-			if (currentKeyStringLength > 0) {console.cursorPos=0;
+			// Function look up
+			for (uint8_t i=0; i<_COMMAND_TABLE_SIZE__; i++) {
 				
-				// Function look up
-				for (uint8_t i=0; i<_COMMAND_TABLE_SIZE__; i++) {
+				if (kernel.function.command_function_ptr[i] == 0x00) continue;
+				
+				uint8_t count=1;
+				for (uint8_t a=0; a<8; a++) {
 					
-					if (function.command_function_ptr[i] == 0x00) continue;
+					// Compare to keyboard string
+					if (kernel.function.functionNameIndex[i][a] == console.keyboard_string[a]) count++;
 					
-					uint8_t count=1;
-					for (uint8_t a=0; a<8; a++) {
-						// Compare to keyboard string
-						if (function.functionNameIndex[i][a] == console.keyboard_string[a]) count++;
-						// Execute the command
-						if (count == 8) {function.command_function_ptr[i](); return;}
+					// Execute the command
+					if (count == 8) {
+						kernel.function.command_function_ptr[i]();
+						console.newPrompt();
+						return;
 					}
-					
 				}
 				
 			}
 			
-			console.clearString();
-			console.newPrompt();
 		}
 		
-		// ASCII key character accepted
-		if (scanCodeAccepted == 1) {
-			console.keyboard_string[console.keyboard_string_length] = currentChar;
-			console.keyboard_string_length++;
-			// Update cursor
-			displayDriver.cursorSetPosition(console.cursorLine, console.keyboard_string_length+1);
-			// Display keyboard string
-			displayDriver.writeString(console.keyboard_string, console.keyboard_string_length+1, console.cursorLine, console.cursorPos);
-			displayDriver.writeChar(console.promptCharacter, console.cursorLine, 0);
-		}
-		
+		console.clearString();
+		console.newPrompt();
 	}
 	
+	// ASCII key character accepted
+	if (scanCodeAccepted == 1) {
+		console.keyboard_string[console.keyboard_string_length] = currentChar;
+		console.keyboard_string_length++;
+		// Update cursor
+		displayDriver.cursorSetPosition(console.cursorLine, console.keyboard_string_length+1);
+		// Display keyboard string
+		displayDriver.writeString(console.keyboard_string, console.keyboard_string_length+1, console.cursorLine, console.cursorPos);
+		displayDriver.writeChar(console.promptCharacter, console.cursorLine, 0);
+	}
 	
-	
-};
-Kernel kernel;
+}
 
 // Load command modules
 #include "modules.h"
@@ -455,7 +404,7 @@ uint32_t allocate_system_memory(void) {
 	
 	uint32_t updateTimer=0;
 	
-	displayDriver.writeString(string_memory_allocator, sizeof(string_memory_allocator));
+	displayDriver.writeString(string_memory_allocator_bytes, sizeof(string_memory_allocator_bytes), 0, 8);
 	
 	char memoryString[8];
 	for (uint8_t i=0; i<8; i++) memoryString[i] = 0x20;
