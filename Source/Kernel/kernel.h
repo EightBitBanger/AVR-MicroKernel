@@ -325,7 +325,9 @@ void updateKeyboard(void) {
 			
 		}
 		
+		console.clearString();
 		console.newPrompt();
+		return;
 	}
 	
 	// ASCII key character accepted

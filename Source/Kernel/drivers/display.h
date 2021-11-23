@@ -8,11 +8,11 @@ void DisplayDeviceDriverEntryPoint(uint8_t, uint8_t&, uint8_t&, uint8_t&, uint8_
 struct DisplayDriver {
 	
 	void initiate(void) {
-		stack_alloc(0x256);
+		
 	}
 	
 	void shutdown(void) {
-		stack_free(0x256);
+		
 	}
 	
 	DisplayDriver() {
