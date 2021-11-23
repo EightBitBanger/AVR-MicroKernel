@@ -25,7 +25,7 @@ struct string {
 		length = string_length;
 		clear();
 		
-		for (uint8_t i=0; i<=string_length; i++) memory_write(ptr + i, new_string[i]);
+		for (uint8_t i=0; i<string_length; i++) memory_write(ptr + i, new_string[i]);
 	}
 	
 	~string() {

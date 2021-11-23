@@ -51,7 +51,7 @@ union Pointer {
 uint32_t stack_alloc(uint32_t size) {
 	
 	Pointer numberOfAllocations;
-	for (uint8_t i=0; i<4; i++) numberOfAllocations.byte[i] = memory_cache[_ALLOCATOR_COUNTER_ADDRESS__ + i];
+	for (uint8_t i=0; i<4; i++) memory_read(_ALLOCATOR_COUNTER_ADDRESS__ + i, numberOfAllocations.byte[i]);
 	
 	//numberOfAllocations.read(_ALLOCATOR_COUNTER_ADDRESS__);
 	
@@ -65,7 +65,7 @@ uint32_t stack_alloc(uint32_t size) {
 	uint32_t new_pointer = _STACK_BEGIN__ + (numberOfAllocations.address);
 	
 	numberOfAllocations.address += size;
-	for (uint8_t i=0; i<4; i++) memory_cache[_ALLOCATOR_COUNTER_ADDRESS__ + i] = numberOfAllocations.byte[i];
+	for (uint8_t i=0; i<4; i++) memory_write(_ALLOCATOR_COUNTER_ADDRESS__ + i, numberOfAllocations.byte[i]);
 	
 	//numberOfAllocations.write(_ALLOCATOR_COUNTER_ADDRESS__);
 	
@@ -76,11 +76,11 @@ uint32_t stack_alloc(uint32_t size) {
 void stack_free(uint32_t size) {
 	
 	Pointer numberOfAllocations;
-	for (uint8_t i=0; i<4; i++) numberOfAllocations.byte[i] = memory_cache[_ALLOCATOR_COUNTER_ADDRESS__ + i];
+	for (uint8_t i=0; i<4; i++) memory_read(_ALLOCATOR_COUNTER_ADDRESS__ + i, numberOfAllocations.byte[i]);
 	
 	numberOfAllocations.address -= size;
 	
-	for (uint8_t i=0; i<4; i++) memory_cache[_ALLOCATOR_COUNTER_ADDRESS__ + i] = numberOfAllocations.byte[i];
+	for (uint8_t i=0; i<4; i++) memory_write(_ALLOCATOR_COUNTER_ADDRESS__ + i, numberOfAllocations.byte[i]);
 	
 	return;
 }
@@ -94,7 +94,7 @@ void mem_zero(uint32_t address_pointer, uint32_t size) {
 uint32_t stack_size(void) {
 	
 	Pointer numberOfAllocations;
-	for (uint8_t i=0; i<4; i++) memory_write(_ALLOCATOR_COUNTER_ADDRESS__ + i, numberOfAllocations.byte[i]);
+	for (uint8_t i=0; i<4; i++) memory_read(_ALLOCATOR_COUNTER_ADDRESS__ + i, numberOfAllocations.byte[i]);
 	
 	return numberOfAllocations.address;
 }
