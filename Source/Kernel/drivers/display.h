@@ -18,7 +18,7 @@ struct DisplayDriver {
 	DisplayDriver() {
 		
 		const char name[] = "con";
-		loadLibrary(name, sizeof(name), &DisplayDeviceDriverEntryPoint);
+		//loadLibrary(name, sizeof(name), &DisplayDeviceDriverEntryPoint);
 		
 	}
 	

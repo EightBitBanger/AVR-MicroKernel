@@ -79,7 +79,7 @@ struct Kernel {
 		mem_zero(_KERNEL_FLAGS__, 8);              // Kernel state flags
 		
 		// Initiate device drivers
-		for (uint8_t i=0; i <= _DRIVER_TABLE_SIZE__; i++) {
+		for (uint8_t i=0; i < _DRIVER_TABLE_SIZE__; i++) {
 			
 			if ((deviceDriverIndex.driver_function_ptr[i] != 0) && (deviceDriverIndex.deviceNameIndex[i][0] != 0x20))
 				deviceDriverIndex.driver_function_ptr[i](_DRIVER_INITIATE__, NULL, NULL, NULL, NULL);
@@ -91,7 +91,7 @@ struct Kernel {
 	void shutdown(void) {
 		
 		// Initiate device drivers
-		for (uint8_t i=0; i <= _DRIVER_TABLE_SIZE__; i++) {
+		for (uint8_t i=0; i < _DRIVER_TABLE_SIZE__; i++) {
 			if ((deviceDriverIndex.driver_function_ptr[i] != 0) && (deviceDriverIndex.deviceNameIndex[i][0] != 0x20)) 
 				deviceDriverIndex.driver_function_ptr[i](_DRIVER_SHUTDOWN__, NULL, NULL, NULL, NULL);
 			
@@ -395,7 +395,9 @@ FunctionPtr& getFuncAddress(const char device_name[], uint8_t name_length) {
 // Call an external function from a library function pointer
 uint8_t callExtern(FunctionPtr library_function, uint8_t function_call, uint8_t& paramA=NULL, uint8_t& paramB=NULL, uint8_t& paramC=NULL, uint8_t& paramD=NULL) {
 	
-	for (uint8_t i=0; i <= _DRIVER_TABLE_SIZE__; i++) {
+	if (library_function == (FunctionPtr&)nullfunction) return 0;
+	
+	for (uint8_t i=0; i < _DRIVER_TABLE_SIZE__; i++) {
 		
 		if (deviceDriverIndex.driver_function_ptr[i] == library_function) {
 			library_function(function_call, paramA, paramB, paramC, paramD);

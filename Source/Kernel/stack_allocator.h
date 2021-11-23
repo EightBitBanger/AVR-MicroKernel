@@ -87,7 +87,7 @@ void stack_free(uint32_t size) {
 
 // Zero a section of memory
 void mem_zero(uint32_t address_pointer, uint32_t size) {
-	for (uint32_t i=0; i<=size; i++) {memory_write(address_pointer+i, 0x00);}
+	for (uint32_t i=0; i<size; i++) {memory_write(address_pointer+i, 0x00);}
 }
 
 // Return number of allocated bytes
