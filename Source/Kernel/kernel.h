@@ -54,8 +54,8 @@ struct DeviceDriverIndex {
 	void (*driver_function_ptr[_DRIVER_TABLE_SIZE__])(uint8_t, uint8_t&, uint8_t&, uint8_t&, uint8_t&);
 	
 	DeviceDriverIndex() {
-		for (uint8_t i=0; i <= _DRIVER_TABLE_SIZE__; i++) {
-			for (uint8_t a=0; a <= 8; a++) deviceNameIndex[i][a] = 0x20;
+		for (uint8_t i=0; i < _DRIVER_TABLE_SIZE__; i++) {
+			for (uint8_t a=0; a < 8; a++) deviceNameIndex[i][a] = 0x20;
 			driver_function_ptr[i] = 0;
 		}
 	}
@@ -136,13 +136,13 @@ struct Kernel {
 		
 		// Find a free slot
 		uint8_t index;
-		for (index=0; index <= _COMMAND_TABLE_SIZE__; index++) {
-			if (function.command_function_ptr[index] == nullfunction) break; else continue;
-		}
+		for (index=0; index < _COMMAND_TABLE_SIZE__; index++) 
+			if (function.command_function_ptr[index] == &nullfunction) break;
 		
+		// Set the name and pointer
+		for (uint8_t i=0; i < name_length-1; i++) 
+			function.functionNameIndex[index][i] = name[i];
 		
-		// Set the pointer
-		for (uint8_t i=0; i < name_length; i++) function.functionNameIndex[index][i] = name[i];
 		function.command_function_ptr[index] = function_ptr;
 		
 		return 1;
@@ -223,9 +223,9 @@ struct Kernel {
 		void (*command_function_ptr[_COMMAND_TABLE_SIZE__])();
 		
 		CommandFunctionIndex() {
-			for (uint8_t i=0; i <= _COMMAND_TABLE_SIZE__; i++) {
-				for (uint8_t a=0; a <= 8; a++) functionNameIndex[i][a] = 0x20;
-				command_function_ptr[i] = nullfunction;
+			for (uint8_t i=0; i < _COMMAND_TABLE_SIZE__; i++) {
+				for (uint8_t a=0; a < 8; a++) functionNameIndex[i][a] = 0x20;
+				command_function_ptr[i] = &nullfunction;
 			}
 		}
 		
@@ -307,29 +307,24 @@ void updateKeyboard(void) {
 		if (currentKeyStringLength > 0) {console.cursorPos=0;
 			
 			// Function look up
-			for (uint8_t i=0; i<=_COMMAND_TABLE_SIZE__; i++) {
+			for (uint8_t i=0; i<_COMMAND_TABLE_SIZE__; i++) {
 				
-				if (kernel.function.command_function_ptr[i] == 0x00) continue;
+				if (kernel.function.functionNameIndex[i][0] == 0x20) continue;
 				
-				uint8_t count;
-				for (count=1; count < currentKeyStringLength; count++)
-					if (kernel.function.functionNameIndex[i][count] == console.keyboard_string[count]) continue; else break;
+				// Extract function name
+				char functionName[8];
+				for (uint8_t a=0; a < 8; a++) functionName[a] = 0x20;
+				for (uint8_t a=0; a < 8; a++) functionName[a] = kernel.function.functionNameIndex[i][a];
 				
-				// Execute the command
-				if (count == currentKeyStringLength) {
-					
-					kernel.function.command_function_ptr[i]();
-					console.newPrompt();
-					
-					return;
-				}
+				if (string_compare(functionName, console.keyboard_string, 8) == 0) continue;
 				
+				kernel.function.command_function_ptr[i]();
 				
+				break;
 			}
 			
 		}
 		
-		console.clearString();
 		console.newPrompt();
 	}
 	
@@ -362,11 +357,11 @@ uint8_t defaultCallbackProcedure(uint8_t message) {
 // Load a device driver entry point function onto the driver function table
 uint8_t loadLibrary(const char device_name[], uint8_t name_length, void(*new_driver_ptr)(uint8_t, uint8_t&, uint8_t&, uint8_t&, uint8_t&)) {
 	
-	if (name_length > 8) return 0;
+	if (name_length > 7) return 0;
 	
 	// Find a free driver index
 	uint8_t index;
-	for (index=0; index <= _DRIVER_TABLE_SIZE__; index++) {
+	for (index=0; index < _DRIVER_TABLE_SIZE__; index++) {
 		if (deviceDriverIndex.driver_function_ptr[index] == 0) break; else continue;
 	}
 	
@@ -380,10 +375,10 @@ uint8_t loadLibrary(const char device_name[], uint8_t name_length, void(*new_dri
 // Get a library function address by its device name
 FunctionPtr& getFuncAddress(const char device_name[], uint8_t name_length) {
 	
-	if (name_length > 8) return (FunctionPtr&)nullfunction;
+	if (name_length > 7) return (FunctionPtr&)nullfunction;
 	
 	// Function look up
-	for (uint8_t i=0; i <= _DRIVER_TABLE_SIZE__; i++) {
+	for (uint8_t i=0; i < _DRIVER_TABLE_SIZE__; i++) {
 		
 		if (deviceDriverIndex.driver_function_ptr[i] == 0x00) continue;
 		

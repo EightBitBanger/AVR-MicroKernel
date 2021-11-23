@@ -124,6 +124,11 @@ uint8_t string_compare(const char stringA[], const char stringB[], uint8_t strin
 	return 1;
 }
 
+uint8_t string_compare(char stringA[], char stringB[], uint8_t string_size) {
+	for (uint8_t i=0; i < string_size; i++) {if (stringA[i] != stringB[i]) return 0;}
+	return 1;
+}
+
 // Convert integer number to string of characters
 uint8_t intToString(uint32_t number, string& destination_string) {
 	

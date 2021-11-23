@@ -32,6 +32,21 @@ struct CommandConsole {
 	void shiftUp(void) {displayDriver.frameShiftUp();_delay_ms(100);}
 	
 	// Add a const char string to the console
+	void print(char character) {
+		displayDriver.writeChar(character, cursorLine, cursorPos);
+		cursorPos++;
+		return;
+	}
+	void print(int number) {
+		
+		char numberString[7];
+		uint8_t place = intToString(number, numberString) + 1;
+		
+		displayDriver.writeString(numberString, place, cursorLine, cursorPos);
+		cursorPos+=place;
+		
+		return;
+	}
 	void print(const char charArray[], uint8_t string_length) {
 		displayDriver.writeString(charArray, string_length, cursorLine, cursorPos);
 		cursorPos+=string_length;

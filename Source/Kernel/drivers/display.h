@@ -38,6 +38,17 @@ struct DisplayDriver {
 	void frameShiftDown(void) {write(0xaa, 0x01); return;}
 	
 	void writeChar(char character, uint8_t line=0, uint8_t position=0) {write((line * 20) + position, character); return;}
+	void writeString(char String[], uint8_t string_size, uint8_t line=0, uint8_t position=0) {
+		
+		uint32_t deviceAddress = device.getAddress(_DEVICE_DISPLAY__);
+		uint32_t address = deviceAddress + ((line * 20) + position);
+		
+		uint8_t stringSz = string_size - 1;
+		
+		for (uint8_t i=0; i < stringSz; i++) device_write(address+i, String[i]);
+		
+		return;
+	}
 	void writeString(const char String[], uint8_t string_size, uint8_t line=0, uint8_t position=0) {
 		
 		uint32_t deviceAddress = device.getAddress(_DEVICE_DISPLAY__);
