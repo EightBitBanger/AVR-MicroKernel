@@ -21,11 +21,15 @@ void command_memory(void) {
 	// Get amount of available system memory
 	uint32_t ammountOfMemory = _STACK_END__ - (_KERNEL_END__ + stack_size());
 	
-	string memoryAmmount(7);
+	char memoryAmmount[7];
+	for (uint8_t i=0; i <= 7; i++) memoryAmmount[i] = 0x20;
+	
+	//string memoryAmmount(7);
+	//console.print(memoryAmmount, memoryAmmount.size());
+	
 	intToString(ammountOfMemory, memoryAmmount);
 	
-	// Strings
-	console.print(memoryAmmount, memoryAmmount.size());
+	console.print(memoryAmmount, sizeof(memoryAmmount));
 	console.print(string_memory_allocator_bytes, sizeof(string_memory_allocator_bytes));
 	console.print(string_memory_allocator_free, sizeof(string_memory_allocator_free));
 	console.newLine();

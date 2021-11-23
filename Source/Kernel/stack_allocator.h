@@ -50,9 +50,10 @@ union Pointer {
 // Allocate stack memory and return a pointer to the first byte in this allocation
 uint32_t stack_alloc(uint32_t size) {
 	
-	//Pointer numberOfAllocations.read(_ALLOCATOR_COUNTER_ADDRESS__);
 	Pointer numberOfAllocations;
 	for (uint8_t i=0; i<4; i++) numberOfAllocations.byte[i] = memory_cache[_ALLOCATOR_COUNTER_ADDRESS__ + i];
+	
+	//numberOfAllocations.read(_ALLOCATOR_COUNTER_ADDRESS__);
 	
 	// Check memory limit
 	if ((_STACK_BEGIN__ + (numberOfAllocations.address + size)) >= _STACK_END__) {
@@ -65,6 +66,8 @@ uint32_t stack_alloc(uint32_t size) {
 	
 	numberOfAllocations.address += size;
 	for (uint8_t i=0; i<4; i++) memory_cache[_ALLOCATOR_COUNTER_ADDRESS__ + i] = numberOfAllocations.byte[i];
+	
+	//numberOfAllocations.write(_ALLOCATOR_COUNTER_ADDRESS__);
 	
 	return new_pointer;
 }
@@ -91,7 +94,7 @@ void mem_zero(uint32_t address_pointer, uint32_t size) {
 uint32_t stack_size(void) {
 	
 	Pointer numberOfAllocations;
-	for (uint8_t i=0; i<4; i++) numberOfAllocations.byte[i] = memory_cache[_ALLOCATOR_COUNTER_ADDRESS__ + i];
+	for (uint8_t i=0; i<4; i++) memory_write(_ALLOCATOR_COUNTER_ADDRESS__ + i, numberOfAllocations.byte[i]);
 	
 	return numberOfAllocations.address;
 }

@@ -115,11 +115,10 @@ struct Kernel {
 		bool isActive=1;
 		while(isActive) {
 			
-			while(queue.peekMessage() != 0) queue.processMessage();
-			
 			kernelCounter++;
 			if (kernelCounter > kernelTimeOut) {kernelCounter=0;
-				checkKernelState();
+				while(queue.peekMessage() != 0) queue.processMessage();
+				//checkKernelState();
 			}
 			
 			keyboardCounter++;
@@ -308,23 +307,23 @@ void updateKeyboard(void) {
 		if (currentKeyStringLength > 0) {console.cursorPos=0;
 			
 			// Function look up
-			for (uint8_t i=0; i<_COMMAND_TABLE_SIZE__; i++) {
+			for (uint8_t i=0; i<=_COMMAND_TABLE_SIZE__; i++) {
 				
 				if (kernel.function.command_function_ptr[i] == 0x00) continue;
 				
-				uint8_t count=1;
-				for (uint8_t a=0; a<8; a++) {
+				uint8_t count;
+				for (count=1; count < currentKeyStringLength; count++)
+					if (kernel.function.functionNameIndex[i][count] == console.keyboard_string[count]) continue; else break;
+				
+				// Execute the command
+				if (count == currentKeyStringLength) {
 					
-					// Compare to keyboard string
-					if (kernel.function.functionNameIndex[i][a] == console.keyboard_string[a]) count++;
+					kernel.function.command_function_ptr[i]();
+					console.newPrompt();
 					
-					// Execute the command
-					if (count == 8) {
-						kernel.function.command_function_ptr[i]();
-						console.newPrompt();
-						return;
-					}
+					return;
 				}
+				
 				
 			}
 			
@@ -390,7 +389,7 @@ FunctionPtr& getFuncAddress(const char device_name[], uint8_t name_length) {
 		
 		uint8_t count=0;
 		for (count=0; count < name_length; count++)
-		if (deviceDriverIndex.deviceNameIndex[i][count] == device_name[count]) {continue;} else {count=0; break;}
+			if (deviceDriverIndex.deviceNameIndex[i][count] == device_name[count]) {continue;} else {count=0; break;}
 		
 		if (count == name_length) return deviceDriverIndex.driver_function_ptr[i];
 	}
