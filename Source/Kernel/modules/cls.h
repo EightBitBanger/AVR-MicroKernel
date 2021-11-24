@@ -8,7 +8,7 @@ struct ModuleClearScreen {
 	ModuleClearScreen() {
 		
 		const char command_name[] = "cls";
-		installModule(&command_clear_screen, command_name, sizeof(command_name));
+		loadModule(&command_clear_screen, command_name, sizeof(command_name));
 		
 		return;
 	}

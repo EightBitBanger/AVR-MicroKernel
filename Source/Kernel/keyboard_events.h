@@ -1,5 +1,5 @@
 //
-// Keyboard event handling
+// Keyboard console event handling
 
 void keyEventEnter(void);
 void keyEventBackspace(void);
@@ -10,7 +10,25 @@ void updateKeyboard(void) {
 	uint8_t scanCodeAccepted = 0;
 	char currentChar=0x00;
 	
-	char readKeyCode = keyboard.read();
+	uint8_t readKeyCode;
+	
+	
+	//const char deviceName[] = "keyboard";
+	//FunctionPtr keyboardPtr = getFuncAddress(deviceName, sizeof(deviceName));
+	
+	
+	keyboardDeviceDriverEntryPoint(0x00, readKeyCode, null, null, null);
+	
+	//keyboardPtr(0x00, readKeyCode, null, null, null);
+	
+	//callExtern(keyboardPtr, 0x00, readKeyCode);
+	
+	
+	
+	
+	keyboard.read(readKeyCode);
+	
+	
 	
 	// Check MAX string length
 	if (console.keyboard_string_length < 19) {
@@ -42,7 +60,6 @@ void updateKeyboard(void) {
 }
 
 void keyEventEnter(void) {
-	
 	
 	uint8_t currentKeyStringLength = console.keyboard_string_length;
 	console.keyboard_string_length = 0;

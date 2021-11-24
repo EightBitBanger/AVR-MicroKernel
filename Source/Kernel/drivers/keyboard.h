@@ -1,6 +1,10 @@
 //
 // Keyboard interface
 
+#define _DEVICE_KEYBOARD__    0x64
+
+void keyboardDeviceDriverEntryPoint(uint8_t, uint8_t&, uint8_t&, uint8_t&, uint8_t&);
+
 // Keyboard key decode index array
 const char scancodeIndex[] = {
 	0x05, 'i', 's', 'd', 'f', 'h', 'j' ,'l',
@@ -11,8 +15,23 @@ const char scancodeIndex[] = {
 
 struct KeyboardDriver {
 	
+	void initiate(void) {
+		
+	}
+	
+	void shutdown(void) {
+		
+	}
+	
+	KeyboardDriver() {
+		
+		const char name[] = "keyboard";
+		loadLibrary(name, sizeof(name), &keyboardDeviceDriverEntryPoint);
+		
+	}
+	
 	// Read the current keyboard scan code
-	uint8_t read(void) {
+	void read(uint8_t& scan_code) {
 		
 		char byteLow, byteHigh;
 		_BUS_UPPER_OUT__ = 0x00;
@@ -20,108 +39,110 @@ struct KeyboardDriver {
 		_BUS_UPPER_OUT__ = 0x00;
 		memory_read(0xa0000, byteHigh);
 		
-		return decodeScanCode(byteLow, byteHigh);
+		decodeScanCode(byteLow, byteHigh, scan_code);
+		return;
 	}
 	
 	// Decode the scan code returning an ASCII character
-	uint8_t decodeScanCode(uint8_t scancode_low, uint8_t scancode_high) {
-		
-		/*
-		// Display a keyboard scan code
-		if (scancode_low & (1 << 7)) {displayDriver.writeChar(0x31, 3, 0);} else {displayDriver.writeChar(0x30, 3, 0);}
-		if (scancode_low & (1 << 6)) {displayDriver.writeChar(0x31, 3, 1);} else {displayDriver.writeChar(0x30, 3, 1);}
-		if (scancode_low & (1 << 5)) {displayDriver.writeChar(0x31, 3, 2);} else {displayDriver.writeChar(0x30, 3, 2);}
-		if (scancode_low & (1 << 4)) {displayDriver.writeChar(0x31, 3, 3);} else {displayDriver.writeChar(0x30, 3, 3);}
-		if (scancode_low & (1 << 3)) {displayDriver.writeChar(0x31, 3, 4);} else {displayDriver.writeChar(0x30, 3, 4);}
-		if (scancode_low & (1 << 2)) {displayDriver.writeChar(0x31, 3, 5);} else {displayDriver.writeChar(0x30, 3, 5);}
-		if (scancode_low & (1 << 1)) {displayDriver.writeChar(0x31, 3, 6);} else {displayDriver.writeChar(0x30, 3, 6);}
-		if (scancode_low & (1 << 0)) {displayDriver.writeChar(0x31, 3, 7);} else {displayDriver.writeChar(0x30, 3, 7);}
-		
-		if (scancode_high & (1 << 7)) {displayDriver.writeChar(0x31, 3, 12);} else {displayDriver.writeChar(0x30, 3, 12);}
-		if (scancode_high & (1 << 6)) {displayDriver.writeChar(0x31, 3, 13);} else {displayDriver.writeChar(0x30, 3, 13);}
-		if (scancode_high & (1 << 5)) {displayDriver.writeChar(0x31, 3, 14);} else {displayDriver.writeChar(0x30, 3, 14);}
-		if (scancode_high & (1 << 4)) {displayDriver.writeChar(0x31, 3, 15);} else {displayDriver.writeChar(0x30, 3, 15);}
-		if (scancode_high & (1 << 3)) {displayDriver.writeChar(0x31, 3, 16);} else {displayDriver.writeChar(0x30, 3, 16);}
-		if (scancode_high & (1 << 2)) {displayDriver.writeChar(0x31, 3, 17);} else {displayDriver.writeChar(0x30, 3, 17);}
-		if (scancode_high & (1 << 1)) {displayDriver.writeChar(0x31, 3, 18);} else {displayDriver.writeChar(0x30, 3, 18);}
-		if (scancode_high & (1 << 0)) {displayDriver.writeChar(0x31, 3, 19);} else {displayDriver.writeChar(0x30, 3, 19);}
-		*/
+	void decodeScanCode(uint8_t scancode_low, uint8_t scancode_high, uint8_t& scan_code) {
 		
 		switch (scancode_low) {
 			
 			case 0xdf: {
 				switch (scancode_high) {
-					case 0x9a: return scancodeIndex[0];
-					case 0x90: return scancodeIndex[1];
-					case 0xc6: return scancodeIndex[2];
-					case 0x88: return scancodeIndex[3];
-					case 0xca: return scancodeIndex[4];
-					case 0xcc: return scancodeIndex[5];
-					case 0x8e: return scancodeIndex[6];
-					case 0xd2: return scancodeIndex[7];
-					default: return 0x00;
+					case 0x9a: scan_code = scancodeIndex[0]; return;
+					case 0x90: scan_code = scancodeIndex[1]; return;
+					case 0xc6: scan_code = scancodeIndex[2]; return;
+					case 0x88: scan_code = scancodeIndex[3]; return;
+					case 0xca: scan_code = scancodeIndex[4]; return;
+					case 0xcc: scan_code = scancodeIndex[5]; return;
+					case 0x8e: scan_code = scancodeIndex[6]; return;
+					case 0xd2: scan_code = scancodeIndex[7]; return;
+					default: return;
 				}
+				return;
 			}
 			
 			case 0x9f: {
 				switch (scancode_high) {
-					case 0xd9: return scancodeIndex[8];
-					case 0xd6: return scancodeIndex[9];
-					case 0xdc: return scancodeIndex[10];
-					case 0x91: return scancodeIndex[11];
-					case 0x8f: return scancodeIndex[12];
-					case 0xcd: return scancodeIndex[13];
-					case 0xcb: return scancodeIndex[14];
-					case 0x89: return scancodeIndex[15];
-					case 0xc7: return scancodeIndex[16];
-					case 0x85: return scancodeIndex[17];
-					case 0x86: return scancodeIndex[18];
-					case 0xc8: return scancodeIndex[19];
-					case 0x8a: return scancodeIndex[20];
-					case 0x8c: return scancodeIndex[21];
-					case 0xce: return scancodeIndex[22];
-					case 0xd0: return scancodeIndex[23];
-					default: return 0x00;
+					case 0xd9: scan_code = scancodeIndex[8]; return;
+					case 0xd6: scan_code = scancodeIndex[9]; return;
+					case 0xdc: scan_code = scancodeIndex[10]; return;
+					case 0x91: scan_code = scancodeIndex[11]; return;
+					case 0x8f: scan_code = scancodeIndex[12]; return;
+					case 0xcd: scan_code = scancodeIndex[13]; return;
+					case 0xcb: scan_code = scancodeIndex[14]; return;
+					case 0x89: scan_code = scancodeIndex[15]; return;
+					case 0xc7: scan_code = scancodeIndex[16]; return;
+					case 0x85: scan_code = scancodeIndex[17]; return;
+					case 0x86: scan_code = scancodeIndex[18]; return;
+					case 0xc8: scan_code = scancodeIndex[19]; return;
+					case 0x8a: scan_code = scancodeIndex[20]; return;
+					case 0x8c: scan_code = scancodeIndex[21]; return;
+					case 0xce: scan_code = scancodeIndex[22]; return;
+					case 0xd0: scan_code = scancodeIndex[23]; return;
+					default: return;
 				}
+				return;
 			}
 			
 			case 0x5f: {
 				switch (scancode_high) {
-					case 0x9d: return scancodeIndex[24];
-					case 0x8a: return scancodeIndex[25];
-					case 0x91: return scancodeIndex[26];
-					case 0x8f: return scancodeIndex[27];
-					case 0x89: return scancodeIndex[28];
-					case 0xc8: return scancodeIndex[29];
-					case 0x8c: return scancodeIndex[30];
-					case 0x85: return scancodeIndex[31];
-					case 0xc7: return scancodeIndex[32];
-					case 0xcb: return scancodeIndex[33];
-					case 0xcd: return scancodeIndex[34];
-					case 0xd3: return scancodeIndex[35];
-					default: return 0x00;
+					case 0x9d: scan_code = scancodeIndex[24]; return;
+					case 0x8a: scan_code = scancodeIndex[25]; return;
+					case 0x91: scan_code = scancodeIndex[26]; return;
+					case 0x8f: scan_code = scancodeIndex[27]; return;
+					case 0x89: scan_code = scancodeIndex[28]; return;
+					case 0xc8: scan_code = scancodeIndex[29]; return;
+					case 0x8c: scan_code = scancodeIndex[30]; return;
+					case 0x85: scan_code = scancodeIndex[31]; return;
+					case 0xc7: scan_code = scancodeIndex[32]; return;
+					case 0xcb: scan_code = scancodeIndex[33]; return;
+					case 0xcd: scan_code = scancodeIndex[34]; return;
+					case 0xd3: scan_code = scancodeIndex[35]; return;
+					default: return;
 				}
+				return;
 			}
 			
 			case 0x1f: {
 				switch (scancode_high) {
-					case 0xdd: return scancodeIndex[36];
-					case 0xc9: return scancodeIndex[37];
-					case 0x8b: return scancodeIndex[38];
-					case 0xcf: return scancodeIndex[39];
-					case 0xd1: return scancodeIndex[40];
-					case 0x87: return scancodeIndex[41];
-					case 0x8d: return scancodeIndex[42];
-					default: return 0x00;
+					case 0xdd: scan_code = scancodeIndex[36]; return;
+					case 0xc9: scan_code = scancodeIndex[37]; return;
+					case 0x8b: scan_code = scancodeIndex[38]; return;
+					case 0xcf: scan_code = scancodeIndex[39]; return;
+					case 0xd1: scan_code = scancodeIndex[40]; return;
+					case 0x87: scan_code = scancodeIndex[41]; return;
+					case 0x8d: scan_code = scancodeIndex[42]; return;
+					default: return;
 				}
+				return;
 			}
 			
-			default: return 0x00;
+			default: return;
 		}
 		
+		return;
 	}
 	
 };
 KeyboardDriver keyboard;
+
+void keyboardDeviceDriverEntryPoint(uint8_t functionCall, uint8_t& paramA, uint8_t& paramB, uint8_t& paramC, uint8_t& paramD) {
+	
+	switch(functionCall) {
+		
+		case _DRIVER_INITIATE__: {keyboard.initiate(); break;}
+		case _DRIVER_SHUTDOWN__: {keyboard.shutdown(); break;}
+		
+		case 0x00: keyboard.read(paramA); break;
+		case 0x01: keyboard.decodeScanCode(paramA, paramB, paramC); break;
+		
+		default: return;
+	}
+	
+	return;
+}
+
 
 
