@@ -1,6 +1,7 @@
 //
 // AVR Micro Kernel
 
+// Kernel address memory
 #define _KERNEL_BEGIN__       0x00000
 #define _KERNEL_END__         0x000ff
 
@@ -22,22 +23,20 @@
 typedef void(*FunctionPtr)(uint8_t, uint8_t&, uint8_t&, uint8_t&, uint8_t&);
 
 #include "enums.h"
-
 #include "types.h"
+
 #include "stack_allocator.h"
-
 #include "device_index.h"
-
 
 #include "string_const.h"
 #include "strings.h"
 
-//#include "drivers/display_driver.h"
 //#include "drivers/file_system.h"
 #include "drivers/keyboard.h"
 
 // Prototypes
 void updateKeyboard(void);
+
 uint8_t loadLibrary(const char[], uint8_t, void(*new_driver_ptr)(uint8_t, uint8_t&, uint8_t&, uint8_t&, uint8_t&));
 FunctionPtr& getFuncAddress(const char[], uint8_t);
 uint8_t callExtern(FunctionPtr, uint8_t, uint8_t&, uint8_t&, uint8_t&, uint8_t&);
@@ -50,8 +49,10 @@ uint8_t defaultCallbackProcedure(uint8_t message);
 // Device driver function table
 struct DeviceDriverIndex {
 	
+	//private:
 	char deviceNameIndex[_DRIVER_TABLE_SIZE__][8];
 	void (*driver_function_ptr[_DRIVER_TABLE_SIZE__])(uint8_t, uint8_t&, uint8_t&, uint8_t&, uint8_t&);
+	//public:
 	
 	DeviceDriverIndex() {
 		for (uint8_t i=0; i < _DRIVER_TABLE_SIZE__; i++) {
@@ -68,6 +69,51 @@ DeviceDriverIndex deviceDriverIndex;
 
 // Command console interface
 #include "console.h"
+
+
+// Command line function table
+struct CommandFunctionTable {
+	
+	char functionNameIndex[_COMMAND_TABLE_SIZE__][8];
+	void (*command_function_table[_COMMAND_TABLE_SIZE__])();
+	
+	CommandFunctionTable() {
+		for (uint8_t i=0; i < _COMMAND_TABLE_SIZE__; i++) {
+			for (uint8_t a=0; a < 8; a++) functionNameIndex[i][a] = 0x20;
+			command_function_table[i] = &nullfunction;
+		}
+	}
+	
+};
+CommandFunctionTable functionTable;
+
+// Install a function pointer into the function table
+uint8_t installModule(void(*function_ptr)(), const char name[], uint8_t name_length) {
+	
+	// Find a free slot
+	uint8_t index;
+	for (index=0; index < _COMMAND_TABLE_SIZE__; index++)
+	if (functionTable.command_function_table[index] == &nullfunction) break;
+	
+	// Set the name and pointer
+	for (uint8_t i=0; i < name_length-1; i++)
+	functionTable.functionNameIndex[index][i] = name[i];
+	
+	functionTable.command_function_table[index] = function_ptr;
+	
+	return 1;
+}
+
+
+
+
+
+
+
+
+
+
+
 
 
 struct Kernel {
@@ -129,23 +175,6 @@ struct Kernel {
 		}
 		
 		return;
-	}
-	
-	// Install a function pointer into the command function table
-	uint8_t installModule(void(*function_ptr)(), const char name[], uint8_t name_length) {
-		
-		// Find a free slot
-		uint8_t index;
-		for (index=0; index < _COMMAND_TABLE_SIZE__; index++) 
-			if (function.command_function_table[index] == &nullfunction) break;
-		
-		// Set the name and pointer
-		for (uint8_t i=0; i < name_length-1; i++) 
-			function.functionNameIndex[index][i] = name[i];
-		
-		function.command_function_table[index] = function_ptr;
-		
-		return 1;
 	}
 	
 	// System message queue
@@ -216,23 +245,6 @@ struct Kernel {
 	};
 	MessageQueue queue;
 	
-	// Command line function table
-	struct CommandFunctionIndex {
-		
-		char functionNameIndex[_COMMAND_TABLE_SIZE__][8];
-		void (*command_function_table[_COMMAND_TABLE_SIZE__])();
-		
-		CommandFunctionIndex() {
-			for (uint8_t i=0; i < _COMMAND_TABLE_SIZE__; i++) {
-				for (uint8_t a=0; a < 8; a++) functionNameIndex[i][a] = 0x20;
-				command_function_table[i] = &nullfunction;
-			}
-		}
-		
-	};
-	CommandFunctionIndex function;
-	
-	
 	// Check kernel error flags
 	char checkKernelState(void) {
 		
@@ -271,7 +283,7 @@ uint8_t defaultCallbackProcedure(uint8_t message) {
 	switch (message) {
 		
 		
-		default: kernel.function.command_function_table[message](); break;
+		default: functionTable.command_function_table[message](); break;
 	}
 	
 	return 0;

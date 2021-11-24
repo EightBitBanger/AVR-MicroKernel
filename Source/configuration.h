@@ -25,18 +25,20 @@
 
 //
 // Memory wait states
+
 //#define _MEMORY_READ_WAIT_STATE_1__      // 1 nop
-#define _MEMORY_READ_WAIT_STATE_2__      // 2 nop
-//#define _MEMORY_READ_WAIT_STATE_3__      // 3 nop
+#define _MEMORY_READ_WAIT_STATE_2__      // 2 nops
+//#define _MEMORY_READ_WAIT_STATE_3__      // 3 nops
 
 //#define _MEMORY_WRITE_WAIT_STATE_1__     // 1 nop
-//#define _MEMORY_WRITE_WAIT_STATE_2__     // 2 nop
-//#define _MEMORY_WRITE_WAIT_STATE_3__     // 3 nop
+//#define _MEMORY_WRITE_WAIT_STATE_2__     // 2 nops
+//#define _MEMORY_WRITE_WAIT_STATE_3__     // 3 nops
 
 //
 // Device wait states
-#define _DEVICE_READ_WAIT_STATE_1__
-//#define _DEVICE_READ_WAIT_STATE_2__
+
+//#define _DEVICE_READ_WAIT_STATE_1__
+#define _DEVICE_READ_WAIT_STATE_2__
 //#define _DEVICE_READ_WAIT_STATE_3__
 
 //#define _DEVICE_WRITE_WAIT_STATE_1__

@@ -8,7 +8,7 @@ struct ModuleMemoryCommand {
 	ModuleMemoryCommand() {
 		
 		const char command_name[] = "mem";
-		kernel.installModule(&command_memory, command_name, sizeof(command_name));
+		installModule(&command_memory, command_name, sizeof(command_name));
 		
 		return;
 	}

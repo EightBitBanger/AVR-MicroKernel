@@ -58,16 +58,16 @@ void keyEventEnter(void) {
 		// Function look up
 		for (uint8_t i=0; i<_COMMAND_TABLE_SIZE__; i++) {
 			
-			if (kernel.function.functionNameIndex[i][0] == 0x20) continue;
+			if (functionTable.functionNameIndex[i][0] == 0x20) continue;
 			
 			// Extract function name
 			char functionName[8];
 			for (uint8_t a=0; a < 8; a++) functionName[a] = 0x20;
-			for (uint8_t a=0; a < 8; a++) functionName[a] = kernel.function.functionNameIndex[i][a];
+			for (uint8_t a=0; a < 8; a++) functionName[a] = functionTable.functionNameIndex[i][a];
 			
 			if (string_compare(functionName, console.keyboard_string, 8) == 0) continue;
 			
-			kernel.function.command_function_table[i]();
+			functionTable.command_function_table[i]();
 			
 			break;
 		}
