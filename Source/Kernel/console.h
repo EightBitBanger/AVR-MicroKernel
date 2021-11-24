@@ -59,10 +59,10 @@ struct CommandConsole {
 	}
 	
 	// Add new blank line
-	void newLine(void) {cursorPos = 0; if (cursorLine < 3) {cursorLine++;} else {shiftUp();} return;}
+	void printLn(void) {cursorPos = 0; if (cursorLine < 3) {cursorLine++;} else {shiftUp();} return;}
 	
 	// Display a command prompt
-	void newPrompt(void) {
+	void printPrompt(void) {
 		cursorPos = 1;
 		displayDriver.writeChar(promptCharacter, cursorLine, 0);
 		displayDriver.cursorSetPosition(cursorLine, 1);

@@ -75,7 +75,7 @@ void keyEventEnter(void) {
 	}
 	
 	console.clearString();
-	console.newPrompt();
+	console.printPrompt();
 	return;
 }
 

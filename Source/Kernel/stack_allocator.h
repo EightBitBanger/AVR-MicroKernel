@@ -228,15 +228,15 @@ void device_write(uint32_t address, char byte) {
 	_CONTROL_OUT__ = 0b00010101;
 	
 	// Wait states
-	#ifdef _DEVICE_WRITE_WAIT_STATE_1__
+#ifdef _DEVICE_WRITE_WAIT_STATE_1__
 	for (uint8_t i=0; i<10; i++) {nop;nop;nop;nop;}
-	#endif
-	#ifdef _DEVICE_WRITE_WAIT_STATE_2__
+#endif
+#ifdef _DEVICE_WRITE_WAIT_STATE_2__
 	for (uint8_t i=0; i<50; i++) {nop;nop;nop;nop;}
-	#endif
-	#ifdef _DEVICE_WRITE_WAIT_STATE_3__
+#endif
+#ifdef _DEVICE_WRITE_WAIT_STATE_3__
 	for (uint8_t i=0; i<100; i++) {nop;nop;nop;nop;}
-	#endif
+#endif
 	
 	_CONTROL_OUT__ = 0b00111111;
 	_BUS_UPPER_OUT__ = 0x0f;

@@ -47,14 +47,12 @@ uint8_t defaultCallbackProcedure(uint8_t message);
 
 //
 // Device driver function table
-struct DeviceDriverIndex {
+struct DeviceDriverTable {
 	
-	//private:
 	char deviceNameIndex[_DRIVER_TABLE_SIZE__][8];
 	void (*driver_function_ptr[_DRIVER_TABLE_SIZE__])(uint8_t, uint8_t&, uint8_t&, uint8_t&, uint8_t&);
-	//public:
 	
-	DeviceDriverIndex() {
+	DeviceDriverTable() {
 		for (uint8_t i=0; i < _DRIVER_TABLE_SIZE__; i++) {
 			for (uint8_t a=0; a < 8; a++) deviceNameIndex[i][a] = 0x20;
 			driver_function_ptr[i] = 0;
@@ -62,7 +60,7 @@ struct DeviceDriverIndex {
 	}
 	
 };
-DeviceDriverIndex deviceDriverIndex;
+DeviceDriverTable deviceDriverTable;
 
 // Load device drivers
 #include "drivers.h"
@@ -104,6 +102,8 @@ uint8_t installModule(void(*function_ptr)(), const char name[], uint8_t name_len
 	return 1;
 }
 
+// Load command modules
+#include "modules.h"
 
 
 
@@ -127,8 +127,8 @@ struct Kernel {
 		// Initiate device drivers
 		for (uint8_t i=0; i < _DRIVER_TABLE_SIZE__; i++) {
 			
-			if ((deviceDriverIndex.driver_function_ptr[i] != 0) && (deviceDriverIndex.deviceNameIndex[i][0] != 0x20))
-				deviceDriverIndex.driver_function_ptr[i](_DRIVER_INITIATE__, NULL, NULL, NULL, NULL);
+			if ((deviceDriverTable.driver_function_ptr[i] != 0) && (deviceDriverTable.deviceNameIndex[i][0] != 0x20))
+				deviceDriverTable.driver_function_ptr[i](_DRIVER_INITIATE__, NULL, NULL, NULL, NULL);
 			
 		}
 		
@@ -138,8 +138,8 @@ struct Kernel {
 		
 		// Shutdown device drivers
 		for (uint8_t i=0; i < _DRIVER_TABLE_SIZE__; i++) {
-			if ((deviceDriverIndex.driver_function_ptr[i] != 0) && (deviceDriverIndex.deviceNameIndex[i][0] != 0x20)) 
-				deviceDriverIndex.driver_function_ptr[i](_DRIVER_SHUTDOWN__, NULL, NULL, NULL, NULL);
+			if ((deviceDriverTable.driver_function_ptr[i] != 0) && (deviceDriverTable.deviceNameIndex[i][0] != 0x20)) 
+				deviceDriverTable.driver_function_ptr[i](_DRIVER_SHUTDOWN__, NULL, NULL, NULL, NULL);
 			
 		}
 		
@@ -156,7 +156,7 @@ struct Kernel {
 		
 		console.lastChar = keyboard.read();
 		console.promptCharacter = '>';
-		console.newPrompt();
+		console.printPrompt();
 		
 		bool isActive=1;
 		while(isActive) {
@@ -254,10 +254,10 @@ struct Kernel {
 		switch (flag) {
 			
 			case _KERNEL_STATE_SEG_FAULT__: {
-				console.newLine();
+				console.printLn();
 				console.print(message_error_seg_fault, sizeof(message_error_seg_fault));
-				console.newLine();
-				console.newPrompt();
+				console.printLn();
+				console.printPrompt();
 				memory_write(_KERNEL_FLAGS__, _KERNEL_STATE_NORMAL__);
 				return _KERNEL_STATE_SEG_FAULT__;
 			}
@@ -274,9 +274,6 @@ Kernel kernel;
 
 // Keyboard event handling
 #include "keyboard_events.h"
-
-// Load command modules
-#include "modules.h"
 
 uint8_t defaultCallbackProcedure(uint8_t message) {
 	
@@ -298,12 +295,12 @@ uint8_t loadLibrary(const char device_name[], uint8_t name_length, void(*new_dri
 	// Find a free driver index
 	uint8_t index;
 	for (index=0; index < _DRIVER_TABLE_SIZE__; index++) {
-		if (deviceDriverIndex.driver_function_ptr[index] == 0) break; else continue;
+		if (deviceDriverTable.driver_function_ptr[index] == 0) break; else continue;
 	}
 	
 	// Load the library
-	for (uint8_t i=0; i < name_length; i++) deviceDriverIndex.deviceNameIndex[index][i] = device_name[i];
-	deviceDriverIndex.driver_function_ptr[index] = new_driver_ptr;
+	for (uint8_t i=0; i < name_length; i++) deviceDriverTable.deviceNameIndex[index][i] = device_name[i];
+	deviceDriverTable.driver_function_ptr[index] = new_driver_ptr;
 	
 	return 1;
 }
@@ -316,13 +313,13 @@ FunctionPtr& getFuncAddress(const char device_name[], uint8_t name_length) {
 	// Function look up
 	for (uint8_t i=0; i < _DRIVER_TABLE_SIZE__; i++) {
 		
-		if (deviceDriverIndex.driver_function_ptr[i] == 0x00) continue;
+		if (deviceDriverTable.driver_function_ptr[i] == 0x00) continue;
 		
 		uint8_t count=0;
 		for (count=0; count < name_length; count++)
-			if (deviceDriverIndex.deviceNameIndex[i][count] == device_name[count]) {continue;} else {count=0; break;}
+			if (deviceDriverTable.deviceNameIndex[i][count] == device_name[count]) {continue;} else {count=0; break;}
 		
-		if (count == name_length) return deviceDriverIndex.driver_function_ptr[i];
+		if (count == name_length) return deviceDriverTable.driver_function_ptr[i];
 	}
 	
 	return (FunctionPtr&)nullfunction;
@@ -335,7 +332,7 @@ uint8_t callExtern(FunctionPtr library_function, uint8_t function_call, uint8_t&
 	
 	for (uint8_t i=0; i < _DRIVER_TABLE_SIZE__; i++) {
 		
-		if (deviceDriverIndex.driver_function_ptr[i] == library_function) {
+		if (deviceDriverTable.driver_function_ptr[i] == library_function) {
 			library_function(function_call, paramA, paramB, paramC, paramD);
 			return 1;
 		}

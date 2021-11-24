@@ -17,6 +17,8 @@
 // Pointer size
 #define _32_BIT_POINTERS__
 
+// Extended memory cache
+#define _CACHE_SIZE__  16    // Bytes
 
 
 
@@ -70,7 +72,7 @@
 #define _CONTROL_IN__      PINB
 
 //
-// Control lines
+// Control bits
 #define _CONTROL_DATA_DIRECTION__     0x00 // Data direction signal
 #define _CONTROL_BUS_ENABLE__         0x01 // Bus enable signal
 #define _CONTROL_CLOCK__              0x02 // Peripheral device clock signal
