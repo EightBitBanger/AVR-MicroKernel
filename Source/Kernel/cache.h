@@ -11,12 +11,12 @@ struct CacheBuffer {
 	char cache[_CACHE_SIZE__];
 	char protectionOverflowBuffer[1];
 	
-	CacheBuffer() {current_address = _STACK_END__;}
+	CacheBuffer() {current_address = _STACK_BEGIN__;}
 	
 	char& operator[] (uint32_t new_pointer) {
 		
 		// Check segmentation fault
-		if ((new_pointer < _STACK_BEGIN__) || (new_pointer >= _STACK_END__)) {
+		if (new_pointer < _STACK_BEGIN__) {
 			memory_write(_KERNEL_FLAGS__, _KERNEL_STATE_SEG_FAULT__);
 			return protectionOverflowBuffer[0];
 		}
