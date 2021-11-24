@@ -66,7 +66,7 @@ DeviceDriverIndex deviceDriverIndex;
 // Load device drivers
 #include "drivers.h"
 
-// Command console module system
+// Command console interface
 #include "console.h"
 
 
@@ -90,7 +90,7 @@ struct Kernel {
 	
 	void shutdown(void) {
 		
-		// Initiate device drivers
+		// Shutdown device drivers
 		for (uint8_t i=0; i < _DRIVER_TABLE_SIZE__; i++) {
 			if ((deviceDriverIndex.driver_function_ptr[i] != 0) && (deviceDriverIndex.deviceNameIndex[i][0] != 0x20)) 
 				deviceDriverIndex.driver_function_ptr[i](_DRIVER_SHUTDOWN__, NULL, NULL, NULL, NULL);
@@ -132,18 +132,18 @@ struct Kernel {
 	}
 	
 	// Install a function pointer into the command function table
-	uint8_t installFunction(void(*function_ptr)(), const char name[], uint8_t name_length) {
+	uint8_t installModule(void(*function_ptr)(), const char name[], uint8_t name_length) {
 		
 		// Find a free slot
 		uint8_t index;
 		for (index=0; index < _COMMAND_TABLE_SIZE__; index++) 
-			if (function.command_function_ptr[index] == &nullfunction) break;
+			if (function.command_function_table[index] == &nullfunction) break;
 		
 		// Set the name and pointer
 		for (uint8_t i=0; i < name_length-1; i++) 
 			function.functionNameIndex[index][i] = name[i];
 		
-		function.command_function_ptr[index] = function_ptr;
+		function.command_function_table[index] = function_ptr;
 		
 		return 1;
 	}
@@ -220,12 +220,12 @@ struct Kernel {
 	struct CommandFunctionIndex {
 		
 		char functionNameIndex[_COMMAND_TABLE_SIZE__][8];
-		void (*command_function_ptr[_COMMAND_TABLE_SIZE__])();
+		void (*command_function_table[_COMMAND_TABLE_SIZE__])();
 		
 		CommandFunctionIndex() {
 			for (uint8_t i=0; i < _COMMAND_TABLE_SIZE__; i++) {
 				for (uint8_t a=0; a < 8; a++) functionNameIndex[i][a] = 0x20;
-				command_function_ptr[i] = &nullfunction;
+				command_function_table[i] = &nullfunction;
 			}
 		}
 		
@@ -260,88 +260,8 @@ struct Kernel {
 };
 Kernel kernel;
 
-void updateKeyboard(void) {
-	
-	uint8_t scanCodeAccepted = 0;
-	uint8_t currentChar=0x00;
-	
-	uint8_t readKeyCode = keyboard.read();
-	
-	// Decode the scan code
-	if (console.keyboard_string_length < 19) {
-		// ASCII char
-		currentChar = readKeyCode;
-		if (readKeyCode > 0x1f) {scanCodeAccepted=1;}
-		} else {
-		// Allow backspace and enter past max string length
-		if (readKeyCode < 0x03) currentChar = readKeyCode;
-	}
-	
-	// Prevent wild key repeats
-	if (console.lastChar == currentChar) {console.lastChar == currentChar; return;} console.lastChar = currentChar;
-	
-	// Backspace
-	if (currentChar == 0x01) {
-		if (console.keyboard_string_length > 0) {
-			// Remove last char from display
-			displayDriver.writeChar(0x20, console.cursorLine, console.keyboard_string_length);
-			displayDriver.cursorSetPosition(console.cursorLine, console.keyboard_string_length);
-			// and keyboard string
-			console.keyboard_string_length--;
-			console.keyboard_string[console.keyboard_string_length] = 0x20;
-		}
-	}
-	
-	// Enter
-	if (currentChar == 0x02) {
-		
-		uint8_t currentKeyStringLength = console.keyboard_string_length;
-		console.keyboard_string_length = 0;
-		
-		if (console.cursorLine == 3) {console.shiftUp();}
-		if (console.cursorLine == 2) console.cursorLine++;
-		if (console.cursorLine == 1) console.cursorLine++;
-		if (console.cursorLine == 0) {if (console.promptState == 0) {console.promptState++;} else {console.cursorLine++;}}
-		
-		// Execute the function
-		if (currentKeyStringLength > 0) {console.cursorPos=0;
-			
-			// Function look up
-			for (uint8_t i=0; i<_COMMAND_TABLE_SIZE__; i++) {
-				
-				if (kernel.function.functionNameIndex[i][0] == 0x20) continue;
-				
-				// Extract function name
-				char functionName[8];
-				for (uint8_t a=0; a < 8; a++) functionName[a] = 0x20;
-				for (uint8_t a=0; a < 8; a++) functionName[a] = kernel.function.functionNameIndex[i][a];
-				
-				if (string_compare(functionName, console.keyboard_string, 8) == 0) continue;
-				
-				kernel.function.command_function_ptr[i]();
-				
-				break;
-			}
-			
-		}
-		
-		console.clearString();
-		console.newPrompt();
-		return;
-	}
-	
-	// ASCII key character accepted
-	if (scanCodeAccepted == 1) {
-		console.keyboard_string[console.keyboard_string_length] = currentChar;
-		console.keyboard_string_length++;
-		// Update cursor
-		displayDriver.cursorSetPosition(console.cursorLine, console.keyboard_string_length+1);
-		// Display keyboard string
-		displayDriver.writeString(console.keyboard_string, console.keyboard_string_length+1, console.cursorLine, console.cursorPos);
-		displayDriver.writeChar(console.promptCharacter, console.cursorLine, 0);
-	}
-	
-}
+// Keyboard event handling
+#include "keyboard_events.h"
 
 // Load command modules
 #include "modules.h"
@@ -349,7 +269,9 @@ void updateKeyboard(void) {
 uint8_t defaultCallbackProcedure(uint8_t message) {
 	
 	switch (message) {
-		default: kernel.function.command_function_ptr[message](); break;
+		
+		
+		default: kernel.function.command_function_table[message](); break;
 	}
 	
 	return 0;
