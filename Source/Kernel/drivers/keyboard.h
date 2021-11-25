@@ -30,7 +30,7 @@ struct KeyboardDriver {
 		
 	}
 	
-	// Read the current keyboard scan code
+	// Read the current keyboard character
 	void read(uint8_t& scan_code) {
 		
 		char byteLow, byteHigh;
@@ -50,59 +50,59 @@ struct KeyboardDriver {
 			
 			case 0xdf: {
 				switch (scancode_high) {
-					case 0x9a: scan_code = scancodeIndex[0]; return;
-					case 0x90: scan_code = scancodeIndex[1]; return;
-					case 0xc6: scan_code = scancodeIndex[2]; return;
-					case 0x88: scan_code = scancodeIndex[3]; return;
-					case 0xca: scan_code = scancodeIndex[4]; return;
-					case 0xcc: scan_code = scancodeIndex[5]; return;
-					case 0x8e: scan_code = scancodeIndex[6]; return;
-					case 0xd2: scan_code = scancodeIndex[7]; return;
-					default: return;
+					case 0x9a: {scan_code = scancodeIndex[0]; return;}
+					case 0x90: {scan_code = scancodeIndex[1]; return;}
+					case 0xc6: {scan_code = scancodeIndex[2]; return;}
+					case 0x88: {scan_code = scancodeIndex[3]; return;}
+					case 0xca: {scan_code = scancodeIndex[4]; return;}
+					case 0xcc: {scan_code = scancodeIndex[5]; return;}
+					case 0x8e: {scan_code = scancodeIndex[6]; return;}
+					case 0xd2: {scan_code = scancodeIndex[7]; return;}
+					default: break;
 				}
-				return;
+				break;
 			}
 			
 			case 0x9f: {
 				switch (scancode_high) {
-					case 0xd9: scan_code = scancodeIndex[8]; return;
-					case 0xd6: scan_code = scancodeIndex[9]; return;
-					case 0xdc: scan_code = scancodeIndex[10]; return;
-					case 0x91: scan_code = scancodeIndex[11]; return;
-					case 0x8f: scan_code = scancodeIndex[12]; return;
-					case 0xcd: scan_code = scancodeIndex[13]; return;
-					case 0xcb: scan_code = scancodeIndex[14]; return;
-					case 0x89: scan_code = scancodeIndex[15]; return;
-					case 0xc7: scan_code = scancodeIndex[16]; return;
-					case 0x85: scan_code = scancodeIndex[17]; return;
-					case 0x86: scan_code = scancodeIndex[18]; return;
-					case 0xc8: scan_code = scancodeIndex[19]; return;
-					case 0x8a: scan_code = scancodeIndex[20]; return;
-					case 0x8c: scan_code = scancodeIndex[21]; return;
-					case 0xce: scan_code = scancodeIndex[22]; return;
-					case 0xd0: scan_code = scancodeIndex[23]; return;
-					default: return;
+					case 0xd9: {scan_code = scancodeIndex[8]; return;}
+					case 0xd6: {scan_code = scancodeIndex[9]; return;}
+					case 0xdc: {scan_code = scancodeIndex[10]; return;}
+					case 0x91: {scan_code = scancodeIndex[11]; return;}
+					case 0x8f: {scan_code = scancodeIndex[12]; return;}
+					case 0xcd: {scan_code = scancodeIndex[13]; return;}
+					case 0xcb: {scan_code = scancodeIndex[14]; return;}
+					case 0x89: {scan_code = scancodeIndex[15]; return;}
+					case 0xc7: {scan_code = scancodeIndex[16]; return;}
+					case 0x85: {scan_code = scancodeIndex[17]; return;}
+					case 0x86: {scan_code = scancodeIndex[18]; return;}
+					case 0xc8: {scan_code = scancodeIndex[19]; return;}
+					case 0x8a: {scan_code = scancodeIndex[20]; return;}
+					case 0x8c: {scan_code = scancodeIndex[21]; return;}
+					case 0xce: {scan_code = scancodeIndex[22]; return;}
+					case 0xd0: {scan_code = scancodeIndex[23]; return;}
+					default: break;
 				}
-				return;
+				break;
 			}
 			
 			case 0x5f: {
 				switch (scancode_high) {
-					case 0x9d: scan_code = scancodeIndex[24]; return;
-					case 0x8a: scan_code = scancodeIndex[25]; return;
-					case 0x91: scan_code = scancodeIndex[26]; return;
-					case 0x8f: scan_code = scancodeIndex[27]; return;
-					case 0x89: scan_code = scancodeIndex[28]; return;
-					case 0xc8: scan_code = scancodeIndex[29]; return;
-					case 0x8c: scan_code = scancodeIndex[30]; return;
-					case 0x85: scan_code = scancodeIndex[31]; return;
-					case 0xc7: scan_code = scancodeIndex[32]; return;
-					case 0xcb: scan_code = scancodeIndex[33]; return;
-					case 0xcd: scan_code = scancodeIndex[34]; return;
-					case 0xd3: scan_code = scancodeIndex[35]; return;
-					default: return;
+					case 0x9d: {scan_code = scancodeIndex[24]; return;}
+					case 0x8a: {scan_code = scancodeIndex[25]; return;}
+					case 0x91: {scan_code = scancodeIndex[26]; return;}
+					case 0x8f: {scan_code = scancodeIndex[27]; return;}
+					case 0x89: {scan_code = scancodeIndex[28]; return;}
+					case 0xc8: {scan_code = scancodeIndex[29]; return;}
+					case 0x8c: {scan_code = scancodeIndex[30]; return;}
+					case 0x85: {scan_code = scancodeIndex[31]; return;}
+					case 0xc7: {scan_code = scancodeIndex[32]; return;}
+					case 0xcb: {scan_code = scancodeIndex[33]; return;}
+					case 0xcd: {scan_code = scancodeIndex[34]; return;}
+					case 0xd3: {scan_code = scancodeIndex[35]; return;}
+					default: break;
 				}
-				return;
+				break;
 			}
 			
 			case 0x1f: {
@@ -114,14 +114,15 @@ struct KeyboardDriver {
 					case 0xd1: scan_code = scancodeIndex[40]; return;
 					case 0x87: scan_code = scancodeIndex[41]; return;
 					case 0x8d: scan_code = scancodeIndex[42]; return;
-					default: return;
+					default: break;
 				}
-				return;
+				break;
 			}
 			
-			default: return;
+			default: break;
 		}
 		
+		scan_code = 0x00;
 		return;
 	}
 	
@@ -135,8 +136,8 @@ void keyboardDeviceDriverEntryPoint(uint8_t functionCall, uint8_t& paramA, uint8
 		case _DRIVER_INITIATE__: {keyboard.initiate(); break;}
 		case _DRIVER_SHUTDOWN__: {keyboard.shutdown(); break;}
 		
-		case 0x00: keyboard.read(paramA); break;
-		case 0x01: keyboard.decodeScanCode(paramA, paramB, paramC); break;
+		case 0x00: {keyboard.read(paramA); break;}
+		case 0x01: {keyboard.decodeScanCode(paramA, paramB, paramC); break;}
 		
 		default: return;
 	}

@@ -14,7 +14,7 @@
 
 // Counters
 #define _KERNEL_TIMEOUT__    1000
-#define _KEYBOARD_TIMEOUT__  10000
+#define _KEYBOARD_TIMEOUT__  30000
 
 // Function tables
 #define _DRIVER_TABLE_SIZE__         16
@@ -22,7 +22,7 @@
 #define _COMMAND_TABLE_SIZE__        64
 #define _COMMAND_TABLE_NAME_SIZE__   10
 
-typedef void(*FunctionPtr)(uint8_t, uint8_t&, uint8_t&, uint8_t&, uint8_t&);
+typedef void(*EntryPtr)(uint8_t, uint8_t&, uint8_t&, uint8_t&, uint8_t&);
 
 #include "enums.h"
 #include "types.h"
@@ -93,7 +93,7 @@ struct Kernel {
 		uint16_t keyboardCounter = 0;
 		
 		keyboard.read(console.lastChar);
-		console.promptCharacter = '>';
+		//console.promptCharacter = '>';
 		console.printPrompt();
 		
 		bool isActive=1;

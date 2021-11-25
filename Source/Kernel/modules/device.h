@@ -23,7 +23,7 @@ void command_device(void) {
 		
 		if (deviceDriverTable.deviceNameIndex[i][0] == 0x20) continue;
 		
-		for (uint8_t a=0; a < 8; a++) {
+		for (uint8_t a=0; a < _DRIVER_TABLE_NAME_SIZE__; a++) {
 			
 			char nameChar = deviceDriverTable.deviceNameIndex[i][a];
 			
