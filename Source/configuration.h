@@ -17,9 +17,6 @@
 // Pointer size
 #define _32_BIT_POINTERS__
 
-// Extended memory cache
-#define _CACHE_SIZE__  16    // Bytes
-
 
 
 //

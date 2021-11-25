@@ -21,8 +21,8 @@ struct DisplayDriver {
 		
 	}
 	
-	void write(uint32_t address, char byte) {allocator.device_write(device.getAddress(_DEVICE_DISPLAY__) + address, byte); return;}
-	void read(uint32_t address, char& byte) {allocator.device_read(device.getAddress(_DEVICE_DISPLAY__) + address, byte); return;}
+	void write(uint32_t address, char byte) {kernel.device_write(kernel.getDeviceAddress(_DEVICE_DISPLAY__) + address, byte); return;}
+	void read(uint32_t address, char& byte) {kernel.device_read(kernel.getDeviceAddress(_DEVICE_DISPLAY__) + address, byte); return;}
 	
 	void cursorSetPosition(uint8_t line, uint8_t position) {write(0xa0, line); write(0xa1, position); return;}
 	void cursorSetCharacter(uint8_t new_character) {write(0xa2, new_character); return;}
@@ -39,23 +39,23 @@ struct DisplayDriver {
 	void writeChar(char character, uint8_t line=0, uint8_t position=0) {write((line * 20) + position, character); return;}
 	void writeString(char String[], uint8_t string_size, uint8_t line=0, uint8_t position=0) {
 		
-		uint32_t deviceAddress = device.getAddress(_DEVICE_DISPLAY__);
+		uint32_t deviceAddress = kernel.getDeviceAddress(_DEVICE_DISPLAY__);
 		uint32_t address = deviceAddress + ((line * 20) + position);
 		
 		uint8_t stringSz = string_size - 1;
 		
-		for (uint8_t i=0; i < stringSz; i++) allocator.device_write(address+i, String[i]);
+		for (uint8_t i=0; i < stringSz; i++) kernel.device_write(address+i, String[i]);
 		
 		return;
 	}
 	void writeString(const char String[], uint8_t string_size, uint8_t line=0, uint8_t position=0) {
 		
-		uint32_t deviceAddress = device.getAddress(_DEVICE_DISPLAY__);
+		uint32_t deviceAddress = kernel.getDeviceAddress(_DEVICE_DISPLAY__);
 		uint32_t address = deviceAddress + ((line * 20) + position);
 		
 		uint8_t stringSz = string_size - 1;
 		
-		for (uint8_t i=0; i < stringSz; i++) allocator.device_write(address+i, String[i]);
+		for (uint8_t i=0; i < stringSz; i++) kernel.device_write(address+i, String[i]);
 		
 		return;
 	}
@@ -63,12 +63,12 @@ struct DisplayDriver {
 	void writeCharMask(const char character, uint8_t line=0, uint8_t position=0) {write(( (line * 20) + position + 0x50), character); return;}
 	void writeStringMask(const char string[], uint8_t string_size, uint8_t line=0, uint8_t position=0) {
 		
-		uint32_t deviceAddress = device.getAddress(_DEVICE_DISPLAY__);
+		uint32_t deviceAddress = kernel.getDeviceAddress(_DEVICE_DISPLAY__);
 		uint32_t address = deviceAddress + ((line * 20) + position) + 0x50;
 		
 		uint8_t stringSz = string_size - 1;
 		
-		for (uint8_t i=0; i < stringSz; i++) allocator.device_write(address+i, string[i]);
+		for (uint8_t i=0; i < stringSz; i++) kernel.device_write(address+i, string[i]);
 		
 		return;
 	}

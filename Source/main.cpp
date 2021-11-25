@@ -5,7 +5,7 @@ int main(void) {
 	initiate_board;
 	
 	// Initiate device map
-	device.initiate();
+	kernel.initiateDeviceIndex();
 	
 	// Check available extended memory
 	_STACK_END__ = allocate_system_memory();
