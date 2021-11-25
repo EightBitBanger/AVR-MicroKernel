@@ -12,18 +12,16 @@ struct DeviceIndex {
 	// Initiate the device handler
 	void initiate(void) {
 		
-		memory_cache[0x00100] = 0x00;
-		
-		mem_zero(_DEVICE_INDEX__, 0x0f);
+		allocator.mem_zero(_DEVICE_INDEX__, 0x0f);
 		
 		char identityByte=0xff;
 		uint32_t address=_DEVICE_ADDRESS_START__;
 		for (uint8_t i=0; i <= 0x0f; i++) {
 			
-			device_read(address, identityByte);
+			allocator.device_read(address, identityByte);
 			
 			if (identityByte != 0xff) 
-				memory_write((_DEVICE_INDEX__ + i), identityByte);
+				allocator.memory_write((_DEVICE_INDEX__ + i), identityByte);
 			
 			if (address >= _DEVICE_ADDRESS_END__) return;
 			address += 0x10000;
@@ -40,7 +38,7 @@ struct DeviceIndex {
 		for (uint8_t i=0; i <= 0x0f; i++) {
 			
 			char readIdentityByte=0x00;
-			memory_read((_DEVICE_INDEX__ + i), readIdentityByte);
+			allocator.memory_read((_DEVICE_INDEX__ + i), readIdentityByte);
 			
 			if (identity_byte == readIdentityByte) return address;
 			

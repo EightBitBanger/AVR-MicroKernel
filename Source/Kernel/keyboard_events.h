@@ -71,6 +71,11 @@ void keyEventEnter(void) {
 			
 			if (string_compare(functionName, console.keyboard_string, 8) == 0) continue;
 			
+			// Set the user address range
+			_USER_BEGIN__ = allocator.stack_size();
+			_USER_END__   = _STACK_END__;
+			
+			// Execute the command
 			moduleTable.command_function_table[i]();
 			
 			break;

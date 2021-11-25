@@ -94,14 +94,6 @@ struct CommandConsole {
 		return;
 	}
 	
-	void print(string& charString, uint8_t string_length) {
-		for (uint8_t i=0; i<string_length; i++) {
-			callExtern(displayDriverPtr, 0x09, (uint8_t&)charString[i], cursorLine, cursorPos);
-			cursorPos++;
-		}
-		return;
-	}
-	
 	// Add new blank line
 	void printLn(void) {cursorPos = 0; if (cursorLine < 3) {cursorLine++;} else {shiftUp();} return;}
 	

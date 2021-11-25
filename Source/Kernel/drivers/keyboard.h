@@ -34,9 +34,9 @@ struct KeyboardDriver {
 		
 		char byteLow, byteHigh;
 		_BUS_UPPER_OUT__ = 0x00;
-		memory_read(0x90000, byteLow);
+		allocator.memory_read(0x90000, byteLow);
 		_BUS_UPPER_OUT__ = 0x00;
-		memory_read(0xa0000, byteHigh);
+		allocator.memory_read(0xa0000, byteHigh);
 		
 		decodeScanCode(byteLow, byteHigh, scan_code);
 		return;
