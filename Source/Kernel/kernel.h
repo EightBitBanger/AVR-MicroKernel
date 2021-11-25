@@ -35,7 +35,6 @@ typedef void(*EntryPtr)(uint8_t, uint8_t&, uint8_t&, uint8_t&, uint8_t&);
 #include "enums.h"
 #include "types.h"
 
-//#include "memory_protection.h"
 #include "stack_allocator.h"
 #include "device_index.h"
 
@@ -141,6 +140,14 @@ struct Kernel {
 		}
 		
 		return 0x00;
+	}
+	
+	// Set memory access range
+	void setMemoryAccess(void) {
+		
+		_USER_BEGIN__ = allocator.stack_size();
+		_USER_END__   = _STACK_END__;
+		
 	}
 	
 };

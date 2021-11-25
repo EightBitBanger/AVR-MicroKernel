@@ -65,15 +65,13 @@ void keyEventEnter(void) {
 			if (moduleTable.functionNameIndex[i][0] == 0x20) continue;
 			
 			// Extract function name
-			char functionName[8];
-			for (uint8_t a=0; a < 8; a++) functionName[a] = 0x20;
-			for (uint8_t a=0; a < 8; a++) functionName[a] = moduleTable.functionNameIndex[i][a];
+			char functionName[_COMMAND_TABLE_NAME_SIZE__];
+			for (uint8_t a=0; a < _COMMAND_TABLE_NAME_SIZE__; a++) functionName[a] = moduleTable.functionNameIndex[i][a];
 			
-			if (string_compare(functionName, console.keyboard_string, 8) == 0) continue;
+			if (string_compare(functionName, console.keyboard_string, currentKeyStringLength) == 0) continue;
 			
-			// Set the user address range
-			_USER_BEGIN__ = allocator.stack_size();
-			_USER_END__   = _STACK_END__;
+			// Update memory access range
+			kernel.setMemoryAccess();
 			
 			// Execute the command
 			moduleTable.command_function_table[i]();
