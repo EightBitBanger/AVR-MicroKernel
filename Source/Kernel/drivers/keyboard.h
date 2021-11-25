@@ -25,8 +25,7 @@ struct KeyboardDriver {
 	
 	KeyboardDriver() {
 		
-		const char name[] = "keyboard";
-		loadLibrary(name, sizeof(name), &keyboardDeviceDriverEntryPoint);
+		loadLibrary(_KEYBOARD_INPUT__, sizeof(_KEYBOARD_INPUT__), &keyboardDeviceDriverEntryPoint);
 		
 	}
 	

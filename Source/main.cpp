@@ -18,7 +18,7 @@ int main(void) {
 	
 	
 	
-	//const char deviceName[] = "con";
+	//const char deviceName[] = _DISPLAY_CONSOLE__;
 	//FunctionPtr& displayDriverPtr = getFuncAddress(deviceName, sizeof(deviceName));
 	
 	//callExtern(displayDriverPtr, 0x04, null, null, null, null);

@@ -85,6 +85,9 @@ void keyEventEnter(void) {
 
 void keyEventBackspace(void) {
 	if (console.keyboard_string_length > 0) {
+		
+		
+		
 		// Remove last char from display
 		displayDriver.writeChar(0x20, console.cursorLine, console.keyboard_string_length);
 		displayDriver.cursorSetPosition(console.cursorLine, console.keyboard_string_length);

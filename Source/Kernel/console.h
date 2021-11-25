@@ -18,7 +18,7 @@ struct CommandConsole {
 	
 	CommandConsole() {
 		
-		promptCharacter = '>';
+		promptCharacter = '-';
 		promptState     = 0;
 		cursorLine      = 0;
 		cursorPos       = 0;
@@ -33,8 +33,13 @@ struct CommandConsole {
 	
 	void initiate(void) {
 		
-		const char deviceName[] = "con";
-		displayDriverPtr = getFuncAddress(deviceName, sizeof(deviceName));
+		//const char deviceName[] = "con";
+		displayDriverPtr = getFuncAddress(_DISPLAY_CONSOLE__, sizeof(_DISPLAY_CONSOLE__));
+		
+		// Initiate current keyboard character
+		//const char keyboardDeviceName[] = "keyboard";
+		EntryPtr keyboardPtr = getFuncAddress(_KEYBOARD_INPUT__, sizeof(_KEYBOARD_INPUT__));
+		callExtern(keyboardPtr, 0x00, lastChar);
 		
 	}
 	
@@ -42,8 +47,13 @@ struct CommandConsole {
 	void shiftUp(void) {callExtern(displayDriverPtr, 0x07); _delay_ms(100);}
 	
 	// Add a const char string to the console
-	void print(char character) {
-		//displayDriver.writeChar(character, cursorLine, cursorPos);
+	void print(char& character) {
+		callExtern(displayDriverPtr, 0x09, (uint8_t&)character, cursorLine, cursorPos);
+		cursorPos++;
+		return;
+	}
+	void printSpace(void) {
+		uint8_t character=0x20;
 		callExtern(displayDriverPtr, 0x09, (uint8_t&)character, cursorLine, cursorPos);
 		cursorPos++;
 		return;
@@ -60,7 +70,7 @@ struct CommandConsole {
 		return;
 	}
 	void print(const char charArray[], uint8_t string_length) {
-		for (uint8_t i=0; i<string_length; i++) {
+		for (uint8_t i=0; i<string_length-1; i++) {
 			callExtern(displayDriverPtr, 0x09, (uint8_t&)charArray[i], cursorLine, cursorPos);
 			cursorPos++;
 		}

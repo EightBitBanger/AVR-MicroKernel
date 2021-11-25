@@ -22,6 +22,9 @@
 #define _COMMAND_TABLE_SIZE__        64
 #define _COMMAND_TABLE_NAME_SIZE__   10
 
+const char _DISPLAY_CONSOLE__[4]   = "con";
+const char _KEYBOARD_INPUT__[9]    = "keyboard";
+
 typedef void(*EntryPtr)(uint8_t, uint8_t&, uint8_t&, uint8_t&, uint8_t&);
 
 #include "enums.h"
@@ -91,9 +94,6 @@ struct Kernel {
 		
 		uint16_t kernelCounter   = 0;
 		uint16_t keyboardCounter = 0;
-		
-		keyboard.read(console.lastChar);
-		//console.promptCharacter = '>';
 		console.printPrompt();
 		
 		bool isActive=1;

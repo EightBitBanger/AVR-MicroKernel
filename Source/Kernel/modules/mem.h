@@ -25,6 +25,7 @@ void command_memory(void) {
 	
 	console.print(memoryAmmount, memoryAmmount.size());
 	console.print(string_memory_allocator_bytes, sizeof(string_memory_allocator_bytes));
+	console.printSpace();
 	console.print(string_memory_allocator_free, sizeof(string_memory_allocator_free));
 	console.printLn();
 	
