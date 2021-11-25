@@ -96,16 +96,12 @@ uint8_t defaultCallbackProcedure(uint8_t message);
 
 struct Kernel {
 	
-	// Memory cache
+	// External memory cache
 	uint32_t current_address;
 	char cache[_CACHE_SIZE__];
 	char protectionOverflowBuffer[1];
 	
-	Kernel() {
-		current_address = _STACK_BEGIN__;
-	}
-	
-	// User cache memory interface
+	// External memory cache interface
 	char& operator[] (uint32_t new_pointer) {
 		
 		// Check segmentation fault
@@ -125,6 +121,10 @@ struct Kernel {
 		}
 		
 		return cache[new_pointer - current_address];
+	}
+	
+	Kernel() {
+		current_address = _STACK_BEGIN__;
 	}
 	
 	void initiate(void) {
@@ -205,13 +205,14 @@ struct Kernel {
 		return 0x00;
 	}
 	
-	// Set memory access range
-	void setMemoryAccess(void) {
+	void updateMemoryAccess(void) {
 		
 		_USER_BEGIN__ = stack_size();
 		_USER_END__   = _STACK_END__;
 		
 	}
+	
+	
 	
 	// Initiate the device handler
 	void initiateDeviceIndex(void) {
@@ -298,7 +299,7 @@ struct Kernel {
 		for (uint32_t i=0; i<size; i++) {memory_write(address_pointer+i, 0x00);}
 	}
 	
-	// Return number of allocated bytes
+	// Return the number of bytes allocated in the stack
 	uint32_t stack_size(void) {
 		
 		Pointer numberOfAllocations;
@@ -306,8 +307,6 @@ struct Kernel {
 		
 		return numberOfAllocations.address;
 	}
-	
-	
 	
 	void memory_read(uint32_t address, char& buffer) {
 		
@@ -345,7 +344,6 @@ struct Kernel {
 		
 		return;
 	}
-	
 	void memory_write(uint32_t address, char byte) {
 		
 		// Address the device
@@ -383,6 +381,10 @@ struct Kernel {
 	
 	void device_read(uint32_t address, char& byte) {
 		
+		// Check segmentation fault
+		if ((address < _DEVICE_ADDRESS_START__) || (address >= _DEVICE_ADDRESS_END__)) 
+			return;
+		
 		// Address the device
 		_BUS_LOWER_DIR__ = 0xff;
 		
@@ -417,8 +419,11 @@ struct Kernel {
 		
 		return;
 	}
-	
 	void device_write(uint32_t address, char byte) {
+		
+		// Check segmentation fault
+		if ((address < _DEVICE_ADDRESS_START__) || (address >= _DEVICE_ADDRESS_END__))
+		return;
 		
 		// Address the device
 		_BUS_LOWER_DIR__ = 0xff;
@@ -451,9 +456,15 @@ struct Kernel {
 		return;
 	}
 	
+	private:
+	uint8_t memoryProtectionLevel;
 	
 };
 Kernel kernel;
+
+
+
+
 
 #include "strings.h"
 
