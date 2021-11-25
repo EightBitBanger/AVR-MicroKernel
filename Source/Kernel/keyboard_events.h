@@ -86,11 +86,11 @@ void keyEventEnter(void) {
 void keyEventBackspace(void) {
 	if (console.keyboard_string_length > 0) {
 		
-		
-		
 		// Remove last char from display
-		displayDriver.writeChar(0x20, console.cursorLine, console.keyboard_string_length);
-		displayDriver.cursorSetPosition(console.cursorLine, console.keyboard_string_length);
+		console.setCursorPosition(console.cursorLine, console.keyboard_string_length);
+		console.printSpace();
+		console.setCursorPosition(console.cursorLine, console.keyboard_string_length);
+		
 		// and keyboard string
 		console.keyboard_string_length--;
 		console.keyboard_string[console.keyboard_string_length] = 0x20;
@@ -104,12 +104,8 @@ void keyEventAcceptChar(uint8_t new_char) {
 	console.keyboard_string[console.keyboard_string_length] = new_char;
 	console.keyboard_string_length++;
 	
-	// Update cursor
-	displayDriver.cursorSetPosition(console.cursorLine, console.keyboard_string_length+1);
-	
-	// Display keyboard string
-	displayDriver.writeString(console.keyboard_string, console.keyboard_string_length+1, console.cursorLine, console.cursorPos);
-	displayDriver.writeChar(console.promptCharacter, console.cursorLine, 0);
+	console.printChar((char&)new_char);
+	console.setCursorPosition(console.cursorLine, console.cursorPos);
 	
 	return;
 }

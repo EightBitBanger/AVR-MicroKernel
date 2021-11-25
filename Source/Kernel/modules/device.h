@@ -27,7 +27,7 @@ void command_device(void) {
 			
 			char nameChar = deviceDriverTable.deviceNameIndex[i][a];
 			
-			console.print(nameChar);
+			console.printChar(nameChar);
 		}
 		
 		console.printLn();

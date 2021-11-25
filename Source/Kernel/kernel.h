@@ -22,8 +22,8 @@
 #define _COMMAND_TABLE_SIZE__        64
 #define _COMMAND_TABLE_NAME_SIZE__   10
 
-const char _DISPLAY_CONSOLE__[4]   = "con";
-const char _KEYBOARD_INPUT__[9]    = "keyboard";
+const char _DISPLAY_CONSOLE__[]   = "display";
+const char _KEYBOARD_INPUT__[]    = "keyboard";
 
 typedef void(*EntryPtr)(uint8_t, uint8_t&, uint8_t&, uint8_t&, uint8_t&);
 
@@ -35,7 +35,6 @@ typedef void(*EntryPtr)(uint8_t, uint8_t&, uint8_t&, uint8_t&, uint8_t&);
 
 #include "string_const.h"
 #include "strings.h"
-
 
 
 // Keyboard string update

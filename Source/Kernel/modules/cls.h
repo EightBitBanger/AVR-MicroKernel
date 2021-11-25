@@ -19,15 +19,15 @@ static ModuleClearScreen moduleClearScreen;
 void command_clear_screen(void) {
 	
 	// Clear the buffer and mask
-	displayDriver.clearBuffer();
-	displayDriver.clearMask();
+	console.clearBuffer();
+	console.clearMask();
 	console.clearString();
 	
 	// Reset the cursor
 	console.cursorLine  = 0;
 	console.cursorPos   = 1;
 	
-	_delay_ms(200);
+	_delay_ms(120);
 	
 	// Initiate the prompt
 	console.promptState = 1;

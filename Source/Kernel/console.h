@@ -33,21 +33,38 @@ struct CommandConsole {
 	
 	void initiate(void) {
 		
-		//const char deviceName[] = "con";
 		displayDriverPtr = getFuncAddress(_DISPLAY_CONSOLE__, sizeof(_DISPLAY_CONSOLE__));
 		
 		// Initiate current keyboard character
-		//const char keyboardDeviceName[] = "keyboard";
 		EntryPtr keyboardPtr = getFuncAddress(_KEYBOARD_INPUT__, sizeof(_KEYBOARD_INPUT__));
 		callExtern(keyboardPtr, 0x00, lastChar);
 		
+	}
+	
+	void clearBuffer(void) {
+		callExtern(displayDriverPtr, 0x04);
+		return;
+	}
+	
+	void clearMask(void) {
+		callExtern(displayDriverPtr, 0x05);
+		return;
+	}
+	
+	
+	// Sets the cursor position
+	void setCursorPosition(uint8_t Line, uint8_t Pos) {
+		cursorLine = Line;
+		cursorPos  = Pos;
+		callExtern(displayDriverPtr, 0x00, Line, Pos);
+		return;
 	}
 	
 	// Shift the display up one line
 	void shiftUp(void) {callExtern(displayDriverPtr, 0x07); _delay_ms(100);}
 	
 	// Add a const char string to the console
-	void print(char& character) {
+	void printChar(char& character) {
 		callExtern(displayDriverPtr, 0x09, (uint8_t&)character, cursorLine, cursorPos);
 		cursorPos++;
 		return;
@@ -58,7 +75,7 @@ struct CommandConsole {
 		cursorPos++;
 		return;
 	}
-	void print(int number) {
+	void printInt(int number) {
 		
 		char numberString[8];
 		uint8_t place = intToString(number, numberString) + 1;
