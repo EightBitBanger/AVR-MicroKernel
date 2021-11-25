@@ -9,19 +9,19 @@ struct string {
 	char& operator[] (uint8_t index) {return kernel[ptr + index];}
 	
 	string() {
-		ptr = allocator.stack_alloc(20);
+		ptr = stack_alloc(20);
 		length = 20;
 		clear();
 	}
 	
 	string(uint8_t string_length) {
-		ptr = allocator.stack_alloc(string_length);
+		ptr = stack_alloc(string_length);
 		length = string_length;
 		clear();
 	}
 	
 	string(const char new_string[], uint8_t string_length) {
-		ptr = allocator.stack_alloc(string_length);
+		ptr = stack_alloc(string_length);
 		length = string_length;
 		clear();
 		
@@ -30,7 +30,7 @@ struct string {
 	
 	~string() {
 		
-		allocator.stack_free(length);
+		stack_free(length);
 		
 	}
 	

@@ -21,8 +21,8 @@ struct DisplayDriver {
 		
 	}
 	
-	void write(uint32_t address, char byte) {allocator.device_write(kernel.getDeviceAddress(_DEVICE_DISPLAY__) + address, byte); return;}
-	void read(uint32_t address, char& byte) {allocator.device_read(kernel.getDeviceAddress(_DEVICE_DISPLAY__) + address, byte); return;}
+	void write(uint32_t address, char byte) {device_write(kernel.getDeviceAddress(_DEVICE_DISPLAY__) + address, byte); return;}
+	void read(uint32_t address, char& byte) {device_read(kernel.getDeviceAddress(_DEVICE_DISPLAY__) + address, byte); return;}
 	
 	void cursorSetPosition(uint8_t line, uint8_t position) {write(0xa0, line); write(0xa1, position); return;}
 	void cursorSetCharacter(uint8_t new_character) {write(0xa2, new_character); return;}
@@ -44,7 +44,7 @@ struct DisplayDriver {
 		
 		uint8_t stringSz = string_size - 1;
 		
-		for (uint8_t i=0; i < stringSz; i++) allocator.device_write(address+i, String[i]);
+		for (uint8_t i=0; i < stringSz; i++) device_write(address+i, String[i]);
 		
 		return;
 	}
@@ -55,7 +55,7 @@ struct DisplayDriver {
 		
 		uint8_t stringSz = string_size - 1;
 		
-		for (uint8_t i=0; i < stringSz; i++) allocator.device_write(address+i, String[i]);
+		for (uint8_t i=0; i < stringSz; i++) device_write(address+i, String[i]);
 		
 		return;
 	}
@@ -68,7 +68,7 @@ struct DisplayDriver {
 		
 		uint8_t stringSz = string_size - 1;
 		
-		for (uint8_t i=0; i < stringSz; i++) allocator.device_write(address+i, string[i]);
+		for (uint8_t i=0; i < stringSz; i++) device_write(address+i, string[i]);
 		
 		return;
 	}

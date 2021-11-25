@@ -73,7 +73,7 @@ struct Kernel {
 		
 		// Check segmentation fault
 		if ((new_pointer < _USER_BEGIN__) || (new_pointer >= _USER_END__)) {
-			allocator.memory_write(_KERNEL_FLAGS__, _KERNEL_STATE_SEG_FAULT__);
+			memory_write(_KERNEL_FLAGS__, _KERNEL_STATE_SEG_FAULT__);
 			return protectionOverflowBuffer[0];
 		}
 		
@@ -81,8 +81,8 @@ struct Kernel {
 		if ((new_pointer < current_address) || (new_pointer >= (current_address + _CACHE_SIZE__))) {
 			// Dump the cache back to memory
 			for (uint8_t i=0; i<_CACHE_SIZE__; i++) {
-				allocator.memory_write(current_address + i, cache[i]);
-				allocator.memory_read(new_pointer + i, cache[i]);
+				memory_write(current_address + i, cache[i]);
+				memory_read(new_pointer + i, cache[i]);
 			}
 			current_address = new_pointer;
 		}
@@ -96,8 +96,8 @@ struct Kernel {
 	
 	void initiate(void) {
 		
-		allocator.mem_zero(_ALLOCATOR_COUNTER_ADDRESS__, 4); // Number of external memory allocations
-		allocator.mem_zero(_KERNEL_FLAGS__, 8);              // Kernel state flags
+		mem_zero(_ALLOCATOR_COUNTER_ADDRESS__, 4); // Number of external memory allocations
+		mem_zero(_KERNEL_FLAGS__, 8);              // Kernel state flags
 		
 		// Initiate device drivers
 		for (uint8_t i=0; i < _DRIVER_TABLE_SIZE__; i++) {
@@ -155,7 +155,7 @@ struct Kernel {
 	char checkKernelState(void) {
 		
 		char flag=0;
-		allocator.memory_read(_KERNEL_FLAGS__, flag);
+		memory_read(_KERNEL_FLAGS__, flag);
 		
 		switch (flag) {
 			
@@ -164,7 +164,7 @@ struct Kernel {
 				console.print(message_error_seg_fault, sizeof(message_error_seg_fault));
 				console.printLn();
 				console.printPrompt();
-				allocator.memory_write(_KERNEL_FLAGS__, _KERNEL_STATE_NORMAL__);
+				memory_write(_KERNEL_FLAGS__, _KERNEL_STATE_NORMAL__);
 				return _KERNEL_STATE_SEG_FAULT__;
 			}
 			
@@ -184,16 +184,16 @@ struct Kernel {
 	// Initiate the device handler
 	void initiateDeviceIndex(void) {
 		
-		allocator.mem_zero(_DEVICE_INDEX__, 0x0f);
+		mem_zero(_DEVICE_INDEX__, 0x0f);
 		
 		char identityByte=0xff;
 		uint32_t address=_DEVICE_ADDRESS_START__;
 		for (uint8_t i=0; i <= 0x0f; i++) {
 			
-			allocator.device_read(address, identityByte);
+			device_read(address, identityByte);
 			
 			if (identityByte != 0xff)
-			allocator.memory_write((_DEVICE_INDEX__ + i), identityByte);
+			memory_write((_DEVICE_INDEX__ + i), identityByte);
 			
 			if (address >= _DEVICE_ADDRESS_END__) return;
 			address += 0x10000;
@@ -210,7 +210,7 @@ struct Kernel {
 		for (uint8_t i=0; i <= 0x0f; i++) {
 			
 			char readIdentityByte=0x00;
-			allocator.memory_read((_DEVICE_INDEX__ + i), readIdentityByte);
+			memory_read((_DEVICE_INDEX__ + i), readIdentityByte);
 			
 			if (identity_byte == readIdentityByte) return address;
 			
