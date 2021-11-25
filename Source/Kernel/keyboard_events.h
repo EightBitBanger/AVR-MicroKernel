@@ -70,11 +70,8 @@ void keyEventEnter(void) {
 			
 			if (string_compare(functionName, console.keyboard_string, currentKeyStringLength) == 0) continue;
 			
-			// Update memory access range
-			kernel.updateMemoryAccess();
-			
 			// Execute the command
-			moduleTable.command_function_table[i]();
+			kernel.executeModule(moduleTable.command_function_table[i]);
 			
 			break;
 		}

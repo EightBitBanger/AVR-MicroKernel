@@ -18,7 +18,7 @@ static ModuleMemoryCommand moduleMemoryCommand;
 
 void command_memory(void) {
 	
-	uint32_t ammountOfMemory = _STACK_END__ - (_KERNEL_END__ + kernel.stack_size());
+	uint32_t ammountOfMemory = _STACK_END__ - (_KERNEL_END__ + allocator.stack_size());
 	
 	char memoryAmmount[7];
 	intToString(ammountOfMemory, memoryAmmount);

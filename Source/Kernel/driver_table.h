@@ -16,6 +16,7 @@ struct DeviceDriverTable {
 };
 DeviceDriverTable deviceDriverTable;
 
+
 // Load a device driver entry point function onto the driver function table
 uint8_t loadLibrary(const char device_name[], uint8_t name_length, void(*driver_ptr)(uint8_t, uint8_t&, uint8_t&, uint8_t&, uint8_t&)) {
 	
@@ -28,8 +29,8 @@ uint8_t loadLibrary(const char device_name[], uint8_t name_length, void(*driver_
 	}
 	
 	// Load the library
-	for (uint8_t i=0; i < name_length-1; i++) 
-		deviceDriverTable.deviceNameIndex[index][i] = device_name[i];
+	for (uint8_t i=0; i < name_length-1; i++)
+	deviceDriverTable.deviceNameIndex[index][i] = device_name[i];
 	
 	deviceDriverTable.driver_entrypoint_table[index] = driver_ptr;
 	
@@ -52,8 +53,8 @@ EntryPtr& getFuncAddress(const char device_name[], uint8_t name_length) {
 			char nameChar = deviceDriverTable.deviceNameIndex[i][a];
 			if (nameChar == device_name[a]) count++; else break;
 			
-			if (count >= name_length) 
-				return deviceDriverTable.driver_entrypoint_table[i];
+			if (count >= name_length)
+			return deviceDriverTable.driver_entrypoint_table[i];
 			
 		}
 		
@@ -80,4 +81,5 @@ uint8_t callExtern(EntryPtr library_function, uint8_t function_call, uint8_t& pa
 	
 	return 1;
 }
+
 
