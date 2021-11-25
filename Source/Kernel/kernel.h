@@ -13,7 +13,7 @@
 
 // User address space
 #define  _STACK_BEGIN__   _KERNEL_END__ + 1  // After kernel memory
-uint32_t _STACK_END__  =  0;                 // Total extended memory determined at boot
+uint32_t _STACK_END__  =  0xfffff;           // Total extended memory determined at boot
 
 uint32_t _USER_BEGIN__ =  0;
 uint32_t _USER_END__   =  0;
@@ -49,9 +49,6 @@ const char _KEYBOARD_INPUT__[]    = "keyboard";
 #include "string_const.h"
 
 void keyboard_event_handler(void);
-
-// Default message callback procedure
-uint8_t defaultCallbackProcedure(uint8_t message);
 
 
 // Device driver entry pointer table
@@ -133,8 +130,6 @@ struct Kernel {
 		
 		console.printPrompt();
 		
-		//displayDriver.writeChar(0x41, 3, 5);
-		
 		bool isActive=1;
 		while(isActive) {
 			
@@ -155,6 +150,21 @@ struct Kernel {
 		return;
 	}
 	
+	uint32_t allocateSystemMemory(void) {
+		uint32_t total_system_memory;
+		
+		for (total_system_memory=_STACK_BEGIN__; total_system_memory < _DEVICE_ADDRESS_START__; total_system_memory++) {
+			
+			char readByte;
+			memory_write(total_system_memory, 0xff);
+			memory_read(total_system_memory, readByte);
+			
+			if (readByte != 0xff) break;
+			
+		}
+		
+		return total_system_memory + _KERNEL_END__;
+	}
 	
 	// Check kernel error flags
 	char checkKernelState(void) {
@@ -245,23 +255,11 @@ Kernel kernel;
 
 // Load driver libraries
 #include "drivers.h"
+
 // Load command modules
 #include "modules.h"
 
-// Total system memory allocator
-#include "memory_check.h"
-
 // Keyboard event handling
 #include "keyboard_events.h"
-
-uint8_t defaultCallbackProcedure(uint8_t message) {
-	
-	switch (message) {
-		
-		default: moduleTable.command_function_table[message](); break;
-	}
-	
-	return 0;
-}
 
 

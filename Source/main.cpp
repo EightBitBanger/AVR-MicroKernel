@@ -8,7 +8,8 @@ int main(void) {
 	kernel.initiateDeviceIndex();
 	
 	// Check available extended memory
-	_STACK_END__ = allocate_system_memory();
+	//_STACK_END__ = allocate_system_memory();
+	_STACK_END__ =  kernel.allocateSystemMemory();
 	
 	// Setup the command console
 	console.initiate();
