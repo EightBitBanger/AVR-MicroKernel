@@ -5,7 +5,7 @@ void keyEventEnter(void);
 void keyEventBackspace(void);
 void keyEventAcceptChar(uint8_t);
 
-void updateKeyboard(void) {
+void keyboard_event_handler(void) {
 	
 	uint8_t scanCodeAccepted = 0;
 	char currentChar=0x00;

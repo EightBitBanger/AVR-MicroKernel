@@ -48,7 +48,7 @@ const char _KEYBOARD_INPUT__[]    = "keyboard";
 
 #include "string_const.h"
 
-void updateKeyboard(void);
+void keyboard_event_handler(void);
 
 // Default message callback procedure
 uint8_t defaultCallbackProcedure(uint8_t message);
@@ -128,6 +128,9 @@ struct Kernel {
 		
 		uint16_t kernelCounter   = 0;
 		uint16_t keyboardCounter = 0;
+		
+		accessModeKernel();
+		
 		console.printPrompt();
 		
 		bool isActive=1;
@@ -141,7 +144,7 @@ struct Kernel {
 			keyboardCounter++;
 			if (keyboardCounter > keyboardTimeOut) {keyboardCounter=0;
 				
-				updateKeyboard();
+				keyboard_event_handler();
 				
 			}
 			
