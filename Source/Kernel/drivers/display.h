@@ -84,6 +84,8 @@ DisplayDriver displayDriver;
 
 void DisplayDeviceDriverEntryPoint(uint8_t functionCall, uint8_t& paramA, uint8_t& paramB, uint8_t& paramC, uint8_t& paramD) {
 	
+	kernel.accessModeKernel();
+	
 	switch(functionCall) {
 		
 		case _DRIVER_INITIATE__: {displayDriver.initiate(); break;}
@@ -103,9 +105,10 @@ void DisplayDeviceDriverEntryPoint(uint8_t functionCall, uint8_t& paramA, uint8_
 		
 		case 0x09: displayDriver.writeChar(paramA, paramB, paramC); break;
 		
-		default: return;
+		default: break;
 	}
 	
+	kernel.accessModeUser();
 	return;
 }
 

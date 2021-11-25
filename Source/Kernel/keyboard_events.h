@@ -46,6 +46,11 @@ void keyboard_event_handler(void) {
 	return;
 }
 
+
+
+//
+// Keyboard events
+
 void keyEventEnter(void) {
 	
 	uint8_t currentKeyStringLength = console.keyboard_string_length;

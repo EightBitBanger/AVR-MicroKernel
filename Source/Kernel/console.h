@@ -39,6 +39,8 @@ struct CommandConsole {
 		EntryPtr keyboardPtr = getFuncAddress(_KEYBOARD_INPUT__, sizeof(_KEYBOARD_INPUT__));
 		callExtern(keyboardPtr, 0x00, lastChar);
 		
+		print("        ", 8);
+		
 	}
 	
 	void clearBuffer(void) {
@@ -63,8 +65,8 @@ struct CommandConsole {
 	// Shift the display up one line
 	void shiftUp(void) {callExtern(displayDriverPtr, 0x07); _delay_ms(100);}
 	
-	// Add a const char string to the console
-	void printChar(char& character) {
+	// Add char(s) to the console
+	void printChar(char character) {
 		callExtern(displayDriverPtr, 0x09, (uint8_t&)character, cursorLine, cursorPos);
 		cursorPos++;
 		return;

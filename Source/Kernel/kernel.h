@@ -133,6 +133,8 @@ struct Kernel {
 		
 		console.printPrompt();
 		
+		//displayDriver.writeChar(0x41, 3, 5);
+		
 		bool isActive=1;
 		while(isActive) {
 			
@@ -182,6 +184,7 @@ struct Kernel {
 		accessModeUser();
 		module_ptr();
 		accessModeKernel();
+		return;
 	}
 	
 	// Initiate the device handler
@@ -238,10 +241,6 @@ struct Kernel {
 };
 Kernel kernel;
 
-
-
-
-
 #include "strings.h"
 
 // Load driver libraries
@@ -259,12 +258,10 @@ uint8_t defaultCallbackProcedure(uint8_t message) {
 	
 	switch (message) {
 		
-		
 		default: moduleTable.command_function_table[message](); break;
 	}
 	
 	return 0;
 }
-
 
 

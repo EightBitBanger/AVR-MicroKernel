@@ -130,6 +130,8 @@ KeyboardDriver keyboard;
 
 void keyboardDeviceDriverEntryPoint(uint8_t functionCall, uint8_t& paramA, uint8_t& paramB, uint8_t& paramC, uint8_t& paramD) {
 	
+	kernel.accessModeKernel();
+	
 	switch(functionCall) {
 		
 		case _DRIVER_INITIATE__: {keyboard.initiate(); break;}
@@ -138,9 +140,10 @@ void keyboardDeviceDriverEntryPoint(uint8_t functionCall, uint8_t& paramA, uint8
 		case 0x00: {keyboard.read(paramA); break;}
 		case 0x01: {keyboard.decodeScanCode(paramA, paramB, paramC); break;}
 		
-		default: return;
+		default: break;
 	}
 	
+	kernel.accessModeUser();
 	return;
 }
 
