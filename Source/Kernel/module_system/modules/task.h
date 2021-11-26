@@ -23,10 +23,11 @@ void command_task(void) {
 		
 		if (scheduler.taskName[i][0] == 0x20) continue;
 		
+		console.printChar(scheduler.taskType[i]);
+		console.printSpace();
+		
 		for (uint8_t a=0; a < _TASK_NAME_SIZE__; a++) {
-			
 			char nameChar = scheduler.taskName[i][a];
-			
 			console.printChar(nameChar);
 		}
 		

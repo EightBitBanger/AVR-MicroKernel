@@ -4,11 +4,18 @@
 #define _TASK_LIST_SIZE__  16
 #define _TASK_NAME_SIZE__  10
 
+#define _TASK_TYPE_USER__      0x75 // Task is a user program
+#define _TASK_TYPE_VOLITILE__  0x76 // Task will terminate after execution
+#define _TASK_TYPE_SERVICE__   0x73 // Task is a system service routine
+
+// VOLITILE
+
 typedef void(*TaskPtr)();
 
 struct TaskSchedulerSystem {
 	
 	uint8_t taskName[_TASK_LIST_SIZE__][_TASK_NAME_SIZE__];
+	uint8_t taskType[_TASK_LIST_SIZE__];
 	uint16_t taskPriority[_TASK_LIST_SIZE__];
 	uint16_t taskCounters[_TASK_LIST_SIZE__];
 	void (*task_pointer_table[_TASK_LIST_SIZE__])();
@@ -16,6 +23,7 @@ struct TaskSchedulerSystem {
 	TaskSchedulerSystem() {
 		for (uint8_t i=0; i < _TASK_LIST_SIZE__; i++) {
 			for (uint8_t a=0; a < _TASK_NAME_SIZE__; a++) taskName[i][a] = 0x20;
+			taskType[i]     = 0x00;
 			taskPriority[i] = 0x00;
 			taskCounters[i] = 0x00;
 			task_pointer_table[i] = (TaskPtr&)NULL_f;
@@ -23,7 +31,7 @@ struct TaskSchedulerSystem {
 	}
 	
 	// Schedule a new task
-	uint8_t createTask(const char name[], uint8_t name_length, void(*task_ptr)(), uint16_t priority) {
+	uint8_t createTask(const char name[], uint8_t name_length, void(*task_ptr)(), uint16_t priority, uint8_t task_type) {
 		
 		if ((priority == 0) || (name_length > _TASK_NAME_SIZE__-1)) return 0;
 		
@@ -38,10 +46,11 @@ struct TaskSchedulerSystem {
 		
 		// Launch the new task
 		for (uint8_t a=0; a < name_length-1; a++) 
-			taskName[index][a] = name[a];
+			taskName[index][a]    = name[a];
 		
-		taskPriority[index] = priority;
-		taskCounters[index] = 0;
+		taskType[index]           = task_type;
+		taskPriority[index]       = priority;
+		taskCounters[index]       = 0;
 		task_pointer_table[index] = task_ptr;
 		
 		return 1;

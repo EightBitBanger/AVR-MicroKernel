@@ -18,6 +18,8 @@ uint32_t _STACK_END__  =  0xfffff;           // Total extended memory determined
 uint32_t _USER_BEGIN__ =  0;
 uint32_t _USER_END__   =  0;
 
+// Logging
+#define _BOOT_LOG__
 #define _KERNEL_VERBOSE__
 
 // Extended memory cache size
@@ -106,9 +108,13 @@ struct Kernel {
 			if ((deviceDriverTable.driver_entrypoint_table[i] != 0) && (deviceDriverTable.deviceNameIndex[i][0] != 0x20)) {
 				
 #ifdef _KERNEL_VERBOSE__
-				for (uint8_t a=0; a < _DRIVER_TABLE_NAME_SIZE__; a++) {
+				// Display driver names during boot
+				console.printChar('d');
+				console.printSpace();
+				
+				for (uint8_t a=0; a < _DRIVER_TABLE_NAME_SIZE__; a++) 
 					console.printChar(deviceDriverTable.deviceNameIndex[i][a]);
-				}
+				
 				console.printLn();
 #endif
 				
@@ -145,7 +151,7 @@ struct Kernel {
 		_USER_END__   = _STACK_END__;
 		
 		// Launch the keyboard handler service
-		scheduler.createTask("kbsrv", 6, keyboard_event_handler, 1000);
+		scheduler.createTask("kbsrv", 6, keyboard_event_handler, 1000, _TASK_TYPE_VOLITILE__);
 		
 		console.printPrompt();
 		
