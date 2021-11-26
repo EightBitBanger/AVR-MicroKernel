@@ -18,6 +18,8 @@ uint32_t _STACK_END__  =  0xfffff;           // Total extended memory determined
 uint32_t _USER_BEGIN__ =  0;
 uint32_t _USER_END__   =  0;
 
+#define _KERNEL_VERBOSE__
+
 // Extended memory cache size
 #define _CACHE_SIZE__  16
 
@@ -101,8 +103,19 @@ struct Kernel {
 		// Initiate device drivers
 		for (uint8_t i=0; i < _DRIVER_TABLE_SIZE__; i++) {
 			
-			if ((deviceDriverTable.driver_entrypoint_table[i] != 0) && (deviceDriverTable.deviceNameIndex[i][0] != 0x20))
+			if ((deviceDriverTable.driver_entrypoint_table[i] != 0) && (deviceDriverTable.deviceNameIndex[i][0] != 0x20)) {
+				
+#ifdef _KERNEL_VERBOSE__
+				for (uint8_t a=0; a < _DRIVER_TABLE_NAME_SIZE__; a++) {
+					console.printChar(deviceDriverTable.deviceNameIndex[i][a]);
+				}
+				console.printLn();
+#endif
+				
 				deviceDriverTable.driver_entrypoint_table[i](_DRIVER_INITIATE__, NULL, NULL, NULL, NULL);
+				
+			}
+			
 			
 		}
 		
@@ -132,14 +145,7 @@ struct Kernel {
 		_USER_END__   = _STACK_END__;
 		
 		// Launch the keyboard handler service
-		
-		// TESTING
-		//TaskPtr& task = scheduler.findTask(keyboardTask, sizeof(keyboardTask));
-		//scheduler.killTask(task);
-		
-		
 		scheduler.createTask("kbsrv", 6, keyboard_event_handler, 1000);
-		//scheduler.createTask("srvho", 6, keyboard_event_handler, 1000);
 		
 		console.printPrompt();
 		
@@ -306,7 +312,7 @@ Kernel kernel;
 
 
 // Load a device driver entry point function onto the driver function table
-uint8_t loadLibrary(const char device_name[], uint8_t name_length, void(*driver_ptr)(uint8_t, uint8_t&, uint8_t&, uint8_t&, uint8_t&)) {
+uint8_t loadLibrary(const char name[], uint8_t name_length, void(*driver_ptr)(uint8_t, uint8_t&, uint8_t&, uint8_t&, uint8_t&)) {
 	
 	if (name_length > _DRIVER_TABLE_NAME_SIZE__-1) return 0;
 	
@@ -318,7 +324,7 @@ uint8_t loadLibrary(const char device_name[], uint8_t name_length, void(*driver_
 	
 	// Load the library
 	for (uint8_t i=0; i < name_length-1; i++)
-		deviceDriverTable.deviceNameIndex[index][i] = device_name[i];
+		deviceDriverTable.deviceNameIndex[index][i] = name[i];
 	
 	deviceDriverTable.driver_entrypoint_table[index] = driver_ptr;
 	

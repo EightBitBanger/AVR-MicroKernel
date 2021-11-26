@@ -20,7 +20,7 @@ int main(void) {
 	
 	kernel.run();
 	
-	//kernel.shutdown();
+	kernel.shutdown();
 	
 	while(1) nop;
 	return 0;

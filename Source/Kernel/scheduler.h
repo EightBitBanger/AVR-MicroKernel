@@ -25,9 +25,6 @@ struct TaskSchedulerSystem {
 	// Schedule a new task
 	uint8_t createTask(const char name[], uint8_t name_length, void(*task_ptr)(), uint16_t priority) {
 		
-		console.print(name, name_length);
-		console.printLn();
-		
 		if ((priority == 0) || (name_length > _TASK_NAME_SIZE__-1)) return 0;
 		
 		// Find an available slot
