@@ -15,8 +15,8 @@
 #define  _STACK_BEGIN__   _KERNEL_END__ + 1  // After kernel memory
 uint32_t _STACK_END__  =  0xfffff;           // Total extended memory determined at boot
 
-uint32_t _USER_BEGIN__ =  0;
-uint32_t _USER_END__   =  0;
+uint32_t _USER_BEGIN__ =  0x00000;
+uint32_t _USER_END__   =  0xfffff;
 
 // Logging
 #define _BOOT_LOG__
@@ -39,7 +39,7 @@ uint32_t _USER_END__   =  0;
 #define _DEVICE_ADDRESS_START__  0x40000
 #define _DEVICE_ADDRESS_END__    0x80000
 
-// Device names
+// System device names
 const char _DISPLAY_CONSOLE__[]   = "display";
 const char _KEYBOARD_INPUT__[]    = "keyboard";
 
@@ -53,14 +53,13 @@ const char _KEYBOARD_INPUT__[]    = "keyboard";
 
 void keyboard_event_handler(void);
 
-// Device driver entry pointer table
 #include "driver_system\driver_table.h"
 
-// Command console
 #include "console.h"
 
-// Task scheduler system
 #include "scheduler.h"
+
+#include "services.h"
 
 // Command line function pointer table
 #include "module_system\module_table.h"
@@ -101,6 +100,9 @@ struct Kernel {
 		
 		mem_zero(_ALLOCATOR_COUNTER_ADDRESS__, 4); // Number of external memory allocations
 		mem_zero(_KERNEL_FLAGS__, 8);              // Kernel state flags
+		
+		// Launch system services
+		launchServiceRoutines();
 		
 		// Initiate device drivers
 		for (uint8_t i=0; i < _DRIVER_TABLE_SIZE__; i++) {
@@ -151,7 +153,7 @@ struct Kernel {
 		_USER_END__   = _STACK_END__;
 		
 		// Launch the keyboard handler service
-		scheduler.createTask("kbsrv", 6, keyboard_event_handler, 1000, _TASK_TYPE_VOLITILE__);
+		scheduler.createTask("kbsrv", 6, keyboard_event_handler, 1000, _TASK_TYPE_SERVICE__);
 		
 		console.printPrompt();
 		

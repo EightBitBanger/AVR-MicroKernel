@@ -8,8 +8,6 @@
 #define _TASK_TYPE_VOLITILE__  0x76 // Task will terminate after execution
 #define _TASK_TYPE_SERVICE__   0x73 // Task is a system service routine
 
-// VOLITILE
-
 typedef void(*TaskPtr)();
 
 struct TaskSchedulerSystem {
