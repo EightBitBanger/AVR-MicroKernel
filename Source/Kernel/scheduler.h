@@ -15,6 +15,7 @@ struct TaskSchedulerSystem {
 	
 	TaskSchedulerSystem() {
 		for (uint8_t i=0; i < _TASK_LIST_SIZE__; i++) {
+			for (uint8_t a=0; a < _TASK_NAME_SIZE__; a++) taskName[i][a] = 0x20;
 			taskPriority[i] = 0x00;
 			taskCounters[i] = 0x00;
 			task_pointer_table[i] = 0;
@@ -37,6 +38,7 @@ struct TaskSchedulerSystem {
 		// Launch the new task
 		for (uint8_t a=0; a < name_length; a++) 
 			taskName[index][a] = name[a];
+		taskName[index][name_length-1] = 0x20;
 		
 		taskPriority[index] = priority;
 		taskCounters[index] = 0;

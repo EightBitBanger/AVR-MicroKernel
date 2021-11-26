@@ -18,7 +18,6 @@ void keyboard_event_handler(void) {
 	
 	// Read keyboard character
 	callExtern(keyboardPtr, 0x00, readKeyCode);
-	kernel.accessModeKernel();
 	
 	// Check MAX string length
 	if (console.keyboard_string_length < 19) {
@@ -79,9 +78,7 @@ void eventKeyboardEnter(void) {
 			if (string_compare(functionName, console.keyboard_string, currentKeyStringLength) == 0) continue;
 			
 			// Execute the command
-			kernel.accessModeUser();
 			moduleTable.command_function_table[i]();
-			kernel.accessModeKernel();
 			
 			break;
 		}

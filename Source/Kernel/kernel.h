@@ -123,12 +123,13 @@ struct Kernel {
 	void run(void) {
 		
 		uint16_t kernelTimeOut   = _KERNEL_TIMEOUT__;
-		uint16_t keyboardTimeOut = _KEYBOARD_TIMEOUT__;
 		
 		uint16_t kernelCounter   = 0;
 		uint16_t keyboardCounter = 0;
 		
-		accessModeKernel();
+		// Kernel memory access
+		_USER_BEGIN__ = _KERNEL_BEGIN__;
+		_USER_END__   = _STACK_END__;
 		
 		console.printPrompt();
 		
@@ -138,7 +139,9 @@ struct Kernel {
 			kernelCounter++;
 			if (kernelCounter > kernelTimeOut) {kernelCounter=0;
 				
-				accessModeUser();
+				// User memory access
+				_USER_BEGIN__ = _STACK_BEGIN__;
+				_USER_END__   = _STACK_END__;
 				
 				for (uint16_t index=0; index < _TASK_LIST_SIZE__; index++) {
 					
@@ -157,7 +160,9 @@ struct Kernel {
 					
 				}
 				
-				accessModeKernel();
+				// Kernel memory access
+				_USER_BEGIN__ = _KERNEL_BEGIN__;
+				_USER_END__   = _STACK_END__;
 			}
 			
 		}
