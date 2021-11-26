@@ -14,7 +14,6 @@
 #define _FILE_ATTRIBUTE_SYSTEM__  2
 
 
-
 struct Partition {
 	
 	// Partition starting location in extended memory
@@ -22,7 +21,7 @@ struct Partition {
 	// Size of the allocation
 	uint32_t size;
 	
-	char& operator[] (uint32_t address) {return memory_cache[address_pointer + address];}
+	char& operator[] (uint32_t address) {return kernel[address_pointer + address];}
 	
 	Partition() {
 		address_pointer = 0;
@@ -49,7 +48,7 @@ struct Partition {
 	void format(uint32_t size_bytes) {
 		
 		// Dump the cache
-		memory_cache[0x00000];
+		kernel[0x00000];
 		
 		// Mark chunks empty
 		for (uint32_t i=0; i<size_bytes; i+=_CHUNK_SIZE__) 
@@ -60,7 +59,7 @@ struct Partition {
 		// Initiate the partition descriptor table
 		
 		// Reserve the first couple chunks for the partition table
-		for (uint8_t i=0; i <= (_CHUNK_SIZE__ * 2); i+=_CHUNK_SIZE__) 
+		for (uint8_t i=0; i < (_CHUNK_SIZE__ * 2); i+=_CHUNK_SIZE__) 
 			memory_write(address_pointer + i, 0xff);
 		
 		// Partition size
@@ -73,34 +72,34 @@ struct Partition {
 	
 	// Returns the number of bytes
 	uint32_t getSizeBytes(void) {
-		Pointer partitionSz;
+		WrappedPointer partitionSz;
 		for (uint8_t i=1; i<5; i++) {memory_read(address_pointer + i, partitionSz.byte[i-1]);}
 		return partitionSz.address;
 	}
 	
 	// Returns the number of files in the partition
 	uint32_t getNumberOfFiles(void) {
-		Pointer numberOfFiles;
+		WrappedPointer numberOfFiles;
 		for (uint8_t i=5; i<9; i++) memory_read(address_pointer + i, numberOfFiles.byte[i-5]);
 		return numberOfFiles.address;
 	}
 	
 	// Sets the size of the partition in bytes
 	void setSizeBytes(uint32_t byteSz) {
-		Pointer partitionSz(byteSz);
+		WrappedPointer partitionSz(byteSz);
 		for (uint8_t i=1; i<5; i++) {memory_write(address_pointer + i, partitionSz.byte[i-1]);}
 		return;
 	}
 	
 	// Sets the number of files in the partition
 	void setNumberOfFiles(uint32_t numberOfFiles) {
-		Pointer fileCounter(numberOfFiles);
+		WrappedPointer fileCounter(numberOfFiles);
 		for (uint8_t i=5; i<9; i++) memory_write(address_pointer + i, fileCounter.byte[i-5]);
 		return;
 	}
 	
 };
-Partition partition;
+static Partition partition;
 
 struct FileSystem {
 	
@@ -138,7 +137,7 @@ struct FileSystem {
 			if (partition[chunk_offset] != 0xff) {continue;}
 			
 			// Get size
-			Pointer file_size_bytes;
+			WrappedPointer file_size_bytes;
 			for (uint8_t i=0; i<4; i++) {file_size_bytes.byte[i] = partition[ chunk_offset + i + _FILESIZE_OFFSET__ ];}
 			
 			// Get attribute
@@ -181,7 +180,7 @@ struct FileSystem {
 		for (uint8_t i=0; i<name_length; i++) filename[i] = file_name[i];
 		
 		// Check partition chunks
-		for (chunk_offset=0; chunk_offset <= partitionSz; chunk_offset += _CHUNK_SIZE__) {
+		for (chunk_offset=0; chunk_offset < partitionSz; chunk_offset += _CHUNK_SIZE__) {
 			
 			// Continue if chunk is taken
 			if (partition[chunk_offset] == 0xff) {continue;}
@@ -195,10 +194,10 @@ struct FileSystem {
 			
 			// Create file
 			// Mark chunks as reserved
-			for (uint32_t i=chunk_offset; i <= chunk_counter; i+=_CHUNK_SIZE__) {partition[i] = 0xff;}
+			for (uint32_t i=chunk_offset; i < chunk_counter; i+=_CHUNK_SIZE__) {partition[i] = 0xff;}
 			
 			// Set size
-			Pointer file_size_bytes(size_bytes);
+			WrappedPointer file_size_bytes(size_bytes);
 			for (uint8_t i=0; i<4; i++) {
 				partition[ chunk_offset + i + _FILESIZE_OFFSET__ ] = file_size_bytes.byte[i];
 			}
@@ -237,7 +236,7 @@ struct FileSystem {
 			if (partition[chunk_offset] != 0xff) {continue;}
 			
 			// Get size
-			Pointer file_size_bytes;
+			WrappedPointer file_size_bytes;
 			for (uint8_t i=0; i<4; i++) {file_size_bytes.byte[i] = partition[ chunk_offset + i + _FILESIZE_OFFSET__ ];}
 			
 			// Get attribute
@@ -289,7 +288,7 @@ struct FileSystem {
 			if (partition[chunk_offset] != 0xff) {continue;}
 			
 			// Get size
-			Pointer file_size_bytes;
+			WrappedPointer file_size_bytes;
 			for (uint8_t i=0; i<4; i++) {file_size_bytes.byte[i] = partition[ chunk_offset + i + _FILESIZE_OFFSET__ ];}
 			
 			// Get attribute
@@ -365,6 +364,47 @@ struct FileSystem {
 	
 	
 };
-FileSystem system;
+static FileSystem system;
 
+void fileSystemLibraryEntryPoint(uint8_t functionCall, uint8_t& paramA, uint8_t& paramB, uint8_t& paramC, uint8_t& paramD);
+
+struct FileSystemLibrary {
+	
+	void initiate(void) {
+		
+	}
+	
+	void shutdown(void) {
+		
+	}
+	
+	FileSystemLibrary() {
+		
+		const char libraryName[] = "filesys";
+		loadLibrary(libraryName, sizeof(libraryName), &fileSystemLibraryEntryPoint);
+		
+	}
+	
+	
+	
+};
+FileSystemLibrary fileSystemLibrary;
+
+void fileSystemLibraryEntryPoint(uint8_t functionCall, uint8_t& paramA, uint8_t& paramB, uint8_t& paramC, uint8_t& paramD) {
+	
+	kernel.accessModeKernel();
+	
+	switch(functionCall) {
+		
+		case _DRIVER_INITIATE__: {fileSystemLibrary.initiate(); break;}
+		case _DRIVER_SHUTDOWN__: {fileSystemLibrary.shutdown(); break;}
+		
+		case 0x00: {partition.create(paramA * 1024); break;}
+		
+		default: break;
+	}
+	
+	kernel.accessModeUser();
+	return;
+}
 

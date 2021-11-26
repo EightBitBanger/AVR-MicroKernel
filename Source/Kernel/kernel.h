@@ -137,8 +137,26 @@ struct Kernel {
 			
 			kernelCounter++;
 			if (kernelCounter > kernelTimeOut) {kernelCounter=0;
+				
 				accessModeUser();
-				scheduler.processTasks();
+				
+				for (uint16_t index=0; index < _TASK_LIST_SIZE__; index++) {
+					
+					// Check if the task is registered
+					if (scheduler.taskPriority[index] == 0) continue;
+					
+					// Increment the task counter
+					scheduler.taskCounters[index]++;
+					
+					// Check if the task should be executed
+					if (scheduler.taskCounters[index] == scheduler.taskPriority[index]) {scheduler.taskCounters[index] = 0;
+						
+						scheduler.task_pointer_table[index]();
+						
+					}
+					
+				}
+				
 				accessModeKernel();
 			}
 			

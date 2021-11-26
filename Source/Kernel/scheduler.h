@@ -21,32 +21,10 @@ struct TaskSchedulerSystem {
 		}
 	}
 	
-	// Process running tasks
-	void processTasks(void) {
-		
-		for (uint16_t index=0; index < _TASK_LIST_SIZE__; index++) {
-			
-			// Check if the task is registered
-			if (taskPriority[index] == 0) continue;
-			
-			// Increment the task counter
-			taskCounters[index]++;
-			
-			// Check if the task should be executed
-			if (taskCounters[index] == taskPriority[index]) {taskCounters[index] = 0;
-				
-				task_pointer_table[index]();
-				
-			}
-			
-		}
-		
-	}
-	
 	// Schedule a new task
 	uint8_t createTask(const char name[], uint8_t name_length, void(*task_ptr)(), uint16_t priority) {
 		
-		if ((priority == 0) || (name_length >= _TASK_NAME_SIZE__)) return 0;
+		if ((priority == 0) || (name_length > _TASK_NAME_SIZE__-1)) return 0;
 		
 		// Find an available slot
 		uint8_t index;
@@ -57,7 +35,9 @@ struct TaskSchedulerSystem {
 		if (index == _TASK_LIST_SIZE__) return 0;
 		
 		// Launch the new task
-		for (uint8_t a=0; a < name_length; a++) taskName[index][a] = name[a];
+		for (uint8_t a=0; a < name_length; a++) 
+			taskName[index][a] = name[a];
+		
 		taskPriority[index] = priority;
 		taskCounters[index] = 0;
 		task_pointer_table[index] = task_ptr;

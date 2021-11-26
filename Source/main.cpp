@@ -17,8 +17,14 @@ int main(void) {
 	kernel.initiate();
 	
 	// Launch the keyboard handler service
-	const char keyboardTask[] = "kbSrv";
+	const char keyboardTask[] = "kbsrv";
 	scheduler.createTask(keyboardTask, sizeof(keyboardTask), keyboard_event_handler, 1000);
+	
+	//TaskPtr& task = scheduler.findTask(keyboardTask, sizeof(keyboardTask)-3);
+	//scheduler.killTask(task);
+	
+	
+	
 	
 	kernel.run();
 	
