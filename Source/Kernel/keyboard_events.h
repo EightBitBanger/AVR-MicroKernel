@@ -12,10 +12,13 @@ void keyboard_event_handler(void) {
 	
 	uint8_t readKeyCode=0;
 	
-	// Read keyboard character
+	// Link to the keyboard device driver
 	const char deviceName[] = "keyboard";
 	EntryPtr keyboardPtr = getFuncAddress(deviceName, sizeof(deviceName));
+	
+	// Read keyboard character
 	callExtern(keyboardPtr, 0x00, readKeyCode);
+	kernel.accessModeKernel();
 	
 	// Check MAX string length
 	if (console.keyboard_string_length < 19) {
