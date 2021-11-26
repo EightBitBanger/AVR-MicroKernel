@@ -22,7 +22,7 @@ uint32_t _USER_END__   =  0;
 #define _CACHE_SIZE__  16
 
 // Counters
-#define _KERNEL_TIMEOUT__    40
+#define _KERNEL_TIMEOUT__    16
 #define _KEYBOARD_TIMEOUT__  20000
 
 // Function tables
@@ -140,13 +140,6 @@ struct Kernel {
 				accessModeUser();
 				scheduler.processTasks();
 				accessModeKernel();
-			}
-			
-			keyboardCounter++;
-			if (keyboardCounter > keyboardTimeOut) {keyboardCounter=0;
-				
-				keyboard_event_handler();
-				
 			}
 			
 		}

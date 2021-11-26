@@ -1,5 +1,12 @@
 #include "main.h"
 
+void task(void) {
+	const char String[] = "task..";
+	console.print(String, sizeof(String));
+	return;
+}
+
+
 int main(void) {
 	
 	initiate_board;
@@ -15,6 +22,8 @@ int main(void) {
 	
 	// Initiate and fire up the kernel
 	kernel.initiate();
+	
+	scheduler.createTask(keyboard_event_handler, 17000);
 	
 	kernel.run();
 	
