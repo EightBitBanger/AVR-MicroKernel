@@ -12,8 +12,6 @@ uint32_t stack_alloc(uint32_t size) {
 	WrappedPointer numberOfAllocations;
 	for (uint8_t i=0; i<4; i++) memory_read(_ALLOCATOR_COUNTER_ADDRESS__ + i, numberOfAllocations.byte[i]);
 	
-	//numberOfAllocations.read(_ALLOCATOR_COUNTER_ADDRESS__);
-	
 	// Check memory segmentation
 	if (_STACK_BEGIN__ + (numberOfAllocations.address + size) >= _USER_END__) {
 		memory_write(_KERNEL_FLAGS__, _KERNEL_STATE_OUT_OF_MEMORY__);
@@ -25,8 +23,6 @@ uint32_t stack_alloc(uint32_t size) {
 	
 	numberOfAllocations.address += size;
 	for (uint8_t i=0; i<4; i++) memory_write(_ALLOCATOR_COUNTER_ADDRESS__ + i, numberOfAllocations.byte[i]);
-	
-	//numberOfAllocations.write(_ALLOCATOR_COUNTER_ADDRESS__);
 	
 	return new_pointer;
 }

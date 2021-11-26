@@ -22,15 +22,14 @@ uint32_t _USER_END__   =  0;
 #define _CACHE_SIZE__  16
 
 // Counters
-#define _KERNEL_TIMEOUT__    1000
+#define _KERNEL_TIMEOUT__    40
 #define _KEYBOARD_TIMEOUT__  20000
 
 // Function tables
-#define _DRIVER_TABLE_SIZE__         32
+#define _DRIVER_TABLE_SIZE__         10
 #define _DRIVER_TABLE_NAME_SIZE__    10
-#define _COMMAND_TABLE_SIZE__        24
+#define _COMMAND_TABLE_SIZE__        32
 #define _COMMAND_TABLE_NAME_SIZE__   10
-
 
 // Hardware device address range
 #define _DEVICE_ADDRESS_START__  0x40000
@@ -44,16 +43,19 @@ const char _KEYBOARD_INPUT__[]    = "keyboard";
 #include "flags.h"
 #include "types.h"
 
-#include "stack_allocator.h"
-
 #include "string_const.h"
+
+#include "stack_allocator.h"
 
 void keyboard_event_handler(void);
 
+// Task scheduler system
+#include "scheduler.h"
 
 // Device driver entry pointer table
 #include "driver_table.h"
 
+// Command console
 #include "console.h"
 
 // Command line function pointer table
@@ -135,7 +137,9 @@ struct Kernel {
 			
 			kernelCounter++;
 			if (kernelCounter > kernelTimeOut) {kernelCounter=0;
-				
+				accessModeUser();
+				scheduler.processTasks();
+				accessModeKernel();
 			}
 			
 			keyboardCounter++;
@@ -150,20 +154,21 @@ struct Kernel {
 		return;
 	}
 	
+	// Allocate available extended memory
 	uint32_t allocateSystemMemory(void) {
-		uint32_t total_system_memory;
+		uint32_t total_system_memory = 0x00000;
 		
-		for (total_system_memory=_STACK_BEGIN__; total_system_memory < _DEVICE_ADDRESS_START__; total_system_memory++) {
+		char readByte;
+		for (uint32_t address=_STACK_BEGIN__; address < _DEVICE_ADDRESS_START__; address++) {
 			
-			char readByte;
-			memory_write(total_system_memory, 0xff);
-			memory_read(total_system_memory, readByte);
+			memory_write(address, 0xff);
+			memory_read(address, readByte);
 			
 			if (readByte != 0xff) break;
-			
+			total_system_memory++;
 		}
 		
-		return total_system_memory + _KERNEL_END__;
+		return total_system_memory;
 	}
 	
 	// Check kernel error flags
@@ -187,14 +192,6 @@ struct Kernel {
 		}
 		
 		return 0x00;
-	}
-	
-	// Run a module function in user space
-	void executeModule(void(*module_ptr)()) {
-		accessModeUser();
-		module_ptr();
-		accessModeKernel();
-		return;
 	}
 	
 	// Initiate the device handler
@@ -247,7 +244,6 @@ struct Kernel {
 		_USER_END__   = _STACK_END__;
 	}
 	
-	
 };
 Kernel kernel;
 
@@ -256,10 +252,10 @@ Kernel kernel;
 // Load driver libraries
 #include "drivers.h"
 
-// Load command modules
+// Load command line function modules
 #include "modules.h"
 
-// Keyboard event handling
+// Keyboard console event handling
 #include "keyboard_events.h"
 
 

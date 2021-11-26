@@ -1,16 +1,16 @@
 //
 // Keyboard console event handling
 
-void keyEventEnter(void);
-void keyEventBackspace(void);
-void keyEventAcceptChar(uint8_t);
+void eventKeyboardEnter(void);
+void eventKeyboardBackspace(void);
+void eventKeyboardAcceptChar(uint8_t);
 
 void keyboard_event_handler(void) {
 	
 	uint8_t scanCodeAccepted = 0;
 	char currentChar=0x00;
 	
-	uint8_t readKeyCode;
+	uint8_t readKeyCode=0;
 	
 	// Read keyboard character
 	const char deviceName[] = "keyboard";
@@ -33,15 +33,15 @@ void keyboard_event_handler(void) {
 	// Check special keys
 	switch (currentChar) {
 		
-		case 0x01: keyEventBackspace(); break;
-		case 0x02: keyEventEnter(); break;
+		case 0x01: eventKeyboardBackspace(); break;
+		case 0x02: eventKeyboardEnter(); break;
 		
 		default: break;
 	}
 	
 	// Check key accepted
 	if (scanCodeAccepted == 1) 
-		keyEventAcceptChar(currentChar);
+		eventKeyboardAcceptChar(currentChar);
 	
 	return;
 }
@@ -51,7 +51,7 @@ void keyboard_event_handler(void) {
 //
 // Keyboard events
 
-void keyEventEnter(void) {
+void eventKeyboardEnter(void) {
 	
 	uint8_t currentKeyStringLength = console.keyboard_string_length;
 	console.keyboard_string_length = 0;
@@ -76,7 +76,9 @@ void keyEventEnter(void) {
 			if (string_compare(functionName, console.keyboard_string, currentKeyStringLength) == 0) continue;
 			
 			// Execute the command
-			kernel.executeModule(moduleTable.command_function_table[i]);
+			kernel.accessModeUser();
+			moduleTable.command_function_table[i]();
+			kernel.accessModeKernel();
 			
 			break;
 		}
@@ -88,7 +90,7 @@ void keyEventEnter(void) {
 	return;
 }
 
-void keyEventBackspace(void) {
+void eventKeyboardBackspace(void) {
 	if (console.keyboard_string_length > 0) {
 		
 		// Remove last char from display
@@ -103,7 +105,7 @@ void keyEventBackspace(void) {
 	return;
 }
 
-void keyEventAcceptChar(uint8_t new_char) {
+void eventKeyboardAcceptChar(uint8_t new_char) {
 	
 	// Add the ASCII char
 	console.keyboard_string[console.keyboard_string_length] = new_char;

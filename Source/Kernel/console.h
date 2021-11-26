@@ -19,7 +19,7 @@ struct CommandConsole {
 	CommandConsole() {
 		
 		promptCharacter = '-';
-		promptState     = 0;
+		promptState     = 1;
 		cursorLine      = 0;
 		cursorPos       = 0;
 		
@@ -33,25 +33,19 @@ struct CommandConsole {
 	
 	void initiate(void) {
 		
-		displayDriverPtr = getFuncAddress(_DISPLAY_CONSOLE__, sizeof(_DISPLAY_CONSOLE__));
-		
 		// Initiate current keyboard character
 		EntryPtr keyboardPtr = getFuncAddress(_KEYBOARD_INPUT__, sizeof(_KEYBOARD_INPUT__));
 		callExtern(keyboardPtr, 0x00, lastChar);
 		
-		print("        ", 8);
+		// Link the display driver
+		displayDriverPtr = getFuncAddress(_DISPLAY_CONSOLE__, sizeof(_DISPLAY_CONSOLE__));
+		callExtern(displayDriverPtr, 0x05);
 		
 	}
 	
-	void clearBuffer(void) {
-		callExtern(displayDriverPtr, 0x04);
-		return;
-	}
+	void clearBuffer(void) {callExtern(displayDriverPtr, 0x04); return;}
 	
-	void clearMask(void) {
-		callExtern(displayDriverPtr, 0x05);
-		return;
-	}
+	void clearMask(void) {callExtern(displayDriverPtr, 0x05); return;}
 	
 	
 	// Sets the cursor position
