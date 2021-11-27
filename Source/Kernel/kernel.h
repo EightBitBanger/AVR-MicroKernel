@@ -27,13 +27,12 @@ uint32_t _USER_END__   =  0xfffff;
 
 // Counters
 #define _KERNEL_TIMEOUT__    16
-#define _KEYBOARD_TIMEOUT__  20000
 
 // Function tables
-#define _DRIVER_TABLE_SIZE__         10
-#define _DRIVER_TABLE_NAME_SIZE__    10
-#define _COMMAND_TABLE_SIZE__        32
-#define _COMMAND_TABLE_NAME_SIZE__   10
+#define _DRIVER_TABLE_SIZE__         16
+#define _DRIVER_TABLE_NAME_SIZE__    16
+#define _COMMAND_TABLE_SIZE__        24
+#define _COMMAND_TABLE_NAME_SIZE__   16
 
 // Hardware device address range
 #define _DEVICE_ADDRESS_START__  0x40000
@@ -151,9 +150,6 @@ struct Kernel {
 		// Kernel memory access
 		_USER_BEGIN__ = _KERNEL_BEGIN__;
 		_USER_END__   = _STACK_END__;
-		
-		// Launch the keyboard handler service
-		scheduler.createTask("kbsrv", 6, keyboard_event_handler, 1000, _TASK_TYPE_SERVICE__);
 		
 		console.printPrompt();
 		
@@ -275,7 +271,7 @@ struct Kernel {
 	}
 	
 	// Call an external function from a library function pointer
-	uint8_t callExtern(EntryPtr library_function, uint8_t function_call, uint8_t& paramA, uint8_t& paramB, uint8_t& paramC, uint8_t& paramD) {
+	uint8_t callExtern(EntryPtr& library_function, uint8_t function_call, uint8_t& paramA, uint8_t& paramB, uint8_t& paramC, uint8_t& paramD) {
 		
 		// Check valid pointer
 		if (library_function == (EntryPtr&)NULL_f) return 0;
@@ -365,7 +361,7 @@ EntryPtr& getFuncAddress(const char device_name[], uint8_t name_length) {
 }
 
 // Call an external function from a library function pointer
-uint8_t callExtern(EntryPtr library_function, uint8_t function_call, uint8_t& paramA, uint8_t& paramB, uint8_t& paramC, uint8_t& paramD) {
+uint8_t callExtern(EntryPtr& library_function, uint8_t function_call, uint8_t& paramA, uint8_t& paramB, uint8_t& paramC, uint8_t& paramD) {
 	 return kernel.callExtern(library_function, function_call, paramA, paramB, paramC, paramD);
 }
 

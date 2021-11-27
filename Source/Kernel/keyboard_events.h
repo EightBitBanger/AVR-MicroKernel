@@ -55,7 +55,7 @@ void keyboard_event_handler(void) {
 
 void eventKeyboardEnter(void) {
 	
-	uint8_t currentKeyStringLength = console.keyboard_string_length;
+	console.last_string_length = console.keyboard_string_length+1;
 	console.keyboard_string_length = 0;
 	
 	if (console.cursorLine == 3) {console.shiftUp();}
@@ -64,7 +64,7 @@ void eventKeyboardEnter(void) {
 	if (console.cursorLine == 0) {if (console.promptState == 0) {console.promptState++;} else {console.cursorLine++;}}
 	
 	// Execute the function
-	if (currentKeyStringLength > 0) {console.cursorPos=0;
+	if (console.last_string_length > 0) {console.cursorPos=0;
 		
 		// Function look up
 		for (uint8_t i=0; i<_COMMAND_TABLE_SIZE__; i++) {
@@ -73,9 +73,13 @@ void eventKeyboardEnter(void) {
 			
 			// Extract function name
 			char functionName[_COMMAND_TABLE_NAME_SIZE__];
-			for (uint8_t a=0; a < _COMMAND_TABLE_NAME_SIZE__; a++) functionName[a] = moduleTable.functionNameIndex[i][a];
+			uint8_t function_length;
+			for (function_length=0; function_length < _COMMAND_TABLE_NAME_SIZE__; function_length++) {
+				functionName[function_length] = moduleTable.functionNameIndex[i][function_length];
+				if (functionName[function_length] == 0x20) break;
+			}
 			
-			if (string_compare(functionName, console.keyboard_string, currentKeyStringLength) == 0) continue;
+			if (string_compare(functionName, console.keyboard_string, function_length) == 0) continue;
 			
 			// Execute the command
 			moduleTable.command_function_table[i]();

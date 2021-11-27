@@ -2,7 +2,7 @@
 // Task scheduling system
 
 #define _TASK_LIST_SIZE__  16
-#define _TASK_NAME_SIZE__  10
+#define _TASK_NAME_SIZE__  16
 
 #define _TASK_TYPE_USER__      0x75 // Task is a user program
 #define _TASK_TYPE_VOLITILE__  0x76 // Task will terminate after execution
@@ -31,7 +31,7 @@ struct TaskSchedulerSystem {
 	// Schedule a new task
 	uint8_t createTask(const char name[], uint8_t name_length, void(*task_ptr)(), uint16_t priority, uint8_t task_type) {
 		
-		if ((priority == 0) || (name_length > _TASK_NAME_SIZE__-1)) return 0;
+		//if ((priority == 0) || (name_length > _TASK_NAME_SIZE__-1)) return 0;
 		
 		// Find an available slot
 		uint8_t index;
@@ -40,7 +40,7 @@ struct TaskSchedulerSystem {
 		}
 		
 		// No free slots
-		if (index == _TASK_LIST_SIZE__) return 0;
+		//if (index == _TASK_LIST_SIZE__) return 0;
 		
 		// Launch the new task
 		for (uint8_t a=0; a < name_length-1; a++) 

@@ -1,21 +1,6 @@
 //
 // Clear screen command
 
-void command_clear_screen(void);
-
-struct ModuleClearScreen {
-	
-	ModuleClearScreen() {
-		
-		const char command_name[] = "cls";
-		loadModule(&command_clear_screen, command_name, sizeof(command_name));
-		
-		return;
-	}
-	
-};
-static ModuleClearScreen moduleClearScreen;
-
 void command_clear_screen(void) {
 	
 	// Clear the buffer and mask

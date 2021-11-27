@@ -1,21 +1,6 @@
 //
 // Device list command module
 
-void command_memory(void);
-
-struct ModuleMemoryCommand {
-	
-	ModuleMemoryCommand() {
-		
-		const char command_name[] = "mem";
-		loadModule(&command_memory, command_name, sizeof(command_name));
-		
-		return;
-	}
-	
-};
-static ModuleMemoryCommand moduleMemoryCommand;
-
 void command_memory(void) {
 	
 	uint32_t ammountOfMemory = _STACK_END__ - (_KERNEL_END__ + stack_size());

@@ -15,12 +15,6 @@ struct DisplayDriver {
 		
 	}
 	
-	DisplayDriver() {
-		
-		loadLibrary(_DISPLAY_CONSOLE__, sizeof(_DISPLAY_CONSOLE__), &DisplayDeviceDriverEntryPoint);
-		
-	}
-	
 	void write(uint32_t address, char byte) {device_write(kernel.getDeviceAddress(_DEVICE_DISPLAY__) + address, byte); return;}
 	void read(uint32_t address, char& byte) {device_read(kernel.getDeviceAddress(_DEVICE_DISPLAY__) + address, byte); return;}
 	

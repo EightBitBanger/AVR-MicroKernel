@@ -1,20 +1,5 @@
 //
-// Service command
-
-void command_task(void);
-
-struct ModuleServiceCommand {
-	
-	ModuleServiceCommand() {
-		
-		const char command_name[] = "task";
-		loadModule(&command_task, command_name, sizeof(command_name));
-		
-		return;
-	}
-	
-};
-static ModuleServiceCommand moduleServiceCommand;
+// Task command
 
 void command_task(void) {
 	
@@ -23,6 +8,7 @@ void command_task(void) {
 		
 		if (scheduler.taskName[i][0] == 0x20) continue;
 		
+		// Task type
 		console.printChar(scheduler.taskType[i]);
 		console.printSpace();
 		

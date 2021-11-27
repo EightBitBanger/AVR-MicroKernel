@@ -23,12 +23,6 @@ struct KeyboardDriver {
 		
 	}
 	
-	KeyboardDriver() {
-		
-		loadLibrary(_KEYBOARD_INPUT__, sizeof(_KEYBOARD_INPUT__), &keyboardDeviceDriverEntryPoint);
-		
-	}
-	
 	// Read the current keyboard character
 	void read(uint8_t& scan_code) {
 		
