@@ -9,7 +9,7 @@ void keyboard_event_handler(void);
 
 struct SystemServiceLauncher {
 	SystemServiceLauncher() {
-		scheduler.createProcess("kbsrv", 6, keyboard_event_handler, 800, _TASK_TYPE_SERVICE__);
+		scheduler.createProcess("kbsrv", 6, keyboard_event_handler, 800, _PROCESS_TYPE_SERVICE__);
 	}
 };
 SystemServiceLauncher serviceLauncher;
@@ -100,12 +100,13 @@ void eventKeyboardEnter(void) {
 void eventKeyboardBackspace(void) {
 	if (console.keyboard_string_length > 0) {
 		
-		// Remove last char from display
-		console.setCursorPosition(console.cursorLine, console.keyboard_string_length);
+		// Overwrite the character on the display ... 
+		console.cursorPos--;
 		console.printSpace();
-		console.setCursorPosition(console.cursorLine, console.keyboard_string_length);
+		console.cursorPos--;
+		console.setCursorPosition(console.cursorLine, console.cursorPos);
 		
-		// and keyboard string
+		// and the keyboard string
 		console.keyboard_string_length--;
 		console.keyboard_string[console.keyboard_string_length] = 0x20;
 	}

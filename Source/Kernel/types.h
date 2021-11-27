@@ -13,7 +13,7 @@ uint8_t nullchar = 0;
 typedef void(*EntryPtr)(uint8_t, uint8_t&, uint8_t&, uint8_t&, uint8_t&);
 
 // Task service function pointer
-typedef void(*TaskPtr)();
+typedef void(*Process)();
 
 
 

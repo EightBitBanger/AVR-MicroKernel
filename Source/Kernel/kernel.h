@@ -100,7 +100,7 @@ struct Kernel {
 				
 #ifdef _KERNEL_VERBOSE__
 				// Display driver names during boot
-				console.printChar('d');
+				console.print("drv", 4);
 				console.printSpace();
 				
 				for (uint8_t a=0; a < _DRIVER_TABLE_NAME_SIZE__; a++) 
@@ -141,7 +141,7 @@ struct Kernel {
 		bool isActive=1;
 		while(isActive) {
 			
-			for (uint8_t index=0; index < _TASK_LIST_SIZE__; index++) {
+			for (uint8_t index=0; index < _PROCESS_LIST_SIZE__; index++) {
 				
 				// Check task
 				if (scheduler.taskPriority[index] == 0) continue;
@@ -157,13 +157,13 @@ struct Kernel {
 				scheduler.task_pointer_table[index]();
 				
 				// Check task volatile
-				if (scheduler.taskType[index] == _TASK_TYPE_VOLATILE__) {
+				if (scheduler.taskType[index] == _PROCESS_TYPE_VOLATILE__) {
 					// Remove task
-					for (uint8_t a=0; a < _TASK_NAME_SIZE__; a++) scheduler.taskName[index][a] = 0x20;
+					for (uint8_t a=0; a < _PROCESS_NAME_SIZE__; a++) scheduler.taskName[index][a] = 0x20;
 					scheduler.taskType[index] = 0;
 					scheduler.taskPriority[index] = 0;
 					scheduler.taskCounters[index] = 0;
-					scheduler.task_pointer_table[index] = (TaskPtr&)NULL_f;
+					scheduler.task_pointer_table[index] = (Process&)NULL_f;
 				}
 				
 				// Kernel memory access
@@ -243,7 +243,7 @@ struct Kernel {
 		
 		uint32_t address=_DEVICE_ADDRESS_START__;
 		
-		for (uint8_t i=0; i <= 0x0f; i++) {
+		for (uint8_t i=0; i < 0x10; i++) {
 			
 			char readIdentityByte=0x00;
 			memory_read((_DEVICE_INDEX__ + i), readIdentityByte);
@@ -263,25 +263,15 @@ struct Kernel {
 		// Check valid pointer
 		if (library_function == (EntryPtr&)NULL_f) return 0;
 		
-		// Find pointer in the driver table
-		for (uint8_t i=0; i < _DRIVER_TABLE_SIZE__; i++) {
-			
-			if (deviceDriverTable.driver_entrypoint_table[i] == library_function) {
-				
-				// Kernel memory access
-				_USER_BEGIN__ = _KERNEL_BEGIN__;
-				_USER_END__   = _STACK_END__;
-				
-				library_function(function_call, paramA, paramB, paramC, paramD);
-				
-				// User memory access
-				_USER_BEGIN__ = _KERNEL_BEGIN__ + stack_size();
-				_USER_END__   = _STACK_END__;
-				
-				return 1;
-			}
-			
-		}
+		// Kernel memory access
+		_USER_BEGIN__ = _KERNEL_BEGIN__;
+		_USER_END__   = _STACK_END__;
+		
+		library_function(function_call, paramA, paramB, paramC, paramD);
+		
+		// User memory access
+		_USER_BEGIN__ = _KERNEL_BEGIN__ + stack_size();
+		_USER_END__   = _STACK_END__;
 		
 		return 1;
 	}
@@ -332,13 +322,11 @@ EntryPtr& getFuncAddress(const char device_name[], uint8_t name_length) {
 		
 		uint8_t count=1;
 		for (uint8_t a=0; a < name_length; a++) {
-			
 			char nameChar = deviceDriverTable.deviceNameIndex[i][a];
 			if (nameChar == device_name[a]) count++; else break;
-			
-			if (count >= name_length) return deviceDriverTable.driver_entrypoint_table[i];
-			
 		}
+		
+		if (count >= name_length) return deviceDriverTable.driver_entrypoint_table[i];
 		
 	}
 	

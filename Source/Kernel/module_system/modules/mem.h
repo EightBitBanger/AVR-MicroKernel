@@ -15,6 +15,8 @@ void command_memory(void) {
 	uint32_t ammountOfMemory = _STACK_END__ - (_KERNEL_END__ + stack_size());
 	
 	char memoryAmmount[7];
+	for (uint8_t i=0; i < 7; i++) memoryAmmount[i] = 0x20;
+	
 	intToString(ammountOfMemory, memoryAmmount);
 	
 	console.print(memoryAmmount, sizeof(memoryAmmount));
