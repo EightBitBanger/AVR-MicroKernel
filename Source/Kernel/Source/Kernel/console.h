@@ -12,6 +12,7 @@ struct CommandConsole {
 	char  keyboard_string[24];
 	uint8_t keyboardState;
 	uint8_t lastChar;
+	uint8_t last_string_length;
 	
 	// Display driver entry pointer
 	EntryPtr displayDriverPtr;
@@ -28,6 +29,7 @@ struct CommandConsole {
 		
 		keyboardState=0;
 		lastChar=0;
+		last_string_length=0;
 		
 	}
 	
@@ -74,7 +76,8 @@ struct CommandConsole {
 	void printInt(int number) {
 		
 		char numberString[8];
-		uint8_t place = intToString(number, numberString) + 1;
+		uint8_t place = intToString(number, numberString);
+		if (place==0) place++;
 		
 		for (uint8_t i=0; i<place; i++) {
 			callExtern(displayDriverPtr, 0x09, (uint8_t&)numberString[i], cursorLine, cursorPos);

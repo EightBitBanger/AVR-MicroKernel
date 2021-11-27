@@ -1,5 +1,13 @@
 #include "main.h"
 
+void testTask(void) {
+	
+	//for (uint32_t i=0; i < 0xff; i++) kernel[i] = 0xff;
+	
+}
+
+
+
 int main(void) {
 	
 	initiate_board;
@@ -9,18 +17,8 @@ int main(void) {
 	_STACK_END__ = kernel.allocateSystemMemory();
 	
 	console.initiate();
+	
 	kernel.initiate();
-	
-	// Launch the keyboard handler service
-	const char keyboardTask[] = "kbsrv";
-	scheduler.createTask(keyboardTask, sizeof(keyboardTask), keyboard_event_handler, 1000);
-	
-	// TESTING
-	//TaskPtr& task = scheduler.findTask(keyboardTask, sizeof(keyboardTask));
-	//scheduler.killTask(task);
-	
-	
-	
 	
 	kernel.run();
 	

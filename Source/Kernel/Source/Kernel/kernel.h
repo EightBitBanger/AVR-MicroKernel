@@ -15,27 +15,27 @@
 #define  _STACK_BEGIN__   _KERNEL_END__ + 1  // After kernel memory
 uint32_t _STACK_END__  =  0xfffff;           // Total extended memory determined at boot
 
-uint32_t _USER_BEGIN__ =  0;
-uint32_t _USER_END__   =  0;
+uint32_t _USER_BEGIN__ =  0x00000;
+uint32_t _USER_END__   =  0xfffff;
+
+// Logging
+#define _BOOT_LOG__
+#define _KERNEL_VERBOSE__
 
 // Extended memory cache size
 #define _CACHE_SIZE__  16
 
-// Counters
-#define _KERNEL_TIMEOUT__    16
-#define _KEYBOARD_TIMEOUT__  20000
-
 // Function tables
-#define _DRIVER_TABLE_SIZE__         10
-#define _DRIVER_TABLE_NAME_SIZE__    10
-#define _COMMAND_TABLE_SIZE__        32
-#define _COMMAND_TABLE_NAME_SIZE__   10
+#define _DRIVER_TABLE_SIZE__         16  // Total number of elements
+#define _COMMAND_TABLE_SIZE__        24
+#define _DRIVER_TABLE_NAME_SIZE__    16  // Max name string length
+#define _COMMAND_TABLE_NAME_SIZE__   16
 
 // Hardware device address range
 #define _DEVICE_ADDRESS_START__  0x40000
 #define _DEVICE_ADDRESS_END__    0x80000
 
-// Device names
+// System device names
 const char _DISPLAY_CONSOLE__[]   = "display";
 const char _KEYBOARD_INPUT__[]    = "keyboard";
 
@@ -47,16 +47,11 @@ const char _KEYBOARD_INPUT__[]    = "keyboard";
 
 #include "stack_allocator.h"
 
-void keyboard_event_handler(void);
-
-// Task scheduler system
-#include "scheduler.h"
-
-// Device driver entry pointer table
 #include "driver_system\driver_table.h"
 
-// Command console
 #include "console.h"
+
+#include "scheduler.h"
 
 // Command line function pointer table
 #include "module_system\module_table.h"
@@ -101,8 +96,23 @@ struct Kernel {
 		// Initiate device drivers
 		for (uint8_t i=0; i < _DRIVER_TABLE_SIZE__; i++) {
 			
-			if ((deviceDriverTable.driver_entrypoint_table[i] != 0) && (deviceDriverTable.deviceNameIndex[i][0] != 0x20))
+			if ((deviceDriverTable.driver_entrypoint_table[i] != 0) && (deviceDriverTable.deviceNameIndex[i][0] != 0x20)) {
+				
+#ifdef _KERNEL_VERBOSE__
+				// Display driver names during boot
+				console.printChar('d');
+				console.printSpace();
+				
+				for (uint8_t a=0; a < _DRIVER_TABLE_NAME_SIZE__; a++) 
+					console.printChar(deviceDriverTable.deviceNameIndex[i][a]);
+				
+				console.printLn();
+#endif
+				
 				deviceDriverTable.driver_entrypoint_table[i](_DRIVER_INITIATE__, NULL, NULL, NULL, NULL);
+				
+			}
+			
 			
 		}
 		
@@ -122,42 +132,34 @@ struct Kernel {
 	// Starts the kernel loop
 	void run(void) {
 		
-		uint16_t kernelTimeOut   = _KERNEL_TIMEOUT__;
-		uint16_t keyboardTimeOut = _KEYBOARD_TIMEOUT__;
-		
-		uint16_t kernelCounter   = 0;
-		uint16_t keyboardCounter = 0;
-		
-		accessModeKernel();
-		
 		console.printPrompt();
+		
+		// User memory access
+		_USER_BEGIN__ = _KERNEL_BEGIN__ + stack_size();
+		_USER_END__   = _STACK_END__;
 		
 		bool isActive=1;
 		while(isActive) {
 			
-			kernelCounter++;
-			if (kernelCounter > kernelTimeOut) {kernelCounter=0;
+			for (uint8_t index=0; index < _TASK_LIST_SIZE__; index++) {
 				
-				accessModeUser();
+				// Check task
+				if (scheduler.taskPriority[index] == 0) continue;
 				
-				for (uint16_t index=0; index < _TASK_LIST_SIZE__; index++) {
-					
-					// Check if the task is registered
-					if (scheduler.taskPriority[index] == 0) continue;
-					
-					// Increment the task counter
-					scheduler.taskCounters[index]++;
-					
-					// Check if the task should be executed
-					if (scheduler.taskCounters[index] == scheduler.taskPriority[index]) {scheduler.taskCounters[index] = 0;
-						
-						scheduler.task_pointer_table[index]();
-						
-					}
-					
-				}
+				// Increment the task counter
+				scheduler.taskCounters[index]++;
 				
-				accessModeKernel();
+				// Check if the task should NOT be executed
+				if (scheduler.taskCounters[index] < scheduler.taskPriority[index]) continue;
+				
+				// Reset the counter and call the task
+				scheduler.taskCounters[index] = 0;
+				scheduler.task_pointer_table[index]();
+				
+				// Kernel memory access
+				_USER_BEGIN__ = _KERNEL_BEGIN__;
+				_USER_END__   = _STACK_END__;
+				
 			}
 			
 		}
@@ -246,7 +248,7 @@ struct Kernel {
 	}
 	
 	// Call an external function from a library function pointer
-	uint8_t callExtern(EntryPtr library_function, uint8_t function_call, uint8_t& paramA, uint8_t& paramB, uint8_t& paramC, uint8_t& paramD) {
+	uint8_t callExtern(EntryPtr& library_function, uint8_t function_call, uint8_t& paramA, uint8_t& paramB, uint8_t& paramC, uint8_t& paramD) {
 		
 		// Check valid pointer
 		if (library_function == (EntryPtr&)NULL_f) return 0;
@@ -263,7 +265,7 @@ struct Kernel {
 				library_function(function_call, paramA, paramB, paramC, paramD);
 				
 				// User memory access
-				_USER_BEGIN__ = _STACK_BEGIN__;
+				_USER_BEGIN__ = _KERNEL_BEGIN__ + stack_size();
 				_USER_END__   = _STACK_END__;
 				
 				return 1;
@@ -285,15 +287,13 @@ Kernel kernel;
 // Load command line function modules
 #include "module_system\modules.h"
 
-// Keyboard console event handling
-#include "keyboard_events.h"
-
+#include "services\services.h"
 
 
 // Load a device driver entry point function onto the driver function table
-uint8_t loadLibrary(const char device_name[], uint8_t name_length, void(*driver_ptr)(uint8_t, uint8_t&, uint8_t&, uint8_t&, uint8_t&)) {
+uint8_t loadLibrary(const char name[], uint8_t name_length, void(*driver_ptr)(uint8_t, uint8_t&, uint8_t&, uint8_t&, uint8_t&)) {
 	
-	if (name_length > _DRIVER_TABLE_NAME_SIZE__) return 0;
+	if (name_length > _DRIVER_TABLE_NAME_SIZE__-1) return 0;
 	
 	// Find a free driver index
 	uint8_t index;
@@ -303,7 +303,7 @@ uint8_t loadLibrary(const char device_name[], uint8_t name_length, void(*driver_
 	
 	// Load the library
 	for (uint8_t i=0; i < name_length-1; i++)
-	deviceDriverTable.deviceNameIndex[index][i] = device_name[i];
+		deviceDriverTable.deviceNameIndex[index][i] = name[i];
 	
 	deviceDriverTable.driver_entrypoint_table[index] = driver_ptr;
 	
@@ -326,8 +326,7 @@ EntryPtr& getFuncAddress(const char device_name[], uint8_t name_length) {
 			char nameChar = deviceDriverTable.deviceNameIndex[i][a];
 			if (nameChar == device_name[a]) count++; else break;
 			
-			if (count >= name_length)
-			return deviceDriverTable.driver_entrypoint_table[i];
+			if (count >= name_length) return deviceDriverTable.driver_entrypoint_table[i];
 			
 		}
 		
@@ -337,22 +336,8 @@ EntryPtr& getFuncAddress(const char device_name[], uint8_t name_length) {
 }
 
 // Call an external function from a library function pointer
-uint8_t callExtern(EntryPtr library_function, uint8_t function_call, uint8_t& paramA, uint8_t& paramB, uint8_t& paramC, uint8_t& paramD) {
-	
-	// Check valid pointer
-	if (library_function == (EntryPtr&)NULL_f) return 0;
-	
-	// Find pointer in the driver table
-	for (uint8_t i=0; i < _DRIVER_TABLE_SIZE__; i++) {
-		
-		if (deviceDriverTable.driver_entrypoint_table[i] == library_function) {
-			library_function(function_call, paramA, paramB, paramC, paramD);
-			return 1;
-		}
-		
-	}
-	
-	return 1;
+uint8_t callExtern(EntryPtr& library_function, uint8_t function_call, uint8_t& paramA, uint8_t& paramB, uint8_t& paramC, uint8_t& paramD) {
+	 return kernel.callExtern(library_function, function_call, paramA, paramB, paramC, paramD);
 }
 
 

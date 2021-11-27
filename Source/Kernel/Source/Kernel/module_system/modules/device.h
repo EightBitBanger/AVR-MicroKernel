@@ -1,22 +1,16 @@
 //
 // Device command
 
-void command_device(void);
+void command_drv(void);
 
-struct ModuleDeviceCommand {
-	
-	ModuleDeviceCommand() {
-		
-		const char command_name[] = "device";
-		loadModule(&command_device, command_name, sizeof(command_name));
-		
-		return;
+struct ModuleLoaderDrv {
+	ModuleLoaderDrv() {
+		loadModule(command_drv, "dev",  4);
 	}
-	
 };
-static ModuleDeviceCommand moduleDeviceCommand;
+ModuleLoaderDrv loadModuleDrv;
 
-void command_device(void) {
+void command_drv(void) {
 	
 	// List devices
 	for (uint8_t i=0; i<_DRIVER_TABLE_SIZE__; i++) {

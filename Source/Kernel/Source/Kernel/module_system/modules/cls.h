@@ -3,18 +3,12 @@
 
 void command_clear_screen(void);
 
-struct ModuleClearScreen {
-	
-	ModuleClearScreen() {
-		
-		const char command_name[] = "cls";
-		loadModule(&command_clear_screen, command_name, sizeof(command_name));
-		
-		return;
+struct ModuleLoaderCls {
+	ModuleLoaderCls() {
+		loadModule(command_clear_screen, "cls",  4);
 	}
-	
 };
-static ModuleClearScreen moduleClearScreen;
+ModuleLoaderCls loadModuleCls;
 
 void command_clear_screen(void) {
 	

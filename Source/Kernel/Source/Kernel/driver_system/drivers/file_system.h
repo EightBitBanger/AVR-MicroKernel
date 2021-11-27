@@ -381,7 +381,7 @@ struct FileSystemLibrary {
 	FileSystemLibrary() {
 		
 		const char libraryName[] = "filesys";
-		loadLibrary(libraryName, sizeof(libraryName), &fileSystemLibraryEntryPoint);
+		loadLibrary("filesys", 8, &fileSystemLibraryEntryPoint);
 		
 	}
 	

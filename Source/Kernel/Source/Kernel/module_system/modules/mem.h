@@ -3,18 +3,12 @@
 
 void command_memory(void);
 
-struct ModuleMemoryCommand {
-	
-	ModuleMemoryCommand() {
-		
-		const char command_name[] = "mem";
-		loadModule(&command_memory, command_name, sizeof(command_name));
-		
-		return;
+struct ModuleLoaderMem {
+	ModuleLoaderMem() {
+		loadModule(command_memory, "mem",  4);
 	}
-	
 };
-static ModuleMemoryCommand moduleMemoryCommand;
+ModuleLoaderMem loadModuleMem;
 
 void command_memory(void) {
 	
