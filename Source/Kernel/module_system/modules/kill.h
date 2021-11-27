@@ -1,6 +1,15 @@
 //
 // Kill command
 
+void command_kill(void);
+
+struct ModuleLoaderKill {
+	ModuleLoaderKill() {
+		loadModule(command_kill, "kill", 5);
+	}
+};
+ModuleLoaderKill loadModuleKill;
+
 void command_kill(void) {
 	
 	char keyboard_string[_TASK_NAME_SIZE__];

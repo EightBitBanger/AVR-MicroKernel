@@ -1,6 +1,15 @@
 //
 // Device list command module
 
+void command_memory(void);
+
+struct ModuleLoaderMem {
+	ModuleLoaderMem() {
+		loadModule(command_memory, "mem",  4);
+	}
+};
+ModuleLoaderMem loadModuleMem;
+
 void command_memory(void) {
 	
 	uint32_t ammountOfMemory = _STACK_END__ - (_KERNEL_END__ + stack_size());

@@ -1,6 +1,15 @@
 //
 // Task command
 
+void command_task(void);
+
+struct ModuleLoaderTask {
+	ModuleLoaderTask() {
+		loadModule(command_task, "task", 5);
+	}
+};
+ModuleLoaderTask loadModuleTask;
+
 void command_task(void) {
 	
 	// List running tasks/services

@@ -1,7 +1,16 @@
 //
 // Device command
 
-void command_device(void) {
+void command_drv(void);
+
+struct ModuleLoaderDrv {
+	ModuleLoaderDrv() {
+		loadModule(command_drv, "dev",  4);
+	}
+};
+ModuleLoaderDrv loadModuleDrv;
+
+void command_drv(void) {
 	
 	// List devices
 	for (uint8_t i=0; i<_DRIVER_TABLE_SIZE__; i++) {

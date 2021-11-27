@@ -1,6 +1,15 @@
 //
 // Clear screen command
 
+void command_clear_screen(void);
+
+struct ModuleLoaderCls {
+	ModuleLoaderCls() {
+		loadModule(command_clear_screen, "cls",  4);
+	}
+};
+ModuleLoaderCls loadModuleCls;
+
 void command_clear_screen(void) {
 	
 	// Clear the buffer and mask

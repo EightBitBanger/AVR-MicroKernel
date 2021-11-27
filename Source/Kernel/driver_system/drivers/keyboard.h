@@ -5,6 +5,13 @@
 
 void keyboardDeviceDriverEntryPoint(uint8_t, uint8_t&, uint8_t&, uint8_t&, uint8_t&);
 
+struct LibraryLoaderKeyboard {
+	LibraryLoaderKeyboard() {
+		loadLibrary(_KEYBOARD_INPUT__, sizeof(_KEYBOARD_INPUT__), &keyboardDeviceDriverEntryPoint);
+	}
+};
+LibraryLoaderKeyboard loadLibraryKeyboard;
+
 // Keyboard key decode index array
 const char scancodeIndex[] = {
 	0x05, 'i', 's', 'd', 'f', 'h', 'j' ,'l',

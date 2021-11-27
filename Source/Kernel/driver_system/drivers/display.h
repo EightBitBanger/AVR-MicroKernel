@@ -5,6 +5,13 @@
 
 void DisplayDeviceDriverEntryPoint(uint8_t, uint8_t&, uint8_t&, uint8_t&, uint8_t&);
 
+struct LibraryLoaderDisplay {
+	LibraryLoaderDisplay() {
+		loadLibrary(_DISPLAY_CONSOLE__, sizeof(_DISPLAY_CONSOLE__), &DisplayDeviceDriverEntryPoint);
+	}
+};
+LibraryLoaderDisplay loadLibraryDisplay;
+
 struct DisplayDriver {
 	
 	void initiate(void) {

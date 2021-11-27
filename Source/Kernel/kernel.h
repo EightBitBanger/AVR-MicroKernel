@@ -26,9 +26,9 @@ uint32_t _USER_END__   =  0xfffff;
 #define _CACHE_SIZE__  16
 
 // Function tables
-#define _DRIVER_TABLE_SIZE__         16
-#define _DRIVER_TABLE_NAME_SIZE__    16
+#define _DRIVER_TABLE_SIZE__         16  // Total number of elements
 #define _COMMAND_TABLE_SIZE__        24
+#define _DRIVER_TABLE_NAME_SIZE__    16  // Max name string length
 #define _COMMAND_TABLE_NAME_SIZE__   16
 
 // Hardware device address range
@@ -46,8 +46,6 @@ const char _KEYBOARD_INPUT__[]    = "keyboard";
 #include "string_const.h"
 
 #include "stack_allocator.h"
-
-void keyboard_event_handler(void);
 
 #include "driver_system\driver_table.h"
 
