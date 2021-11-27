@@ -25,9 +25,6 @@ uint32_t _USER_END__   =  0xfffff;
 // Extended memory cache size
 #define _CACHE_SIZE__  16
 
-// Counters
-#define _KERNEL_TIMEOUT__    16
-
 // Function tables
 #define _DRIVER_TABLE_SIZE__         16
 #define _DRIVER_TABLE_NAME_SIZE__    16
@@ -142,13 +139,8 @@ struct Kernel {
 	// Starts the kernel loop
 	void run(void) {
 		
-		uint16_t kernelTimeOut   = _KERNEL_TIMEOUT__;
-		
-		uint16_t kernelCounter   = 0;
-		uint16_t keyboardCounter = 0;
-		
-		// Kernel memory access
-		_USER_BEGIN__ = _KERNEL_BEGIN__;
+		// User memory access
+		_USER_BEGIN__ = _KERNEL_BEGIN__ + stack_size();
 		_USER_END__   = _STACK_END__;
 		
 		console.printPrompt();
@@ -156,34 +148,30 @@ struct Kernel {
 		bool isActive=1;
 		while(isActive) {
 			
-			kernelCounter++;
-			if (kernelCounter > kernelTimeOut) {kernelCounter=0;
+			// User memory access
+			_USER_BEGIN__ = _STACK_BEGIN__;
+			_USER_END__   = _STACK_END__;
+			
+			for (uint8_t index=0; index < _TASK_LIST_SIZE__; index++) {
 				
-				// User memory access
-				_USER_BEGIN__ = _STACK_BEGIN__;
-				_USER_END__   = _STACK_END__;
+				// Check task
+				if (scheduler.taskPriority[index] == 0) continue;
 				
-				for (uint8_t index=0; index < _TASK_LIST_SIZE__; index++) {
-					
-					// Check task
-					if (scheduler.taskPriority[index] == 0) continue;
-					
-					// Increment the task counter
-					scheduler.taskCounters[index]++;
-					
-					// Check if the task should be executed
-					if (scheduler.taskCounters[index] > scheduler.taskPriority[index]) {scheduler.taskCounters[index] = 0;
-						
-						scheduler.task_pointer_table[index]();
-						
-					}
-					
-				}
+				// Increment the task counter
+				scheduler.taskCounters[index]++;
 				
-				// Kernel memory access
-				_USER_BEGIN__ = _KERNEL_BEGIN__;
-				_USER_END__   = _STACK_END__;
+				// Check if the task should be executed
+				if (scheduler.taskCounters[index] < scheduler.taskPriority[index]) continue;
+				
+				// Reset the counter and call the task
+				scheduler.taskCounters[index] = 0;
+				scheduler.task_pointer_table[index]();
+				
 			}
+			
+			// Kernel memory access
+			_USER_BEGIN__ = _KERNEL_BEGIN__;
+			_USER_END__   = _STACK_END__;
 			
 		}
 		
@@ -288,7 +276,7 @@ struct Kernel {
 				library_function(function_call, paramA, paramB, paramC, paramD);
 				
 				// User memory access
-				_USER_BEGIN__ = _STACK_BEGIN__;
+				_USER_BEGIN__ = _KERNEL_BEGIN__ + stack_size();
 				_USER_END__   = _STACK_END__;
 				
 				return 1;

@@ -30,7 +30,7 @@ void keyboard_event_handler(void) {
 	}
 	
 	// Prevent wild key repeats
-	if (console.lastChar == currentChar) {console.lastChar == currentChar; return;} console.lastChar = currentChar;
+	if (console.lastChar == currentChar) {console.lastChar = currentChar; return;} console.lastChar = currentChar;
 	
 	// Check special keys
 	switch (currentChar) {

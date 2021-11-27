@@ -16,7 +16,7 @@ void command_kill(void) {
 		if (scheduler.taskName[i][0] == 0x20) continue;
 		
 		// Get task name
-		for (uint8_t a=0; a < console.last_string_length; a++) task_name[a] = scheduler.taskName[i][a];
+		for (uint8_t a=0; a < console.last_string_length-1; a++) task_name[a] = scheduler.taskName[i][a];
 		
 		// Check function parameter
 		if (string_compare(keyboard_string, task_name, console.last_string_length - 5) == 1) {
@@ -25,16 +25,19 @@ void command_kill(void) {
 			scheduler.taskType[i] = 0x00;
 			scheduler.taskPriority[i] = 0x00;
 			scheduler.taskCounters[i] = 0x00;
+			scheduler.task_pointer_table[i] = NULL_f;
+			
+			console.print(message_task_stopped, sizeof(message_task_stopped));
+			console.printLn();
 			
 			return;
 			
-		} else {
-			console.print(message_task_not_found, 16);
-			console.printLn();
 		}
 		
 	}
 	
+	console.print(message_task_not_found, sizeof(message_task_not_found));
+	console.printLn();
 	return;
 }
 

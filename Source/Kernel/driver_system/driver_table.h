@@ -13,7 +13,7 @@ struct DeviceDriverTable {
 	}
 	
 };
-DeviceDriverTable deviceDriverTable = DeviceDriverTable();
+DeviceDriverTable deviceDriverTable;
 
 uint8_t loadLibrary(const char name[], uint8_t name_length, void(*driver_ptr)(uint8_t, uint8_t&, uint8_t&, uint8_t&, uint8_t&));
 EntryPtr& getFuncAddress(const char device_name[], uint8_t name_length);

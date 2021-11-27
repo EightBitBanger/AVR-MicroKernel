@@ -1,8 +1,8 @@
 //
 // Task scheduling system
 
-#define _TASK_LIST_SIZE__  16
-#define _TASK_NAME_SIZE__  16
+#define _TASK_LIST_SIZE__  24
+#define _TASK_NAME_SIZE__  10
 
 #define _TASK_TYPE_USER__      0x75 // Task is a user program
 #define _TASK_TYPE_VOLITILE__  0x76 // Task will terminate after execution

@@ -3,7 +3,7 @@
 
 struct CommandFunctionTable {
 	
-	char functionNameIndex[_COMMAND_TABLE_SIZE__][8];
+	char functionNameIndex[_COMMAND_TABLE_SIZE__][_COMMAND_TABLE_NAME_SIZE__];
 	void (*command_function_table[_COMMAND_TABLE_SIZE__])(void);
 	
 	CommandFunctionTable() {
@@ -13,7 +13,7 @@ struct CommandFunctionTable {
 	}
 	
 };
-CommandFunctionTable moduleTable = CommandFunctionTable();
+CommandFunctionTable moduleTable;
 
 // Install a function pointer into the function table
 uint8_t loadModule(void(*function_ptr)(), const char name[], uint8_t name_length) {

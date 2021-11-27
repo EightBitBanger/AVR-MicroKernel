@@ -2,7 +2,7 @@
 // Define types
 
 // Nullification
-void    nullfunction(void) {return;};
+void    nullfunction(void) {return;}
 uint8_t nullchar = 0;
 #define nullptr 0x00000
 
