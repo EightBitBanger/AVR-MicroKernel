@@ -1,6 +1,9 @@
 //
 // Launch system service routine functions
 
+void testTask(void);
+
+
 
 
 void launchServiceRoutines(void) {
@@ -10,7 +13,7 @@ void launchServiceRoutines(void) {
 	scheduler.createTask(keyboardService, sizeof(keyboardService), keyboard_event_handler, 1000, _TASK_TYPE_SERVICE__);
 	
 	const char testService[] = "testsrv";
-	scheduler.createTask(testService, sizeof(testService), NULL_f, 10000, _TASK_TYPE_USER__);
+	scheduler.createTask(testService, sizeof(testService), testTask, 10000, _TASK_TYPE_USER__);
 	
 	
 	

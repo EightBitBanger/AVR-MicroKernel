@@ -1,10 +1,10 @@
 #include "main.h"
 
-void testTaskFunc(void) {
+void testTask(void) {
 	
-	return;
+	//for (uint32_t i=0; i < 0xff; i++) kernel[i] = 0xff;
+	
 }
-
 
 
 
