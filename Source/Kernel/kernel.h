@@ -53,8 +53,6 @@ const char _KEYBOARD_INPUT__[]    = "keyboard";
 
 #include "scheduler.h"
 
-#include "services.h"
-
 // Command line function pointer table
 #include "module_system\module_table.h"
 
@@ -95,9 +93,6 @@ struct Kernel {
 		mem_zero(_ALLOCATOR_COUNTER_ADDRESS__, 4); // Number of external memory allocations
 		mem_zero(_KERNEL_FLAGS__, 8);              // Kernel state flags
 		
-		// Launch system services
-		launchServiceRoutines();
-		
 		// Initiate device drivers
 		for (uint8_t i=0; i < _DRIVER_TABLE_SIZE__; i++) {
 			
@@ -137,18 +132,14 @@ struct Kernel {
 	// Starts the kernel loop
 	void run(void) {
 		
+		console.printPrompt();
+		
 		// User memory access
 		_USER_BEGIN__ = _KERNEL_BEGIN__ + stack_size();
 		_USER_END__   = _STACK_END__;
 		
-		console.printPrompt();
-		
 		bool isActive=1;
 		while(isActive) {
-			
-			// User memory access
-			_USER_BEGIN__ = _STACK_BEGIN__;
-			_USER_END__   = _STACK_END__;
 			
 			for (uint8_t index=0; index < _TASK_LIST_SIZE__; index++) {
 				
@@ -158,18 +149,28 @@ struct Kernel {
 				// Increment the task counter
 				scheduler.taskCounters[index]++;
 				
-				// Check if the task should be executed
+				// Check if the task should NOT be executed
 				if (scheduler.taskCounters[index] < scheduler.taskPriority[index]) continue;
 				
 				// Reset the counter and call the task
 				scheduler.taskCounters[index] = 0;
 				scheduler.task_pointer_table[index]();
 				
+				// Check task volatile
+				if (scheduler.taskType[index] == _TASK_TYPE_VOLATILE__) {
+					// Remove task
+					for (uint8_t a=0; a < _TASK_NAME_SIZE__; a++) scheduler.taskName[index][a] = 0x20;
+					scheduler.taskType[index] = 0;
+					scheduler.taskPriority[index] = 0;
+					scheduler.taskCounters[index] = 0;
+					scheduler.task_pointer_table[index] = (TaskPtr&)NULL_f;
+				}
+				
+				// Kernel memory access
+				_USER_BEGIN__ = _KERNEL_BEGIN__;
+				_USER_END__   = _STACK_END__;
+				
 			}
-			
-			// Kernel memory access
-			_USER_BEGIN__ = _KERNEL_BEGIN__;
-			_USER_END__   = _STACK_END__;
 			
 		}
 		
@@ -296,9 +297,7 @@ Kernel kernel;
 // Load command line function modules
 #include "module_system\modules.h"
 
-// Keyboard console event handling
-#include "keyboard_events.h"
-
+#include "services\services.h"
 
 
 // Load a device driver entry point function onto the driver function table
