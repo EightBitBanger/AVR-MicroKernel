@@ -1,5 +1,5 @@
 //
-// Keyboard console event handling
+// Keyboard event handling service
 
 void eventKeyboardEnter(void);
 void eventKeyboardBackspace(void);
@@ -9,7 +9,7 @@ void keyboard_event_handler(void);
 
 struct SystemServiceLauncher {
 	SystemServiceLauncher() {
-		scheduler.createProcess("kbsrv", 6, keyboard_event_handler, 1000, _TASK_TYPE_VOLATILE__);
+		scheduler.createProcess("kbsrv", 6, keyboard_event_handler, 800, _TASK_TYPE_SERVICE__);
 	}
 };
 SystemServiceLauncher serviceLauncher;

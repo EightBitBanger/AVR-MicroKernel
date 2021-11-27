@@ -10,8 +10,8 @@
 
 struct ProcessScheduler {
 	
-	uint8_t taskName[_TASK_LIST_SIZE__][_TASK_NAME_SIZE__];
-	uint8_t taskType[_TASK_LIST_SIZE__];
+	uint8_t  taskName[_TASK_LIST_SIZE__][_TASK_NAME_SIZE__];
+	uint8_t  taskType[_TASK_LIST_SIZE__];
 	uint16_t taskPriority[_TASK_LIST_SIZE__];
 	uint16_t taskCounters[_TASK_LIST_SIZE__];
 	void (*task_pointer_table[_TASK_LIST_SIZE__])();
