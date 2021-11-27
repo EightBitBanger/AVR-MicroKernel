@@ -8,7 +8,7 @@
 #define _TASK_TYPE_VOLATILE__  0x76 // Task will terminate after execution
 #define _TASK_TYPE_SERVICE__   0x73 // Task is a system service routine
 
-struct TaskSchedulerSystem {
+struct ProcessScheduler {
 	
 	uint8_t taskName[_TASK_LIST_SIZE__][_TASK_NAME_SIZE__];
 	uint8_t taskType[_TASK_LIST_SIZE__];
@@ -16,7 +16,7 @@ struct TaskSchedulerSystem {
 	uint16_t taskCounters[_TASK_LIST_SIZE__];
 	void (*task_pointer_table[_TASK_LIST_SIZE__])();
 	
-	TaskSchedulerSystem() {
+	ProcessScheduler() {
 		for (uint8_t i=0; i < _TASK_LIST_SIZE__; i++) {
 			for (uint8_t a=0; a < _TASK_NAME_SIZE__; a++) taskName[i][a] = 0x20;
 			taskType[i]     = 0x00;
@@ -26,8 +26,8 @@ struct TaskSchedulerSystem {
 		}
 	}
 	
-	// Schedule a new task
-	uint8_t createTask(const char name[], uint8_t name_length, void(*task_ptr)(), uint16_t priority, uint8_t task_type) {
+	// Schedule a new process.
+	uint8_t createProcess(const char name[], uint8_t name_length, void(*task_ptr)(), uint16_t priority, uint8_t task_type) {
 		
 		if ((priority == 0) || (name_length > _TASK_NAME_SIZE__-1)) return 0;
 		
@@ -52,8 +52,8 @@ struct TaskSchedulerSystem {
 		return 1;
 	}
 	
-	// Get a library function address by its device name
-	TaskPtr& findTask(const char task_name[], uint8_t name_length) {
+	// Get task function pointer by a process name.
+	TaskPtr& getProcessTask(const char task_name[], uint8_t name_length) {
 		
 		if (name_length > _TASK_NAME_SIZE__-1) return (TaskPtr&)NULL_f;
 		
@@ -78,7 +78,7 @@ struct TaskSchedulerSystem {
 		return (TaskPtr&)NULL_f;
 	}
 	
-	// Schedule a new task
+	// Stop an active process
 	uint8_t killTask(void(*task_ptr)()) {
 		
 		// Find the task
@@ -99,6 +99,6 @@ struct TaskSchedulerSystem {
 	}
 	
 };
-TaskSchedulerSystem scheduler;
+ProcessScheduler scheduler;
 
 

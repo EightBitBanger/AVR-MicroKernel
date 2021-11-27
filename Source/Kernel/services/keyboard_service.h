@@ -9,7 +9,7 @@ void keyboard_event_handler(void);
 
 struct SystemServiceLauncher {
 	SystemServiceLauncher() {
-		scheduler.createTask("kbsrv", 6, keyboard_event_handler, 1000, _TASK_TYPE_SERVICE__);
+		scheduler.createProcess("kbsrv", 6, keyboard_event_handler, 1000, _TASK_TYPE_VOLATILE__);
 	}
 };
 SystemServiceLauncher serviceLauncher;
