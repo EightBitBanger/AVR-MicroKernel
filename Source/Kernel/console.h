@@ -1,6 +1,8 @@
 //
 // Command console interface
 
+#define _MAX_KEYBOARD_STRING_LENGTH__  32
+
 struct CommandConsole {
 	
 	char  promptString[8];
@@ -10,7 +12,7 @@ struct CommandConsole {
 	uint8_t cursorPos;
 	
 	uint8_t keyboard_string_length;
-	char  keyboard_string[24];
+	char  keyboard_string[_MAX_KEYBOARD_STRING_LENGTH__];
 	uint8_t keyboardState;
 	uint8_t lastChar;
 	uint8_t last_string_length;
@@ -21,9 +23,8 @@ struct CommandConsole {
 	CommandConsole() {
 		
 		for (uint8_t i=0; i<promptStringLength; i++) promptString[i] = 0x20;
-		promptString[0]      = 'a';
-		promptString[1]      = '>';
-		promptStringLength   = 2;
+		promptString[0]      = '-';
+		promptStringLength   = 1;
 		
 		promptState     = 1;
 		cursorLine      = 0;

@@ -29,7 +29,7 @@ void keyboard_event_handler(void) {
 	callExtern(keyboardPtr, 0x00, readKeyCode);
 	
 	// Check MAX string length
-	if (console.keyboard_string_length < 19) {
+	if (console.keyboard_string_length < _MAX_KEYBOARD_STRING_LENGTH__) {
 		// ASCII char
 		currentChar = readKeyCode;
 		if (readKeyCode > 0x1f) {scanCodeAccepted=1;}
@@ -75,12 +75,16 @@ void eventKeyboardEnter(void) {
 			
 			if (moduleTable.functionNameIndex[i][0] == 0x20) continue;
 			
-			// Extract function name
 			char functionName[_COMMAND_TABLE_NAME_SIZE__];
+			for (uint8_t a=0; a<_COMMAND_TABLE_NAME_SIZE__; a++) functionName[a] = 0x20;
+			
+			// Extract function name
 			uint8_t function_length;
 			for (function_length=0; function_length < _COMMAND_TABLE_NAME_SIZE__; function_length++) {
+				
+				if (moduleTable.functionNameIndex[i][function_length] == 0x20) break;
+				
 				functionName[function_length] = moduleTable.functionNameIndex[i][function_length];
-				if (functionName[function_length] == 0x20) break;
 			}
 			
 			if (string_compare(functionName, console.keyboard_string, function_length) == 0) continue;
@@ -97,8 +101,18 @@ void eventKeyboardEnter(void) {
 	console.printPrompt();
 	return;
 }
+
 void eventKeyboardBackspace(void) {
 	if (console.keyboard_string_length > 0) {
+		
+		if (console.cursorPos == 0) {
+			
+			if (console.cursorLine > 0) {
+				console.cursorPos = 20;
+				console.cursorLine--;
+			}
+			
+		}
 		
 		// Overwrite the character on the display ... 
 		console.cursorPos--;
@@ -112,14 +126,29 @@ void eventKeyboardBackspace(void) {
 	}
 	return;
 }
+
 void eventKeyboardAcceptChar(uint8_t new_char) {
 	
-	// Add the ASCII char
 	console.keyboard_string[console.keyboard_string_length] = new_char;
 	console.keyboard_string_length++;
 	
+	
+	// Add the ASCII char
 	console.printChar((char&)new_char);
 	console.setCursorPosition(console.cursorLine, console.cursorPos);
+	
+	// Check to increment the display line
+	if (console.cursorPos == 20) {
+		if (console.cursorLine == 3) {
+			console.shiftUp();
+			_delay_ms(80);
+		} else {
+			console.cursorLine++;
+		}
+		console.cursorPos=0;
+		
+		console.setCursorPosition(console.cursorLine, console.cursorPos);
+	}
 	
 	return;
 }
