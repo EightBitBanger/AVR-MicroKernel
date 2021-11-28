@@ -18,12 +18,12 @@ uint32_t _STACK_END__  =  0xfffff;           // Total extended memory determined
 uint32_t _USER_BEGIN__ =  0x00000;
 uint32_t _USER_END__   =  0xfffff;
 
+// Pointer size
+#define _32_BIT_POINTERS__
+
 // Logging
 #define _BOOT_LOG__
 #define _KERNEL_VERBOSE__
-
-// Extended memory cache size
-#define _CACHE_SIZE__  16
 
 // Function tables
 #define _DRIVER_TABLE_SIZE__         16  // Total number of elements
@@ -58,36 +58,6 @@ const char _KEYBOARD_INPUT__[]    = "keyboard";
 
 struct Kernel {
 	
-	uint32_t current_address;
-	char cache[_CACHE_SIZE__];
-	char protectionOverflowBuffer[1];
-	
-	// External memory cache interface
-	char& operator[] (uint32_t new_pointer) {
-		
-		// Check segmentation fault
-		if ((new_pointer < _USER_BEGIN__) || (new_pointer >= _USER_END__)) {
-			memory_write(_KERNEL_FLAGS__, _KERNEL_STATE_SEG_FAULT__);
-			return protectionOverflowBuffer[0];
-		}
-		
-		// Check cache out of bounds
-		if ((new_pointer < current_address) || (new_pointer >= (current_address + _CACHE_SIZE__))) {
-			// Dump the cache back to memory
-			for (uint8_t i=0; i<_CACHE_SIZE__; i++) {
-				memory_write(current_address + i, cache[i]);
-				memory_read(new_pointer + i, cache[i]);
-			}
-			current_address = new_pointer;
-		}
-		
-		return cache[new_pointer - current_address];
-	}
-	
-	Kernel() {
-		current_address = _STACK_BEGIN__;
-	}
-	
 	void initiate(void) {
 		
 		mem_zero(_ALLOCATOR_COUNTER_ADDRESS__, 4); // Number of external memory allocations
@@ -100,7 +70,7 @@ struct Kernel {
 				
 #ifdef _KERNEL_VERBOSE__
 				// Display driver names during boot
-				console.printChar('d');
+				console.print("drv", 4);
 				console.printSpace();
 				
 				for (uint8_t a=0; a < _DRIVER_TABLE_NAME_SIZE__; a++) 
@@ -141,7 +111,7 @@ struct Kernel {
 		bool isActive=1;
 		while(isActive) {
 			
-			for (uint8_t index=0; index < _TASK_LIST_SIZE__; index++) {
+			for (uint8_t index=0; index < _PROCESS_LIST_SIZE__; index++) {
 				
 				// Check task
 				if (scheduler.taskPriority[index] == 0) continue;
@@ -155,6 +125,16 @@ struct Kernel {
 				// Reset the counter and call the task
 				scheduler.taskCounters[index] = 0;
 				scheduler.task_pointer_table[index]();
+				
+				// Check task volatile
+				if (scheduler.taskType[index] == _PROCESS_TYPE_VOLATILE__) {
+					// Remove task
+					for (uint8_t a=0; a < _PROCESS_NAME_SIZE__; a++) scheduler.taskName[index][a] = 0x20;
+					scheduler.taskType[index] = 0;
+					scheduler.taskPriority[index] = 0;
+					scheduler.taskCounters[index] = 0;
+					scheduler.task_pointer_table[index] = (Process&)NULL_f;
+				}
 				
 				// Kernel memory access
 				_USER_BEGIN__ = _KERNEL_BEGIN__;
@@ -233,7 +213,7 @@ struct Kernel {
 		
 		uint32_t address=_DEVICE_ADDRESS_START__;
 		
-		for (uint8_t i=0; i <= 0x0f; i++) {
+		for (uint8_t i=0; i < 0x10; i++) {
 			
 			char readIdentityByte=0x00;
 			memory_read((_DEVICE_INDEX__ + i), readIdentityByte);
@@ -253,25 +233,15 @@ struct Kernel {
 		// Check valid pointer
 		if (library_function == (EntryPtr&)NULL_f) return 0;
 		
-		// Find pointer in the driver table
-		for (uint8_t i=0; i < _DRIVER_TABLE_SIZE__; i++) {
-			
-			if (deviceDriverTable.driver_entrypoint_table[i] == library_function) {
-				
-				// Kernel memory access
-				_USER_BEGIN__ = _KERNEL_BEGIN__;
-				_USER_END__   = _STACK_END__;
-				
-				library_function(function_call, paramA, paramB, paramC, paramD);
-				
-				// User memory access
-				_USER_BEGIN__ = _KERNEL_BEGIN__ + stack_size();
-				_USER_END__   = _STACK_END__;
-				
-				return 1;
-			}
-			
-		}
+		// Kernel memory access
+		_USER_BEGIN__ = _KERNEL_BEGIN__;
+		_USER_END__   = _STACK_END__;
+		
+		library_function(function_call, paramA, paramB, paramC, paramD);
+		
+		// Return to user memory access
+		_USER_BEGIN__ = _KERNEL_BEGIN__ + stack_size();
+		_USER_END__   = _STACK_END__;
 		
 		return 1;
 	}
@@ -288,7 +258,6 @@ Kernel kernel;
 #include "module_system\modules.h"
 
 #include "services\services.h"
-
 
 // Load a device driver entry point function onto the driver function table
 uint8_t loadLibrary(const char name[], uint8_t name_length, void(*driver_ptr)(uint8_t, uint8_t&, uint8_t&, uint8_t&, uint8_t&)) {
@@ -322,13 +291,11 @@ EntryPtr& getFuncAddress(const char device_name[], uint8_t name_length) {
 		
 		uint8_t count=1;
 		for (uint8_t a=0; a < name_length; a++) {
-			
 			char nameChar = deviceDriverTable.deviceNameIndex[i][a];
 			if (nameChar == device_name[a]) count++; else break;
-			
-			if (count >= name_length) return deviceDriverTable.driver_entrypoint_table[i];
-			
 		}
+		
+		if (count >= name_length) return deviceDriverTable.driver_entrypoint_table[i];
 		
 	}
 	

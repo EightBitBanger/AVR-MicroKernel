@@ -12,6 +12,10 @@ uint8_t nullchar = 0;
 // Driver function entry pointer
 typedef void(*EntryPtr)(uint8_t, uint8_t&, uint8_t&, uint8_t&, uint8_t&);
 
+// Task service function pointer
+typedef void(*Process)();
+
+
 
 // Address pointer wrapper
 union WrappedPointer {

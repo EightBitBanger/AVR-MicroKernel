@@ -1,5 +1,5 @@
 //
-// Configuration
+// Hardware configuration
 
 //#define _CLOCK_SPEED_MHZ__  1.843
 //#define _CLOCK_SPEED_MHZ__  7.68
@@ -13,9 +13,6 @@
 
 // Time to allow the system to stabilize
 #define  _INITIAL_SETUP_TIME__        1000  // ms
-
-// Pointer size
-#define _32_BIT_POINTERS__
 
 
 
