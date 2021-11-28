@@ -18,6 +18,9 @@ uint32_t _STACK_END__  =  0xfffff;           // Total extended memory determined
 uint32_t _USER_BEGIN__ =  0x00000;
 uint32_t _USER_END__   =  0xfffff;
 
+// Pointer size
+#define _32_BIT_POINTERS__
+
 // Logging
 #define _BOOT_LOG__
 #define _KERNEL_VERBOSE__
