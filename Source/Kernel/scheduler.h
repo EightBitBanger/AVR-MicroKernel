@@ -53,7 +53,7 @@ struct ProcessScheduler {
 	}
 	
 	// Get task function pointer by a process name.
-	Process& getProcessTask(const char process_name[], uint8_t name_length) {
+	Process& getProcess(const char process_name[], uint8_t name_length) {
 		
 		if (name_length > _PROCESS_NAME_SIZE__-1) return (Process&)NULL_f;
 		
@@ -79,7 +79,7 @@ struct ProcessScheduler {
 	// Stop an active process
 	uint8_t killTask(const char process_name[], uint8_t name_length) {
 		
-		Process& process = getProcessTask(process_name, name_length);
+		Process& process = getProcess(process_name, name_length);
 		
 		// Find the task
 		uint8_t index;

@@ -1,23 +1,21 @@
 //
 // Hardware configuration
 
-//#define _CLOCK_SPEED_MHZ__  1.843
-//#define _CLOCK_SPEED_MHZ__  7.68
 //#define _CLOCK_SPEED_MHZ__  16.0
 //#define _CLOCK_SPEED_MHZ__  20.0
 #define _CLOCK_SPEED_MHZ__  24.0
-//#define _CLOCK_SPEED_MHZ__  25.0
-
-//#define _TEST_RAM_EXTENSIVELY__
-//#define _FAST_BOOT__
 
 // Time to allow the system to stabilize
 #define  _INITIAL_SETUP_TIME__        1000  // ms
 
+// Use external extended memory
+#define _USE_EXTENDED_MEMORY__
+
 
 
 //
-// Operational wait states
+// Extended memory direct interface
+#ifdef _USE_EXTENDED_MEMORY__
 
 //
 // Memory wait states
@@ -76,13 +74,16 @@
 //#define _CONTROL__                  0x06
 //#define _CONTROL__                  0x07
 
+// Initiate board level IO for implementation
+// of the extended memory interface.
+#define initiate_board  _BUS_LOWER_DIR__=0xff; _BUS_LOWER_OUT__=0x00; _BUS_MIDDLE_DIR__=0xff;_BUS_MIDDLE_OUT__=0xff; _BUS_UPPER_DIR__=0xff; _BUS_UPPER_OUT__=0x00; _CONTROL_DIR__=0xff;_CONTROL_OUT__=0xff; _delay_ms(_INITIAL_SETUP_TIME__)
+
+#endif
 
 
 // JTAG
 #define  _DISABLE_JTAG__   MCUCR |=(1<<JTD); MCUCR |=(1<<JTD)
 
-// Board initiation
-#define initiate_board  _BUS_LOWER_DIR__=0xff; _BUS_LOWER_OUT__=0x00; _BUS_MIDDLE_DIR__=0xff;_BUS_MIDDLE_OUT__=0xff; _BUS_UPPER_DIR__=0xff; _BUS_UPPER_OUT__=0x00; _CONTROL_DIR__=0xff;_CONTROL_OUT__=0xff; _delay_ms(_INITIAL_SETUP_TIME__)
 
 #define nop  asm("nop")
 

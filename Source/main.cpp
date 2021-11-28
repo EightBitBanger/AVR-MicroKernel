@@ -1,20 +1,20 @@
-#include "main.h"
+#include "configuration.h"
 
-void testTask(void) {
-	
-	//for (uint32_t i=0; i < 0xff; i++) kernel[i] = 0xff;
-	
-}
+#include <avr/io.h>
+#include <util/delay.h>
 
+#include "hardware_abstraction.h"
 
+#include "kernel/kernel.h"
 
 int main(void) {
 	
 	initiate_board;
 	
-	kernel.initiateDeviceIndex();
+	// Initiate the interface to hardware devices
+	initiateDeviceIndex();
 	
-	_STACK_END__ = kernel.allocateSystemMemory();
+	_STACK_END__ = allocateSystemMemory();
 	
 	console.initiate();
 	
