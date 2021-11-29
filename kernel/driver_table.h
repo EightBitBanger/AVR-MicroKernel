@@ -71,15 +71,7 @@ uint8_t callExtern(EntryPtr& library_function, uint8_t function_call, uint8_t& p
 	// Check valid pointer
 	if (library_function == (EntryPtr&)NULL_f) return 0;
 	
-	// Kernel memory access
-	_USER_BEGIN__ = _KERNEL_BEGIN__;
-	_USER_END__   = _STACK_END__;
-	
 	library_function(function_call, paramA, paramB, paramC, paramD);
-	
-	// Return to user memory access
-	_USER_BEGIN__ = _KERNEL_BEGIN__ + stack_size();
-	_USER_END__   = _STACK_END__;
 	
 	return 1;
 }
