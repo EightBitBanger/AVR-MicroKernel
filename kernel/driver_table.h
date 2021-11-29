@@ -1,9 +1,15 @@
 //
 // Device driver entry pointer table
 
+// Load a device driver entry point function onto the driver function table
 uint8_t   loadLibrary(const char name[], uint8_t name_length, void(*driver_ptr)(uint8_t, uint8_t&, uint8_t&, uint8_t&, uint8_t&));
+
+// Get a library function address by its device name
 EntryPtr& getFuncAddress(const char device_name[], uint8_t name_length);
+
+// Call an external function from a library function pointer
 uint8_t   callExtern(EntryPtr& library_function, uint8_t function_call, uint8_t& paramA=NULL, uint8_t& paramB=NULL, uint8_t& paramC=NULL, uint8_t& paramD=NULL);
+
 
 struct DeviceDriverTable {
 	
@@ -21,8 +27,6 @@ struct DeviceDriverTable {
 };
 DeviceDriverTable deviceDriverTable;
 
-
-// Load a device driver entry point function onto the driver function table
 uint8_t loadLibrary(const char name[], uint8_t name_length, void(*driver_ptr)(uint8_t, uint8_t&, uint8_t&, uint8_t&, uint8_t&)) {
 	
 	if (name_length > _DRIVER_TABLE_NAME_SIZE__-1) return 0;
@@ -42,7 +46,6 @@ uint8_t loadLibrary(const char name[], uint8_t name_length, void(*driver_ptr)(ui
 	return 1;
 }
 
-// Get a library function address by its device name
 EntryPtr& getFuncAddress(const char device_name[], uint8_t name_length) {
 	
 	if (name_length > _DRIVER_TABLE_NAME_SIZE__) return (EntryPtr&)NULL_f;
@@ -65,7 +68,6 @@ EntryPtr& getFuncAddress(const char device_name[], uint8_t name_length) {
 	return (EntryPtr&)NULL_f;
 }
 
-// Call an external function from a library function pointer
 uint8_t callExtern(EntryPtr& library_function, uint8_t function_call, uint8_t& paramA, uint8_t& paramB, uint8_t& paramC, uint8_t& paramD) {
 	
 	// Check valid pointer
