@@ -9,14 +9,6 @@
 #define _PROCESS_TYPE_VOLATILE__  0x76 // Process will terminate after execution
 #define _PROCESS_TYPE_SERVICE__   0x73 // Process is a system service routine
 
-#define _USE_TIMER_0__
-#define _USE_TIMER_1__
-#define _USE_TIMER_2__
-
-
-
-
-
 struct ProcessScheduler {
 	
 	uint8_t  taskName[_PROCESS_LIST_SIZE__][_PROCESS_NAME_SIZE__];
