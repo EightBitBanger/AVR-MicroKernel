@@ -1,4 +1,2 @@
-## AVR-MicroKernel
-This micro kernel is intended for use on AVR micro controller based systems. The kernel can be configured to interface 
-an external address/data bus using direct port IO. This allows for scalable system expansion and configurability.
-
+## AVR Micro kernel
+This micro kernel is intended for use on micro controller based systems. This kernel includes an interrupt driven scheduler as well as a device driver table for function abstraction.
