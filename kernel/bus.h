@@ -1,5 +1,5 @@
 //
-// Hardware device abstraction
+// Hardware bus abstraction
 
 // Lower address bus
 #define _BUS_LOWER_DIR__   DDRA
@@ -68,7 +68,7 @@ struct BusInterface {
 		
 	}
 	
-	
+	// Run a read cycle over the bus interface
 	void read(uint32_t address, char& buffer) {
 		
 		// Address the device
@@ -97,7 +97,7 @@ struct BusInterface {
 		
 		return;
 	}
-	
+	// Run a write cycle over the bus interface
 	void write(uint32_t address, char byte) {
 		
 		// Address the device
