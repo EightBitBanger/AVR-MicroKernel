@@ -51,19 +51,20 @@ struct BusInterface {
 	
 	// Initiate hardware level IO for implementation of the bus interface
 	void initiate() {
+		
+		// Address bus
 		_BUS_LOWER_DIR__=0xff;
 		_BUS_LOWER_OUT__=0x00;
-		
 		_BUS_MIDDLE_DIR__=0xff;
 		_BUS_MIDDLE_OUT__=0xff;
-		
 		_BUS_UPPER_DIR__=0xff;
 		_BUS_UPPER_OUT__=0x00;
-		
+		// Control bus
 		_CONTROL_DIR__=0xff;
 		_CONTROL_OUT__=0xff;
 		
-		for (uint16_t i=0; i < _INITIAL_SETUP_TIME__; i++) for (uint8_t i=0; i < 256; i++) asm("nop");
+		// Allow time for the external circuitry to stabilize
+		for (uint16_t i=0; i < _INITIAL_SETUP_TIME__; i++) for (uint8_t a=0; a < 255; a++) asm("nop");
 		
 	}
 	
@@ -86,7 +87,7 @@ struct BusInterface {
 		_CONTROL_OUT__ = 0b00100100;
 		
 		// Wait state
-		for (uint16_t i=0; i<waitstate_read; i++) nop;
+		for (uint16_t i=0; i<waitstate_read; i++) asm("nop");
 		
 		// Read the data byte
 		buffer = _BUS_LOWER_IN__;
@@ -114,7 +115,7 @@ struct BusInterface {
 		_CONTROL_OUT__ = 0b00010101;
 		
 		// Wait state
-		for (uint16_t i=0; i<waitstate_write; i++) nop;
+		for (uint16_t i=0; i<waitstate_write; i++) asm("nop");
 		
 		_CONTROL_OUT__ = 0b00111111;
 		_BUS_UPPER_OUT__ = 0x0f;
