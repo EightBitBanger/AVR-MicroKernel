@@ -9,6 +9,9 @@
 #define _PROCESS_TYPE_VOLATILE__  0x76 // Process will terminate after execution
 #define _PROCESS_TYPE_SERVICE__   0x73 // Process is a system service routine
 
+typedef void(*Process)();
+
+
 struct ProcessScheduler {
 	
 	uint8_t  processName[_PROCESS_LIST_SIZE__][_PROCESS_NAME_SIZE__];
@@ -19,15 +22,35 @@ struct ProcessScheduler {
 	
 	ProcessScheduler() {
 		
-		// Setup the task list
 		for (uint8_t i=0; i < _PROCESS_LIST_SIZE__; i++) {
 			for (uint8_t a=0; a < _PROCESS_NAME_SIZE__; a++) processName[i][a] = 0x20;
 			processType[i]     = 0x00;
 			processPriority[i] = 0x00;
 			processCounters[i] = 0x00;
-			process_pointer_table[i] = (Process&)NULL_f;
+			process_pointer_table[i] = 0;
 		}
 		
+	}
+	
+	// Start the scheduler with the given timer priority
+	void start(uint8_t timer_priority) {
+		
+		TCCR0A  = 0x00;          // Normal counter and waveform
+		TCCR0B |= (1 << CS10);   // Timer mode with NO prescaler
+		TIMSK0 |= (1 << TOIE0);  // Enable counter overflow interrupt (TOIEn)
+		
+		TCNT0 = timer_priority;
+		sei();
+	}
+	
+	// Stop the scheduler
+	void stop(void) {
+		
+		TCCR0A  = 0x00;
+		TCCR0B &= ~(1 << CS10);
+		TIMSK0 &= ~(1 << TOIE0);
+		
+		TCNT0 = 0;
 	}
 	
 	// Schedule a new process
@@ -40,11 +63,10 @@ struct ProcessScheduler {
 		for (index=0; index <= _PROCESS_LIST_SIZE__; index++) 
 			if (processPriority[index] == 0) break; else continue;
 		
-		
 		// No free slots
 		if (index == _PROCESS_LIST_SIZE__) return 0;
 		
-		// Launch the new task
+		// Launch the new process
 		for (uint8_t a=0; a < name_length-1; a++)
 			processName[index][a] = name[a];
 		
@@ -56,69 +78,44 @@ struct ProcessScheduler {
 		return 1;
 	}
 	
-	// Get a process pointer by a process name
-	Process& getProcess(const char process_name[], uint8_t name_length) {
+	// Get a process index by its process name
+	uint8_t getProcessIndex(const char process_name[], uint8_t name_length) {
 		
-		if (name_length > _PROCESS_NAME_SIZE__-1) return (Process&)NULL_f;
+		if (name_length > _PROCESS_NAME_SIZE__-1) return 0;
 		
 		// Function look up
-		for (uint8_t i=0; i < _PROCESS_LIST_SIZE__; i++) {
+		for (uint8_t index=0; index< _PROCESS_LIST_SIZE__; index++) {
 			
-			if (processName[i][0] == 0x20) continue;
+			if (processName[index][0] == 0x20) continue;
 			
 			uint8_t count=1;
 			for (uint8_t a=0; a < name_length; a++) {
-				char nameChar = processName[i][a];
+				char nameChar = processName[index][a];
 				if (nameChar == process_name[a]) count++; else break;
 			}
 			
-			if (count >= name_length)
-			return process_pointer_table[i];
-			
+			// Return the index
+			return index;
 		}
 		
-		return (Process&)NULL_f;
+		return 0;
 	}
 	
-	// Stop an active process
+	// Stop a running process
 	uint8_t killProcess(const char process_name[], uint8_t name_length) {
 		
-		Process& process = getProcess(process_name, name_length);
-		
 		// Find the task
-		uint8_t index;
-		for (index=0; index <= _PROCESS_LIST_SIZE__; index++)
-		if (process_pointer_table[index] == process) break; else continue;
-		
-		// Check no free slots
-		if (index == _PROCESS_LIST_SIZE__) return 0;
+		uint8_t index = getProcessIndex(process_name, name_length);
 		
 		// Kill the task
+		processType[index]     = 0;
 		processPriority[index] = 0;
 		processCounters[index] = 0;
-		process_pointer_table[index] = (Process&)NULL_f;
+		process_pointer_table[index] = 0;
+		
+		for (uint8_t i=0; i < _PROCESS_NAME_SIZE__; i++) processName[index][i] = 0x20;
 		
 		return 1;
-	}
-	
-	// Start the scheduler with the given timer priority
-	void start(uint16_t timer_priority) {
-		
-		TCCR0A  = 0x00;          // Normal counter and waveform
-		TCCR0B |= (1 << CS10);   // Timer mode with NO prescaler
-		TIMSK0 |= (1 << TOIE0);  // Enable counter overflow interrupt (TOIEn)
-		
-		TCNT0 = timer_priority;
-		sei();
-	}
-	
-	// Stop the scheduler
-	void stop(void) {
-		TCCR0A  = 0x00;          // Normal counter and waveform
-		TCCR0B &= ~(1 << CS10);   // Timer mode with NO prescaler
-		TIMSK0 &= ~(1 << TOIE0);  // Enable counter overflow interrupt (TOIEn)
-		
-		TCNT0 = 0;
 	}
 	
 };
@@ -145,7 +142,7 @@ ISR (TIMER0_OVF_vect) {
 				scheduler.processType[index] = 0;
 				scheduler.processPriority[index] = 0;
 				scheduler.processCounters[index] = 0;
-				scheduler.process_pointer_table[index] = (Process&)NULL_f;
+				scheduler.process_pointer_table[index] = 0;
 				break;
 			}
 			
