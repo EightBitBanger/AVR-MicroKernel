@@ -4,26 +4,27 @@
 #define _DRIVER_TABLE_SIZE__         16  // Total number of elements
 #define _DRIVER_TABLE_NAME_SIZE__    16  // Max name length
 
+
 // Driver entry pointer wrapper
-struct Device {
+struct DriverEntryPoint {
 	
 	void(*EntryPoint)(uint8_t, uint8_t&, uint8_t&, uint8_t&, uint8_t&);
 	
-	Device() {
-		
-		EntryPoint = (void(*)(uint8_t, uint8_t&, uint8_t&, uint8_t&, uint8_t&))&nullfunction;
-		
+	DriverEntryPoint() {
+		EntryPoint = 0;
 	}
-	
-	
 };
 
 // Load a device driver entry point function onto the driver table
 uint8_t loadLibrary(const char name[], uint8_t name_length, void(*driver_ptr)(uint8_t, uint8_t&, uint8_t&, uint8_t&, uint8_t&));
+
 // Get a library function address by its device name
-uint8_t getFuncAddress(const char device_name[], uint8_t name_length, Device& device);
-// Call an external function from a library function pointer
-uint8_t callExtern(Device& device, uint8_t function_call, uint8_t& paramA=NULL, uint8_t& paramB=NULL, uint8_t& paramC=NULL, uint8_t& paramD=NULL);
+// A reference to a driver entry point struct is used to contain the driver function pointer
+uint8_t getFuncAddress(const char device_name[], uint8_t name_length, DriverEntryPoint& device);
+
+// Call an external function from a driver entry point function pointer
+uint8_t callExtern(DriverEntryPoint& device, uint8_t function_call, uint8_t& paramA=NULL, uint8_t& paramB=NULL, uint8_t& paramC=NULL, uint8_t& paramD=NULL);
+
 
 struct DeviceDriverTable {
 	
@@ -60,7 +61,7 @@ uint8_t loadLibrary(const char name[], uint8_t name_length, void(*driver_ptr)(ui
 	return 1;
 }
 
-uint8_t getFuncAddress(const char device_name[], uint8_t name_length, Device& device) {
+uint8_t getFuncAddress(const char device_name[], uint8_t name_length, DriverEntryPoint& device) {
 	
 	if (name_length > _DRIVER_TABLE_NAME_SIZE__) return 0;
 	
@@ -83,7 +84,7 @@ uint8_t getFuncAddress(const char device_name[], uint8_t name_length, Device& de
 	return 0;
 }
 
-uint8_t callExtern(Device& device, uint8_t function_call, uint8_t& paramA, uint8_t& paramB, uint8_t& paramC, uint8_t& paramD) {
+uint8_t callExtern(DriverEntryPoint& device, uint8_t function_call, uint8_t& paramA, uint8_t& paramB, uint8_t& paramC, uint8_t& paramD) {
 	
 	// Check valid pointer
 	if (device.EntryPoint == (EntryPtr&)NULL_f) return 0;
