@@ -23,48 +23,28 @@
 
 //
 // Control bits
-#define _CONTROL_DATA_DIRECTION__     0x00 // Data direction signal
-#define _CONTROL_BUS_ENABLE__         0x01 // Bus enable signal
-#define _CONTROL_CLOCK__              0x02 // Peripheral device clock signal
-#define _CONTROL_ADDRESS_LATCH__      0x03 // Address latch enable
-#define _CONTROL_READ__               0x04 // Read signal
-#define _CONTROL_WRITE__              0x05 // Write signal
-//#define _CONTROL__                  0x06
-//#define _CONTROL__                  0x07
+//#define _CONTROL_DATA_DIRECTION__     0x00 // Data direction signal
+//#define _CONTROL_BUS_ENABLE__         0x01 // Bus enable signal
+//#define _CONTROL_CLOCK__              0x02 // Peripheral device clock signal
+//#define _CONTROL_ADDRESS_LATCH__      0x03 // Address latch enable
+//#define _CONTROL_READ__               0x04 // Read signal
+//#define _CONTROL_WRITE__              0x05 // Write signal
+//#define _CONTROL__                    0x06
+//#define _CONTROL__                    0x07
 
 #define _INITIAL_SETUP_TIME__  300  // Ms
 
 
 
-struct BusInterface {
+struct Bus {
 	
-	// Rate of data transfer
-	uint8_t  waitstate_read;
-	uint8_t  waitstate_write;
+	uint8_t  waitStateRead;
+	uint8_t  waitStateWrite;
 	
-	BusInterface() {
+	Bus() {
 		
-		waitstate_read  = 0;
-		waitstate_write = 0;
-		
-	}
-	
-	// Initiate hardware level IO for implementation of the bus interface
-	void initiate() {
-		
-		// Address bus
-		_BUS_LOWER_DIR__=0xff;
-		_BUS_LOWER_OUT__=0x00;
-		_BUS_MIDDLE_DIR__=0xff;
-		_BUS_MIDDLE_OUT__=0xff;
-		_BUS_UPPER_DIR__=0xff;
-		_BUS_UPPER_OUT__=0x00;
-		// Control bus
-		_CONTROL_DIR__=0xff;
-		_CONTROL_OUT__=0xff;
-		
-		// Allow time for the external circuitry to stabilize
-		for (uint16_t i=0; i < _INITIAL_SETUP_TIME__; i++) for (uint8_t a=0; a < 255; a++) asm("nop");
+		waitStateRead  = 0;
+		waitStateWrite = 0;
 		
 	}
 	
@@ -81,18 +61,18 @@ struct BusInterface {
 		_CONTROL_OUT__ = 0b00110100;
 		
 		// Set data direction
-		_BUS_LOWER_DIR__ = 0x00; // Data bus input
-		_BUS_LOWER_OUT__ = 0xff; // Pull-up resistors
+		_BUS_LOWER_DIR__ = 0x00; // Set input
+		_BUS_LOWER_OUT__ = 0x00; // No internal pull-up resistors
 		
-		_CONTROL_OUT__ = 0b00100100;
+		_CONTROL_OUT__ = 0b00100100; // Begin read cycle
 		
 		// Wait state
-		for (uint16_t i=0; i<waitstate_read; i++) asm("nop");
+		for (uint16_t i=0; i<waitStateRead; i++) asm("nop");
 		
 		// Read the data byte
 		buffer = _BUS_LOWER_IN__;
 		
-		_CONTROL_OUT__ = 0b00111111;
+		_CONTROL_OUT__ = 0b00111111; // End read cycle
 		_BUS_UPPER_OUT__ = 0x0f;
 		
 		return;
@@ -112,17 +92,37 @@ struct BusInterface {
 		// Cast the data byte
 		_BUS_LOWER_OUT__ = byte;
 		
-		_CONTROL_OUT__ = 0b00010101;
+		_CONTROL_OUT__ = 0b00010101; // Begin write cycle
 		
 		// Wait state
-		for (uint16_t i=0; i<waitstate_write; i++) asm("nop");
+		for (uint16_t i=0; i<waitStateWrite; i++) asm("nop");
 		
-		_CONTROL_OUT__ = 0b00111111;
+		_CONTROL_OUT__ = 0b00111111; // End write cycle
 		_BUS_UPPER_OUT__ = 0x0f;
 		
 		return;
 	}
 	
 };
+
+
+// Initiate hardware level IO for implementation of the bus interface
+void BusInitiate(void) {
+	
+	// Address bus
+	_BUS_LOWER_DIR__=0xff;
+	_BUS_LOWER_OUT__=0x00;
+	_BUS_MIDDLE_DIR__=0xff;
+	_BUS_MIDDLE_OUT__=0xff;
+	_BUS_UPPER_DIR__=0xff;
+	_BUS_UPPER_OUT__=0x00;
+	// Control bus
+	_CONTROL_DIR__=0xff;
+	_CONTROL_OUT__=0xff;
+	
+	// Allow time for the external circuitry to stabilize
+	for (uint16_t i=0; i < _INITIAL_SETUP_TIME__; i++) for (uint8_t a=0; a < 255; a++) asm("nop");
+	
+}
 
 
