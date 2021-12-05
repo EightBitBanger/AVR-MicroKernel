@@ -19,11 +19,6 @@ struct ProcessScheduler {
 	
 	ProcessScheduler() {
 		
-		// Initiate the interrupt timer
-		TCCR0A  = 0x00;          // Normal counter and waveform
-		TCCR0B |= (1<<CS10);     // Timer mode with NO prescaler
-		TIMSK0 |= (1 << TOIE0);  // Enable counter overflow interrupt (TOIEn)
-		
 		// Setup the task list
 		for (uint8_t i=0; i < _PROCESS_LIST_SIZE__; i++) {
 			for (uint8_t a=0; a < _PROCESS_NAME_SIZE__; a++) processName[i][a] = 0x20;
@@ -42,16 +37,16 @@ struct ProcessScheduler {
 		
 		// Find an available slot
 		uint8_t index;
-		for (index=0; index <= _PROCESS_LIST_SIZE__; index++) {
+		for (index=0; index <= _PROCESS_LIST_SIZE__; index++) 
 			if (processPriority[index] == 0) break; else continue;
-		}
+		
 		
 		// No free slots
 		if (index == _PROCESS_LIST_SIZE__) return 0;
 		
 		// Launch the new task
 		for (uint8_t a=0; a < name_length-1; a++)
-		processName[index][a]    = name[a];
+			processName[index][a] = name[a];
 		
 		processType[index]           = task_type;
 		processPriority[index]       = priority;
@@ -107,38 +102,58 @@ struct ProcessScheduler {
 	}
 	
 	// Start the scheduler with the given timer priority
-	void start(void) {
-		TCNT0 = 100;  // Enable & set timer
-		sei();        // Enable interrupts
+	void start(uint16_t timer_priority) {
+		
+		TCCR0A  = 0x00;          // Normal counter and waveform
+		TCCR0B |= (1 << CS10);   // Timer mode with NO prescaler
+		TIMSK0 |= (1 << TOIE0);  // Enable counter overflow interrupt (TOIEn)
+		
+		TCNT0 = timer_priority;
+		sei();
+	}
+	
+	// Stop the scheduler
+	void stop(void) {
+		TCCR0A  = 0x00;          // Normal counter and waveform
+		TCCR0B &= ~(1 << CS10);   // Timer mode with NO prescaler
+		TIMSK0 &= ~(1 << TOIE0);  // Enable counter overflow interrupt (TOIEn)
+		
+		TCNT0 = 0;
 	}
 	
 };
 ProcessScheduler scheduler;
 
-// Scheduler interrupt handler
+// Interrupt handler
 ISR (TIMER0_OVF_vect) {
 	
 	for (uint8_t index=0; index < _PROCESS_LIST_SIZE__; index++) {
 		
-		if (scheduler.processPriority[index] == 0) continue;
-		
 		// Check per process counter
 		scheduler.processCounters[index]++;
-		if (scheduler.processCounters[index] < scheduler.processPriority[index]) {continue;} else {
+		if ((scheduler.processCounters[index] < scheduler.processPriority[index]) || (scheduler.processPriority[index] == 0)) {continue;} else {
 			// Run the process
 			scheduler.processCounters[index]=0;
 			scheduler.process_pointer_table[index]();
 		}
 		
-		// Check volatility
-		if (scheduler.processType[index] == _PROCESS_TYPE_VOLATILE__) {
-			// Remove process
-			for (uint8_t a=0; a < _PROCESS_NAME_SIZE__; a++) scheduler.processName[index][a] = 0x20;
-			scheduler.processType[index] = 0;
-			scheduler.processPriority[index] = 0;
-			scheduler.processCounters[index] = 0;
-			scheduler.process_pointer_table[index] = (Process&)NULL_f;
+		switch (scheduler.processType[index]) {
+			
+			case _PROCESS_TYPE_VOLATILE__: {
+				// Remove process
+				for (uint8_t a=0; a < _PROCESS_NAME_SIZE__; a++) scheduler.processName[index][a] = 0x20;
+				scheduler.processType[index] = 0;
+				scheduler.processPriority[index] = 0;
+				scheduler.processCounters[index] = 0;
+				scheduler.process_pointer_table[index] = (Process&)NULL_f;
+				break;
+			}
+			
+			
+			default: break;
+			
 		}
+		
 		
 	}
 	
