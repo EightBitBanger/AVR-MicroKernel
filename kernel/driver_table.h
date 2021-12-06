@@ -1,16 +1,13 @@
 //
 // Device driver system
 
-#define _DRIVER_TABLE_SIZE__         16  // Total number of elements
-#define _DRIVER_TABLE_NAME_SIZE__    16  // Max name length
+#define _DRIVER_TABLE_SIZE__          8  // Total number of elements
+#define _DRIVER_TABLE_NAME_SIZE__    10  // Max name length
 
+// Referenceable default value
 uint8_t nullchar = 0;
 
-typedef void(*EntryPtr)(uint8_t, uint8_t&, uint8_t&, uint8_t&, uint8_t&);
-
-
-
-// Driver entry pointer wrapper
+// Pointer wrapper
 struct DriverEntryPoint {
 	
 	void(*EntryPoint)(uint8_t, uint8_t&, uint8_t&, uint8_t&, uint8_t&);
@@ -27,7 +24,7 @@ uint8_t loadLibrary(const char name[], uint8_t name_length, void(*driver_ptr)(ui
 // A reference to a driver entry point struct is used to contain the driver function pointer
 uint8_t getFuncAddress(const char device_name[], uint8_t name_length, DriverEntryPoint& device);
 
-// Call an external function from a driver entry point function pointer
+// Call an external function from a driver entry pointer
 uint8_t callExtern(DriverEntryPoint& device, uint8_t function_call, uint8_t& paramA=nullchar, uint8_t& paramB=nullchar, uint8_t& paramC=nullchar, uint8_t& paramD=nullchar);
 
 
