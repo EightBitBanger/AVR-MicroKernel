@@ -1,31 +1,27 @@
 //
 // Device driver system
 
+#ifndef __DEVICE_DRIVER_SYSTEM__
+#define __DEVICE_DRIVER_SYSTEM__
+
 #define _DRIVER_TABLE_SIZE__          8  // Total number of elements
-#define _DRIVER_TABLE_NAME_SIZE__    10  // Max name length
+#define _DRIVER_TABLE_NAME_SIZE__    10  // Max string name length
 
 // Referenceable default value
 uint8_t nullchar = 0;
 
-// Pointer wrapper
-struct DriverEntryPoint {
-	
-	void(*EntryPoint)(uint8_t, uint8_t&, uint8_t&, uint8_t&, uint8_t&);
-	
-	DriverEntryPoint() {
-		EntryPoint = 0;
-	}
-};
+typedef void(*DriverEntryPoint)(uint8_t, uint8_t&, uint8_t&, uint8_t&, uint8_t&);
+
 
 // Load a device driver entry point function onto the driver table
-uint8_t loadLibrary(const char name[], uint8_t name_length, void(*driver_ptr)(uint8_t, uint8_t&, uint8_t&, uint8_t&, uint8_t&));
+uint8_t loadLibrary(const char name[], uint8_t name_length, DriverEntryPoint entry_pointer);
 
 // Get a library function address by its device name
 // A reference to a driver entry point struct is used to contain the driver function pointer
-uint8_t getFuncAddress(const char device_name[], uint8_t name_length, DriverEntryPoint& device);
+uint8_t getFuncAddress(const char device_name[], uint8_t name_length, DriverEntryPoint* entry_pointer);
 
 // Call an external function from a driver entry pointer
-uint8_t callExtern(DriverEntryPoint& device, uint8_t function_call, uint8_t& paramA=nullchar, uint8_t& paramB=nullchar, uint8_t& paramC=nullchar, uint8_t& paramD=nullchar);
+uint8_t callExtern(DriverEntryPoint& entry_pointer, uint8_t function_call, uint8_t& paramA=nullchar, uint8_t& paramB=nullchar, uint8_t& paramC=nullchar, uint8_t& paramD=nullchar);
 
 
 struct DeviceDriverTable {
@@ -44,7 +40,7 @@ struct DeviceDriverTable {
 };
 DeviceDriverTable deviceDriverTable;
 
-uint8_t loadLibrary(const char name[], uint8_t name_length, void(*driver_ptr)(uint8_t, uint8_t&, uint8_t&, uint8_t&, uint8_t&)) {
+uint8_t loadLibrary(const char name[], uint8_t name_length, DriverEntryPoint entry_pointer) {
 	
 	if (name_length > _DRIVER_TABLE_NAME_SIZE__-1) return 0;
 	
@@ -56,12 +52,12 @@ uint8_t loadLibrary(const char name[], uint8_t name_length, void(*driver_ptr)(ui
 	for (uint8_t i=0; i < name_length-1; i++)
 	deviceDriverTable.deviceNameIndex[index][i] = name[i];
 	
-	deviceDriverTable.driver_entrypoint_table[index] = driver_ptr;
+	deviceDriverTable.driver_entrypoint_table[index] = entry_pointer;
 	
 	return 1;
 }
 
-uint8_t getFuncAddress(const char device_name[], uint8_t name_length, DriverEntryPoint& device) {
+uint8_t getFuncAddress(const char device_name[], uint8_t name_length, DriverEntryPoint& entry_pointer) {
 	
 	if (name_length > _DRIVER_TABLE_NAME_SIZE__) return 0;
 	
@@ -76,7 +72,7 @@ uint8_t getFuncAddress(const char device_name[], uint8_t name_length, DriverEntr
 		}
 		
 		if (count == name_length) {
-			device.EntryPoint = deviceDriverTable.driver_entrypoint_table[i];
+			entry_pointer = deviceDriverTable.driver_entrypoint_table[i];
 			return 1;
 		}
 	}
@@ -84,13 +80,16 @@ uint8_t getFuncAddress(const char device_name[], uint8_t name_length, DriverEntr
 	return 0;
 }
 
-uint8_t callExtern(DriverEntryPoint& device, uint8_t function_call, uint8_t& paramA, uint8_t& paramB, uint8_t& paramC, uint8_t& paramD) {
+uint8_t callExtern(DriverEntryPoint& entry_pointer, uint8_t function_call, uint8_t& paramA, uint8_t& paramB, uint8_t& paramC, uint8_t& paramD) {
 	
-	if (device.EntryPoint == 0) return 0;
+	if (entry_pointer == 0) return 0;
 	
-	device.EntryPoint(function_call, paramA, paramB, paramC, paramD);
+	entry_pointer(function_call, paramA, paramB, paramC, paramD);
 	
 	return 1;
 }
+
+
+#endif
 
 
