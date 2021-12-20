@@ -6,7 +6,8 @@ struct DeviceDriverTable {
 	char deviceNameIndex[_DRIVER_TABLE_SIZE__][_DRIVER_TABLE_NAME_SIZE__];
 	void (*driver_entrypoint_table[_DRIVER_TABLE_SIZE__])(uint8_t, uint8_t&, uint8_t&, uint8_t&, uint8_t&);
 	
-} deviceDriverTable;
+};
+DeviceDriverTable deviceDriverTable;
 
 void driver_table_initiate(void) {
 	for (uint8_t i=0; i < _DRIVER_TABLE_SIZE__; i++) {

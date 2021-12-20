@@ -11,7 +11,8 @@ struct ProcessScheduler {
 	uint16_t processCounters[_PROCESS_LIST_SIZE__];
 	void (*process_pointer_table[_PROCESS_LIST_SIZE__])();
 	
-} scheduler;
+};
+ProcessScheduler scheduler;
 
 void scheduler_initiate(void) {
 	for (uint8_t i=0; i < _PROCESS_LIST_SIZE__; i++) {
