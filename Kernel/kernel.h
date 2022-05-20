@@ -23,7 +23,5 @@ const char _KEYBOARD_INPUT__[]    = "keyboard";
 
 #include "scheduler.h"
 
-#include "framework.h"
-
 #endif
 
