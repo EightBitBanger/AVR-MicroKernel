@@ -1,17 +1,17 @@
 //
-// Keyboard handler service
+// Console keyboard service
 
 void keyboard_event_handler(void);
 void eventKeyboardEnter(void);
 void eventKeyboardBackspace(void);
 void eventKeyboardAcceptChar(uint8_t new_char);
 
-struct KBSystemServiceLauncher {
-	KBSystemServiceLauncher() {
-		createProcess("kernel", 7, keyboard_event_handler, 100, _TASK_SERVICE__);
+struct ConsoleSystemServiceLauncher {
+	ConsoleSystemServiceLauncher() {
+		createProcess("console", 8, keyboard_event_handler, 100, _TASK_SERVICE__);
 	}
 };
-KBSystemServiceLauncher KBSserviceLauncher;
+ConsoleSystemServiceLauncher consoleSystemServiceLauncher;
 
 void keyboard_event_handler(void) {
 	
@@ -33,7 +33,7 @@ void keyboard_event_handler(void) {
 		// ASCII char
 		currentChar = readKeyCode;
 		if (readKeyCode > 0x1f) {scanCodeAccepted=1;}
-		} else {
+	} else {
 		// Allow special keys past max string length
 		if (readKeyCode < 0x20) currentChar = readKeyCode;
 	}

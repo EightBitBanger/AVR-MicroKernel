@@ -1,9 +1,7 @@
 // Extended memory device driver interface
 
-#ifndef _EX_MEM__
-#define _EX_MEM__
-
-#define ExtendedMemoryDeviceName "ExMem"
+#ifndef _HIGH_MEMORY__
+#define _HIGH_MEMORY__
 
 // Kernel memory space
 #define _KERNEL_SIZE__          0x000ff   // Bytes reserved for the kernel
@@ -19,13 +17,14 @@
 #define _KERNEL_STATE_OUT_OF_MEMORY__   0xa0
 #define _KERNEL_STATE_SEG_FAULT__       0xff
 
+
 #include <avr/interrupt.h>
 
 void ExtendedMemoryDeviceDriverEntryPoint(uint8_t, uint8_t&, uint8_t&, uint8_t&, uint8_t&);
 
 
 struct ExmemDriverLoader {
-	ExmemDriverLoader() {loadLibrary(ExtendedMemoryDeviceName, sizeof(ExtendedMemoryDeviceName), (DriverEntryPoint)ExtendedMemoryDeviceDriverEntryPoint);}
+	ExmemDriverLoader() {loadLibrary(_EXTENDED_MEMORY__, sizeof(_EXTENDED_MEMORY__), (DriverEntryPoint)ExtendedMemoryDeviceDriverEntryPoint);}
 };ExmemDriverLoader ExtendedMemoryDriverLoader;
 
 
@@ -173,5 +172,5 @@ void ExtendedMemoryDeviceDriverEntryPoint(uint8_t functionCall, uint8_t& paramA,
 
 
 
-#endif _EX_MEM__
+#endif
 
