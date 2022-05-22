@@ -1,2 +1,2 @@
 ## AVR Micro kernel
-This micro kernel is intended for use on micro controller based systems. This kernel includes an interrupt driven scheduler as well as a device driver table for function abstraction.
+This micro kernel is being developed for use on AVR micro controller based systems. This kernel runs an interrupt driven cooperative scheduler as well as a device driver table.
