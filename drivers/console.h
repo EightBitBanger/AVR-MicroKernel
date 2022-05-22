@@ -3,6 +3,8 @@
 
 #define _MAX_KEYBOARD_STRING_LENGTH__  32
 
+void ConsoleLibraryEntryPoint(uint8_t, uint8_t&, uint8_t&, uint8_t&, uint8_t&);
+
 struct CommandConsole {
 	
 	// Prompt
@@ -23,6 +25,8 @@ struct CommandConsole {
 	DriverEntryPoint keyboardDriverPtr;
 	
 	CommandConsole() {
+		
+		loadLibrary(_COMMAND_CONSOLE__, sizeof(_COMMAND_CONSOLE__), (DriverEntryPoint)ConsoleLibraryEntryPoint);
 		
 		for (uint8_t i=0; i<promptStringLength; i++) promptString[i] = 0x20;
 		promptString[0]      = '>';
@@ -153,14 +157,6 @@ struct CommandConsole {
 };
 CommandConsole console;
 
-
-
-
-void ConsoleLibraryEntryPoint(uint8_t, uint8_t&, uint8_t&, uint8_t&, uint8_t&);
-
-struct ConsoleLibraryLoader {
-	ConsoleLibraryLoader() {loadLibrary(_COMMAND_CONSOLE__, sizeof(_COMMAND_CONSOLE__), (DriverEntryPoint)ConsoleLibraryEntryPoint);}
-};ConsoleLibraryLoader consoleLibraryLoader;
 
 void ConsoleLibraryEntryPoint(uint8_t functionCall, uint8_t& paramA, uint8_t& paramB, uint8_t& paramC, uint8_t& paramD) {
 	

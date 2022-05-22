@@ -1,12 +1,6 @@
 //
 // Keyboard interface
 
-void keyboardDeviceDriverEntryPoint(uint8_t, uint8_t&, uint8_t&, uint8_t&, uint8_t&);
-
-struct KeyboardDriverLoader {
-	KeyboardDriverLoader() {loadLibrary(_KEYBOARD_INPUT__, sizeof(_KEYBOARD_INPUT__), (DriverEntryPoint)keyboardDeviceDriverEntryPoint);}
-};KeyboardDriverLoader keyboardDriverLoader;
-
 // Keyboard key decode index array
 const char scancodeIndex[] = {
 	0x05, 'i', 's', 'd', 'f', 'h', 'j' ,'l',
@@ -15,9 +9,13 @@ const char scancodeIndex[] = {
 	0x06, 'e', 't', 'u', 'o', 'a', 'g'
 };
 
+void keyboardDeviceDriverEntryPoint(uint8_t, uint8_t&, uint8_t&, uint8_t&, uint8_t&);
+
 struct KeyboardDriver {
 	
 	Bus kbBus;
+	
+	KeyboardDriver() {loadLibrary(_KEYBOARD_INPUT__, sizeof(_KEYBOARD_INPUT__), (DriverEntryPoint)keyboardDeviceDriverEntryPoint);}
 	
 	void initiate(void) {
 		

@@ -23,11 +23,6 @@
 void ExtendedMemoryDeviceDriverEntryPoint(uint8_t, uint8_t&, uint8_t&, uint8_t&, uint8_t&);
 
 
-struct ExmemDriverLoader {
-	ExmemDriverLoader() {loadLibrary(_EXTENDED_MEMORY__, sizeof(_EXTENDED_MEMORY__), (DriverEntryPoint)ExtendedMemoryDeviceDriverEntryPoint);}
-};ExmemDriverLoader ExtendedMemoryDriverLoader;
-
-
 struct ExtendedMemoryDriver {
 	
 	Bus device_bus;
@@ -38,6 +33,7 @@ struct ExtendedMemoryDriver {
 	uint32_t currentAddress;
 	uint32_t returnAddress;
 	
+	ExtendedMemoryDriver() {loadLibrary(_EXTENDED_MEMORY__, sizeof(_EXTENDED_MEMORY__), (DriverEntryPoint)ExtendedMemoryDeviceDriverEntryPoint);}
 	
 	void initiate(void) {
 		

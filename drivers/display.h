@@ -3,16 +3,13 @@
 
 void DisplayDeviceDriverEntryPoint(uint8_t, uint8_t&, uint8_t&, uint8_t&, uint8_t&);
 
-struct DisplayDriverLoader {
-	DisplayDriverLoader() {loadLibrary(_DISPLAY_CONSOLE__, sizeof(_DISPLAY_CONSOLE__), (DriverEntryPoint)DisplayDeviceDriverEntryPoint);}
-};DisplayDriverLoader displayDriverLoader;
-
 struct DisplayDriver {
 	
 	Bus device_bus;
 	
 	uint32_t device_address;
 	
+	DisplayDriver() {loadLibrary(_DISPLAY_CONSOLE__, sizeof(_DISPLAY_CONSOLE__), (DriverEntryPoint)DisplayDeviceDriverEntryPoint);}
 	
 	void initiate(void) {
 		
