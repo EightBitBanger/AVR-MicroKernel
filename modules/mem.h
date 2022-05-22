@@ -16,7 +16,12 @@ void command_memory(void) {
 	WrappedPointer stackSz;
 	WrappedPointer memTotal;
 	
-	if (getFuncAddress(_EXTENDED_MEMORY__, sizeof(_EXTENDED_MEMORY__), memDriverPtr) == 0) return;
+	if (getFuncAddress(_EXTENDED_MEMORY__, sizeof(_EXTENDED_MEMORY__), memDriverPtr) == 0) {
+		console.print(error_exmem_not_installed, sizeof(error_exmem_not_installed));
+		console.printLn();
+		console.printLn();
+		return;
+	}
 	
 	callExtern(memDriverPtr, 0x04); // Check total memory
 	callExtern(memDriverPtr, 0x0c, memTotal.byte_t[0], memTotal.byte_t[1], memTotal.byte_t[2], memTotal.byte_t[3]);

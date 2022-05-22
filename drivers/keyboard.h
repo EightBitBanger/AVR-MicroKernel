@@ -13,14 +13,14 @@ void keyboardDeviceDriverEntryPoint(uint8_t, uint8_t&, uint8_t&, uint8_t&, uint8
 
 struct KeyboardDriver {
 	
-	Bus kbBus;
+	Bus device_bus;
 	
 	KeyboardDriver() {loadLibrary(_KEYBOARD_INPUT__, sizeof(_KEYBOARD_INPUT__), (DriverEntryPoint)keyboardDeviceDriverEntryPoint);}
 	
 	void initiate(void) {
 		
-		kbBus.waitStateRead  = 10;
-		kbBus.waitStateWrite = 10;
+		device_bus.waitStateRead  = 10;
+		device_bus.waitStateWrite = 10;
 		
 	}
 	
@@ -32,8 +32,8 @@ struct KeyboardDriver {
 	void read(uint8_t& scan_code) {
 		
 		char byteLow, byteHigh;
-		kbBus.read(0x90000, byteLow);
-		kbBus.read(0xa0000, byteHigh);
+		device_bus.read(0x90000, byteLow);
+		device_bus.read(0xa0000, byteHigh);
 		
 		decodeScanCode(byteLow, byteHigh, scan_code);
 		return;

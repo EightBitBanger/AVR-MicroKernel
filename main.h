@@ -10,20 +10,22 @@
 #include "kernel\kernel.h"
 
 // Device drivers
-#include "drivers\display.h"
-#include "drivers\keyboard.h"
-#include "drivers\exmem.h"
-#include "drivers\console.h"
-
-// System services
-#include "services\keyboard_handler.h"
+#include "drivers\display.h"     // Liquid Crystal display controller
+#include "drivers\keyboard.h"    // On-board keyboard
+#include "drivers\exmem.h"       // On-board extended memory
+#include "drivers\eeprom.h"      // On-chip EEPROM storage
+#include "drivers\console.h"     // Command console library
 
 // Command function modules
-#include "modules\kill.h"
-#include "modules\mem.h"
+#include "modules\app.h"
 #include "modules\cls.h"
 #include "modules\device.h"
+#include "modules\format.h"
+#include "modules\kill.h"
+#include "modules\list.h"
+#include "modules\mem.h"
 #include "modules\task.h"
-#include "modules\app.h"
 
+// System services
+#include "services\command_console.h"
 

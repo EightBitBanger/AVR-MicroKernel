@@ -1,17 +1,17 @@
 //
-// Commonly used strings
+// Commonly used string constants
 
-const char string_memory_allocator_bytes[]  = "bytes";
-const char string_memory_allocator_free[]   = "free";
-
-const char message_device_enabled[]         = "Device enabled.";
-const char message_device_disabled[]        = "Device disabled.";
-const char message_task_not_found[]         = "Task not found.";
-const char message_task_stopped[]           = "Task stopped.";
-
+// Generic messages
+const char msg_device_enabled[]             = "Device enabled.";
+const char msg_device_disabled[]            = "Device disabled.";
+const char msg_task_not_found[]             = "Task not found.";
+const char msg_task_stopped[]               = "Task stopped.";
+const char msg_format_complete[]            = "Format complete.";
+// Extended memory
 const char error_exmem_not_installed[]      = "Extended memory not installed.";
 const char error_stack_error[]              = "Stack error.";
-
+const char string_memory_allocator_bytes[]  = "bytes";
+const char string_memory_allocator_free[]   = "free";
 // Memory
 const char error_stack_fault[]              = "Stack fault!";
 const char error_out_of_memory[]            = "Out of memory!";

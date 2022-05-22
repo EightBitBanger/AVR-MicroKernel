@@ -39,8 +39,8 @@ void command_kill(void) {
 			proc_info.processCounters[i] = 0x00;
 			proc_info.process_pointer_table[i] = 0;
 			
-			for(uint8_t i=0; i < sizeof(message_task_stopped)-1; i++) 
-				callExtern(consoleDriver, 0x00, (uint8_t&)message_task_stopped[i]);
+			for(uint8_t i=0; i < sizeof(msg_task_stopped)-1; i++) 
+				callExtern(consoleDriver, 0x00, (uint8_t&)msg_task_stopped[i]);
 			
 			callExtern(consoleDriver, 0x01); // new line
 			return;
@@ -49,8 +49,8 @@ void command_kill(void) {
 		
 	}
 	
-	for(uint8_t i=0; i < sizeof(message_task_not_found)-1; i++)
-		callExtern(consoleDriver, 0x00, (uint8_t&)message_task_not_found[i]);
+	for(uint8_t i=0; i < sizeof(msg_task_not_found)-1; i++)
+		callExtern(consoleDriver, 0x00, (uint8_t&)msg_task_not_found[i]);
 	
 	callExtern(consoleDriver, 0x01); // new line
 	return;

@@ -114,7 +114,7 @@ struct ExtendedMemoryDriver {
 
 
 
-
+// Driver entry point
 void ExtendedMemoryDeviceDriverEntryPoint(uint8_t functionCall, uint8_t& paramA, uint8_t& paramB, uint8_t& paramC, uint8_t& paramD) {
 	
 	WrappedPointer pointer;

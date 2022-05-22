@@ -5,8 +5,8 @@ int main(void) {
 	
 	BusZero();
 	
-	extern_initiate();
-	scheduler_start(80);
+	extern_initiate();   // Initiate drivers
+	scheduler_start(80); // Fire up the scheduler
 	
 	
 	
