@@ -1,5 +1,8 @@
 //
-// Application function pointer table
+// Application command function table
+
+#ifndef ____COMMAND_MODULE_TABLE__
+#define ____COMMAND_MODULE_TABLE__
 
 #define _COMMAND_TABLE_SIZE__        20  // Total number of elements
 #define _COMMAND_TABLE_NAME_SIZE__   10  // Max name length
@@ -34,5 +37,8 @@ uint8_t loadModule(void(*function_ptr)(), const char name[], uint8_t name_length
 	
 	return 1;
 }
+
+
+#endif
 
 

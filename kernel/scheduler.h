@@ -1,8 +1,8 @@
 //
 // Cooperative scheduler
 
-#ifndef __PROCESS_SCHEDULER__
-#define __PROCESS_SCHEDULER__
+#ifndef ____PROCESS_SCHEDULER__
+#define ____PROCESS_SCHEDULER__
 
 //#define _CLOCK_SPEED_MHZ__  16.0
 //#define _CLOCK_SPEED_MHZ__  20.0
@@ -56,6 +56,7 @@ void disableInterrupts(void) {cli();}
 // Start the scheduler with the given timer priority
 void scheduler_start(uint8_t timer_priority) {
 	
+#ifdef __CORE_SCHEDULER_
 	_delay_ms(100);
 	
 	// ATmega644
@@ -65,11 +66,14 @@ void scheduler_start(uint8_t timer_priority) {
 	
 	TCNT0 = timer_priority;  // Set timer priority rate
 	sei();
+#endif
+	
 }
 
 // Stop the scheduler
 void scheduler_stop(void) {
 	
+#ifdef __CORE_SCHEDULER_
 	_delay_ms(100);
 	
 	// ATmega644
@@ -78,11 +82,14 @@ void scheduler_stop(void) {
 	TIMSK0 &= ~(1 << TOIE0);
 	
 	TCNT0 = 0;
+#endif
+	
 }
 
 // Schedule a new process
 uint8_t createProcess(const char name[], uint8_t name_length, void(*task_ptr)(), uint16_t priority, uint8_t task_type) {
 	
+#ifdef __CORE_SCHEDULER_
 	if ((priority == 0) || (name_length > _PROCESS_NAME_SIZE__-1)) return 0;
 	
 	uint8_t index;
@@ -104,11 +111,15 @@ uint8_t createProcess(const char name[], uint8_t name_length, void(*task_ptr)(),
 	proc_info.process_pointer_table[index] = task_ptr;
 	
 	return 1;
+#endif
+	
+	return 0;
 }
 
 // Get a process index by its process name
 uint8_t getProcessIndex(const char process_name[], uint8_t name_length) {
 	
+#ifdef __CORE_SCHEDULER_
 	if (name_length > _PROCESS_NAME_SIZE__-1) return 0;
 	
 	// Function look up
@@ -125,6 +136,7 @@ uint8_t getProcessIndex(const char process_name[], uint8_t name_length) {
 		// Return the index
 		return (index + 1);
 	}
+#endif
 	
 	return 0;
 }
@@ -132,6 +144,7 @@ uint8_t getProcessIndex(const char process_name[], uint8_t name_length) {
 // Stop a running process
 uint8_t killProcess(const char process_name[], uint8_t name_length) {
 	
+#ifdef __CORE_SCHEDULER_
 	// Find the task
 	uint8_t PID = getProcessIndex(process_name, name_length);
 	
@@ -145,6 +158,9 @@ uint8_t killProcess(const char process_name[], uint8_t name_length) {
 	proc_info.processName[PID][i] = 0x20;
 	
 	return 1;
+#endif
+	
+	return 0;
 }
 
 
@@ -153,6 +169,7 @@ uint8_t killProcess(const char process_name[], uint8_t name_length) {
 // Interrupt scheduler
 ISR (TIMER0_OVF_vect) {
 	
+#ifdef __CORE_SCHEDULER_
 	for (uint8_t PID=0; PID < _PROCESS_LIST_SIZE__; PID++) {
 		
 		if (proc_info.processPriority[PID] == 0) continue;
@@ -188,6 +205,7 @@ ISR (TIMER0_OVF_vect) {
 		
 		
 	}
+#endif
 	
 	return;
 }

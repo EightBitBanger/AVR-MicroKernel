@@ -3,17 +3,20 @@
 
 int main(void) {
 	
+#ifndef __CORE_LIGHTWEIGHT_
 	BusZero();
+#endif
 	
-	extern_initiate();   // Initiate drivers
-	scheduler_start(80); // Fire up the scheduler
+	// Initiate drivers
+	extern_initiate();
 	
+	// Fire up the scheduler
+	scheduler_start(80);
 	
-	
-	
-	while(1) nop;
+	while(1) asm("nop");
 	
 	scheduler_stop();
+	
 	extern_shutdown();
 	
 	return 1;

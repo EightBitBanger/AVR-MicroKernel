@@ -7,8 +7,7 @@ struct ModuleLoaderDrv {
 	ModuleLoaderDrv() {
 		loadModule(command_drv, "device",  7);
 	}
-};
-ModuleLoaderDrv loadModuleDrv;
+}static loadModuleDrv;
 
 void command_drv(void) {
 	

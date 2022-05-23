@@ -7,8 +7,7 @@ struct ModuleLoaderKill {
 	ModuleLoaderKill() {
 		loadModule(command_kill, "kill", 5);
 	}
-};
-ModuleLoaderKill loadModuleKill;
+}static loadModuleKill;
 
 void command_kill(void) {
 	

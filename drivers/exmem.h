@@ -1,7 +1,7 @@
 // Extended memory device driver interface
 
-#ifndef _HIGH_MEMORY__
-#define _HIGH_MEMORY__
+#ifndef __HIGH_MEMORY__
+#define __HIGH_MEMORY__
 
 // Kernel memory space
 #define _KERNEL_SIZE__          0x000ff   // Bytes reserved for the kernel
@@ -33,7 +33,16 @@ struct ExtendedMemoryDriver {
 	uint32_t currentAddress;
 	uint32_t returnAddress;
 	
-	ExtendedMemoryDriver() {loadLibrary(_EXTENDED_MEMORY__, sizeof(_EXTENDED_MEMORY__), (DriverEntryPoint)ExtendedMemoryDeviceDriverEntryPoint);}
+	ExtendedMemoryDriver() {
+		
+		_STACK_BEGIN__ = _KERNEL_SIZE__ + 1;
+		_STACK_END__   = 0;
+		
+		currentAddress = 0;
+		returnAddress  = 0;
+		
+		loadLibrary(_EXTENDED_MEMORY__, sizeof(_EXTENDED_MEMORY__), (DriverEntryPoint)ExtendedMemoryDeviceDriverEntryPoint);
+	}
 	
 	void initiate(void) {
 		
@@ -138,15 +147,6 @@ void ExtendedMemoryDeviceDriverEntryPoint(uint8_t functionCall, uint8_t& paramA,
 			pointer.byte_t[2] = paramC;
 			pointer.byte_t[3] = paramD;
 			extendedMemoryDriver.currentAddress = pointer.address;
-			break;
-		
-		// Get the address pointer
-		case 0x0b: 
-			pointer.address = extendedMemoryDriver.currentAddress;
-			paramA = pointer.byte_t[0];
-			paramB = pointer.byte_t[1];
-			paramC = pointer.byte_t[2];
-			paramD = pointer.byte_t[3];
 			break;
 		
 		// Get the return pointer

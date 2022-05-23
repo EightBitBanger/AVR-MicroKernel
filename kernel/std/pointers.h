@@ -1,7 +1,7 @@
-// Pointer definitions
+// Pointer wrapper
 
-#ifndef _POINTER_TYPES__
-#define _POINTER_TYPES__
+#ifndef __POINTER_WRAP_UP__
+#define __POINTER_WRAP_UP__
 
 #define nullptr 0x00000000
 

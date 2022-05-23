@@ -1,8 +1,8 @@
 //
 // System bus abstraction
 
-#ifndef __BUS_INTERFACE__
-#define __BUS_INTERFACE__
+#ifndef ____BUS_INTERFACE__
+#define ____BUS_INTERFACE__
 
 #define _BUS_LOWER_DIR__   DDRA        // Lower address bus
 #define _BUS_LOWER_OUT__   PORTA

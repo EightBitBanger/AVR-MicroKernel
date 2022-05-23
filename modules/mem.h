@@ -7,26 +7,26 @@ struct ModuleLoaderMem {
 	ModuleLoaderMem() {
 		loadModule(command_memory, "mem",  4);
 	}
-};
-ModuleLoaderMem loadModuleMem;
+}static loadModuleMem;
 
 void command_memory(void) {
 	
 	DriverEntryPoint memDriverPtr;
-	WrappedPointer stackSz;
-	WrappedPointer memTotal;
 	
 	if (getFuncAddress(_EXTENDED_MEMORY__, sizeof(_EXTENDED_MEMORY__), memDriverPtr) == 0) {
 		console.print(error_exmem_not_installed, sizeof(error_exmem_not_installed));
 		console.printLn();
-		console.printLn();
 		return;
 	}
 	
-	callExtern(memDriverPtr, 0x04); // Check total memory
+	// Check total memory
+	callExtern(memDriverPtr, 0x04);
+	WrappedPointer memTotal;
 	callExtern(memDriverPtr, 0x0c, memTotal.byte_t[0], memTotal.byte_t[1], memTotal.byte_t[2], memTotal.byte_t[3]);
 	
-	callExtern(memDriverPtr, 0x03); // Check total stack size
+	// Check total stack size
+	callExtern(memDriverPtr, 0x03);
+	WrappedPointer stackSz;
 	callExtern(memDriverPtr, 0x0c, stackSz.byte_t[0], stackSz.byte_t[1], stackSz.byte_t[2], stackSz.byte_t[3]);
 	
 	console.printInt( memTotal.address - stackSz.address );

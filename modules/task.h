@@ -1,5 +1,5 @@
 //
-// Task command
+// Task command -List running tasks
 
 void command_task(void);
 
@@ -7,8 +7,7 @@ struct ModuleLoaderTask {
 	ModuleLoaderTask() {
 		loadModule(command_task, "task", 5);
 	}
-};
-ModuleLoaderTask loadModuleTask;
+}static loadModuleTask;
 
 void command_task(void) {
 	

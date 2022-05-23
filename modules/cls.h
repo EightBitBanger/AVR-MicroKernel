@@ -7,8 +7,7 @@ struct ModuleLoaderCls {
 	ModuleLoaderCls() {
 		loadModule(command_clear_screen, "cls",  4);
 	}
-};
-ModuleLoaderCls loadModuleCls;
+}static loadModuleCls;
 
 void command_clear_screen(void) {
 	

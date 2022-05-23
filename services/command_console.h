@@ -10,8 +10,7 @@ struct CommandConsoleServiceLauncher {
 	CommandConsoleServiceLauncher() {
 		createProcess("console", 8, keyboard_event_handler, 100, _TASK_SERVICE__);
 	}
-};
-CommandConsoleServiceLauncher commandConsoleServiceLauncher;
+}static commandConsoleServiceLauncher;
 
 void keyboard_event_handler(void) {
 	
