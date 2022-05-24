@@ -108,7 +108,7 @@ struct CommandConsole {
 	void printInt(uint32_t number) {
 		
 		char numberString[10];
-		uint8_t place = intToString(number, numberString);
+		uint8_t place = 0;//intToString(number, numberString);
 		if (place==0) place++;
 		
 		for (uint8_t i=0; i<place; i++) {

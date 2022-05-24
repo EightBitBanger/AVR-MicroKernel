@@ -4,6 +4,8 @@
 #ifndef ____BUS_INTERFACE__
 #define ____BUS_INTERFACE__
 
+#ifdef  __CORE_MAIN_
+
 #define _BUS_LOWER_DIR__   DDRA        // Lower address bus
 #define _BUS_LOWER_OUT__   PORTA
 #define _BUS_LOWER_IN__    PINA
@@ -120,6 +122,8 @@ void BusZero(void) {
 	_CONTROL_OUT__=0xff;
 	
 }
+
+#endif
 
 #endif
 

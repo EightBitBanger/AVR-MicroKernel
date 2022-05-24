@@ -1,14 +1,6 @@
 //
 // Commonly used string constants
 
-// Default system device names
-const char _DISPLAY_CONSOLE__[]   = "display";
-const char _KEYBOARD_INPUT__[]    = "keyboard";
-const char _EXTENDED_MEMORY__[]   = "exMem";
-const char _DATA_MEMORY__[]       = "nvMem";
-const char _COMMAND_CONSOLE__[]   = "console";
-
-
 // Generic messages
 const char msg_device_enabled[]             = "Device enabled.";
 const char msg_device_disabled[]            = "Device disabled.";

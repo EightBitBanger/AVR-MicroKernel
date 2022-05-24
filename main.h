@@ -18,11 +18,6 @@
   #include "drivers\eeprom.h"      // On-chip EEPROM storage
   #include "drivers\console.h"     // Command console library
   
-  //
-  // System services
-  
-  #include "services\command_console.h"
-  
 #else
   
   //
@@ -31,11 +26,6 @@
   #include "drivers\display.h"     // Liquid Crystal display controller
   #include "drivers\keyboard.h"    // On-board keyboard
   #include "drivers\console.h"     // Command console library
-  
-  //
-  // Safe mode system services
-  
-  #include "services\command_console.h"
   
 #endif
 
@@ -53,16 +43,21 @@
   #include "modules\mem.h"
   #include "modules\task.h"
   
+  //
+  // System services
+  
+  #include "services\command_console.h"
+  
 #else
   
   //
   // Lightweight kernel function modules
   
-  #include "modules\device.h"
-  #include "modules\kill.h"
-  #include "modules\list.h"
-  #include "modules\mem.h"
-  #include "modules\task.h"
+  //#include "modules\device.h"
+  //#include "modules\kill.h"
+  //#include "modules\list.h"
+  //#include "modules\mem.h"
+  //#include "modules\task.h"
   
 #endif
 

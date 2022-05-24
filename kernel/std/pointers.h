@@ -3,7 +3,9 @@
 #ifndef __POINTER_WRAP_UP__
 #define __POINTER_WRAP_UP__
 
+
 #define nullptr 0x00000000
+
 
 #ifndef _32_BIT_POINTERS__
  #ifndef _64_BIT_POINTERS__
@@ -17,7 +19,7 @@ union WrappedPointer {
 	
 #ifdef _32_BIT_POINTERS__
 	char     byte[4];
-	uint8_t  byte_t[8];
+	uint8_t  byte_t[4];
 	uint16_t word[2];
 	uint32_t dword;
 	uint32_t address;

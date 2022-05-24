@@ -4,6 +4,7 @@
 #ifndef ____DEVICE_DRIVER_SYSTEM__
 #define ____DEVICE_DRIVER_SYSTEM__
 
+
 #define _DRIVER_TABLE_SIZE__         20  // Total number of running drivers
 #define _DRIVER_TABLE_NAME_SIZE__    10  // Max string name length
 
@@ -11,6 +12,10 @@
 #define _DRIVER_SHUTDOWN__  0xfe
 
 static uint8_t nullchar =0;
+
+
+#ifdef  __CORE_MAIN_
+
 
 struct DeviceDriverTable {
 	
@@ -107,11 +112,13 @@ uint8_t callExtern(DriverEntryPoint& entry_pointer, uint8_t function_call, uint8
 	return 1;
 }
 
+#endif
+
 // Initiate loaded device drivers
 void extern_initiate(void) {
 	
 #ifdef __CORE_MAIN_
-	// Load device drivers
+	
 	for (uint8_t i=0; i < _DRIVER_TABLE_SIZE__; i++) {
 		if ((deviceDriverTable.driver_entrypoint_table[i] != 0) && (deviceDriverTable.deviceNameIndex[i][0] != 0x20)) {
 			DriverEntryPoint driverEntryPoint;
@@ -120,6 +127,7 @@ void extern_initiate(void) {
 		}
 		_delay_ms(50);
 	}
+	
 #endif
 	
 }
