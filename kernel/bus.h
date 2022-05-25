@@ -32,6 +32,9 @@
 //#define _CONTROL___                   0x07
 
 
+// Initiate and zero the hardware level IO for implementation of the bus interface
+void BusZero(void);
+
 
 struct Bus {
 	
@@ -42,6 +45,8 @@ struct Bus {
 		
 		waitStateRead  = 0;
 		waitStateWrite = 0;
+		
+		BusZero();
 		
 	}
 	
@@ -104,7 +109,6 @@ struct Bus {
 };
 
 
-// Initiate and zero the hardware level IO for implementation of a bus interface
 void BusZero(void) {
 	
 	// Address bus

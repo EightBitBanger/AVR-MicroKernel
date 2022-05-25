@@ -4,26 +4,24 @@
 #ifndef ____KERNEL_MAIN__
 #define ____KERNEL_MAIN__
 
+
 #define __CORE_MAIN_          // Include the device driver and kernel module systems
 #define __CORE_SCHEDULER_     // Include the task scheduling sub-system
+#define __CORE_BUS_           // Include the bus interface
 
-//#define __BOOT_SAFEMODE_      // Load the minimum drivers required to boot to a prompt
-//#define __CORE_LIGHTWEIGHT_   // Load minimal modules
+//#define __BOOT_LIGHTWEIGHT_   // Boot with minimal modules
+//#define __BOOT_SAFEMODE_      // Boot with the minimum drivers required to boot to a prompt
 
 
-//
-// Default system device names
+#define _32_BIT_POINTERS__
 
-const char _DISPLAY_CONSOLE__[]   = "display";
-const char _KEYBOARD_INPUT__[]    = "keyboard";
-const char _EXTENDED_MEMORY__[]   = "exMem";
-const char _DATA_MEMORY__[]       = "nvMem";
-const char _COMMAND_CONSOLE__[]   = "console";
 
+
+// General purpose string constants
+#include "kernel/string_const.h"
 
 // Standard includes
 #include "kernel/std/cstring.h"     // C string functions
-#include "kernel/string_const.h"    // General purpose string constants
 #include "kernel/std/pointers.h"    // Pointer wrapper
 
 

@@ -3,11 +3,7 @@
 
 int main(void) {
 	
-#ifndef __CORE_LIGHTWEIGHT_
-	BusZero();
-#endif
-	
-	// Initiate drivers
+	// Initiate device drivers
 	extern_initiate();
 	
 	// Fire up the scheduler

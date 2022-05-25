@@ -17,7 +17,7 @@ void command_application__(void) {
 	WrappedPointer stackSz;
 	WrappedPointer memTotal;
 	
-	// Driver check
+	// Check driver dependency
 	if (getFuncAddress(_EXTENDED_MEMORY__, sizeof(_EXTENDED_MEMORY__), memDriverPtr) == 0) {
 		console.print(error_exmem_not_installed, sizeof(error_exmem_not_installed));
 		console.printLn();
@@ -32,9 +32,13 @@ void command_application__(void) {
 
 void executable_task(void) {
 	
-	DriverEntryPoint memDriverPtr;
-	getFuncAddress(_EXTENDED_MEMORY__, sizeof(_EXTENDED_MEMORY__), memDriverPtr);
+	//DriverEntryPoint memDriverPtr;
+	//getFuncAddress(_EXTENDED_MEMORY__, sizeof(_EXTENDED_MEMORY__), memDriverPtr);
 	
+	
+	
+	
+	/*
 	
 	WrappedPointer pointer;
 	pointer.address = 0x100;
@@ -48,6 +52,7 @@ void executable_task(void) {
 		console.printLn();
 	}
 	
+	*/
 	
 	return;
 }

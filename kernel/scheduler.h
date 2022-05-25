@@ -14,7 +14,7 @@
 
 #include <avr/interrupt.h>
 
-#define _PROCESS_LIST_SIZE__  30
+#define _PROCESS_LIST_SIZE__  20
 #define _PROCESS_NAME_SIZE__  10
 
 #define _TASK_USER__          'u' // Task is a user program
@@ -64,7 +64,7 @@ uint8_t createProcess(const char name[], uint8_t name_length, void(*task_ptr)(),
 	
 	// Find an available slot
 	for (index=0; index <= _PROCESS_LIST_SIZE__; index++)
-	if (proc_info.processPriority[index] == 0) break;
+		if (proc_info.processPriority[index] == 0) break;
 	
 	// No free slots
 	if (index == _PROCESS_LIST_SIZE__) return 0;
@@ -125,7 +125,7 @@ uint8_t killProcess(const char process_name[], uint8_t name_length) {
 
 
 
-// Interrupt scheduler
+
 ISR (TIMER0_OVF_vect) {
 	
 	for (uint8_t PID=0; PID < _PROCESS_LIST_SIZE__; PID++) {
