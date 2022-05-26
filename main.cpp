@@ -4,16 +4,17 @@
 int main(void) {
 	
 	// Initiate device drivers
-	extern_initiate();
+	__extern_initiate();
 	
 	// Fire up the scheduler
-	scheduler_start(80);
+	__scheduler_start(80);
 	
-	while(1) asm("nop");
+	while(1) 
+		asm("nop");
 	
-	scheduler_stop();
+	__scheduler_stop();
 	
-	extern_shutdown();
+	__extern_shutdown();
 	
 	return 1;
 }

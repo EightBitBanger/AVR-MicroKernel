@@ -21,13 +21,27 @@
 #define _TASK_SERVICE__       's' // Task is a system service routine
 #define _TASK_VOLATILE__      'v' // Task will run once and terminate
 
+#ifdef __CORE_SCHEDULER_
+
 typedef void(*Process)();
 
 
-#ifdef __CORE_SCHEDULER_
+// Schedule a new process
+uint8_t createProcess(const char name[], uint8_t name_length, void(*task_ptr)(), uint16_t priority, uint8_t task_type);
+// Get a process index by its process name
+uint8_t getProcessIndex(const char process_name[], uint8_t name_length);
+// Stop a running process
+uint8_t killProcess(const char process_name[], uint8_t name_length);
 
 
-struct ProcessDescriptionTable {
+void __scheduler_start(uint8_t timer_priority);
+void __scheduler_stop(void);
+
+
+//
+// Process information descriptor table
+
+struct ProcessDescriptorTable {
 	
 	uint8_t  processName[_PROCESS_LIST_SIZE__][_PROCESS_NAME_SIZE__];
 	uint8_t  processType[_PROCESS_LIST_SIZE__];
@@ -35,27 +49,24 @@ struct ProcessDescriptionTable {
 	uint16_t processCounters[_PROCESS_LIST_SIZE__];
 	void (*process_pointer_table[_PROCESS_LIST_SIZE__])();
 	
-	ProcessDescriptionTable() {
-		
+	ProcessDescriptorTable() {
 		for (uint8_t i=0; i < _PROCESS_LIST_SIZE__; i++) {
 			processType[i]     = 0x00;
 			processPriority[i] = 0x00;
 			processCounters[i] = 0x00;
 			process_pointer_table[i] = 0;
+			
 			for (uint8_t a=0; a < _PROCESS_NAME_SIZE__; a++)
 			processName[i][a] = 0x20;
 		}
-		
 	}
 	
 }static proc_info;
 
 
-// Interrupt state
-void enableInterrupts(void)  {sei();}
-void disableInterrupts(void) {cli();}
-
+//
 // Schedule a new process
+
 uint8_t createProcess(const char name[], uint8_t name_length, void(*task_ptr)(), uint16_t priority, uint8_t task_type) {
 	
 	if ((priority == 0) || (name_length > _PROCESS_NAME_SIZE__-1)) return 0;
@@ -64,7 +75,7 @@ uint8_t createProcess(const char name[], uint8_t name_length, void(*task_ptr)(),
 	
 	// Find an available slot
 	for (index=0; index <= _PROCESS_LIST_SIZE__; index++)
-		if (proc_info.processPriority[index] == 0) break;
+	if (proc_info.processPriority[index] == 0) break;
 	
 	// No free slots
 	if (index == _PROCESS_LIST_SIZE__) return 0;
@@ -81,7 +92,9 @@ uint8_t createProcess(const char name[], uint8_t name_length, void(*task_ptr)(),
 	return 1;
 }
 
+//
 // Get a process index by its process name
+
 uint8_t getProcessIndex(const char process_name[], uint8_t name_length) {
 	
 	if (name_length > _PROCESS_NAME_SIZE__-1) return 0;
@@ -104,7 +117,9 @@ uint8_t getProcessIndex(const char process_name[], uint8_t name_length) {
 	return 0;
 }
 
+//
 // Stop a running process
+
 uint8_t killProcess(const char process_name[], uint8_t name_length) {
 	
 	// Find the task
@@ -123,8 +138,8 @@ uint8_t killProcess(const char process_name[], uint8_t name_length) {
 }
 
 
-
-
+//
+// Interrupt timer 0
 
 ISR (TIMER0_OVF_vect) {
 	
@@ -143,7 +158,7 @@ ISR (TIMER0_OVF_vect) {
 		}
 		
 		
-		// Finish process
+		// Switch process type
 		switch (proc_info.processType[PID]) {
 			
 			// Remove volatile tasks
@@ -167,10 +182,8 @@ ISR (TIMER0_OVF_vect) {
 	return;
 }
 
-#endif
 
-// Start the scheduler with the given timer priority
-void scheduler_start(uint8_t timer_priority) {
+void __scheduler_start(uint8_t timer_priority) {
 	
 	_delay_ms(100);
 	
@@ -182,8 +195,7 @@ void scheduler_start(uint8_t timer_priority) {
 	sei();                   // Enable interrupts
 }
 
-// Stop the scheduler
-void scheduler_stop(void) {
+void __scheduler_stop(void) {
 	
 	_delay_ms(100);
 	
@@ -193,6 +205,9 @@ void scheduler_stop(void) {
 	
 	TCNT0 = 0;
 }
+
+
+#endif
 
 #endif
 

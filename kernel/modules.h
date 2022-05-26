@@ -4,10 +4,15 @@
 #ifndef ____COMMAND_MODULE_TABLE__
 #define ____COMMAND_MODULE_TABLE__
 
-#ifdef  __CORE_MAIN_
-
 #define _COMMAND_TABLE_SIZE__        20  // Total number of elements
 #define _COMMAND_TABLE_NAME_SIZE__   10  // Max name length
+
+#ifdef  __CORE_MAIN_
+
+
+// Install a module into the function table
+uint8_t loadModule(void(*function_ptr)(), const char name[], uint8_t name_length);
+
 
 struct CommandFunctionTable {
 	
@@ -16,14 +21,14 @@ struct CommandFunctionTable {
 	
 	CommandFunctionTable() {
 		for (uint8_t i=0; i < _COMMAND_TABLE_SIZE__; i++) {
-			for (uint8_t a=0; a < _COMMAND_TABLE_NAME_SIZE__; a++) functionNameIndex[i][a] = 0x20;
+			for (uint8_t a=0; a < _COMMAND_TABLE_NAME_SIZE__; a++) 
+				functionNameIndex[i][a] = 0x20;
 		}
 	}
 	
 }static moduleTable;
 
 
-// Install a module into the function table
 uint8_t loadModule(void(*function_ptr)(), const char name[], uint8_t name_length) {
 	
 	if (name_length > _COMMAND_TABLE_NAME_SIZE__) return 0;
