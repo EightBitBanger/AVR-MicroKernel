@@ -1,5 +1,5 @@
 //
-// Cooperative scheduler
+// Co-operative scheduler
 
 #ifndef ____TASK_SCHEDULER__
 #define ____TASK_SCHEDULER__

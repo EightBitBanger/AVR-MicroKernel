@@ -6,9 +6,6 @@
 
 #include "kernel.h"
 
-//
-// Driver configuration
-
 #include "configuration.h"
 
 

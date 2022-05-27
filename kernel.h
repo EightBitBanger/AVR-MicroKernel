@@ -14,24 +14,24 @@
 
 
 #define _32_BIT_POINTERS__
+//#define _64_BIT_POINTERS__
 
 
 
-// General purpose string constants
-#include "kernel/string_const.h"
 
 // Standard includes
-#include "kernel/std/cstring.h"     // C string functions
-#include "kernel/std/pointers.h"    // Pointer wrapper
+#include "kernel/std/string_const.h"  // System message strings
+#include "kernel/std/cstring.h"       // C string functions
+#include "kernel/std/pointers.h"      // Pointer wrapper
 
 
 // System tables
-#include "kernel/drivers.h"         // Device drivers
-#include "kernel/modules.h"         // Application modules
-#include "kernel/bus.h"             // System bus interface
+#include "kernel/drivers.h"           // Device drivers
+#include "kernel/modules.h"           // Application modules
+#include "kernel/bus.h"               // System bus interface
 
 
-#include "kernel/scheduler.h"       // Task scheduler
+#include "kernel/scheduler.h"         // Task scheduler
 
 
 #endif

@@ -1,4 +1,3 @@
-//
 // Device driver configuration
 
 
@@ -10,10 +9,10 @@
 #include "drivers\console.h"     // Command console library
 
 
+#ifndef __BOOT_SAFEMODE_
+
 //
 // Normal mode device drivers
-
-#ifndef __BOOT_SAFEMODE_
 
 #include "drivers\exmem.h"       // On-board extended memory
 #include "drivers\eeprom.h"      // On-chip EEPROM storage

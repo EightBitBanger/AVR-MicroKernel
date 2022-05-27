@@ -29,27 +29,34 @@ void command_kill(void) {
 		// Get task name
 		for (uint8_t a=0; a < console.last_string_length-1; a++) task_name[a] = proc_info.processName[i][a];
 		
+		for(uint8_t i=0; i < console.last_string_length-1; i++)
+			callExtern(consoleDriver, 0x00, (uint8_t&)task_name[i]);
+		
+		
+		
+		/*
 		// Check function parameter
 		if (string_compare(keyboard_string, task_name, console.last_string_length - 5) == 1) {
 			
 			for (uint8_t c=0; c < _PROCESS_NAME_SIZE__; c++) proc_info.processName[i][c] = 0x20;
+			
 			proc_info.processType[i] = 0x00;
 			proc_info.processPriority[i] = 0x00;
 			proc_info.processCounters[i] = 0x00;
 			proc_info.process_pointer_table[i] = 0;
 			
-			for(uint8_t i=0; i < sizeof(msg_task_stopped)-1; i++) 
-				callExtern(consoleDriver, 0x00, (uint8_t&)msg_task_stopped[i]);
+			//for(uint8_t i=0; i < sizeof(msg_task_stopped)-1; i++) 
+			//	callExtern(consoleDriver, 0x00, (uint8_t&)msg_task_stopped[i]);
 			
 			callExtern(consoleDriver, 0x01); // new line
 			return;
 			
 		}
-		
+		*/
 	}
 	
-	for(uint8_t i=0; i < sizeof(msg_task_not_found)-1; i++)
-		callExtern(consoleDriver, 0x00, (uint8_t&)msg_task_not_found[i]);
+	//for(uint8_t i=0; i < sizeof(msg_task_not_found)-1; i++)
+		//callExtern(consoleDriver, 0x00, (uint8_t&)msg_task_not_found[i]);
 	
 	callExtern(consoleDriver, 0x01); // new line
 	return;
