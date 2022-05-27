@@ -122,8 +122,7 @@ struct KeyboardDriver {
 		return;
 	}
 	
-};
-KeyboardDriver keyboard;
+}static keyboard;
 
 void keyboardDeviceDriverEntryPoint(uint8_t functionCall, uint8_t& paramA, uint8_t& paramB, uint8_t& paramC, uint8_t& paramD) {
 	

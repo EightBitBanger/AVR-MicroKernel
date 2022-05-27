@@ -28,24 +28,18 @@ uint8_t getFuncAddress(const char device_name[], uint8_t name_length, DriverEntr
 // Call an external function from a driver entry pointer
 uint8_t callExtern(DriverEntryPoint& entry_pointer, uint8_t function_call, uint8_t& paramA, uint8_t& paramB, uint8_t& paramC, uint8_t& paramD);
 
-// Initiate loaded device drivers
+// Initiate the kernel driver table
 void __extern_initiate(void);
+// Initiate registered device drivers
+void __extern_call_init(void);
 // Shutdown loaded device drivers
-void __extern_shutdown(void);
+void __extern_call_shutdown(void);
 
 
 struct DeviceDriverTable {
 	
 	char deviceNameIndex[_DRIVER_TABLE_SIZE__][_DRIVER_TABLE_NAME_SIZE__];
 	void (*driver_entrypoint_table[_DRIVER_TABLE_SIZE__])(uint8_t, uint8_t&, uint8_t&, uint8_t&, uint8_t&);
-	
-	DeviceDriverTable() {
-		for (uint8_t i=0; i < _DRIVER_TABLE_SIZE__; i++) {
-			driver_entrypoint_table[i] = 0;
-			for (uint8_t a=0; a < _DRIVER_TABLE_NAME_SIZE__; a++)
-				deviceNameIndex[i][a] = 0x20;
-		}
-	}
 	
 }static deviceDriverTable;
 
@@ -121,10 +115,9 @@ uint8_t callExtern(DriverEntryPoint& entry_pointer, uint8_t function_call, uint8
 
 #endif
 
-
-void __extern_initiate(void) {
+void __extern_call_init() {
 	
-#ifdef __CORE_MAIN_
+	#ifdef __CORE_MAIN_
 	
 	for (uint8_t i=0; i < _DRIVER_TABLE_SIZE__; i++) {
 		if ((deviceDriverTable.driver_entrypoint_table[i] != 0) && (deviceDriverTable.deviceNameIndex[i][0] != 0x20)) {
@@ -132,7 +125,23 @@ void __extern_initiate(void) {
 			driverEntryPoint = deviceDriverTable.driver_entrypoint_table[i];
 			callExtern(driverEntryPoint, _DRIVER_INITIATE__);
 		}
+		// Allow time between device initiations
 		_delay_ms(50);
+	}
+	
+	#endif
+	
+}
+
+
+void __extern_initiate(void) {
+	
+#ifdef __CORE_MAIN_
+	
+	for (uint8_t i=0; i < _DRIVER_TABLE_SIZE__; i++) {
+		deviceDriverTable.driver_entrypoint_table[i] = 0;
+		for (uint8_t a=0; a < _DRIVER_TABLE_NAME_SIZE__; a++)
+			deviceDriverTable.deviceNameIndex[i][a] = 0x20;
 	}
 	
 #endif
@@ -140,7 +149,7 @@ void __extern_initiate(void) {
 }
 
 
-void __extern_shutdown(void) {
+void __extern_call_shutdown(void) {
 	
 #ifdef __CORE_MAIN_
 	// Shutdown device drivers

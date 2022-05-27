@@ -80,7 +80,7 @@ struct DisplayDriver {
 	
 	void uploadCharacterGeneratorRam(uint8_t char_to_upload) {write(0xa8, char_to_upload); return;}
 	
-} displayDriver;
+}static displayDriver;
 
 // Driver entry point
 void DisplayDeviceDriverEntryPoint(uint8_t functionCall, uint8_t& paramA, uint8_t& paramB, uint8_t& paramC, uint8_t& paramD) {

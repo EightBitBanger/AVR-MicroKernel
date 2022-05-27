@@ -4,7 +4,7 @@
 int main(void) {
 	
 	// Initiate device drivers
-	__extern_initiate();
+	__extern_call_init();
 	
 	// Fire up the scheduler
 	__scheduler_start(80);
@@ -14,7 +14,7 @@ int main(void) {
 	
 	__scheduler_stop();
 	
-	__extern_shutdown();
+	__extern_call_shutdown();
 	
 	return 1;
 }

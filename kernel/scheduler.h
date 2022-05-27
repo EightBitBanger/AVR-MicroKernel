@@ -4,17 +4,11 @@
 #ifndef ____TASK_SCHEDULER__
 #define ____TASK_SCHEDULER__
 
-
-#define _CLOCK_SPEED_MHZ__  24.0
-
-#define F_CPU  _CLOCK_SPEED_MHZ__ * 1000000UL
-
-#include <avr/io.h>
 #include <util/delay.h>
 
 #include <avr/interrupt.h>
 
-#define _PROCESS_LIST_SIZE__  20
+#define _PROCESS_LIST_SIZE__  30
 #define _PROCESS_NAME_SIZE__  10
 
 #define _TASK_USER__          'u' // Task is a user program
@@ -33,7 +27,7 @@ uint8_t getProcessIndex(const char process_name[], uint8_t name_length);
 // Stop a running process
 uint8_t killProcess(const char process_name[], uint8_t name_length);
 
-
+void __scheduler_init_(void);
 void __scheduler_start(uint8_t timer_priority);
 void __scheduler_stop(void);
 
@@ -48,18 +42,6 @@ struct ProcessDescriptorTable {
 	uint16_t processPriority[_PROCESS_LIST_SIZE__];
 	uint16_t processCounters[_PROCESS_LIST_SIZE__];
 	void (*process_pointer_table[_PROCESS_LIST_SIZE__])();
-	
-	ProcessDescriptorTable() {
-		for (uint8_t i=0; i < _PROCESS_LIST_SIZE__; i++) {
-			processType[i]     = 0x00;
-			processPriority[i] = 0x00;
-			processCounters[i] = 0x00;
-			process_pointer_table[i] = 0;
-			
-			for (uint8_t a=0; a < _PROCESS_NAME_SIZE__; a++)
-			processName[i][a] = 0x20;
-		}
-	}
 	
 }static proc_info;
 
@@ -99,7 +81,6 @@ uint8_t getProcessIndex(const char process_name[], uint8_t name_length) {
 	
 	if (name_length > _PROCESS_NAME_SIZE__-1) return 0;
 	
-	// Function look up
 	for (uint8_t index=0; index< _PROCESS_LIST_SIZE__; index++) {
 		
 		if (proc_info.processName[index][0] == 0x20) continue;
@@ -110,7 +91,6 @@ uint8_t getProcessIndex(const char process_name[], uint8_t name_length) {
 			if (nameChar == process_name[a]) count++; else break;
 		}
 		
-		// Return the index
 		return (index + 1);
 	}
 	
@@ -122,10 +102,8 @@ uint8_t getProcessIndex(const char process_name[], uint8_t name_length) {
 
 uint8_t killProcess(const char process_name[], uint8_t name_length) {
 	
-	// Find the task
 	uint8_t PID = getProcessIndex(process_name, name_length);
 	
-	// Kill the task
 	proc_info.processType[PID]     = 0;
 	proc_info.processPriority[PID] = 0;
 	proc_info.processCounters[PID] = 0;
@@ -147,12 +125,10 @@ ISR (TIMER0_OVF_vect) {
 		
 		if (proc_info.processPriority[PID] == 0) continue;
 		
-		// Check process timer counter
 		if (proc_info.processCounters[PID] >= proc_info.processPriority[PID]) {
-			// Yield control to the process
 			proc_info.processCounters[PID]=0;
 			proc_info.process_pointer_table[PID]();
-			} else {
+		} else {
 			proc_info.processCounters[PID]++;
 			continue;
 		}
@@ -161,7 +137,7 @@ ISR (TIMER0_OVF_vect) {
 		// Switch process type
 		switch (proc_info.processType[PID]) {
 			
-			// Remove volatile tasks
+			// Terminate volatile tasks
 			case _TASK_VOLATILE__: {
 				for (uint8_t i=0; i < _PROCESS_NAME_SIZE__; i++) proc_info.processName[PID][i] = 0x20;
 				proc_info.processType[PID] = 0;
@@ -182,6 +158,17 @@ ISR (TIMER0_OVF_vect) {
 	return;
 }
 
+void __scheduler_init_(void) {
+	for (uint8_t i=0; i < _PROCESS_LIST_SIZE__; i++) {
+		proc_info.processType[i]     = 0x00;
+		proc_info.processPriority[i] = 0x00;
+		proc_info.processCounters[i] = 0x00;
+		proc_info.process_pointer_table[i] = 0;
+		
+		for (uint8_t a=0; a < _PROCESS_NAME_SIZE__; a++)
+			proc_info.processName[i][a] = 0x20;
+	}
+}
 
 void __scheduler_start(uint8_t timer_priority) {
 	

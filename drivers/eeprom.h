@@ -50,7 +50,7 @@ struct EEPROMStorage {
 		byte = EEDR;
 	}
 	
-} static eepromStorage;
+}static eepromStorage;
 
 
 

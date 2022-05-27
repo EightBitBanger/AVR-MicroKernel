@@ -118,7 +118,7 @@ struct ExtendedMemoryDriver {
 		return numberOfAllocations.address;
 	}
 	
-} extendedMemoryDriver;
+}static extendedMemoryDriver;
 
 
 

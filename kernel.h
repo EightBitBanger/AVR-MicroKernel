@@ -30,8 +30,20 @@
 #include "kernel/modules.h"           // Application modules
 #include "kernel/bus.h"               // System bus interface
 
-
 #include "kernel/scheduler.h"         // Task scheduler
+
+// Initiate kernel tables
+struct __INITIATE_KERNEL_TABLES_ {
+	__INITIATE_KERNEL_TABLES_() {
+		
+		__extern_initiate();
+		
+		__module_init_();
+		
+		__scheduler_init_();
+		
+	}
+} static __initiate_kernel_tables_;
 
 
 #endif

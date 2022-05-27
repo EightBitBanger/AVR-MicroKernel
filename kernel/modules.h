@@ -12,19 +12,13 @@
 
 // Install a module into the function table
 uint8_t loadModule(void(*function_ptr)(), const char name[], uint8_t name_length);
-
+// Initiate the module function table
+void __module_init_(void);
 
 struct CommandFunctionTable {
 	
 	char functionNameIndex[_COMMAND_TABLE_SIZE__][_COMMAND_TABLE_NAME_SIZE__];
 	void (*command_function_table[_COMMAND_TABLE_SIZE__])(void);
-	
-	CommandFunctionTable() {
-		for (uint8_t i=0; i < _COMMAND_TABLE_SIZE__; i++) {
-			for (uint8_t a=0; a < _COMMAND_TABLE_NAME_SIZE__; a++) 
-				functionNameIndex[i][a] = 0x20;
-		}
-	}
 	
 }static moduleTable;
 
@@ -43,6 +37,13 @@ uint8_t loadModule(void(*function_ptr)(), const char name[], uint8_t name_length
 	moduleTable.command_function_table[index] = function_ptr;
 	
 	return 1;
+}
+
+void __module_init_(void) {
+	for (uint8_t i=0; i < _COMMAND_TABLE_SIZE__; i++) {
+		for (uint8_t a=0; a < _COMMAND_TABLE_NAME_SIZE__; a++)
+			moduleTable.functionNameIndex[i][a] = 0x20;
+	}
 }
 
 #endif
