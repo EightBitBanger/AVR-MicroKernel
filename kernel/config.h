@@ -6,7 +6,7 @@
 #define __CORE_BUS_           // Include the bus interface
 
 //#define __BOOT_SAFEMODE_      // Load only the drivers required to boot
-//#define __BOOT_LIGHTWEIGHT_   // Load only the modules required to boot
+//#define __BOOT_LIGHTWEIGHT_   // Load minimal module function required to boot
 //#define __BOOT_NOSERVICES_    // Load only the services required to boot
 
 #define _32_BIT_POINTERS__

@@ -1,5 +1,5 @@
-//
 // Device driver configuration
+
 
 // Safe mode device drivers
 
@@ -16,6 +16,4 @@
 #include "memory/eeprom.h"      // On-chip EEPROM storage
 
 #endif
-
-
 

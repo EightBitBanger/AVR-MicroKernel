@@ -1,4 +1,3 @@
-//
 // Kernel function modules
 
 #ifndef __BOOT_LIGHTWEIGHT_
