@@ -11,7 +11,7 @@
 #define _DRIVER_INITIATE__  0xff
 #define _DRIVER_SHUTDOWN__  0xfe
 
-static uint8_t nullchar =0;
+static uint8_t nullchar = 0;
 
 #ifdef  __CORE_MAIN_
 
@@ -19,20 +19,20 @@ typedef void(*DriverEntryPoint)(uint8_t, uint8_t&, uint8_t&, uint8_t&, uint8_t&)
 
 
 // Load a device driver entry point function onto the driver table
-uint8_t loadLibrary(const char name[], uint8_t name_length, DriverEntryPoint entry_pointer);
+uint8_t load_library(const char name[], uint8_t name_length, DriverEntryPoint entry_pointer);
 // Unload a device driver from the driver table
-uint8_t freeLibrary(const char name[], uint8_t name_length);
+uint8_t free_library(const char name[], uint8_t name_length);
 
 // Get a library function pointer by its name
-uint8_t getFuncAddress(const char device_name[], uint8_t name_length, DriverEntryPoint& entry_pointer);
-// Call an external function from a driver entry pointer
-uint8_t callExtern(DriverEntryPoint& entry_pointer, uint8_t function_call, uint8_t& paramA, uint8_t& paramB, uint8_t& paramC, uint8_t& paramD);
+uint8_t get_func_address(const char device_name[], uint8_t name_length, DriverEntryPoint& entry_pointer);
+// Call an external function from a driver entry pointer with the given parameters
+uint8_t call_extern(DriverEntryPoint& entry_pointer, uint8_t function_call, uint8_t& paramA, uint8_t& paramB, uint8_t& paramC, uint8_t& paramD);
 
-// Initiate the kernel driver table
+// Zero the device driver table
 void __extern_initiate(void);
-// Initiate registered device drivers
+// Initiate all currently loaded device drivers
 void __extern_call_init(void);
-// Shutdown loaded device drivers
+// Shutdown all currently loaded device drivers
 void __extern_call_shutdown(void);
 
 
@@ -41,10 +41,10 @@ struct DeviceDriverTable {
 	char deviceNameIndex[_DRIVER_TABLE_SIZE__][_DRIVER_TABLE_NAME_SIZE__];
 	void (*driver_entrypoint_table[_DRIVER_TABLE_SIZE__])(uint8_t, uint8_t&, uint8_t&, uint8_t&, uint8_t&);
 	
-}static deviceDriverTable;
+}volatile static deviceDriverTable;
 
 
-uint8_t loadLibrary(const char name[], uint8_t name_length, DriverEntryPoint entry_pointer) {
+uint8_t load_library(const char name[], uint8_t name_length, DriverEntryPoint entry_pointer) {
 	
 	if (name_length > _DRIVER_TABLE_NAME_SIZE__-1) return 0;
 	
@@ -62,7 +62,7 @@ uint8_t loadLibrary(const char name[], uint8_t name_length, DriverEntryPoint ent
 }
 
 
-uint8_t freeLibrary(const char name[], uint8_t name_length) {
+uint8_t free_library(const char name[], uint8_t name_length) {
 	
 	if (name_length > _DRIVER_TABLE_NAME_SIZE__-1) return 0;
 	
@@ -80,7 +80,7 @@ uint8_t freeLibrary(const char name[], uint8_t name_length) {
 }
 
 
-uint8_t getFuncAddress(const char device_name[], uint8_t name_length, DriverEntryPoint& entry_pointer) {
+uint8_t get_func_address(const char device_name[], uint8_t name_length, DriverEntryPoint& entry_pointer) {
 	
 	if (name_length > _DRIVER_TABLE_NAME_SIZE__) return 0;
 	
@@ -104,7 +104,7 @@ uint8_t getFuncAddress(const char device_name[], uint8_t name_length, DriverEntr
 }
 
 
-uint8_t callExtern(DriverEntryPoint& entry_pointer, uint8_t function_call, uint8_t& paramA=nullchar, uint8_t& paramB=nullchar, uint8_t& paramC=nullchar, uint8_t& paramD=nullchar) {
+uint8_t call_extern(DriverEntryPoint& entry_pointer, uint8_t function_call, uint8_t& paramA=nullchar, uint8_t& paramB=nullchar, uint8_t& paramC=nullchar, uint8_t& paramD=nullchar) {
 	
 	if (entry_pointer == 0) return 0;
 	
@@ -123,8 +123,9 @@ void __extern_call_init() {
 		if ((deviceDriverTable.driver_entrypoint_table[i] != 0) && (deviceDriverTable.deviceNameIndex[i][0] != 0x20)) {
 			DriverEntryPoint driverEntryPoint;
 			driverEntryPoint = deviceDriverTable.driver_entrypoint_table[i];
-			callExtern(driverEntryPoint, _DRIVER_INITIATE__);
+			call_extern(driverEntryPoint, _DRIVER_INITIATE__);
 		}
+		
 		// Allow time between device initiations
 		_delay_ms(50);
 	}
@@ -157,7 +158,7 @@ void __extern_call_shutdown(void) {
 		if ((deviceDriverTable.driver_entrypoint_table[i] != 0) && (deviceDriverTable.deviceNameIndex[i][0] != 0x20)) {
 			DriverEntryPoint driverEntryPoint;
 			driverEntryPoint = deviceDriverTable.driver_entrypoint_table[i];
-			callExtern(driverEntryPoint, _DRIVER_SHUTDOWN__);
+			call_extern(driverEntryPoint, _DRIVER_SHUTDOWN__);
 		}
 	}
 #endif

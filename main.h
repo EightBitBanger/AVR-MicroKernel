@@ -6,5 +6,3 @@
 
 #include "kernel.h"
 
-#include "configuration.h"
-

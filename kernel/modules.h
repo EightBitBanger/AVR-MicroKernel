@@ -10,9 +10,9 @@
 #ifdef  __CORE_MAIN_
 
 
-// Install a module into the function table
-uint8_t loadModule(void(*function_ptr)(), const char name[], uint8_t name_length);
-// Initiate the module function table
+// Install a module onto the function table
+uint8_t load_module(const char name[], uint8_t name_length, void(*function_ptr)());
+// Initiate the modules in the function table
 void __module_init_(void);
 
 struct CommandFunctionTable {
@@ -20,10 +20,10 @@ struct CommandFunctionTable {
 	char functionNameIndex[_COMMAND_TABLE_SIZE__][_COMMAND_TABLE_NAME_SIZE__];
 	void (*command_function_table[_COMMAND_TABLE_SIZE__])(void);
 	
-}static moduleTable;
+}volatile static moduleTable;
 
 
-uint8_t loadModule(void(*function_ptr)(), const char name[], uint8_t name_length) {
+uint8_t load_module(const char name[], uint8_t name_length, void(*function_ptr)()) {
 	
 	if (name_length > _COMMAND_TABLE_NAME_SIZE__) return 0;
 	

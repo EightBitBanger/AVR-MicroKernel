@@ -11,21 +11,26 @@
 #define _PROCESS_LIST_SIZE__  30
 #define _PROCESS_NAME_SIZE__  10
 
-#define _TASK_USER__          'u' // Task is a user program
-#define _TASK_SERVICE__       's' // Task is a system service routine
-#define _TASK_VOLATILE__      'v' // Task will run once and terminate
+#define _TASK_USER__        'u'
+#define _TASK_SERVICE__     's'
+#define _TASK_VOLATILE__    'v'
 
 #ifdef __CORE_SCHEDULER_
 
-typedef void(*Process)();
+typedef void(*Task)();
 
 
-// Schedule a new process
-uint8_t createProcess(const char name[], uint8_t name_length, void(*task_ptr)(), uint16_t priority, uint8_t task_type);
-// Get a process index by its process name
-uint8_t getProcessIndex(const char process_name[], uint8_t name_length);
+// Schedule a new task
+uint8_t task_create(const char name[], uint8_t name_length, void(*task_ptr)(), uint32_t priority, uint8_t task_type);
+// Remove a running task
+uint8_t task_destroy(const char name[], uint8_t name_length);
+// Get a task index by its name
+uint8_t get_task_index(const char process_name[], uint8_t name_length);
+
+// Start a running process
+uint8_t start_task(const char process_name[], uint8_t name_length);
 // Stop a running process
-uint8_t killProcess(const char process_name[], uint8_t name_length);
+uint8_t stop_task(const char process_name[], uint8_t name_length);
 
 void __scheduler_init_(void);
 void __scheduler_start(uint8_t timer_priority);
@@ -43,13 +48,12 @@ struct ProcessDescriptorTable {
 	uint16_t processCounters[_PROCESS_LIST_SIZE__];
 	void (*process_pointer_table[_PROCESS_LIST_SIZE__])();
 	
-}static proc_info;
+}volatile static proc_info;
 
 
 //
-// Schedule a new process
-
-uint8_t createProcess(const char name[], uint8_t name_length, void(*task_ptr)(), uint16_t priority, uint8_t task_type) {
+// Schedule a new task
+uint8_t task_create(const char name[], uint8_t name_length, void(*task_ptr)(), uint32_t priority, uint8_t task_type) {
 	
 	if ((priority == 0) || (name_length > _PROCESS_NAME_SIZE__-1)) return 0;
 	
@@ -74,10 +78,28 @@ uint8_t createProcess(const char name[], uint8_t name_length, void(*task_ptr)(),
 	return 1;
 }
 
-//
-// Get a process index by its process name
 
-uint8_t getProcessIndex(const char process_name[], uint8_t name_length) {
+//
+// Remove a running task
+uint8_t task_destroy(const char process_name[], uint8_t name_length) {
+	
+	uint8_t PID = get_task_index(process_name, name_length);
+	
+	proc_info.processType[PID]     = 0;
+	proc_info.processPriority[PID] = 0;
+	proc_info.processCounters[PID] = 0;
+	proc_info.process_pointer_table[PID] = 0;
+	
+	for (uint8_t i=0; i < _PROCESS_NAME_SIZE__; i++)
+	proc_info.processName[PID][i] = 0x20;
+	
+	return 1;
+}
+
+
+//
+// Get a task index by its process name
+uint8_t get_task_index(const char process_name[], uint8_t name_length) {
 	
 	if (name_length > _PROCESS_NAME_SIZE__-1) return 0;
 	
@@ -97,23 +119,6 @@ uint8_t getProcessIndex(const char process_name[], uint8_t name_length) {
 	return 0;
 }
 
-//
-// Stop a running process
-
-uint8_t killProcess(const char process_name[], uint8_t name_length) {
-	
-	uint8_t PID = getProcessIndex(process_name, name_length);
-	
-	proc_info.processType[PID]     = 0;
-	proc_info.processPriority[PID] = 0;
-	proc_info.processCounters[PID] = 0;
-	proc_info.process_pointer_table[PID] = 0;
-	
-	for (uint8_t i=0; i < _PROCESS_NAME_SIZE__; i++)
-	proc_info.processName[PID][i] = 0x20;
-	
-	return 1;
-}
 
 
 //
@@ -134,7 +139,7 @@ ISR (TIMER0_OVF_vect) {
 		}
 		
 		
-		// Switch process type
+		// Task type
 		switch (proc_info.processType[PID]) {
 			
 			// Terminate volatile tasks
@@ -158,7 +163,11 @@ ISR (TIMER0_OVF_vect) {
 	return;
 }
 
+#endif
+
+
 void __scheduler_init_(void) {
+#ifdef __CORE_SCHEDULER_
 	for (uint8_t i=0; i < _PROCESS_LIST_SIZE__; i++) {
 		proc_info.processType[i]     = 0x00;
 		proc_info.processPriority[i] = 0x00;
@@ -168,22 +177,24 @@ void __scheduler_init_(void) {
 		for (uint8_t a=0; a < _PROCESS_NAME_SIZE__; a++)
 			proc_info.processName[i][a] = 0x20;
 	}
+#endif
 }
 
 void __scheduler_start(uint8_t timer_priority) {
-	
+#ifdef __CORE_SCHEDULER_
 	_delay_ms(100);
 	
 	TCCR0A  = 0x00;          // Normal counter and waveform
 	TCCR0B |= (1 << CS10);   // Timer mode with NO prescaler
 	TIMSK0 |= (1 << TOIE0);  // Enable timer overflow interrupt
 	
-	TCNT0 = timer_priority;  // Set timer priority rate
+	TCNT0 = timer_priority;  // Set timer priority
 	sei();                   // Enable interrupts
+#endif
 }
 
 void __scheduler_stop(void) {
-	
+#ifdef __CORE_SCHEDULER_
 	_delay_ms(100);
 	
 	TCCR0A  = 0x00;
@@ -191,10 +202,10 @@ void __scheduler_stop(void) {
 	TIMSK0 &= ~(1 << TOIE0);
 	
 	TCNT0 = 0;
+#endif
 }
 
 
-#endif
 
 #endif
 
