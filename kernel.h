@@ -12,8 +12,8 @@
 #include "kernel/std/pointers.h"      // Pointer wrapper
 
 // Kernel function tables
-#include "kernel/driver_table.h"           // Device drivers
-#include "kernel/module_table.h"           // Function modules
+#include "kernel/driver_table.h"      // Device drivers
+#include "kernel/module_table.h"      // Function modules
 #include "kernel/bus.h"               // System bus interface
 #include "kernel/scheduler.h"         // Task scheduler
 

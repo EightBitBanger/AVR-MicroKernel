@@ -19,6 +19,11 @@ void command_task(void) {
 		
 		if (proc_info.processName[i][0] == 0x20) continue;
 		
+		// Process ID
+		uint8_t PID = i + 0x30;
+		call_extern(consoleDriver, 0x00, (uint8_t&)PID);
+		call_extern(consoleDriver, 0x03); // Space
+		
 		// Task type
 		call_extern(consoleDriver, 0x00, (uint8_t&)proc_info.processType[i]);
 		call_extern(consoleDriver, 0x03); // Space

@@ -1,5 +1,7 @@
 //
 // IO abstraction for implementation of a bus interface
+//    Developed for use on the Retroboard R644
+
 
 #ifndef ____BUS_INTERFACE__
 #define ____BUS_INTERFACE__
@@ -8,17 +10,82 @@
 
 // Address / data bus
 
-#define _BUS_LOWER_DIR__   DDRA        // Lower address bus
-#define _BUS_LOWER_OUT__   PORTA
-#define _BUS_LOWER_IN__    PINA
 
-#define _BUS_MIDDLE_DIR__  DDRC        // Middle address bus
-#define _BUS_MIDDLE_OUT__  PORTC
-#define _BUS_MIDDLE_IN__   PINC
 
-#define _BUS_UPPER_DIR__   DDRD        // Upper address bus
-#define _BUS_UPPER_OUT__   PORTD
-#define _BUS_UPPER_IN__    PIND
+#define _BUS_LOWER_PORT_A__
+#define _BUS_MIDDLE_PORT_C__
+#define _BUS_UPPER_PORT_D__
+
+
+
+
+
+
+// Lower address bus
+#ifdef _BUS_LOWER_PORT_A__
+  #define _BUS_LOWER_DIR__   DDRA
+  #define _BUS_LOWER_OUT__   PORTA
+  #define _BUS_LOWER_IN__    PINA
+#endif
+#ifdef _BUS_LOWER_PORT_B__
+  #define _BUS_LOWER_DIR__   DDRB
+  #define _BUS_LOWER_OUT__   PORTB
+  #define _BUS_LOWER_IN__    PINB
+#endif
+#ifdef _BUS_LOWER_PORT_C__
+  #define _BUS_LOWER_DIR__   DDRC
+  #define _BUS_LOWER_OUT__   PORTC
+  #define _BUS_LOWER_IN__    PINC
+#endif
+#ifdef _BUS_LOWER_PORT_D__
+  #define _BUS_LOWER_DIR__   DDRD
+  #define _BUS_LOWER_OUT__   PORTD
+  #define _BUS_LOWER_IN__    PIND
+#endif
+
+// Middle address bus
+#ifdef _BUS_MIDDLE_PORT_A__
+  #define _BUS_MIDDLE_DIR__  DDRA
+  #define _BUS_MIDDLE_OUT__  PORTA
+  #define _BUS_MIDDLE_IN__   PINA
+#endif
+#ifdef _BUS_MIDDLE_PORT_B__
+  #define _BUS_MIDDLE_DIR__  DDRB
+  #define _BUS_MIDDLE_OUT__  PORTB
+  #define _BUS_MIDDLE_IN__   PINB
+#endif
+#ifdef _BUS_MIDDLE_PORT_C__
+  #define _BUS_MIDDLE_DIR__  DDRC
+  #define _BUS_MIDDLE_OUT__  PORTC
+  #define _BUS_MIDDLE_IN__   PINC
+#endif
+#ifdef _BUS_MIDDLE_PORT_D__
+  #define _BUS_MIDDLE_DIR__  DDRD
+  #define _BUS_MIDDLE_OUT__  PORTD
+  #define _BUS_MIDDLE_IN__   PIND
+#endif
+
+// Upper address bus
+#ifdef _BUS_UPPER_PORT_A__
+  #define _BUS_UPPER_DIR__   DDRA
+  #define _BUS_UPPER_OUT__   PORTA
+  #define _BUS_UPPER_IN__    PINA
+#endif
+#ifdef _BUS_UPPER_PORT_B__
+  #define _BUS_UPPER_DIR__   DDRB
+  #define _BUS_UPPER_OUT__   PORTB
+  #define _BUS_UPPER_IN__    PINB
+#endif
+#ifdef _BUS_UPPER_PORT_C__
+  #define _BUS_UPPER_DIR__   DDRC
+  #define _BUS_UPPER_OUT__   PORTC
+  #define _BUS_UPPER_IN__    PINC
+#endif
+#ifdef _BUS_UPPER_PORT_D__
+  #define _BUS_UPPER_DIR__   DDRD
+  #define _BUS_UPPER_OUT__   PORTD
+  #define _BUS_UPPER_IN__    PIND
+#endif
 
 // Control bus
 

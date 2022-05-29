@@ -94,6 +94,7 @@ struct CommandConsole {
 		}
 		return;
 	}
+	
 	void printChar(char character) {
 		call_extern(displayDriverPtr, 0x09, (uint8_t&)character, cursorLine, cursorPos);
 		cursorPos++;

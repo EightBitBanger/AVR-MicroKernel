@@ -5,7 +5,7 @@ void command_application__(void);
 
 struct ModuleLoaderTest {
 	ModuleLoaderTest() {
-		load_module("app",  4, command_application__);
+		load_module("bios",  5, command_application__);
 	}
 }static loadModuleTest;
 
@@ -23,7 +23,7 @@ void command_application__(void) {
 		return;
 	}
 	
-	task_create("app", 4, executable_task, 1000000, _TASK_VOLATILE__);
+	task_create("app", 4, executable_task, 1000000, _TASK_USER__);
 	
 	return;
 }

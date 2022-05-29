@@ -12,9 +12,9 @@ int main(void) {
 	char byte;
 	for (uint8_t i=0; i < 10; i++) {
 		
-		displayDriver.read(i, byte);
+		//displayDriver.read(i, byte);
 		
-		displayDriver.writeCharMask(byte, 0, i + 3);
+		//displayDriver.writeCharMask(byte, 0, i + 3);
 		
 	}
 	

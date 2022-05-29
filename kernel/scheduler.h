@@ -11,9 +11,9 @@
 #define _PROCESS_LIST_SIZE__  30
 #define _PROCESS_NAME_SIZE__  10
 
-#define _TASK_USER__        'u'
-#define _TASK_SERVICE__     's'
-#define _TASK_VOLATILE__    'v'
+#define _TASK_USER__        'u' // User task
+#define _TASK_SERVICE__     's' // System service task
+#define _TASK_VOLATILE__    'v' // Volatile task
 
 #ifdef __CORE_SCHEDULER_
 
@@ -21,11 +21,11 @@ typedef void(*Task)();
 
 
 // Schedule a new task
-uint8_t task_create(const char name[], uint8_t name_length, void(*task_ptr)(), uint32_t priority, uint8_t task_type);
+uint8_t task_create(const char task_name[], uint8_t name_length, void(*task_ptr)(), uint32_t priority, uint8_t task_type);
 // Remove a running task
-uint8_t task_destroy(const char name[], uint8_t name_length);
+uint8_t task_destroy(uint8_t PID);
 // Get a task index by its name
-uint8_t get_task_index(const char process_name[], uint8_t name_length);
+uint8_t get_task_index(const char task_name[], uint8_t name_length);
 
 // Start a running process
 uint8_t start_task(const char process_name[], uint8_t name_length);
@@ -53,22 +53,23 @@ struct ProcessDescriptorTable {
 
 //
 // Schedule a new task
-uint8_t task_create(const char name[], uint8_t name_length, void(*task_ptr)(), uint32_t priority, uint8_t task_type) {
+uint8_t task_create(const char task_name[], uint8_t name_length, void(*task_ptr)(), uint32_t priority, uint8_t task_type) {
 	
 	if ((priority == 0) || (name_length > _PROCESS_NAME_SIZE__-1)) return 0;
 	
 	uint8_t index;
 	
 	// Find an available slot
-	for (index=0; index <= _PROCESS_LIST_SIZE__; index++)
-	if (proc_info.processPriority[index] == 0) break;
+	for (index=0; index <= _PROCESS_LIST_SIZE__; index++) {
+		if (proc_info.processPriority[index] == 0) break;
+	}
 	
 	// No free slots
 	if (index == _PROCESS_LIST_SIZE__) return 0;
 	
 	// Launch the new process
 	for (uint8_t a=0; a < name_length-1; a++)
-	proc_info.processName[index][a] = name[a];
+		proc_info.processName[index][a] = task_name[a];
 	
 	proc_info.processType[index]           = task_type;
 	proc_info.processPriority[index]       = priority;
@@ -81,9 +82,10 @@ uint8_t task_create(const char name[], uint8_t name_length, void(*task_ptr)(), u
 
 //
 // Remove a running task
-uint8_t task_destroy(const char process_name[], uint8_t name_length) {
+uint8_t task_destroy(uint8_t PID) {
 	
-	uint8_t PID = get_task_index(process_name, name_length);
+	if (PID > _PROCESS_LIST_SIZE__) return 0;
+	if (proc_info.processName[PID][0] == 0x20) return 0;
 	
 	proc_info.processType[PID]     = 0;
 	proc_info.processPriority[PID] = 0;
@@ -91,7 +93,7 @@ uint8_t task_destroy(const char process_name[], uint8_t name_length) {
 	proc_info.process_pointer_table[PID] = 0;
 	
 	for (uint8_t i=0; i < _PROCESS_NAME_SIZE__; i++)
-	proc_info.processName[PID][i] = 0x20;
+		proc_info.processName[PID][i] = 0x20;
 	
 	return 1;
 }
@@ -99,21 +101,23 @@ uint8_t task_destroy(const char process_name[], uint8_t name_length) {
 
 //
 // Get a task index by its process name
-uint8_t get_task_index(const char process_name[], uint8_t name_length) {
+uint8_t get_task_index(char task_name[], uint8_t name_length) {
 	
 	if (name_length > _PROCESS_NAME_SIZE__-1) return 0;
+	
+	char list_task_name[name_length];
 	
 	for (uint8_t index=0; index< _PROCESS_LIST_SIZE__; index++) {
 		
 		if (proc_info.processName[index][0] == 0x20) continue;
 		
-		uint8_t count=1;
-		for (uint8_t a=0; a < name_length; a++) {
-			char nameChar = proc_info.processName[index][a];
-			if (nameChar == process_name[a]) count++; else break;
-		}
+		// Get task name from the list
+		for (uint8_t i=0; i < name_length; i++) 
+			list_task_name[i] = proc_info.processName[index][i];
 		
-		return (index + 1);
+		if (string_compare(task_name, list_task_name, name_length) == 1) 
+			return (index + 1);
+		
 	}
 	
 	return 0;
