@@ -3,7 +3,7 @@
 
 
 // Default system device names
-const char _DISPLAY_CONSOLE__[]   = "display";
+const char _DISPLAY_CONSOLE__[]   = "Display";
 const char _KEYBOARD_INPUT__[]    = "keyboard";
 const char _EXTENDED_MEMORY__[]   = "exMem";
 const char _DATA_MEMORY__[]       = "nvMem";

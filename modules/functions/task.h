@@ -25,8 +25,8 @@ void command_task(void) {
 		call_extern(consoleDriver, 0x03); // Space
 		
 		// Task type
-		call_extern(consoleDriver, 0x00, (uint8_t&)proc_info.processType[i]);
-		call_extern(consoleDriver, 0x03); // Space
+		//call_extern(consoleDriver, 0x00, (uint8_t&)proc_info.processType[i]);
+		//call_extern(consoleDriver, 0x03); // Space
 		
 		for (uint8_t a=0; a < _PROCESS_NAME_SIZE__; a++) {
 			uint8_t nameChar = proc_info.processName[i][a];
