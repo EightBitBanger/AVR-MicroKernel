@@ -8,8 +8,9 @@
 #define _DRIVER_TABLE_SIZE__         20  // Total number of running drivers
 #define _DRIVER_TABLE_NAME_SIZE__    10  // Max string name length
 
-#define _DRIVER_INITIATE__  0xff
-#define _DRIVER_SHUTDOWN__  0xfe
+#define _DRIVER_INITIATE__    0xff
+#define _DRIVER_SHUTDOWN__    0xfe
+#define _DRIVER_ADDRESS__     0xfd
 
 static uint8_t nullchar = 0;
 
@@ -82,19 +83,21 @@ uint8_t free_library(const char name[], uint8_t name_length) {
 
 uint8_t get_func_address(const char device_name[], uint8_t name_length, DriverEntryPoint& entry_pointer) {
 	
-	if (name_length > _DRIVER_TABLE_NAME_SIZE__) return 0;
+	uint8_t name_len = name_length - 1;
+	
+	if (name_len > _DRIVER_TABLE_NAME_SIZE__) return 0;
 	
 	for (uint8_t i=0; i < _DRIVER_TABLE_SIZE__; i++) {
 		
 		if (deviceDriverTable.deviceNameIndex[i][0] == 0x20) continue;
 		
-		uint8_t count=1;
-		for (uint8_t a=0; a < name_length; a++) {
+		uint8_t count=0;
+		for (uint8_t a=0; a < name_len; a++) {
 			char nameChar = deviceDriverTable.deviceNameIndex[i][a];
 			if (nameChar == device_name[a]) count++; else break;
 		}
 		
-		if (count == name_length) {
+		if (count == name_len) {
 			entry_pointer = deviceDriverTable.driver_entrypoint_table[i];
 			return 1;
 		}

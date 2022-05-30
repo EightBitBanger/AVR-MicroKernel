@@ -6,7 +6,7 @@
 #ifndef ____BUS_INTERFACE__
 #define ____BUS_INTERFACE__
 
-#ifdef  __CORE_BUS_
+#ifdef  __HARDWARE_BUS_
 
 // Address / data bus
 
@@ -179,7 +179,7 @@ void bus_read_byte(Bus& bus, uint32_t address, char& buffer) {
 	
 	// Wait state
 	for (uint16_t i=0; i<bus.waitstate_read; i++)
-	asm("nop");
+		asm("nop");
 	
 	// Read the data byte
 	buffer = _BUS_LOWER_IN__;
@@ -209,7 +209,7 @@ void bus_write_byte(Bus& bus, uint32_t address, char byte) {
 	
 	// Wait state
 	for (uint16_t i=0; i<bus.waitstate_write; i++)
-	asm("nop");
+		asm("nop");
 	
 	_CONTROL_OUT__ = 0b00111111; // End write cycle
 	_BUS_UPPER_OUT__ = 0x0f;

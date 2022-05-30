@@ -5,10 +5,8 @@
 
 #include "display/display.h"     // Liquid Crystal display card
 #include "keyboard/keyboard.h"    // On-board keyboard
-#include "display/console.h"     // Command console library
 
 #ifndef __BOOT_SAFEMODE_
-
 
 // Normal mode device drivers
 
@@ -16,4 +14,7 @@
 #include "memory/eeprom.h"      // On-chip EEPROM storage
 
 #endif
+
+// Initialize the command console at the end
+#include "display/console.h"     // Command console library
 

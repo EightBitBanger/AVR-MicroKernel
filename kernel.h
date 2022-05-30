@@ -14,11 +14,8 @@
 // Kernel function tables
 #include "kernel/driver_table.h"      // Device drivers
 #include "kernel/module_table.h"      // Function modules
-#include "kernel/hardware/bus.h"               // System bus interface
+#include "kernel/hardware/bus.h"      // System bus interface
 #include "kernel/scheduler.h"         // Task scheduler
-
-// Hardware detection
-#include "kernel/hardware/hardware_detect.h"
 
 // Kernel tables initiator
 struct __INITIATE_KERNEL_TABLES_ {
@@ -37,6 +34,9 @@ struct __INITIATE_KERNEL_TABLES_ {
 #include "drivers/config.h"
 #include "modules/config.h"
 #include "services/config.h"
+
+// Hardware information detection
+#include "kernel/hardware/hardware_detect.h"
 
 #endif
 
