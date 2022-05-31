@@ -15,6 +15,10 @@
 #define _TASK_SERVICE__     's' // System service task
 #define _TASK_VOLATILE__    'v' // Volatile task
 
+#define _PRIORITY_BACKGROUND__        800
+#define _PRIORITY_NORMAL__            100
+#define _PRIORITY_REALTIME__           10
+
 #ifdef __CORE_SCHEDULER_
 
 typedef void(*Task)();

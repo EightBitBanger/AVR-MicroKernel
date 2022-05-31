@@ -8,7 +8,7 @@ void eventKeyboardAcceptChar(uint8_t new_char);
 
 struct CommandConsoleServiceLauncher {
 	CommandConsoleServiceLauncher() {
-		task_create("console", 8, keyboard_event_handler, 100, _TASK_SERVICE__);
+		task_create("console", 8, keyboard_event_handler, _PRIORITY_NORMAL__, _TASK_SERVICE__);
 	}
 }static commandConsoleServiceLauncher;
 
@@ -20,7 +20,7 @@ void keyboard_event_handler(void) {
 	uint8_t readKeyCode=0;
 	
 	// Link to the keyboard device driver
-	DriverEntryPoint device;
+	Device device;
 	get_func_address(_KEYBOARD_INPUT__, sizeof(_KEYBOARD_INPUT__), device);
 	
 	// Read keyboard character

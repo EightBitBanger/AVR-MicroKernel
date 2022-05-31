@@ -11,7 +11,7 @@ struct ModuleLoaderMem {
 
 void command_memory(void) {
 	
-	DriverEntryPoint memDriverPtr;
+	Device memDriverPtr;
 	
 	if (get_func_address(_EXTENDED_MEMORY__, sizeof(_EXTENDED_MEMORY__), memDriverPtr) == 0) {
 		console.print(error_exmem_not_installed, sizeof(error_exmem_not_installed));

@@ -4,7 +4,7 @@
 // Safe mode device drivers
 
 #include "display/display.h"     // Liquid Crystal display card
-#include "keyboard/keyboard.h"    // On-board keyboard
+#include "keyboard/PS2.h"        // On-board PS2 keyboard
 
 #ifndef __BOOT_SAFEMODE_
 
@@ -15,6 +15,13 @@
 
 #endif
 
-// Initialize the command console at the end
-#include "display/console.h"     // Command console library
+//
+// Initiate at the end
+
+
+#include "display/console.h"    // Command console library
+
+//
+// Hardware information detection
+#include "hardware_detect.h"
 

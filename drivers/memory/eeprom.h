@@ -1,4 +1,5 @@
-// Built-in EEPROM storage driver
+//
+// On-chip EEPROM storage driver
 
 #ifndef _EEPROM_DRIVER__
 #define _EEPROM_DRIVER__
@@ -6,7 +7,7 @@
 void EEPROMDeviceDriverEntryPoint(uint8_t, uint8_t&, uint8_t&, uint8_t&, uint8_t&);
 
 struct EEPROMDriverLoader {
-	EEPROMDriverLoader() {load_library(_DATA_MEMORY__, sizeof(_DATA_MEMORY__), (DriverEntryPoint)EEPROMDeviceDriverEntryPoint);}
+	EEPROMDriverLoader() {load_library(_DATA_MEMORY__, sizeof(_DATA_MEMORY__), (Device)EEPROMDeviceDriverEntryPoint);}
 };EEPROMDriverLoader eepromDriverLoader;
 
 

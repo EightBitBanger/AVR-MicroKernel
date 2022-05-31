@@ -11,7 +11,7 @@ struct ModuleLoaderKill {
 
 void command_kill(void) {
 	
-	DriverEntryPoint consoleDriver;
+	Device consoleDriver;
 	if (get_func_address(_COMMAND_CONSOLE__, sizeof(_COMMAND_CONSOLE__), consoleDriver) == 0) return;
 	
 	char keyboard_string[_PROCESS_NAME_SIZE__];

@@ -11,7 +11,7 @@ struct ModuleLoaderTask {
 
 void command_task(void) {
 	
-	DriverEntryPoint consoleDriver;
+	Device consoleDriver;
 	if (get_func_address(_COMMAND_CONSOLE__, sizeof(_COMMAND_CONSOLE__), consoleDriver) == 0) return;
 	
 	// List running processes/services

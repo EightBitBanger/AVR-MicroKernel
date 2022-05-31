@@ -1,20 +1,23 @@
 //
 // Application test
 
-void command_application__(void);
+void __application_main_(void);
 
 struct ModuleLoaderTest {
 	ModuleLoaderTest() {
-		load_module("bios",  5, command_application__);
+		load_module("app",  4, __application_main_);
 	}
 }static loadModuleTest;
 
 void executable_task(void);
 
-void command_application__(void) {
+//
+// Entry point
+
+void __application_main_(void) {
 	
-	DriverEntryPoint memDriverPtr;
-	DriverEntryPoint consoleDriverPtr;
+	Device memDriverPtr;
+	Device consoleDriverPtr;
 	
 	// Check driver dependency
 	if (get_func_address(_EXTENDED_MEMORY__, sizeof(_EXTENDED_MEMORY__), memDriverPtr) == 0) {
@@ -23,35 +26,31 @@ void command_application__(void) {
 		return;
 	}
 	
-	task_create("app", 4, executable_task, 1000000, _TASK_USER__);
+	// Launch the application task
+	task_create("app", 4, executable_task, _PRIORITY_BACKGROUND__, _TASK_USER__);
 	
 	return;
 }
 
 
+
+
+
+uint8_t app_cntr = 0;
+
 void executable_task(void) {
 	
-	//DriverEntryPoint memDriverPtr;
-	//getFuncAddress(_EXTENDED_MEMORY__, sizeof(_EXTENDED_MEMORY__), memDriverPtr);
+	Bus device_bus;
+	
+	bus_write_byte(device_bus, 0xc0000, app_cntr);
+	
+	//bus_write_byte(device_bus, 0xd0000, app_cntr * app_cntr);
+	
+	
+	app_cntr++;
 	
 	
 	
-	
-	/*
-	
-	WrappedPointer pointer;
-	pointer.address = 0x100;
-	callExtern(memDriverPtr, 0x0a, pointer.byte_t[0], pointer.byte_t[1], pointer.byte_t[2], pointer.byte_t[3]);
-	callExtern(memDriverPtr, 0x00);
-	callExtern(memDriverPtr, 0x0c, pointer.byte_t[0], pointer.byte_t[1], pointer.byte_t[2], pointer.byte_t[3]);
-	
-	// Check allocation failed
-	if (pointer.address == 0) {
-		console.print(error_out_of_memory, sizeof(error_out_of_memory));
-		console.printLn();
-	}
-	
-	*/
 	
 	return;
 }

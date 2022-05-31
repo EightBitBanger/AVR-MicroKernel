@@ -1,4 +1,5 @@
-// Extended memory device driver interface
+//
+// On-board extended memory driver
 
 #ifndef __HIGH_MEMORY__
 #define __HIGH_MEMORY__
@@ -41,7 +42,7 @@ struct ExtendedMemoryDriver {
 		currentAddress = 0;
 		returnAddress  = 0;
 		
-		load_library(_EXTENDED_MEMORY__, sizeof(_EXTENDED_MEMORY__), (DriverEntryPoint)ExtendedMemoryDeviceDriverEntryPoint);
+		load_library(_EXTENDED_MEMORY__, sizeof(_EXTENDED_MEMORY__), (Device)ExtendedMemoryDeviceDriverEntryPoint);
 	}
 	
 	void initiate(void) {

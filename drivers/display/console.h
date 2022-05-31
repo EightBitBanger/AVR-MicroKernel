@@ -1,5 +1,6 @@
 //
 // Command console program
+//  Requires support of display and keyboard drivers
 
 #define _MAX_KEYBOARD_STRING_LENGTH__  32
 
@@ -21,12 +22,12 @@ struct CommandConsole {
 	uint8_t lastChar;
 	uint8_t last_string_length;
 	
-	DriverEntryPoint displayDriverPtr;
-	DriverEntryPoint keyboardDriverPtr;
+	Device displayDriverPtr;
+	Device keyboardDriverPtr;
 	
 	CommandConsole() {
 		
-		load_library(_COMMAND_CONSOLE__, sizeof(_COMMAND_CONSOLE__), (DriverEntryPoint)ConsoleLibraryEntryPoint);
+		load_library(_COMMAND_CONSOLE__, sizeof(_COMMAND_CONSOLE__), (Device)ConsoleLibraryEntryPoint);
 		
 		for (uint8_t i=0; i<promptStringLength; i++) promptString[i] = 0x20;
 		promptString[0]      = '>';
@@ -47,11 +48,11 @@ struct CommandConsole {
 	void initiate(void) {
 		
 		// Link to the keyboard driver
-		get_func_address(_KEYBOARD_INPUT__, sizeof(_KEYBOARD_INPUT__), keyboardDriverPtr);
+		if (get_func_address(_KEYBOARD_INPUT__, sizeof(_KEYBOARD_INPUT__), keyboardDriverPtr) == 0) return;
 		call_extern(keyboardDriverPtr, 0x00, lastChar);
 		
 		// Link to the display driver
-		get_func_address(_DISPLAY_CONSOLE__, sizeof(_DISPLAY_CONSOLE__), displayDriverPtr);
+		if (get_func_address(_DISPLAY_CONSOLE__, sizeof(_DISPLAY_CONSOLE__), displayDriverPtr) == 0) return;
 		call_extern(displayDriverPtr, 0x05);
 		call_extern(displayDriverPtr, 0x04);
 		

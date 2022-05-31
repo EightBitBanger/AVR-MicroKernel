@@ -11,6 +11,7 @@
 #include "functions/list.h"
 #include "functions/mem.h"
 #include "functions/task.h"
+#include "functions/port.h"
 #include "functions/app.h"
 
 #endif

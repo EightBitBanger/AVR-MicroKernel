@@ -1,5 +1,5 @@
 //
-// LCD display driver
+// "Liquid Crystal" display card driver
 
 void DisplayDeviceDriverEntryPoint(uint8_t, uint8_t&, uint8_t&, uint8_t&, uint8_t&);
 
@@ -10,7 +10,7 @@ struct DisplayDriver {
 	uint32_t device_address;
 	
 	DisplayDriver() {
-		load_library(_DISPLAY_CONSOLE__, sizeof(_DISPLAY_CONSOLE__), (DriverEntryPoint)DisplayDeviceDriverEntryPoint);
+		load_library(_DISPLAY_CONSOLE__, sizeof(_DISPLAY_CONSOLE__), (Device)DisplayDeviceDriverEntryPoint);
 	}
 	
 	void initiate(void) {

@@ -12,6 +12,8 @@ uint8_t intToString(uint32_t, char[]);
 
 uint8_t string_length(char[], uint8_t);
 
+// Returns the value from the given hex chars. String should contain two hex chars ex: "ff"
+uint8_t string_get_hex(char string[]);
 
 
 
@@ -81,5 +83,27 @@ uint8_t intToString(uint32_t number, char destination_string[]) {
 	if (place > 6)  destination_string[place-7] = mill;
 	
 	return place;
+}
+
+uint8_t string_get_hex(char string[]) {
+	
+	uint8_t value_a = 0;
+	uint8_t value_b = 0;
+	
+	// First digit
+	uint8_t hex_b = string[1];
+	if ((hex_b > 0x30) && (hex_b < 0x40))
+	value_b += hex_b - 0x30;
+	if ((hex_b > 0x60) && (hex_b < 0x67))
+	value_b += 9 + (hex_b - 0x60);
+	
+	// Second digit
+	uint8_t hex_a = string[0];
+	if ((hex_a > 0x30) && (hex_a < 0x40))
+	value_a += hex_a - 0x30;
+	if ((hex_a > 0x60) && (hex_a < 0x67))
+	value_a += 9 + (hex_a - 0x60);
+	
+	return value_a + (value_b * 16);
 }
 
