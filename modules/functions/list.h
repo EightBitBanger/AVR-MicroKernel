@@ -1,17 +1,54 @@
-// List contents
+//
+// List command
 
 void command_list(void);
+void list_function_task(void);
 
 struct ModuleLoaderList {
+	
+	Bus deviceBus;
+	
+	uint8_t  byte;
+	uint32_t iteration;
+	uint32_t iterationMax;
+	
 	ModuleLoaderList() {
+		
+		deviceBus.waitstate_write = 4;
+		deviceBus.waitstate_read  = 4;
+		
+		byte         = 0x0a;
+		iteration    = 0x40000;
+		iterationMax = 0x40000 + 80;
+		
 		load_module("list",  5, command_list);
 	}
-} static loadModuleList;
+}static moduleLoaderList;
 
 
 void command_list(void) {
 	
+	for (uint8_t i=0; i < 80; i++) {
+		
+		moduleLoaderList.byte += 1;
+		if (moduleLoaderList.byte > 0xfe) moduleLoaderList.byte = 0x00;
+		
+		console.printChar(moduleLoaderList.byte);
+		
+		//bus_write_byte(moduleLoaderList.deviceBus, moduleLoaderList.iteration, moduleLoaderList.byte);
+		
+		moduleLoaderList.iteration++;
+		if (moduleLoaderList.iteration > moduleLoaderList.iterationMax) moduleLoaderList.iteration=0x40000;
+		
+	}
+	
+	//task_create("list", 5, list_function_task, _PRIORITY_NORMAL__, _TASK_VOLATILE__);
+	
 	return;
+}
+
+void list_function_task(void) {
+	
 }
 
 

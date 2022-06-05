@@ -19,7 +19,7 @@ void command_drv(void) {
 		
 		if (deviceDriverTable.deviceNameIndex[i][0] == 0x20) continue;
 		
-		for (uint8_t a=0; a < _DRIVER_TABLE_NAME_SIZE__; a++) {
+		for (uint8_t a=0; a < _DRIVER_NAME_LENGTH_MAX__; a++) {
 			
 			uint8_t nameChar = (uint8_t)deviceDriverTable.deviceNameIndex[i][a];
 			

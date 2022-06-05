@@ -20,7 +20,7 @@ void command_task(void) {
 		if (proc_info.processName[i][0] == 0x20) continue;
 		
 		// Process ID
-		uint8_t PID = i + 0x30;
+		uint8_t PID = i + 0x30 + 1;
 		call_extern(consoleDriver, 0x00, (uint8_t&)PID);
 		call_extern(consoleDriver, 0x03); // Space
 		
@@ -28,7 +28,7 @@ void command_task(void) {
 		//call_extern(consoleDriver, 0x00, (uint8_t&)proc_info.processType[i]);
 		//call_extern(consoleDriver, 0x03); // Space
 		
-		for (uint8_t a=0; a < _PROCESS_NAME_SIZE__; a++) {
+		for (uint8_t a=0; a < _PROCESS_NAME_LENGTH_MAX__; a++) {
 			uint8_t nameChar = proc_info.processName[i][a];
 			call_extern(consoleDriver, 0x00, nameChar);
 		}

@@ -5,8 +5,8 @@
 #define ____DEVICE_DRIVER_SYSTEM__
 
 
-#define _DRIVER_TABLE_SIZE__         20  // Total number of running drivers
-#define _DRIVER_TABLE_NAME_SIZE__    10  // Max string name length
+#define _DRIVER_TABLE_SIZE__         20  // Total number of device drivers
+#define _DRIVER_NAME_LENGTH_MAX__    10  // Max string name length
 
 #define _DRIVER_INITIATE__    0xff
 #define _DRIVER_SHUTDOWN__    0xfe
@@ -39,7 +39,7 @@ void __extern_call_shutdown(void);
 
 struct DeviceDriverTable {
 	
-	char deviceNameIndex[_DRIVER_TABLE_SIZE__][_DRIVER_TABLE_NAME_SIZE__];
+	char deviceNameIndex[_DRIVER_TABLE_SIZE__][_DRIVER_NAME_LENGTH_MAX__];
 	void (*driver_entrypoint_table[_DRIVER_TABLE_SIZE__])(uint8_t, uint8_t&, uint8_t&, uint8_t&, uint8_t&);
 	
 }volatile static deviceDriverTable;
@@ -47,7 +47,7 @@ struct DeviceDriverTable {
 
 uint8_t load_library(const char name[], uint8_t name_length, Device entry_pointer) {
 	
-	if (name_length > _DRIVER_TABLE_NAME_SIZE__-1) return 0;
+	if (name_length > _DRIVER_NAME_LENGTH_MAX__-1) return 0;
 	
 	uint8_t index;
 	for (index=0; index < _DRIVER_TABLE_SIZE__; index++) {
@@ -65,7 +65,7 @@ uint8_t load_library(const char name[], uint8_t name_length, Device entry_pointe
 
 uint8_t free_library(const char name[], uint8_t name_length) {
 	
-	if (name_length > _DRIVER_TABLE_NAME_SIZE__-1) return 0;
+	if (name_length > _DRIVER_NAME_LENGTH_MAX__-1) return 0;
 	
 	uint8_t index;
 	for (index=0; index < _DRIVER_TABLE_SIZE__; index++) {
@@ -85,7 +85,7 @@ uint8_t get_func_address(const char device_name[], uint8_t name_length, Device& 
 	
 	uint8_t name_len = name_length - 1;
 	
-	if (name_len > _DRIVER_TABLE_NAME_SIZE__) return 0;
+	if (name_len > _DRIVER_NAME_LENGTH_MAX__) return 0;
 	
 	for (uint8_t i=0; i < _DRIVER_TABLE_SIZE__; i++) {
 		
@@ -144,7 +144,7 @@ void __extern_initiate(void) {
 	
 	for (uint8_t i=0; i < _DRIVER_TABLE_SIZE__; i++) {
 		deviceDriverTable.driver_entrypoint_table[i] = 0;
-		for (uint8_t a=0; a < _DRIVER_TABLE_NAME_SIZE__; a++)
+		for (uint8_t a=0; a < _DRIVER_NAME_LENGTH_MAX__; a++)
 			deviceDriverTable.deviceNameIndex[i][a] = 0x20;
 	}
 	

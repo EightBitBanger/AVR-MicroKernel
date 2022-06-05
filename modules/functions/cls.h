@@ -14,7 +14,7 @@ void command_clear_screen(void) {
 	// Clear the buffer and mask
 	console.clearBuffer();
 	console.clearMask();
-	console.clearString();
+	console.clearKeyboardString();
 	
 	// Reset the cursor
 	console.cursorLine  = 0;

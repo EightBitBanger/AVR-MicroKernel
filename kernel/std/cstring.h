@@ -1,24 +1,24 @@
 //
 // C string functions
 
-// Return the number of sub characters in the string
-uint8_t stringCharCount(char[], unsigned int, char);
+// Return the number of given characters in the string
+uint8_t string_char_count(char[], unsigned int, char);
 
 // Compare a string to another string of the length specified
 uint8_t string_compare(char[], char[], uint8_t);
 
 // Convert an integer to a char array
-uint8_t intToString(uint32_t, char[]);
+uint8_t int_get_string(uint32_t, char[]);
 
 uint8_t string_length(char[], uint8_t);
 
-// Returns the value from the given hex chars. String should contain two hex chars ex: "ff"
-uint8_t string_get_hex(char string[]);
+// Returns the value from the given hex chars. String should contain two hex chars ex: "0xff"
+uint8_t string_get_hex_char(char string[]);
 
 
 
 
-uint8_t stringCharCount(char cstring[], unsigned int string_size, char sub_character) {
+uint8_t string_char_count(char cstring[], unsigned int string_size, char sub_character) {
 	
 	uint8_t count=0;
 	
@@ -42,7 +42,7 @@ uint8_t string_length(char cstring[], uint8_t string_length) {
 	return length;
 }
 
-uint8_t intToString(uint32_t number, char destination_string[]) {
+uint8_t int_get_string(uint32_t number, char destination_string[]) {
 	
 	uint8_t ones = 0x30;
 	uint8_t tens = 0x30;
@@ -85,25 +85,23 @@ uint8_t intToString(uint32_t number, char destination_string[]) {
 	return place;
 }
 
-uint8_t string_get_hex(char string[]) {
+uint8_t string_get_hex_char(char string[]) {
 	
-	uint8_t value_a = 0;
-	uint8_t value_b = 0;
+	uint32_t value_a = 0;
+	uint32_t value_b = 0;
+	uint8_t hex;
 	
 	// First digit
-	uint8_t hex_b = string[1];
-	if ((hex_b > 0x30) && (hex_b < 0x40))
-	value_b += hex_b - 0x30;
-	if ((hex_b > 0x60) && (hex_b < 0x67))
-	value_b += 9 + (hex_b - 0x60);
+	hex = string[1];
+	if ((hex > 0x30) && (hex < 0x40)) value_b += hex - 0x30;
+	if ((hex > 0x60) && (hex < 0x67)) value_b += 9 + (hex - 0x60);
 	
 	// Second digit
-	uint8_t hex_a = string[0];
-	if ((hex_a > 0x30) && (hex_a < 0x40))
-	value_a += hex_a - 0x30;
-	if ((hex_a > 0x60) && (hex_a < 0x67))
-	value_a += 9 + (hex_a - 0x60);
+	hex = string[0];
+	if ((hex > 0x30) && (hex < 0x40)) value_a += hex - 0x30;
+	if ((hex > 0x60) && (hex < 0x67)) value_a += 9 + (hex - 0x60);
 	
 	return value_a + (value_b * 16);
 }
+
 

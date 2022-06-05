@@ -14,9 +14,9 @@ void command_kill(void) {
 	Device consoleDriver;
 	if (get_func_address(_COMMAND_CONSOLE__, sizeof(_COMMAND_CONSOLE__), consoleDriver) == 0) return;
 	
-	char keyboard_string[_PROCESS_NAME_SIZE__];
-	char task_name[_PROCESS_NAME_SIZE__];
-	for (uint8_t a=0; a < _PROCESS_NAME_SIZE__; a++) {keyboard_string[a] = 0x20; task_name[a] = 0x20;}
+	char keyboard_string[_PROCESS_NAME_LENGTH_MAX__];
+	char task_name[_PROCESS_NAME_LENGTH_MAX__];
+	for (uint8_t a=0; a < _PROCESS_NAME_LENGTH_MAX__; a++) {keyboard_string[a] = 0x20; task_name[a] = 0x20;}
 	
 	uint8_t index = console.keyboard_string[5] - 0x30;
 	

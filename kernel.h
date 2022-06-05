@@ -7,9 +7,9 @@
 #include "kernel/config.h"
 
 // Standard includes
+#include "kernel/std/pointers.h"      // Pointer types
 #include "kernel/std/string_const.h"  // System message strings
 #include "kernel/std/cstring.h"       // C string functions
-#include "kernel/std/pointers.h"      // Pointer wrapper
 
 // Kernel function tables
 #include "kernel/driver_table.h"      // Device drivers
@@ -17,7 +17,7 @@
 #include "kernel/bus.h"               // System bus interface
 #include "kernel/scheduler.h"         // Task scheduler
 
-// Kernel tables initiator
+// Kernel table initiator
 struct __INITIATE_KERNEL_TABLES_ {
 	__INITIATE_KERNEL_TABLES_() {
 		

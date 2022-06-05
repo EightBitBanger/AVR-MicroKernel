@@ -3,11 +3,11 @@
 
 void __application_main_(void);
 
-struct ModuleLoaderTest {
-	ModuleLoaderTest() {
+struct ModuleLoaderApplication {
+	ModuleLoaderApplication() {
 		load_module("app",  4, __application_main_);
 	}
-}static loadModuleTest;
+}static moduleLoaderApplication;
 
 void executable_task(void);
 
@@ -19,7 +19,7 @@ void __application_main_(void) {
 	Device memDriverPtr;
 	Device consoleDriverPtr;
 	
-	// Check driver dependency
+	// Check driver support
 	if (get_func_address(_EXTENDED_MEMORY__, sizeof(_EXTENDED_MEMORY__), memDriverPtr) == 0) {
 		console.print(error_exmem_not_installed, sizeof(error_exmem_not_installed));
 		console.printLn();
@@ -27,7 +27,7 @@ void __application_main_(void) {
 	}
 	
 	// Launch the application task
-	task_create("app", 4, executable_task, _PRIORITY_BACKGROUND__, _TASK_USER__);
+	task_create("app", 4, executable_task, _TASK_PRIORITY_BACKGROUND__, _TASK_USER__);
 	
 	return;
 }

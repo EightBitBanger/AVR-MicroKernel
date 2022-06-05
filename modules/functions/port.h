@@ -41,7 +41,7 @@ void __io_control_(void) {
 		string[1] = console.keyboard_string[7];
 		string[0] = console.keyboard_string[8];
 		
-		value = string_get_hex(string);
+		value = string_get_hex_char(string);
 		
 		bus_write_byte(device_bus, moduleLoaderPort.address, value);
 		

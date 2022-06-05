@@ -30,15 +30,15 @@ struct DisplayDriver {
 	void read(uint32_t address, char& byte) {bus_read_byte(device_bus, device_address + address, byte); return;}
 	
 	void cursorSetPosition(uint8_t line, uint8_t position) {write(0xa0, line); write(0xa1, position); return;}
-	void cursorSetCharacter(uint8_t new_character) {write(0xa2, new_character); return;}
-	void cursorSetBlinkRate(uint8_t blink_rate) {write(0xa3, blink_rate); return;}
-	void cursorSetRefreshRate(uint8_t refresh_rate) {write(0xa4, refresh_rate); return;}
+	void cursorSetCharacter(uint8_t new_character)         {write(0xa2, new_character); return;}
+	void cursorSetBlinkRate(uint8_t blink_rate)            {write(0xa3, blink_rate); return;}
+	void cursorSetRefreshRate(uint8_t refresh_rate)        {write(0xa4, refresh_rate); return;}
 	
-	void clearBuffer(void) {write(0xa5, 0x01); return;}
-	void clearMask(void) {write(0xa6, 0x01); return;}
+	void clearBuffer(void)       {write(0xa5, 0x01); return;}
+	void clearMask(void)         {write(0xa6, 0x01); return;}
 	void clearLine(uint8_t line) {write(0xa7, line); return;}
 	
-	void frameShiftUp(void) {write(0xa9, 0x01); return;}
+	void frameShiftUp(void)   {write(0xa9, 0x01); return;}
 	void frameShiftDown(void) {write(0xaa, 0x01); return;}
 	
 	void writeChar(char character, uint8_t line=0, uint8_t position=0) {write((line * 20) + position, character); return;}

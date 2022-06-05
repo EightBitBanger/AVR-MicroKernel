@@ -8,7 +8,7 @@ void eventKeyboardAcceptChar(uint8_t new_char);
 
 struct CommandConsoleServiceLauncher {
 	CommandConsoleServiceLauncher() {
-		task_create("console", 8, keyboard_event_handler, _PRIORITY_NORMAL__, _TASK_SERVICE__);
+		task_create("console", 8, keyboard_event_handler, _TASK_PRIORITY_NORMAL__, _TASK_SERVICE__);
 	}
 }static commandConsoleServiceLauncher;
 
@@ -74,20 +74,20 @@ void eventKeyboardEnter(void) {
 			
 			if (moduleTable.functionNameIndex[i][0] == 0x20) continue;
 			
-			char functionName[_COMMAND_TABLE_NAME_SIZE__];
-			for (uint8_t a=0; a<_COMMAND_TABLE_NAME_SIZE__; a++) functionName[a] = 0x20;
+			char functionName[_COMMAND_NAME_LENGTH_MAX__];
+			for (uint8_t a=0; a<_COMMAND_NAME_LENGTH_MAX__; a++) functionName[a] = 0x20;
 			
 			// Extract function name
-			uint8_t function_length;
-			for (function_length=0; function_length < _COMMAND_TABLE_NAME_SIZE__; function_length++) {
+			uint8_t name_length;
+			for (name_length=0; name_length < _COMMAND_NAME_LENGTH_MAX__; name_length++) {
 				
-				if (moduleTable.functionNameIndex[i][function_length] == 0x20) break;
+				if (moduleTable.functionNameIndex[i][name_length] == 0x20) break;
 				
-				functionName[function_length] = moduleTable.functionNameIndex[i][function_length];
+				functionName[name_length] = moduleTable.functionNameIndex[i][name_length];
 			}
 			
 			// Check for the function name in keyboard string
-			if (string_compare(functionName, console.keyboard_string, function_length + 1) == 0) continue;
+			if (string_compare(functionName, console.keyboard_string, name_length + 1) == 0) continue;
 			
 			// Execute the command
 			moduleTable.command_function_table[i]();
@@ -97,7 +97,7 @@ void eventKeyboardEnter(void) {
 		
 	}
 	
-	console.clearString();
+	console.clearKeyboardString();
 	console.printPrompt();
 	return;
 }

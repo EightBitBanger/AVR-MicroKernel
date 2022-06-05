@@ -53,13 +53,13 @@ struct CommandConsole {
 		
 		// Link to the display driver
 		if (get_func_address(_DISPLAY_CONSOLE__, sizeof(_DISPLAY_CONSOLE__), displayDriverPtr) == 0) return;
-		call_extern(displayDriverPtr, 0x05);
-		call_extern(displayDriverPtr, 0x04);
+		call_extern(displayDriverPtr, 0x05); // Clear mask memory
+		call_extern(displayDriverPtr, 0x04); // Clear char memory
 		
 		_delay_ms(100);
 		
 		printPrompt();
-		clearString();
+		clearKeyboardString();
 		
 	}
 	
@@ -69,7 +69,7 @@ struct CommandConsole {
 	void clearMask(void) {call_extern(displayDriverPtr, 0x05); _delay_ms(80); return;}
 	
 	// Clear the keyboard string
-	void clearString(void) {for (uint8_t i=0; i <= 20; i++) {keyboard_string[i] = 0x20;} keyboard_string_length=0;}
+	void clearKeyboardString(void) {for (uint8_t i=0; i <= 20; i++) {keyboard_string[i] = 0x20;} keyboard_string_length=0;}
 	
 	void setCursorPosition(uint8_t Line, uint8_t Pos) {
 		cursorLine = Line;
@@ -87,6 +87,12 @@ struct CommandConsole {
 	// Shift the display up one line
 	void shiftUp(void) {call_extern(displayDriverPtr, 0x07); _delay_ms(100);}
 	
+	void checkShiftUp(void) {
+		if (cursorPos == 20) {cursorPos=0;
+			if (cursorLine < 3) {cursorLine++;} else {shiftUp();}
+		}
+	}
+	
 	// Print chars/strings to the console
 	void print(const char char_array[], uint8_t string_length) {
 		for (uint8_t i=0; i<string_length-1; i++) {
@@ -99,23 +105,26 @@ struct CommandConsole {
 	void printChar(char character) {
 		call_extern(displayDriverPtr, 0x09, (uint8_t&)character, cursorLine, cursorPos);
 		cursorPos++;
+		checkShiftUp();
 		return;
 	}
 	void printSpace(void) {
 		uint8_t character=0x20;
 		call_extern(displayDriverPtr, 0x09, (uint8_t&)character, cursorLine, cursorPos);
 		cursorPos++;
+		checkShiftUp();
 		return;
 	}
 	void printInt(uint32_t number) {
 		
 		char numberString[10];
-		uint8_t place = intToString(number, numberString);
+		uint8_t place = int_get_string(number, numberString);
 		if (place==0) place++;
 		
 		for (uint8_t i=0; i<place; i++) {
 			call_extern(displayDriverPtr, 0x09, (uint8_t&)numberString[i], cursorLine, cursorPos);
 			cursorPos++;
+			checkShiftUp();
 		}
 		
 		call_extern(displayDriverPtr, 0x00, cursorLine, cursorPos); // Set the cursor line and position
