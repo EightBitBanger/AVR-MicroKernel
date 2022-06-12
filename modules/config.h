@@ -9,7 +9,7 @@
 #include "functions/task.h"
 #include "functions/kill.h"
 #include "functions/mem.h"
-#include "functions/app.h"
+#include "functions/beep.h"
 #include "functions/list.h"
 
 #include "functions/peek.h"

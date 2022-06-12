@@ -9,9 +9,8 @@ struct DisplayDriver {
 	
 	uint32_t device_address;
 	
-	DisplayDriver() {
-		load_library(_DISPLAY_CONSOLE__, sizeof(_DISPLAY_CONSOLE__), (Device)DisplayDeviceDriverEntryPoint);
-	}
+	// Load the device driver
+	DisplayDriver() {load_library(_DISPLAY_CONSOLE__, sizeof(_DISPLAY_CONSOLE__), (Device)DisplayDeviceDriverEntryPoint);}
 	
 	void initiate(void) {
 		

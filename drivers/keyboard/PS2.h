@@ -11,6 +11,7 @@ struct KeyboardDriver {
 	
 	Bus device_bus;
 	
+	// Install the device driver
 	KeyboardDriver() {load_library(_KEYBOARD_INPUT__, sizeof(_KEYBOARD_INPUT__), (Device)keyboardDeviceDriverEntryPoint);}
 	
 	void initiate(void) {
@@ -57,8 +58,8 @@ struct KeyboardDriver {
 			
 			case 0x9f: {
 				switch (scancode_high) {
-					case 0xd9: {scan_code = 0x01; return;}
-					case 0xd6: {scan_code = 0x02; return;}
+					case 0xd9: {scan_code = 0x01; return;} // Backspace
+					case 0xd6: {scan_code = 0x02; return;} // Enter
 					case 0xdc: {scan_code = 0x04; return;}
 					case 0x91: {scan_code = '9'; return;}
 					case 0x8f: {scan_code = '8'; return;}

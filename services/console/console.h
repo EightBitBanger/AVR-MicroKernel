@@ -8,7 +8,7 @@ void eventKeyboardAcceptChar(uint8_t new_char);
 
 struct CommandConsoleServiceLauncher {
 	CommandConsoleServiceLauncher() {
-		task_create("console", 8, keyboard_event_handler, _TASK_PRIORITY_NORMAL__, _TASK_SERVICE__);
+		task_create("console", 8, keyboard_event_handler, _TASK_PRIORITY_HIGH__, _TASK_SERVICE__);
 	}
 }static commandConsoleServiceLauncher;
 
