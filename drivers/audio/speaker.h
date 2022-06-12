@@ -16,7 +16,7 @@ struct SpeakerDriver {
 	
 	SpeakerDriver() {
 		
-		portAddress = 0xc0000;
+		portAddress = 0xd0000;
 		
 		baseFreq    = 1000;
 		

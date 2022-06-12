@@ -23,11 +23,11 @@ void __io_control_(void) {
 	
 	// Port selection
 	if ((console.keyboard_string[5] == 'a') == 1) {
-		moduleLoaderPort.address = 0xc0000;
+		moduleLoaderPort.address = 0x60002;
 		return;
 	}
 	if ((console.keyboard_string[5] == 'b') == 1) {
-		moduleLoaderPort.address = 0xd0000;
+		moduleLoaderPort.address = 0x60003;
 		return;
 	}
 	

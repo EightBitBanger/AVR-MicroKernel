@@ -12,6 +12,7 @@
 #include "functions/beep.h"
 #include "functions/list.h"
 #include "functions/reset.h"
+#include "functions/sound.h"
 
 #include "functions/peek.h"
 #include "functions/port.h"

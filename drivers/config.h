@@ -9,8 +9,9 @@
 // Normal mode device drivers
 #ifndef __BOOT_SAFEMODE_
 
-#include "memory/exmem.h"       // On-board extended memory
-#include "memory/eeprom.h"      // On-chip EEPROM storage
+#include "memory/exmem.h"        // On-board extended memory
+#include "memory/eeprom.h"       // On-chip EEPROM storage
+#include "gpio/gpio_card.h"      // GPIO card rev 1
 
 #endif
 
