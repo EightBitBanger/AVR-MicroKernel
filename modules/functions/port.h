@@ -9,11 +9,9 @@ struct ModuleLoaderPort {
 	
 	ModuleLoaderPort() {
 		address=0x00000;
-		load_module("port",  5, __io_control_);
+		load_module("port", sizeof("port"), __io_control_);
 	}
 }static moduleLoaderPort;
-
-void executable_task(void);
 
 
 void __io_control_(void) {

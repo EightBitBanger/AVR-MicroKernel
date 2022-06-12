@@ -6,7 +6,7 @@
 
 
 #define _DRIVER_TABLE_SIZE__         20  // Total number of device drivers
-#define _DRIVER_NAME_LENGTH_MAX__    10  // Max string name length
+#define _DRIVER_NAME_LENGTH_MAX__     8  // Max string name length
 
 #define _DRIVER_INITIATE__    0xff
 #define _DRIVER_SHUTDOWN__    0xfe
@@ -47,7 +47,7 @@ struct DeviceDriverTable {
 
 uint8_t load_library(const char name[], uint8_t name_length, Device entry_pointer) {
 	
-	if (name_length > _DRIVER_NAME_LENGTH_MAX__-1) return 0;
+	if (name_length > _DRIVER_NAME_LENGTH_MAX__) return 0;
 	
 	uint8_t index;
 	for (index=0; index < _DRIVER_TABLE_SIZE__; index++) {
@@ -55,7 +55,7 @@ uint8_t load_library(const char name[], uint8_t name_length, Device entry_pointe
 	}
 	
 	for (uint8_t i=0; i < name_length-1; i++)
-	deviceDriverTable.deviceNameIndex[index][i] = name[i];
+		deviceDriverTable.deviceNameIndex[index][i] = name[i];
 	
 	deviceDriverTable.driver_entrypoint_table[index] = entry_pointer;
 	
@@ -65,7 +65,7 @@ uint8_t load_library(const char name[], uint8_t name_length, Device entry_pointe
 
 uint8_t free_library(const char name[], uint8_t name_length) {
 	
-	if (name_length > _DRIVER_NAME_LENGTH_MAX__-1) return 0;
+	if (name_length > _DRIVER_NAME_LENGTH_MAX__) return 0;
 	
 	uint8_t index;
 	for (index=0; index < _DRIVER_TABLE_SIZE__; index++) {
@@ -73,7 +73,7 @@ uint8_t free_library(const char name[], uint8_t name_length) {
 	}
 	
 	for (uint8_t i=0; i < name_length-1; i++)
-	deviceDriverTable.deviceNameIndex[index][i] = name[i];
+		deviceDriverTable.deviceNameIndex[index][i] = name[i];
 	
 	deviceDriverTable.driver_entrypoint_table[index] = 0;
 	
@@ -83,21 +83,19 @@ uint8_t free_library(const char name[], uint8_t name_length) {
 
 uint8_t get_func_address(const char device_name[], uint8_t name_length, Device& entry_pointer) {
 	
-	uint8_t name_len = name_length - 1;
-	
-	if (name_len > _DRIVER_NAME_LENGTH_MAX__) return 0;
+	if (name_length > _DRIVER_NAME_LENGTH_MAX__) return 0;
 	
 	for (uint8_t i=0; i < _DRIVER_TABLE_SIZE__; i++) {
 		
 		if (deviceDriverTable.deviceNameIndex[i][0] == 0x20) continue;
 		
 		uint8_t count=0;
-		for (uint8_t a=0; a < name_len; a++) {
+		for (uint8_t a=0; a < name_length-1; a++) {
 			char nameChar = deviceDriverTable.deviceNameIndex[i][a];
 			if (nameChar == device_name[a]) count++; else break;
 		}
 		
-		if (count == name_len) {
+		if (count == name_length-1) {
 			entry_pointer = deviceDriverTable.driver_entrypoint_table[i];
 			return 1;
 		}

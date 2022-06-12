@@ -5,7 +5,7 @@ void command_clear_screen(void);
 
 struct ModuleLoaderCls {
 	ModuleLoaderCls() {
-		load_module("cls",  4, command_clear_screen);
+		load_module("cls",  sizeof("cls"), command_clear_screen);
 	}
 }static loadModuleCls;
 

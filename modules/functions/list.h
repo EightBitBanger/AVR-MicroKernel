@@ -21,7 +21,7 @@ struct ModuleLoaderList {
 		iteration    = 0x40000;
 		iterationMax = 0x40000 + 80;
 		
-		load_module("list",  5, command_list);
+		load_module("list", sizeof("list"), command_list);
 	}
 }static moduleLoaderList;
 
@@ -33,9 +33,10 @@ void command_list(void) {
 		moduleLoaderList.byte += 1;
 		if (moduleLoaderList.byte > 0xfe) moduleLoaderList.byte = 0x00;
 		
-		console.printChar(moduleLoaderList.byte);
+		//console.printChar(moduleLoaderList.byte);
 		
-		//bus_write_byte(moduleLoaderList.deviceBus, moduleLoaderList.iteration, moduleLoaderList.byte);
+		bus_write_byte(moduleLoaderList.deviceBus, 0xc0000, moduleLoaderList.byte * 8);
+		_delay_ms(5);
 		
 		moduleLoaderList.iteration++;
 		if (moduleLoaderList.iteration > moduleLoaderList.iterationMax) moduleLoaderList.iteration=0x40000;

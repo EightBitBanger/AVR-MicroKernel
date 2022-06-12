@@ -5,7 +5,7 @@ void command_task(void);
 
 struct ModuleLoaderTask {
 	ModuleLoaderTask() {
-		load_module("task", 5, command_task);
+		load_module("task", sizeof("task"), command_task);
 	}
 }static loadModuleTask;
 

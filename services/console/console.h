@@ -21,7 +21,7 @@ void keyboard_event_handler(void) {
 	
 	// Link to the keyboard device driver
 	Device device;
-	get_func_address(_KEYBOARD_INPUT__, sizeof(_KEYBOARD_INPUT__), device);
+	if (get_func_address(_KEYBOARD_INPUT__, sizeof(_KEYBOARD_INPUT__), device) == 0) return;
 	
 	// Read keyboard character
 	call_extern(device, 0x00, readKeyCode);
@@ -77,17 +77,18 @@ void eventKeyboardEnter(void) {
 			char functionName[_COMMAND_NAME_LENGTH_MAX__];
 			for (uint8_t a=0; a<_COMMAND_NAME_LENGTH_MAX__; a++) functionName[a] = 0x20;
 			
-			// Extract function name
+			// Extract name from function index
 			uint8_t name_length;
 			for (name_length=0; name_length < _COMMAND_NAME_LENGTH_MAX__; name_length++) {
 				
+				functionName[name_length] = moduleTable.functionNameIndex[i][name_length];
 				if (moduleTable.functionNameIndex[i][name_length] == 0x20) break;
 				
-				functionName[name_length] = moduleTable.functionNameIndex[i][name_length];
 			}
 			
 			// Check for the function name in keyboard string
-			if (string_compare(functionName, console.keyboard_string, name_length + 1) == 0) continue;
+			if (string_compare(functionName, console.keyboard_string, name_length+1) == 0) continue;
+			if ((console.keyboard_string[ name_length ]) != 0x20) continue;
 			
 			// Execute the command
 			moduleTable.command_function_table[i]();

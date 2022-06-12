@@ -4,7 +4,7 @@ void command_peek(void);
 
 struct ModuleLoaderPeek {
 	ModuleLoaderPeek() {
-		load_module("peek", 5, command_peek);
+		load_module("peek", sizeof("peek"), command_peek);
 	}
 } static moduleLoaderPeek;
 

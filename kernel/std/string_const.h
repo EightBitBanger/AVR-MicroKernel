@@ -4,10 +4,11 @@
 
 // Default system device names
 char _DISPLAY_CONSOLE__[]   = "display";
-char _KEYBOARD_INPUT__[]    = "keyboard";
+char _KEYBOARD_INPUT__[]    = "kb";
 char _EXTENDED_MEMORY__[]   = "exMem";
 char _DATA_MEMORY__[]       = "nvMem";
 char _COMMAND_CONSOLE__[]   = "console";
+char _INTERNAL_SPEAKER__[]  = "speaker";
 
 
 // Generic messages

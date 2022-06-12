@@ -3,7 +3,6 @@
 
 // Safe mode device drivers
 
-#include "audio/speaker.h"       // On-board speaker
 #include "display/display.h"     // Liquid Crystal display card
 #include "keyboard/PS2.h"        // On-board PS2 keyboard
 
@@ -18,7 +17,8 @@
 //
 // Initiate at the end
 
-#include "display/console.h"    // Command console library
+#include "audio/speaker.h"       // On-board speaker
+#include "display/console.h"     // Command console library
 
 //
 // Hardware information detection

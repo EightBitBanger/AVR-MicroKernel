@@ -5,7 +5,7 @@ void command_drv(void);
 
 struct ModuleLoaderDrv {
 	ModuleLoaderDrv() {
-		load_module("device",  7, command_drv);
+		load_module("device", sizeof("device"), command_drv);
 	}
 }static loadModuleDrv;
 
@@ -22,14 +22,16 @@ void command_drv(void) {
 		for (uint8_t a=0; a < _DRIVER_NAME_LENGTH_MAX__; a++) {
 			
 			uint8_t nameChar = (uint8_t)deviceDriverTable.deviceNameIndex[i][a];
+			if (nameChar == 0x20) break;
 			
 			call_extern(consoleDriver, 0x00, nameChar); // Write char
 			
 		}
 		
-		call_extern(consoleDriver, 0x01); // New line
+		call_extern(consoleDriver, 0x03); // space
 		
 	}
+	call_extern(consoleDriver, 0x01); // New line
 	
 	return;
 }

@@ -5,7 +5,7 @@ void command_memory(void);
 
 struct ModuleLoaderMem {
 	ModuleLoaderMem() {
-		load_module("mem",  4, command_memory);
+		load_module("mem",  sizeof("mem"), command_memory);
 	}
 }static loadModuleMem;
 

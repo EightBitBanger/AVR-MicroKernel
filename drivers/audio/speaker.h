@@ -21,7 +21,7 @@ struct SpeakerDriver {
 		baseFreq    = 1000;
 		
 		// Load the device driver
-		load_library("Speaker", sizeof("Speaker"), (Device)SpeakerDriverDeviceDriverEntryPoint);
+		load_library(_INTERNAL_SPEAKER__, sizeof(_INTERNAL_SPEAKER__), (Device)SpeakerDriverDeviceDriverEntryPoint);
 	}
 	
 	void initiate(void) {
@@ -32,7 +32,6 @@ struct SpeakerDriver {
 		device_bus.waitstate_write = 0;
 		
 		beep(50, 1);
-		_delay_ms(300);
 		
 	}
 	
@@ -45,7 +44,7 @@ struct SpeakerDriver {
 	
 	void beep(uint8_t  length, uint8_t tone) {
 		
-		uint32_t baseDelta  = baseFreq + (100 * tone);
+		uint32_t baseDelta  = baseFreq + (150 * tone);
 		uint32_t baseLength = length * 2;
 		
 		for (uint32_t i=0; i < baseLength; i++) {
