@@ -3,14 +3,17 @@
 
 void command_music(void);
 
+#define __MODULE_NAME_  "sound"
+
 struct ModuleLoaderSound {
 	
 	ModuleLoaderSound() {
 		
-		load_module("sound", sizeof("sound"), command_music);
+		load_module(__MODULE_NAME_, sizeof(__MODULE_NAME_), command_music);
 		
 	}
 }static moduleLoaderSound;
+#undef __MODULE_NAME_
 
 
 void command_music(void) {

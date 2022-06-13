@@ -57,9 +57,7 @@ struct CommandConsole {
 		call_extern(displayDriverPtr, 0x05); // Clear mask memory
 		call_extern(displayDriverPtr, 0x04); // Clear char memory
 		
-		_delay_ms(100);
-		
-		printPrompt();
+		//printPrompt();
 		clearKeyboardString();
 		
 	}

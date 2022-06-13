@@ -3,15 +3,18 @@
 
 void __io_control_(void);
 
+#define __MODULE_NAME_  "port"
+
 struct ModuleLoaderPort {
 	
 	uint32_t address;
 	
 	ModuleLoaderPort() {
 		address=0x00000;
-		load_module("port", sizeof("port"), __io_control_);
+		load_module(__MODULE_NAME_, sizeof(__MODULE_NAME_), __io_control_);
 	}
 }static moduleLoaderPort;
+#undef __MODULE_NAME_
 
 
 void __io_control_(void) {

@@ -3,11 +3,14 @@
 
 void __application_main_(void);
 
+#define __MODULE_NAME_  "beep"
+
 struct ModuleLoaderApplication {
 	ModuleLoaderApplication() {
-		load_module("beep",  sizeof("beep"), __application_main_);
+		load_module(__MODULE_NAME_,  sizeof(__MODULE_NAME_), __application_main_);
 	}
 }static moduleLoaderApplication;
+#undef __MODULE_NAME_
 
 //
 // Entry point

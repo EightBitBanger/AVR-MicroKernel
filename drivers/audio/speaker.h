@@ -31,8 +31,6 @@ struct SpeakerDriver {
 		device_bus.waitstate_read  = 0;
 		device_bus.waitstate_write = 0;
 		
-		beep(50, 1);
-		
 	}
 	
 	void shutdown(void) {

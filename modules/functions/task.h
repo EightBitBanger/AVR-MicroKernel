@@ -3,11 +3,15 @@
 
 void command_task(void);
 
+#define __MODULE_NAME_  "task"
+
 struct ModuleLoaderTask {
 	ModuleLoaderTask() {
-		load_module("task", sizeof("task"), command_task);
+		load_module(__MODULE_NAME_, sizeof(__MODULE_NAME_), command_task);
 	}
 }static loadModuleTask;
+#undef __MODULE_NAME_
+
 
 void command_task(void) {
 	

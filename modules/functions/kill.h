@@ -3,11 +3,14 @@
 
 void command_kill(void);
 
+#define __MODULE_NAME_  "kill"
+
 struct ModuleLoaderKill {
 	ModuleLoaderKill() {
-		load_module("kill", sizeof("kill"), command_kill);
+		load_module(__MODULE_NAME_, sizeof(__MODULE_NAME_), command_kill);
 	}
 }static loadModuleKill;
+#undef __MODULE_NAME_
 
 void command_kill(void) {
 	

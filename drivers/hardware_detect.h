@@ -52,20 +52,22 @@ void __detect_hardware(uint32_t address, uint32_t stride, uint8_t device_count) 
 		get_hardware_info(device_bus, current_address, h_info);
 		Device device_driver;
 		
-		// Check device type
-		if (string_compare(h_info.device_name, _DISPLAY_CONSOLE__, sizeof(_DISPLAY_CONSOLE__)) == 1) 
+		// Update display device
+		if (string_compare(h_info.device_name, _DISPLAY_CONSOLE__, sizeof(_DISPLAY_CONSOLE__)) == 1) {
+			
 			if (get_func_address(_DISPLAY_CONSOLE__, sizeof(_DISPLAY_CONSOLE__), device_driver) == 0) continue;
-		
-		// Update device address
-		WrappedPointer pointer;
-		pointer.address = current_address;
-		
-		call_extern(device_driver, _DRIVER_ADDRESS__, pointer.byte_t[0], pointer.byte_t[1], pointer.byte_t[2], pointer.byte_t[3]);
-		
-		// Re-initiate the command console
-		if (get_func_address(_COMMAND_CONSOLE__, sizeof(_COMMAND_CONSOLE__), device_driver) == 0) continue;
-		call_extern(device_driver, _DRIVER_INITIATE__);
-		
+			
+			// Update device address
+			WrappedPointer pointer;
+			pointer.address = current_address;
+			
+			call_extern(device_driver, _DRIVER_ADDRESS__, pointer.byte_t[0], pointer.byte_t[1], pointer.byte_t[2], pointer.byte_t[3]);
+			
+			// Re-initiate the command console
+			if (get_func_address(_COMMAND_CONSOLE__, sizeof(_COMMAND_CONSOLE__), device_driver) == 0) continue;
+			
+			call_extern(device_driver, _DRIVER_INITIATE__);
+		}
 		
 	}
 #endif

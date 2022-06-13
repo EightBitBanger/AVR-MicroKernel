@@ -3,11 +3,14 @@
 
 void command_drv(void);
 
+#define __MODULE_NAME_  "device"
+
 struct ModuleLoaderDrv {
 	ModuleLoaderDrv() {
-		load_module("device", sizeof("device"), command_drv);
+		load_module(__MODULE_NAME_, sizeof(__MODULE_NAME_), command_drv);
 	}
 }static loadModuleDrv;
+#undef __MODULE_NAME_
 
 void command_drv(void) {
 	

@@ -3,11 +3,14 @@
 
 void command_memory(void);
 
+#define __MODULE_NAME_  "mem"
+
 struct ModuleLoaderMem {
 	ModuleLoaderMem() {
-		load_module("mem",  sizeof("mem"), command_memory);
+		load_module(__MODULE_NAME_,  sizeof(__MODULE_NAME_), command_memory);
 	}
 }static loadModuleMem;
+#undef __MODULE_NAME_
 
 void command_memory(void) {
 	

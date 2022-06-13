@@ -1,56 +1,39 @@
 //
-// Application test
+// Application testing ground
 
-void __application_main_(void);
+void application_entry_point(void);
+void application_task(void);
 
-struct ModuleLoaderApplication {
-	ModuleLoaderApplication() {
-		load_module("app",  4, __application_main_);
+#define __MODULE_NAME_  "app"
+
+struct ModuleLoaderApp {
+	ModuleLoaderApp() {
+		load_module(__MODULE_NAME_,  sizeof(__MODULE_NAME_), application_entry_point);
 	}
-}static moduleLoaderApplication;
+}static loadModuleAppEntryPoint;
+#undef __MODULE_NAME_
 
-void executable_task(void);
+Bus device_bus;
+uint8_t counter;
 
-//
-// Entry point
-
-void __application_main_(void) {
+void application_entry_point(void) {
 	
-	Device memDriverPtr;
-	Device consoleDriverPtr;
+	counter = 0;
 	
-	// Check driver support
-	if (get_func_address(_EXTENDED_MEMORY__, sizeof(_EXTENDED_MEMORY__), memDriverPtr) == 0) {
-		console.print(error_exmem_not_installed, sizeof(error_exmem_not_installed));
-		console.printLn();
-		return;
-	}
+	device_bus.waitstate_write = 0;
+	device_bus.waitstate_read  = 0;
 	
-	// Launch the application task
-	task_create("app", 4, executable_task, _TASK_PRIORITY_BACKGROUND__, _TASK_USER__);
+	task_create("app", sizeof("app"), application_task, _TASK_PRIORITY_HIGH__, _TASK_USER__);
 	
 	return;
 }
 
 
-
-
-
-uint8_t app_cntr = 0;
-
-void executable_task(void) {
+void application_task(void) {
 	
-	Bus device_bus;
+	bus_write_byte(device_bus, 0x60002, counter);
 	
-	bus_write_byte(device_bus, 0xc0000, app_cntr);
-	
-	//bus_write_byte(device_bus, 0xd0000, app_cntr * app_cntr);
-	
-	
-	app_cntr++;
-	
-	
-	
+	counter++;
 	
 	return;
 }

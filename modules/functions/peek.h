@@ -2,11 +2,14 @@
 
 void command_peek(void);
 
+#define __MODULE_NAME_  "peek"
+
 struct ModuleLoaderPeek {
 	ModuleLoaderPeek() {
-		load_module("peek", sizeof("peek"), command_peek);
+		load_module(__MODULE_NAME_, sizeof(__MODULE_NAME_), command_peek);
 	}
 } static moduleLoaderPeek;
+#undef __MODULE_NAME_
 
 
 void command_peek(void) {

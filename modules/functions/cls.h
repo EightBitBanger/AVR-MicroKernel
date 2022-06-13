@@ -3,11 +3,14 @@
 
 void command_clear_screen(void);
 
+#define __MODULE_NAME_  "cls"
+
 struct ModuleLoaderCls {
 	ModuleLoaderCls() {
-		load_module("cls",  sizeof("cls"), command_clear_screen);
+		load_module(__MODULE_NAME_,  sizeof(__MODULE_NAME_), command_clear_screen);
 	}
 }static loadModuleCls;
+#undef __MODULE_NAME_
 
 void command_clear_screen(void) {
 	

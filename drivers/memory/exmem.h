@@ -53,18 +53,6 @@ struct ExtendedMemoryDriver {
 		device_bus.waitstate_read  = 2;
 		device_bus.waitstate_write = 0;
 		
-		// Check available memory
-		for (_STACK_END__=0x00000; _STACK_END__ < 0x40000; _STACK_END__++) {
-			
-			bus_write_byte(device_bus, _STACK_END__, 0x55);
-			bus_read_byte(device_bus, _STACK_END__, byte);
-			
-			if (byte != 0x55) break;
-		}
-		
-		// Zero kernel space
-		mem_zero(_KERNEL_BEGIN__, _KERNEL_END__);
-		
 	}
 	
 	void shutdown(void) {

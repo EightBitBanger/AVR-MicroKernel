@@ -4,6 +4,8 @@
 void command_list(void);
 void list_function_task(void);
 
+#define __MODULE_NAME_  "list"
+
 struct ModuleLoaderList {
 	
 	Bus deviceBus;
@@ -21,9 +23,10 @@ struct ModuleLoaderList {
 		iteration    = 0x40000;
 		iterationMax = 0x40000 + 80;
 		
-		load_module("list", sizeof("list"), command_list);
+		load_module(__MODULE_NAME_, sizeof(__MODULE_NAME_), command_list);
 	}
 }static moduleLoaderList;
+#undef __MODULE_NAME_
 
 
 void command_list(void) {
