@@ -35,5 +35,8 @@ struct __INITIATE_KERNEL_TABLES_ {
 #include "modules/config.h"
 #include "services/config.h"
 
+// Configure hardware initiation
+#include "kernel/boards/config.h"
+
 #endif
 
