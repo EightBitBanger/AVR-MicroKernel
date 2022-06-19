@@ -29,7 +29,7 @@ void __application_main_(void) {
 	
 	Device audioDriver;
 	if (get_func_address(_INTERNAL_SPEAKER__, sizeof(_INTERNAL_SPEAKER__), audioDriver) == 0) return;
-	call_extern(audioDriver, 0x00, length, delta);
+	call_extern(audioDriver, 0x00, delta, length);
 	
 	return;
 }

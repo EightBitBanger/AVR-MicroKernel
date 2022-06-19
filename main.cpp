@@ -5,22 +5,22 @@
 
 int main(void) {
 	
+	// Allow the system to stabilize and zero the external system bus
+	_delay_ms(800);
+	
 	bus_zero();
 	
 	// Initiate device drivers
 	__extern_call_init();
 	
-	// Detect devices attached to the system bus
+	// Attempt to identify devices on the system bus
 #ifdef __HARDWARE_AUTO_DETECT_
 	__detect_hardware(0x40000, 0x10000, 5);
 #endif
 	
-	// Initiate board level hardware
-#ifdef __INITIATE_BOARD_
-	initiate_board();
-#endif
+	initiate_kernel();
 	
-	// Fire up the scheduler
+	// Fire up the scheduler with a counter base rate of 20
 	__scheduler_start(20);
 	
 	while(1) 

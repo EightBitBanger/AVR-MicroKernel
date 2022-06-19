@@ -180,6 +180,16 @@ void ConsoleLibraryEntryPoint(uint8_t functionCall, uint8_t& paramA, uint8_t& pa
 		case 0x02: console.printPrompt(); break;
 		case 0x03: console.printSpace(); break;
 		
+		case 0x04: {
+			WrappedPointer pointer;
+			pointer.byte_t[0] = paramA; pointer.byte_t[1] = paramB; pointer.byte_t[2] = paramC; pointer.byte_t[3] = paramD;
+			console.printInt(pointer.address);
+			break;
+		}
+		case 0x0a: console.setCursorPosition(paramA, paramB); break;
+		case 0x0b: console.setCursorCharacter(paramA); break;
+		case 0x0c: console.setCursorBlinkRate(paramA); break;
+		
 		default: break;
 	}
 	

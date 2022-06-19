@@ -4,7 +4,7 @@
 void application_entry_point(void);
 void application_task(void);
 
-#define __MODULE_NAME_  "app"
+#define __MODULE_NAME_  "count"
 
 struct ModuleLoaderMemCheck {
 	
@@ -25,7 +25,9 @@ void application_entry_point(void) {
 	memCheckModuleLoader.device_bus.waitstate_write = 0;
 	memCheckModuleLoader.device_bus.waitstate_read  = 0;
 	
-	task_create("app", sizeof("app"), application_task, _TASK_PRIORITY_NORMAL__, _TASK_USER__);
+	task_create("app", sizeof("app"), application_task, _TASK_PRIORITY_BACKGROUND__, _TASK_USER__);
+	
+	extendedMemoryDriver.stack_alloc(100);
 	
 	return;
 }
@@ -33,7 +35,7 @@ void application_entry_point(void) {
 
 void application_task(void) {
 	
-	bus_write_byte(memCheckModuleLoader.device_bus, 0x60002, memCheckModuleLoader.counter);
+	bus_write_byte(memCheckModuleLoader.device_bus, 0x60000, memCheckModuleLoader.counter);
 	
 	memCheckModuleLoader.counter++;
 	

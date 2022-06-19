@@ -26,10 +26,18 @@ void __io_control_(void) {
 	
 	// Port selection
 	if ((console.keyboard_string[5] == 'a') == 1) {
-		moduleLoaderPort.address = 0x60002;
+		moduleLoaderPort.address = 0x60000;
 		return;
 	}
 	if ((console.keyboard_string[5] == 'b') == 1) {
+		moduleLoaderPort.address = 0x60001;
+		return;
+	}
+	if ((console.keyboard_string[5] == 'c') == 1) {
+		moduleLoaderPort.address = 0x60002;
+		return;
+	}
+	if ((console.keyboard_string[5] == 'd') == 1) {
 		moduleLoaderPort.address = 0x60003;
 		return;
 	}

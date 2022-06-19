@@ -40,7 +40,7 @@ struct SpeakerDriver {
 	void write(uint32_t address, char byte) {bus_write_byte(device_bus, address, byte); return;}
 	void read(uint32_t address, char& byte) {bus_read_byte(device_bus, address, byte); return;}
 	
-	void beep(uint8_t  length, uint8_t tone) {
+	void beep(uint8_t  tone, uint8_t length=5) {
 		
 		uint32_t baseDelta  = baseFreq + (150 * tone);
 		uint32_t baseLength = length * 2;
