@@ -8,6 +8,7 @@ int main(void) {
 	// Allow the system to stabilize and zero the external system bus
 	_delay_ms(800);
 	
+	address_zero();
 	bus_zero();
 	
 	// Initiate device drivers
@@ -18,7 +19,7 @@ int main(void) {
 	__detect_hardware(0x40000, 0x10000, 5);
 #endif
 	
-	initiate_kernel();
+	__kernel_initiate();
 	
 	// Fire up the scheduler with a counter base rate of 20
 	__scheduler_start(20);

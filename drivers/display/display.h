@@ -3,6 +3,9 @@
 
 void DisplayDeviceDriverEntryPoint(uint8_t, uint8_t&, uint8_t&, uint8_t&, uint8_t&);
 
+#define _DISPLAY_LINE_WIDTH  20  // Chars per line
+#define _DISPLAY_LINE_COUNT   4  // Total lines on display
+
 struct DisplayDriver {
 	
 	Bus device_bus;
@@ -40,10 +43,10 @@ struct DisplayDriver {
 	void frameShiftUp(void)   {write(0xa9, 0x01); return;}
 	void frameShiftDown(void) {write(0xaa, 0x01); return;}
 	
-	void writeChar(char character, uint8_t line=0, uint8_t position=0) {write((line * 20) + position, character); return;}
+	void writeChar(char character, uint8_t line=0, uint8_t position=0) {write((line * _DISPLAY_LINE_WIDTH) + position, character); return;}
 	void writeString(char String[], uint8_t string_size, uint8_t line=0, uint8_t position=0) {
 		
-		uint32_t address = device_address + ((line * 20) + position);
+		uint32_t address = device_address + ((line * _DISPLAY_LINE_WIDTH) + position);
 		
 		uint8_t stringSz = string_size - 1;
 		
@@ -53,7 +56,7 @@ struct DisplayDriver {
 	}
 	void writeString(const char String[], uint8_t string_size, uint8_t line=0, uint8_t position=0) {
 		
-		uint32_t address = device_address + ((line * 20) + position);
+		uint32_t address = device_address + ((line * _DISPLAY_LINE_WIDTH) + position);
 		
 		uint8_t stringSz = string_size - 1;
 		
@@ -62,10 +65,10 @@ struct DisplayDriver {
 		return;
 	}
 	
-	void writeCharMask(const char character, uint8_t line=0, uint8_t position=0) {write(( (line * 20) + position + 0x50), character); return;}
+	void writeCharMask(const char character, uint8_t line=0, uint8_t position=0) {write(( (line * _DISPLAY_LINE_WIDTH) + position + 0x50), character); return;}
 	void writeStringMask(const char string[], uint8_t string_size, uint8_t line=0, uint8_t position=0) {
 		
-		uint32_t address = device_address + ((line * 20) + position) + 0x50;
+		uint32_t address = device_address + ((line * _DISPLAY_LINE_WIDTH) + position) + 0x50;
 		
 		uint8_t stringSz = string_size - 1;
 		

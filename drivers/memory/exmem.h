@@ -5,13 +5,15 @@
 #define __HIGH_MEMORY__
 
 // Kernel memory space
-#define _KERNEL_SIZE__          0x000ff   // Bytes reserved for the kernel
+#define _KERNEL_BEGIN__           0x00100
+#define _KERNEL_END__             _KERNEL_BEGIN__ + 0x00200
 
-#define _KERNEL_BEGIN__         0x00000
-#define _KERNEL_END__           (_KERNEL_BEGIN__ + _KERNEL_SIZE__)
+#define _KERNEL_FUNCTION_TABLE__         0x00000
+#define _KERNEL_FUNCTION_TABLE_SIZE__    0x000ff
 
-#define _KERNEL_FLAGS__         _KERNEL_BEGIN__
-#define _KERNEL_STACK_COUNT__   (_KERNEL_BEGIN__ + 0x000fc) // Memory address to the byte counter in the external stack
+#define _KERNEL_FLAGS__           _KERNEL_BEGIN__
+#define _KERNEL_STACK_COUNT__     (_KERNEL_BEGIN__ + 0x000fc) // Memory address to the byte counter for the external memory stack
+#define _KERNEL_STACK_BEGIN__     _KERNEL_END__               // Memory address to the beginning of the external memory stack
 
 // Kernel State flags
 #define _KERNEL_STATE_NORMAL__          0x00
@@ -36,7 +38,7 @@ struct ExtendedMemoryDriver {
 	
 	ExtendedMemoryDriver() {
 		
-		_STACK_BEGIN__ = _KERNEL_SIZE__ + 1;
+		_STACK_BEGIN__ = _KERNEL_STACK_BEGIN__;
 		_STACK_END__   = 0;
 		
 		currentAddress = 0;
@@ -63,7 +65,7 @@ struct ExtendedMemoryDriver {
 	void read(uint32_t address, char& byte) {bus_read_byte(device_bus, address, byte); return;}
 	
 	
-	uint32_t stack_alloc(uint32_t size) {
+	uint32_t stack_push(uint32_t size) {
 		
 		WrappedPointer numberOfAllocations;
 		for (uint8_t i=0; i<4; i++) read(_KERNEL_STACK_COUNT__ + i, numberOfAllocations.byte[i]);
@@ -84,7 +86,7 @@ struct ExtendedMemoryDriver {
 		return new_pointer;
 	}
 	
-	void stack_free(uint32_t size) {
+	void stack_pop(uint32_t size) {
 		
 		WrappedPointer numberOfAllocations;
 		for (uint8_t i=0; i<4; i++) read(_KERNEL_STACK_COUNT__ + i, numberOfAllocations.byte[i]);
@@ -123,11 +125,12 @@ void ExtendedMemoryDeviceDriverEntryPoint(uint8_t functionCall, uint8_t& paramA,
 		case _DRIVER_INITIATE__: {extendedMemoryDriver.initiate(); break;}
 		case _DRIVER_SHUTDOWN__: {extendedMemoryDriver.shutdown(); break;}
 		
-		case 0x00:  extendedMemoryDriver.returnAddress = extendedMemoryDriver.stack_alloc(extendedMemoryDriver.currentAddress); break;
-		case 0x01:  extendedMemoryDriver.stack_free(extendedMemoryDriver.currentAddress); break;
-		case 0x02:  extendedMemoryDriver.mem_zero(extendedMemoryDriver.currentAddress, paramA); break;
+		case 0x00:  extendedMemoryDriver.returnAddress = extendedMemoryDriver.stack_push(extendedMemoryDriver.currentAddress); break;
+		case 0x01:  extendedMemoryDriver.stack_pop(extendedMemoryDriver.currentAddress); break;
+		case 0x02:  extendedMemoryDriver.mem_zero(extendedMemoryDriver.currentAddress, paramA); extendedMemoryDriver.currentAddress += paramA; break;
 		case 0x03:  extendedMemoryDriver.returnAddress = extendedMemoryDriver.stack_size(); break;
 		case 0x04:  extendedMemoryDriver.returnAddress = extendedMemoryDriver._STACK_END__; break;
+		case 0x05:  extendedMemoryDriver._STACK_END__ = extendedMemoryDriver.currentAddress; break;
 		
 		
 		// Set the address pointer

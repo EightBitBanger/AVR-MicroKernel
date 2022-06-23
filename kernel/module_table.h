@@ -4,11 +4,12 @@
 #ifndef ____COMMAND_MODULE_TABLE__
 #define ____COMMAND_MODULE_TABLE__
 
-#define _COMMAND_TABLE_SIZE__        20  // Total number of function modules
+#define _COMMAND_TABLE_SIZE__        13  // Total number of function modules
 #define _COMMAND_NAME_LENGTH_MAX__    8  // Max name length
 
 #ifdef  __CORE_MAIN_
 
+typedef void(*Module)();
 
 // Install a module onto the function table
 uint8_t load_module(const char name[], uint8_t name_length, void(*function_ptr)());

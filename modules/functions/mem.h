@@ -32,7 +32,7 @@ void command_memory(void) {
 	WrappedPointer stackSz;
 	call_extern(memDriverPtr, 0x0c, stackSz.byte_t[0], stackSz.byte_t[1], stackSz.byte_t[2], stackSz.byte_t[3]);
 	
-	console.printInt( memTotal.address );
+	console.printInt( memTotal.address - stackSz.address );
 	console.printLn();
 	
 	return;

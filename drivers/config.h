@@ -18,8 +18,3 @@
 
 #endif
 
-//
-// Hardware information detection
-#include "hardware_detect.h"
-
-

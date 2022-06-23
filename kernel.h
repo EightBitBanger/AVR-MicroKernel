@@ -4,8 +4,6 @@
 #ifndef ____KERNEL_MAIN__
 #define ____KERNEL_MAIN__
 
-void initiate_kernel(void);
-
 #include "kernel/config.h"
 
 // Standard includes
@@ -18,6 +16,12 @@ void initiate_kernel(void);
 #include "kernel/module_table.h"      // Function modules
 #include "kernel/bus.h"               // System bus interface
 #include "kernel/scheduler.h"         // Task scheduler
+
+
+// Kernel function table
+uint8_t kernel_load_module(uint8_t index, Module entry_pointer);
+void    kernel_call_extern(uint8_t index);
+
 
 // Kernel table initiator
 struct __INITIATE_KERNEL_TABLES_ {
@@ -37,8 +41,30 @@ struct __INITIATE_KERNEL_TABLES_ {
 #include "modules/config.h"
 #include "services/config.h"
 
+// Hardware information detection
+#include "drivers/hardware_detect.h"
 
-void initiate_kernel(void) {
+
+union FunctionPointer {
+	
+	FunctionPointer() {
+		byte[0] = 0x00;
+		byte[1] = 0x00;
+	}
+	
+	void*(pointer)();
+	
+	char    byte[2];
+	uint8_t byte_t[2];
+	
+	void(*device)();
+	
+};
+
+
+
+
+void __kernel_initiate(void) {
 	
 	char skip=0;
 	char byte=0;
@@ -47,33 +73,39 @@ void initiate_kernel(void) {
 	Device memory_device;
 	Device speaker_device;
 	
+	
 	if (get_func_address(_COMMAND_CONSOLE__, sizeof(_COMMAND_CONSOLE__), console_device) == 0) return;
 	
 	uint8_t character = '0';
 	uint8_t line      = 0;
 	uint8_t pos       = 0;
 	
+	// Initiate the cursor
 	call_extern(console_device, 0x0a, line, pos);
 	call_extern(console_device, 0x00, character);
 	
-	// Allocate available external memory 0x00000 - 0x3ffff
+	WrappedPointer total_memory;
+	Bus device_bus;
+	
+	// External bus wait states
+	device_bus.waitstate_write = 0;
+	device_bus.waitstate_read  = 2;
+	
+	// Allocate available external memory
 	if (get_func_address(_EXTENDED_MEMORY__, sizeof(_EXTENDED_MEMORY__), memory_device) == 1) {
 		
-		for (extendedMemoryDriver._STACK_END__=0x00000; extendedMemoryDriver._STACK_END__ < 0x40000; extendedMemoryDriver._STACK_END__++) {
+		for (total_memory.address=0x00000; total_memory.address < 0x80000; total_memory.address++) {
 			
-			bus_write_byte(extendedMemoryDriver.device_bus, extendedMemoryDriver._STACK_END__, 0x55);
-			bus_read_byte(extendedMemoryDriver.device_bus, extendedMemoryDriver._STACK_END__, byte);
+			bus_write_byte(device_bus, total_memory.address, 0x55);
+			bus_read_byte(device_bus, total_memory.address, byte);
 			
 			if (byte != 0x55) break;
 			
 			skip++;
 			if (skip > 100) {skip=0;
 				
-				WrappedPointer pointer;
-				pointer.address = extendedMemoryDriver._STACK_END__;
-				
 				call_extern(console_device, 0x0a, line, pos);
-				call_extern(console_device, 0x04, pointer.byte_t[0], pointer.byte_t[1], pointer.byte_t[2], pointer.byte_t[3]);
+				call_extern(console_device, 0x04, total_memory.byte_t[0], total_memory.byte_t[1], total_memory.byte_t[2], total_memory.byte_t[3]);
 				
 			}
 			
@@ -81,20 +113,45 @@ void initiate_kernel(void) {
 		
 		// Zero kernel memory area
 		uint8_t size = 0xff;
-		WrappedPointer pointer;
-		pointer.address = _KERNEL_BEGIN__;
+		for (uint8_t i=0; i < 10; i++) 
+			call_extern(memory_device, 0x02, size);
 		
-		call_extern(memory_device, 0x0a, pointer.byte_t[0], pointer.byte_t[1], pointer.byte_t[2], pointer.byte_t[3]);
-		call_extern(memory_device, 0x02, size);
+		// Write memory total size to kernel memory
+		call_extern(memory_device, 0x0a, total_memory.byte_t[0], total_memory.byte_t[1], total_memory.byte_t[2], total_memory.byte_t[3]);
+		call_extern(memory_device, 0x05);
+		
+	} else {
+		
+		// ERROR - memory not installed
+		for (uint8_t i=0; i<sizeof(error_exmem_not_installed); i++) 
+			call_extern(console_device, 0x00, (uint8_t&)error_exmem_not_installed[i]);
+		call_extern(console_device, 0x01);
+		
+		// Error beep code 
+		uint8_t length   = 74;
+		uint8_t tone     = 1;
+		uint8_t beepcode = 5;
+		
+		if (get_func_address(_INTERNAL_SPEAKER__, sizeof(_INTERNAL_SPEAKER__), speaker_device) == 1) {
+			
+			for (uint8_t i=0; i<beepcode; i++) {
+				call_extern(speaker_device, 0x00, tone, length);
+				_delay_ms(350);
+			}
+			
+		}
+		
+		while(1) asm("nop");
 		
 	}
+	
 	// Place the cursor
 	line = 1; pos = 0;
 	
 	call_extern(console_device, 0x0a, line, pos);
 	call_extern(console_device, 0x02);
 	
-	// Speaker test - PASSED
+	// Speaker test - PASSED \ single beep
 	uint8_t length = 74;
 	uint8_t tone   = 1;
 	
@@ -106,6 +163,56 @@ void initiate_kernel(void) {
 	}
 	
 }
+
+
+// Load a kernel module onto the function table
+uint8_t kernel_load_module(uint8_t index, void(*entry_pointer)() ) {
+	
+	FunctionPointer function;
+	function.device = entry_pointer;
+	
+	uint32_t function_address = _KERNEL_FUNCTION_TABLE__ + (index * 2);
+	
+	extendedMemoryDriver.write(function_address,   function.byte[0]);
+	extendedMemoryDriver.write(function_address+1, function.byte[1]);
+	
+	return 1;
+}
+
+// Call an external function pointer
+void kernel_call_extern(uint8_t index) {
+	
+	FunctionPointer function;
+	uint32_t function_address = _KERNEL_FUNCTION_TABLE__ + (index * 2);
+	
+	extendedMemoryDriver.read(function_address,   function.byte[0]);
+	extendedMemoryDriver.read(function_address+1, function.byte[1]);
+	
+	function.device();
+	
+	return;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 #endif

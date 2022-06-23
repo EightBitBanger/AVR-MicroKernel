@@ -59,15 +59,13 @@ struct EEPROMStorage {
 
 
 
-
 void EEPROMDeviceDriverEntryPoint(uint8_t functionCall, uint8_t& paramA, uint8_t& paramB, uint8_t& paramC, uint8_t& paramD) {
 	
 	switch(functionCall) {
 		
 		case _DRIVER_INITIATE__: {eepromStorage.initiate(); break;}
 		case _DRIVER_SHUTDOWN__: {eepromStorage.shutdown(); break;}
-		
-		case 0x00:  eepromStorage.pointer.byte_t[0] = paramA; eepromStorage.pointer.byte_t[1] = paramB; eepromStorage.pointer.byte_t[2] = paramC; eepromStorage.pointer.byte_t[3] = paramD; break;
+		case _DRIVER_ADDRESS__:  {eepromStorage.pointer.byte_t[0] = paramA; eepromStorage.pointer.byte_t[1] = paramB; eepromStorage.pointer.byte_t[2] = paramC; eepromStorage.pointer.byte_t[3] = paramD; break;}
 		
 		case 0x01:  eepromStorage.write(eepromStorage.pointer.address, paramA); break;
 		case 0x02:  eepromStorage.read(eepromStorage.pointer.address, (char&)paramA); break;

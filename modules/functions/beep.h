@@ -5,11 +5,11 @@ void __application_main_(void);
 
 #define __MODULE_NAME_  "beep"
 
-struct ModuleLoaderApplication {
-	ModuleLoaderApplication() {
+struct ModuleLoaderBeep {
+	ModuleLoaderBeep() {
 		load_module(__MODULE_NAME_,  sizeof(__MODULE_NAME_), __application_main_);
 	}
-}static moduleLoaderApplication;
+}static beepModuleLoader;
 #undef __MODULE_NAME_
 
 //

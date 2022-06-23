@@ -29,6 +29,7 @@
 #define _CONTROL_WRITE_CYCLE__      0b00010101
 #define _CONTROL_READ_LATCH__       0b00110100
 #define _CONTROL_WRITE_LATCH__      0b00110101
+#define _CONTROL_OPEN_LATCH__       0b00111111
 
 
 
@@ -136,6 +137,7 @@ typedef volatile BUSTYPE Bus;
 
 // Initiate and zero the hardware level IO pins
 void bus_zero(void);
+void address_zero(void);
 // Run a write cycle over the bus interface
 void bus_write_byte(Bus& bus, uint32_t address, char byte);
 // Run a read cycle over the bus interface
@@ -145,37 +147,35 @@ void bus_read_byte(Bus& bus, uint32_t address, char& buffer);
 
 // Initiate and zero the hardware level IO
 void bus_zero(void) {
-#ifdef __HARDWARE_BUS_
-	// Address bus
+	_CONTROL_DIR__=0xff;
+	_CONTROL_OUT__=0xff;
+}
+
+void address_zero(void) {
 	_BUS_LOWER_DIR__=0xff;
-	_BUS_LOWER_OUT__=0x00;
+	_BUS_LOWER_OUT__=0xff;
 	
 	_BUS_MIDDLE_DIR__=0xff;
 	_BUS_MIDDLE_OUT__=0xff;
 	
 	_BUS_UPPER_DIR__=0xff;
-	_BUS_UPPER_OUT__=0x00;
-	
-	// Control bus
-	_CONTROL_DIR__=0xff;
-	_CONTROL_OUT__=0xff;
-#endif
+	_BUS_UPPER_OUT__=0xff;
 }
 
 // Run a read cycle over the bus interface
 void bus_read_byte(Bus& bus, uint32_t address, char& buffer) {
-#ifdef __HARDWARE_BUS_
+	
 	// Address the device
 	_BUS_LOWER_DIR__ = 0xff;
 	
-	_CONTROL_OUT__ = 0b00111111; // Open the latches
+	_CONTROL_OUT__ = _CONTROL_OPEN_LATCH__;
 	_BUS_LOWER_OUT__ = (address & 0xff);
 	_BUS_MIDDLE_OUT__ = (address >> 8);
 	_BUS_UPPER_OUT__ = (address >> 16);
-	_CONTROL_OUT__ = _CONTROL_READ_CYCLE__; // Latches the address for a write
+	_CONTROL_OUT__ = _CONTROL_READ_LATCH__;
 	
 	// Set data direction
-	_BUS_LOWER_DIR__ = 0x00; // Set input
+	_BUS_LOWER_DIR__ = 0x00;
 	_BUS_LOWER_OUT__ = 0x00; // No internal pull-up resistors
 	
 	_CONTROL_OUT__ = _CONTROL_READ_CYCLE__;
@@ -187,23 +187,24 @@ void bus_read_byte(Bus& bus, uint32_t address, char& buffer) {
 	// Read the data byte
 	buffer = _BUS_LOWER_IN__;
 	
-	_CONTROL_OUT__ = 0b00111111; // End read cycle
+	// End read cycle
+	_CONTROL_OUT__ = _CONTROL_OPEN_LATCH__;
 	_BUS_UPPER_OUT__ = 0x0f;
-#endif
+	
 	return;
 }
 
 // Run a write cycle over the bus interface
 void bus_write_byte(Bus& bus, uint32_t address, char byte) {
-#ifdef __HARDWARE_BUS_
+	
 	// Address the device
 	_BUS_LOWER_DIR__ = 0xff;
 	
-	_CONTROL_OUT__ = 0b00111111; // Open the latches
+	_CONTROL_OUT__ = _CONTROL_OPEN_LATCH__;
 	_BUS_LOWER_OUT__ = (address & 0xff);
 	_BUS_MIDDLE_OUT__ = (address >> 8);
 	_BUS_UPPER_OUT__ = (address >> 16);
-	_CONTROL_OUT__ = _CONTROL_WRITE_LATCH__; // Latches the address for a read
+	_CONTROL_OUT__ = _CONTROL_WRITE_LATCH__;
 	
 	// Cast the data byte
 	_BUS_LOWER_OUT__ = byte;
@@ -214,9 +215,10 @@ void bus_write_byte(Bus& bus, uint32_t address, char byte) {
 	for (uint16_t i=0; i<bus.waitstate_write; i++)
 		asm("nop");
 	
-	_CONTROL_OUT__ = 0b00111111; // End write cycle
+	// End write cycle
+	_CONTROL_OUT__ = _CONTROL_OPEN_LATCH__;
 	_BUS_UPPER_OUT__ = 0x0f;
-#endif
+	
 	return;
 }
 

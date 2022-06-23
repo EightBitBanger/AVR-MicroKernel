@@ -5,7 +5,7 @@
 #define ____DEVICE_DRIVER_SYSTEM__
 
 
-#define _DRIVER_TABLE_SIZE__         20  // Total number of device drivers
+#define _DRIVER_TABLE_SIZE__          10 // Total number of device drivers
 #define _DRIVER_NAME_LENGTH_MAX__     8  // Max string name length
 
 #define _DRIVER_INITIATE__    0xff
