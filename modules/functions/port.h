@@ -21,8 +21,8 @@ void __io_control_(void) {
 	
 	Bus device_bus;
 	
-	device_bus.waitstate_read  = 0;
-	device_bus.waitstate_write = 0;
+	device_bus.waitstate_read  = 10;
+	device_bus.waitstate_write = 10;
 	
 	// Port selection
 	if ((console.keyboard_string[5] == 'a') == 1) {

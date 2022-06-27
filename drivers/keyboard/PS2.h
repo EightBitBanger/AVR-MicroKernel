@@ -16,8 +16,8 @@ struct KeyboardDriver {
 	
 	void initiate(void) {
 		
-		device_bus.waitstate_read  = 10;
-		device_bus.waitstate_write = 10;
+		device_bus.waitstate_read  = 0;
+		device_bus.waitstate_write = 0;
 		
 	}
 	

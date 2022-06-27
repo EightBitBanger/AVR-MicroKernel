@@ -4,6 +4,26 @@
 #ifndef ____KERNEL_MAIN__
 #define ____KERNEL_MAIN__
 
+// Kernel memory map
+//#define _KERNEL_BEGIN__                    0x00000
+//#define _KERNEL_END__                      0x007ff
+
+#define _KERNEL_STACK_BEGIN__              0x00100
+
+//#define _KERNEL_FUNCTION_TABLE_BEGIN__     0x00000
+//#define _KERNEL_FUNCTION_TABLE_SIZE__      0x000ff
+
+#define _KERNEL_STACK_COUNTER__            0x00100
+#define _KERNEL_FLAGS__                    0x00104
+
+
+// Kernel State flags
+#define _KERNEL_STATE_NORMAL__          0x00
+#define _KERNEL_STATE_OUT_OF_MEMORY__   0xa0
+#define _KERNEL_STATE_SEG_FAULT__       0xff
+
+
+
 #include "kernel/config.h"
 
 // Standard includes
@@ -52,11 +72,10 @@ union FunctionPointer {
 		byte[1] = 0x00;
 	}
 	
-	void*(pointer)();
-	
 	char    byte[2];
 	uint8_t byte_t[2];
 	
+	void(*pointer)();
 	void(*device)();
 	
 };
@@ -86,6 +105,7 @@ void __kernel_initiate(void) {
 	
 	WrappedPointer total_memory;
 	Bus device_bus;
+	uint8_t test_byte=0x55;
 	
 	// External bus wait states
 	device_bus.waitstate_write = 0;
@@ -94,29 +114,36 @@ void __kernel_initiate(void) {
 	// Allocate available external memory
 	if (get_func_address(_EXTENDED_MEMORY__, sizeof(_EXTENDED_MEMORY__), memory_device) == 1) {
 		
-		for (total_memory.address=0x00000; total_memory.address < 0x80000; total_memory.address++) {
+		for (total_memory.address=0x00000; total_memory.address < 0x40000; total_memory.address++) {
 			
-			bus_write_byte(device_bus, total_memory.address, 0x55);
+			bus_write_byte(device_bus, total_memory.address, test_byte);
 			bus_read_byte(device_bus, total_memory.address, byte);
 			
-			if (byte != 0x55) break;
+			if (byte != test_byte) break;
+			test_byte++;
 			
-			skip++;
+			// Display total memory
 			if (skip > 100) {skip=0;
-				
 				call_extern(console_device, 0x0a, line, pos);
 				call_extern(console_device, 0x04, total_memory.byte_t[0], total_memory.byte_t[1], total_memory.byte_t[2], total_memory.byte_t[3]);
-				
-			}
+			} else {skip++;}
 			
 		}
 		
-		// Zero kernel memory area
+		// Display final memory count
+		call_extern(console_device, 0x0a, line, pos);
+		call_extern(console_device, 0x04, total_memory.byte_t[0], total_memory.byte_t[1], total_memory.byte_t[2], total_memory.byte_t[3]);
+		
+		
+		// Zero the kernel memory range
 		uint8_t size = 0xff;
+		WrappedPointer start_address;
+		start_address.address = 0x00000;
+		call_extern(memory_device, 0x0a, start_address.byte_t[0], start_address.byte_t[1], start_address.byte_t[2], start_address.byte_t[3]);
 		for (uint8_t i=0; i < 10; i++) 
 			call_extern(memory_device, 0x02, size);
 		
-		// Write memory total size to kernel memory
+		// Write total memory size to kernel memory
 		call_extern(memory_device, 0x0a, total_memory.byte_t[0], total_memory.byte_t[1], total_memory.byte_t[2], total_memory.byte_t[3]);
 		call_extern(memory_device, 0x05);
 		
@@ -130,7 +157,7 @@ void __kernel_initiate(void) {
 		// Error beep code 
 		uint8_t length   = 74;
 		uint8_t tone     = 1;
-		uint8_t beepcode = 5;
+		uint8_t beepcode = 1;
 		
 		if (get_func_address(_INTERNAL_SPEAKER__, sizeof(_INTERNAL_SPEAKER__), speaker_device) == 1) {
 			
@@ -140,8 +167,6 @@ void __kernel_initiate(void) {
 			}
 			
 		}
-		
-		while(1) asm("nop");
 		
 	}
 	
@@ -164,14 +189,14 @@ void __kernel_initiate(void) {
 	
 }
 
-
+/*
 // Load a kernel module onto the function table
 uint8_t kernel_load_module(uint8_t index, void(*entry_pointer)() ) {
 	
 	FunctionPointer function;
 	function.device = entry_pointer;
 	
-	uint32_t function_address = _KERNEL_FUNCTION_TABLE__ + (index * 2);
+	uint32_t function_address = _KERNEL_FUNCTION_TABLE_BEGIN__ + (index * 2);
 	
 	extendedMemoryDriver.write(function_address,   function.byte[0]);
 	extendedMemoryDriver.write(function_address+1, function.byte[1]);
@@ -183,7 +208,7 @@ uint8_t kernel_load_module(uint8_t index, void(*entry_pointer)() ) {
 void kernel_call_extern(uint8_t index) {
 	
 	FunctionPointer function;
-	uint32_t function_address = _KERNEL_FUNCTION_TABLE__ + (index * 2);
+	uint32_t function_address = _KERNEL_FUNCTION_TABLE_BEGIN__ + (index * 2);
 	
 	extendedMemoryDriver.read(function_address,   function.byte[0]);
 	extendedMemoryDriver.read(function_address+1, function.byte[1]);
@@ -192,7 +217,7 @@ void kernel_call_extern(uint8_t index) {
 	
 	return;
 }
-
+*/
 
 
 

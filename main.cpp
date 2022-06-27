@@ -5,11 +5,11 @@
 
 int main(void) {
 	
-	// Allow the system to stabilize and zero the external system bus
-	_delay_ms(800);
-	
+	// Zero the external system bus and allow the system to stabilize
 	address_zero();
 	bus_zero();
+	
+	_delay_ms(500);
 	
 	// Initiate device drivers
 	__extern_call_init();

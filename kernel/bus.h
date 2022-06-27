@@ -6,16 +6,16 @@
 
 
 // Address bus port layout
-// Address and data are multiplexed requiring external logic
+// NOTE: Address and data buses are multiplexed requiring external logic
 
-#define _BUS_LOWER_PORT_A__   // Define port A as the lower address bus
-#define _BUS_MIDDLE_PORT_C__  // Define Port C as the middle address bus
-#define _BUS_UPPER_PORT_D__   // Define port D as the upper address bus
+#define _BUS_LOWER_PORT_A__     // Define port A as the lower address bus
+#define _BUS_MIDDLE_PORT_C__    // Define Port C as the middle address bus
+#define _BUS_UPPER_PORT_D__     // Define port D as the upper address bus
 
 #define _BUS_CONTROL_PORT_B__   // Define port B as the control bus
 
 // Control signals
-// Signals are specific to external design requirements
+// NOTE: Signals are specific to external logic requirements
 #define _CONTROL_DATA_DIRECTION__     0x00 // Data direction signal
 #define _CONTROL_BUS_ENABLE__         0x01 // Bus enable signal
 #define _CONTROL_CLOCK__              0x02 // Peripheral device clock signal
@@ -125,19 +125,20 @@
 
 
 
-struct BUSTYPE {
+struct BUS_BASE_TYPE {
 	
 	uint8_t  waitstate_read;
 	uint8_t  waitstate_write;
 	
 };
 
-typedef volatile BUSTYPE Bus;
+typedef BUS_BASE_TYPE Bus;
 
 
 // Initiate and zero the hardware level IO pins
 void bus_zero(void);
 void address_zero(void);
+
 // Run a write cycle over the bus interface
 void bus_write_byte(Bus& bus, uint32_t address, char byte);
 // Run a read cycle over the bus interface
@@ -168,28 +169,30 @@ void bus_read_byte(Bus& bus, uint32_t address, char& buffer) {
 	// Address the device
 	_BUS_LOWER_DIR__ = 0xff;
 	
-	_CONTROL_OUT__ = _CONTROL_OPEN_LATCH__;
-	_BUS_LOWER_OUT__ = (address & 0xff);
+	_BUS_LOWER_OUT__  = (address & 0xff);
 	_BUS_MIDDLE_OUT__ = (address >> 8);
-	_BUS_UPPER_OUT__ = (address >> 16);
+	_BUS_UPPER_OUT__  = (address >> 16);
+	
+	_CONTROL_OUT__ = _CONTROL_OPEN_LATCH__;
 	_CONTROL_OUT__ = _CONTROL_READ_LATCH__;
 	
 	// Set data direction
 	_BUS_LOWER_DIR__ = 0x00;
-	_BUS_LOWER_OUT__ = 0x00; // No internal pull-up resistors
+	_BUS_LOWER_OUT__ = 0x00; // Internal pull-up resistors
 	
 	_CONTROL_OUT__ = _CONTROL_READ_CYCLE__;
 	
 	// Wait state
-	for (uint16_t i=0; i<bus.waitstate_read; i++)
+	for (uint8_t i=0; i<bus.waitstate_read; i++) 
 		asm("nop");
 	
 	// Read the data byte
 	buffer = _BUS_LOWER_IN__;
 	
 	// End read cycle
+	_BUS_UPPER_OUT__ = 0xff;
 	_CONTROL_OUT__ = _CONTROL_OPEN_LATCH__;
-	_BUS_UPPER_OUT__ = 0x0f;
+	_CONTROL_OUT__ = _CONTROL_WRITE_LATCH__;
 	
 	return;
 }
@@ -200,10 +203,11 @@ void bus_write_byte(Bus& bus, uint32_t address, char byte) {
 	// Address the device
 	_BUS_LOWER_DIR__ = 0xff;
 	
-	_CONTROL_OUT__ = _CONTROL_OPEN_LATCH__;
-	_BUS_LOWER_OUT__ = (address & 0xff);
+	_BUS_LOWER_OUT__  = (address & 0xff);
 	_BUS_MIDDLE_OUT__ = (address >> 8);
-	_BUS_UPPER_OUT__ = (address >> 16);
+	_BUS_UPPER_OUT__  = (address >> 16);
+	
+	_CONTROL_OUT__ = _CONTROL_OPEN_LATCH__;
 	_CONTROL_OUT__ = _CONTROL_WRITE_LATCH__;
 	
 	// Cast the data byte
@@ -212,12 +216,13 @@ void bus_write_byte(Bus& bus, uint32_t address, char byte) {
 	_CONTROL_OUT__ = _CONTROL_WRITE_CYCLE__;
 	
 	// Wait state
-	for (uint16_t i=0; i<bus.waitstate_write; i++)
+	for (uint8_t i=0; i<bus.waitstate_write; i++) 
 		asm("nop");
 	
 	// End write cycle
+	_BUS_UPPER_OUT__ = 0xff;
 	_CONTROL_OUT__ = _CONTROL_OPEN_LATCH__;
-	_BUS_UPPER_OUT__ = 0x0f;
+	_CONTROL_OUT__ = _CONTROL_WRITE_LATCH__;
 	
 	return;
 }

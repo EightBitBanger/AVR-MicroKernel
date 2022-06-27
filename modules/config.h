@@ -9,6 +9,8 @@
 #include "functions/task.h"
 #include "functions/kill.h"
 #include "functions/mem.h"
+
+
 //#include "functions/beep.h"
 //#include "functions/list.h"
 //#include "functions/sound.h"
@@ -17,7 +19,7 @@
 //#include "functions/peek.h"
 #include "functions/port.h"
 
-#include "functions/count.h"
+//#include "functions/count.h"
 
 #include "functions/app.h"
 

@@ -1,25 +1,8 @@
 //
-// On-board extended memory driver
+// Extended memory driver
 
 #ifndef __HIGH_MEMORY__
 #define __HIGH_MEMORY__
-
-// Kernel memory space
-#define _KERNEL_BEGIN__           0x00100
-#define _KERNEL_END__             _KERNEL_BEGIN__ + 0x00200
-
-#define _KERNEL_FUNCTION_TABLE__         0x00000
-#define _KERNEL_FUNCTION_TABLE_SIZE__    0x000ff
-
-#define _KERNEL_FLAGS__           _KERNEL_BEGIN__
-#define _KERNEL_STACK_COUNT__     (_KERNEL_BEGIN__ + 0x000fc) // Memory address to the byte counter for the external memory stack
-#define _KERNEL_STACK_BEGIN__     _KERNEL_END__               // Memory address to the beginning of the external memory stack
-
-// Kernel State flags
-#define _KERNEL_STATE_NORMAL__          0x00
-#define _KERNEL_STATE_OUT_OF_MEMORY__   0xa0
-#define _KERNEL_STATE_SEG_FAULT__       0xff
-
 
 #include <avr/interrupt.h>
 
@@ -68,7 +51,7 @@ struct ExtendedMemoryDriver {
 	uint32_t stack_push(uint32_t size) {
 		
 		WrappedPointer numberOfAllocations;
-		for (uint8_t i=0; i<4; i++) read(_KERNEL_STACK_COUNT__ + i, numberOfAllocations.byte[i]);
+		for (uint8_t i=0; i<4; i++) read(_KERNEL_STACK_COUNTER__ + i, numberOfAllocations.byte[i]);
 		
 		// Check out of memory
 		if ((numberOfAllocations.address + size + _STACK_BEGIN__) > _STACK_END__) {
@@ -81,7 +64,7 @@ struct ExtendedMemoryDriver {
 		
 		numberOfAllocations.address += size;
 		
-		for (uint8_t i=0; i<4; i++) write(_KERNEL_STACK_COUNT__ + i, numberOfAllocations.byte[i]);
+		for (uint8_t i=0; i<4; i++) write(_KERNEL_STACK_COUNTER__ + i, numberOfAllocations.byte[i]);
 		
 		return new_pointer;
 	}
@@ -89,11 +72,11 @@ struct ExtendedMemoryDriver {
 	void stack_pop(uint32_t size) {
 		
 		WrappedPointer numberOfAllocations;
-		for (uint8_t i=0; i<4; i++) read(_KERNEL_STACK_COUNT__ + i, numberOfAllocations.byte[i]);
+		for (uint8_t i=0; i<4; i++) read(_KERNEL_STACK_COUNTER__ + i, numberOfAllocations.byte[i]);
 		
 		numberOfAllocations.address -= size;
 		
-		for (uint8_t i=0; i<4; i++) write(_KERNEL_STACK_COUNT__ + i, numberOfAllocations.byte[i]);
+		for (uint8_t i=0; i<4; i++) write(_KERNEL_STACK_COUNTER__ + i, numberOfAllocations.byte[i]);
 		
 		return;
 	}
@@ -105,7 +88,7 @@ struct ExtendedMemoryDriver {
 	uint32_t stack_size(void) {
 		
 		WrappedPointer numberOfAllocations;
-		for (uint8_t i=0; i<4; i++) read(_KERNEL_STACK_COUNT__ + i, numberOfAllocations.byte[i]);
+		for (uint8_t i=0; i<4; i++) read(_KERNEL_STACK_COUNTER__ + i, numberOfAllocations.byte[i]);
 		
 		return numberOfAllocations.address;
 	}

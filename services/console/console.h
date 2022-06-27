@@ -7,41 +7,47 @@ void eventKeyboardBackspace(void);
 void eventKeyboardAcceptChar(uint8_t new_char);
 
 struct CommandConsoleServiceLauncher {
+	
+	Device keyboard_device;
+	
+	char currentChar;
+	
 	CommandConsoleServiceLauncher() {
-		task_create("console", 8, keyboard_event_handler, _TASK_PRIORITY_HIGH__, _TASK_SERVICE__);
+		
+		currentChar  = 0x00;
+		
+		task_create("console", 8, keyboard_event_handler, 1200, _TASK_SERVICE__);
+		
+		// Link to the keyboard device driver
+		if (get_func_address(_KEYBOARD_INPUT__, sizeof(_KEYBOARD_INPUT__), keyboard_device) == 0) return;
+		
 	}
-}static commandConsoleServiceLauncher;
+}static commandConsole;
 
 void keyboard_event_handler(void) {
 	
-	uint8_t scanCodeAccepted = 0;
-	char currentChar=0x00;
-	
-	uint8_t readKeyCode=0;
-	
-	// Link to the keyboard device driver
-	Device device;
-	if (get_func_address(_KEYBOARD_INPUT__, sizeof(_KEYBOARD_INPUT__), device) == 0) return;
+	commandConsole.currentChar  = 0x00;
+	uint8_t scanCodeAccepted    = 0x00;
+	uint8_t readKeyCode         = 0x00;
 	
 	// Read keyboard character
-	call_extern(device, 0x00, readKeyCode);
-	currentChar = readKeyCode;
+	call_extern(commandConsole.keyboard_device, 0x00, readKeyCode);
+	commandConsole.currentChar = readKeyCode;
 	
 	// Check MAX string length
 	if (console.keyboard_string_length < _MAX_KEYBOARD_STRING_LENGTH__) {
-		// ASCII char
-		currentChar = readKeyCode;
+		commandConsole.currentChar = readKeyCode;
 		if (readKeyCode > 0x1f) {scanCodeAccepted=1;}
 	} else {
 		// Allow special keys past max string length
-		if (readKeyCode < 0x20) currentChar = readKeyCode;
+		if (readKeyCode < 0x20) commandConsole.currentChar = readKeyCode;
 	}
 	
 	// Prevent wild key repeats
-	if (console.lastChar == currentChar) {console.lastChar = currentChar; return;} console.lastChar = currentChar;
+	if (console.lastChar == commandConsole.currentChar) {console.lastChar = commandConsole.currentChar; return;} console.lastChar = commandConsole.currentChar;
 	
 	// Check special keys
-	switch (currentChar) {
+	switch (commandConsole.currentChar) {
 		
 		case 0x01: eventKeyboardBackspace(); break;
 		case 0x02: eventKeyboardEnter(); break;
@@ -51,7 +57,7 @@ void keyboard_event_handler(void) {
 	
 	// Check key accepted
 	if (scanCodeAccepted == 1)
-	eventKeyboardAcceptChar(currentChar);
+		eventKeyboardAcceptChar(commandConsole.currentChar);
 	
 	return;
 }
