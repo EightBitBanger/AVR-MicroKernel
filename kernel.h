@@ -38,8 +38,8 @@
 
 
 // Kernel function table
-uint8_t kernel_load_device(uint8_t index, void(*entry_pointer)() );
-void    kernel_call_extern(uint8_t index);
+//uint8_t kernel_load_device(uint8_t index, void(*entry_pointer)() );
+//void    kernel_call_extern(uint8_t index);
 
 
 // Kernel table initiator
@@ -59,7 +59,7 @@ struct __INITIATE_KERNEL_TABLES_ {
 #include "services/config.h"
 
 // Hardware information detection
-#include "drivers/hardware_detect.h"
+#include "kernel/hardware_detect.h"
 
 
 
@@ -170,6 +170,7 @@ void __kernel_initiate(void) {
 }
 
 
+/*
 union FunctionPointer {
 	
 	FunctionPointer() {
@@ -193,8 +194,8 @@ uint8_t kernel_load_device(uint8_t index, void(*entry_pointer)() ) {
 	
 	uint32_t function_address = _KERNEL_FUNCTION_TABLE_BEGIN__ + (index * 2);
 	
-	extendedMemoryDriver.write(function_address,   function.byte[0]);
-	extendedMemoryDriver.write(function_address+1, function.byte[1]);
+	//extendedMemoryDriver.write(function_address,   function.byte[0]);
+	//extendedMemoryDriver.write(function_address+1, function.byte[1]);
 	
 	return 1;
 }
@@ -205,14 +206,14 @@ void kernel_call_extern(uint8_t index) {
 	FunctionPointer function;
 	uint32_t function_address = _KERNEL_FUNCTION_TABLE_BEGIN__ + (index * 2);
 	
-	extendedMemoryDriver.read(function_address,   function.byte[0]);
-	extendedMemoryDriver.read(function_address+1, function.byte[1]);
+	//extendedMemoryDriver.read(function_address,   function.byte[0]);
+	//extendedMemoryDriver.read(function_address+1, function.byte[1]);
 	
 	function.device();
 	
 	return;
 }
-
+*/
 
 
 

@@ -9,7 +9,7 @@ void application_task(void);
 struct ModuleLoaderApplication {
 	
 	ModuleLoaderApplication() {
-		load_module(__MODULE_NAME_,  sizeof(__MODULE_NAME_), (Device)application_entry_point, _DEVICE_TYPE_MODULE__);
+		load_library(__MODULE_NAME_,  sizeof(__MODULE_NAME_), (Device)application_entry_point, _DEVICE_TYPE_MODULE__);
 	}
 }static applicationModuleLoader;
 

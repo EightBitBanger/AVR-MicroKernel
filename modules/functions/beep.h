@@ -7,7 +7,7 @@ void __application_main_(uint8_t, uint8_t&, uint8_t&, uint8_t&, uint8_t&);
 
 struct ModuleLoaderBeep {
 	ModuleLoaderBeep() {
-		load_module(__MODULE_NAME_,  sizeof(__MODULE_NAME_), (Device)__application_main_, _DEVICE_TYPE_MODULE__);
+		load_library(__MODULE_NAME_,  sizeof(__MODULE_NAME_), (Device)__application_main_, _DEVICE_TYPE_MODULE__);
 	}
 }static beepModuleLoader;
 #undef __MODULE_NAME_

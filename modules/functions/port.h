@@ -11,7 +11,7 @@ struct ModuleLoaderPort {
 	
 	ModuleLoaderPort() {
 		address=0x00000;
-		load_module(__MODULE_NAME_, sizeof(__MODULE_NAME_), (Device)__io_control_, _DEVICE_TYPE_MODULE__);
+		load_library(__MODULE_NAME_, sizeof(__MODULE_NAME_), (Device)__io_control_, _DEVICE_TYPE_MODULE__);
 	}
 }static moduleLoaderPort;
 #undef __MODULE_NAME_

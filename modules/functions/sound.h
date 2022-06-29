@@ -9,7 +9,7 @@ struct ModuleLoaderSound {
 	
 	ModuleLoaderSound() {
 		
-		load_module(__MODULE_NAME_, sizeof(__MODULE_NAME_), (Device)command_music, _DEVICE_TYPE_MODULE__);
+		load_library(__MODULE_NAME_, sizeof(__MODULE_NAME_), (Device)command_music, _DEVICE_TYPE_MODULE__);
 		
 	}
 }static moduleLoaderSound;
