@@ -28,7 +28,7 @@ struct ExtendedMemoryDriver {
 		returnAddress  = 0;
 		
 		// Load the device driver
-		load_library(_EXTENDED_MEMORY__, sizeof(_EXTENDED_MEMORY__), (Device)ExtendedMemoryDeviceDriverEntryPoint);
+		load_library(_EXTENDED_MEMORY__, sizeof(_EXTENDED_MEMORY__), (Device)ExtendedMemoryDeviceDriverEntryPoint, _DEVICE_TYPE_DRIVER__);
 	}
 	
 	void initiate(void) {
@@ -105,8 +105,8 @@ void ExtendedMemoryDeviceDriverEntryPoint(uint8_t functionCall, uint8_t& paramA,
 	
 	switch(functionCall) {
 		
-		case _DRIVER_INITIATE__: {extendedMemoryDriver.initiate(); break;}
-		case _DRIVER_SHUTDOWN__: {extendedMemoryDriver.shutdown(); break;}
+		case _DEVICE_INITIATE__: {extendedMemoryDriver.initiate(); break;}
+		case _DEVICE_SHUTDOWN__: {extendedMemoryDriver.shutdown(); break;}
 		
 		case 0x00:  extendedMemoryDriver.returnAddress = extendedMemoryDriver.stack_push(extendedMemoryDriver.currentAddress); break;
 		case 0x01:  extendedMemoryDriver.stack_pop(extendedMemoryDriver.currentAddress); break;

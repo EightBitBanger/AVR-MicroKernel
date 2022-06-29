@@ -12,7 +12,7 @@ struct KeyboardDriver {
 	Bus device_bus;
 	
 	// Install the device driver
-	KeyboardDriver() {load_library(_KEYBOARD_INPUT__, sizeof(_KEYBOARD_INPUT__), (Device)keyboardDeviceDriverEntryPoint);}
+	KeyboardDriver() {load_library(_KEYBOARD_INPUT__, sizeof(_KEYBOARD_INPUT__), (Device)keyboardDeviceDriverEntryPoint, _DEVICE_TYPE_DRIVER__);}
 	
 	void initiate(void) {
 		
@@ -125,8 +125,8 @@ void keyboardDeviceDriverEntryPoint(uint8_t functionCall, uint8_t& paramA, uint8
 	
 	switch(functionCall) {
 		
-		case _DRIVER_INITIATE__: {keyboard.initiate(); break;}
-		case _DRIVER_SHUTDOWN__: {keyboard.shutdown(); break;}
+		case _DEVICE_INITIATE__: {keyboard.initiate(); break;}
+		case _DEVICE_SHUTDOWN__: {keyboard.shutdown(); break;}
 		
 		case 0x00: {keyboard.read(paramA); break;}
 		case 0x01: {keyboard.decodeScanCode(paramA, paramB, paramC); break;}

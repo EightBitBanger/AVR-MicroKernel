@@ -1,7 +1,7 @@
 //
 // Music command
 
-void command_music(void);
+void command_music(uint8_t, uint8_t&, uint8_t&, uint8_t&, uint8_t&);
 
 #define __MODULE_NAME_  "sound"
 
@@ -9,14 +9,14 @@ struct ModuleLoaderSound {
 	
 	ModuleLoaderSound() {
 		
-		load_module(__MODULE_NAME_, sizeof(__MODULE_NAME_), command_music);
+		load_module(__MODULE_NAME_, sizeof(__MODULE_NAME_), (Device)command_music, _DEVICE_TYPE_MODULE__);
 		
 	}
 }static moduleLoaderSound;
 #undef __MODULE_NAME_
 
 
-void command_music(void) {
+void command_music(uint8_t, uint8_t&, uint8_t&, uint8_t&, uint8_t&) {
 	
 	uint8_t pulse  = 2;
 	

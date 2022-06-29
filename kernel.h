@@ -5,13 +5,13 @@
 #define ____KERNEL_MAIN__
 
 // Kernel memory map
-//#define _KERNEL_BEGIN__                    0x00000
-//#define _KERNEL_END__                      0x007ff
+#define _KERNEL_BEGIN__                    0x00000
+#define _KERNEL_END__                      0x007ff
 
 #define _KERNEL_STACK_BEGIN__              0x00100
 
-//#define _KERNEL_FUNCTION_TABLE_BEGIN__     0x00000
-//#define _KERNEL_FUNCTION_TABLE_SIZE__      0x000ff
+#define _KERNEL_FUNCTION_TABLE_BEGIN__     0x00000
+#define _KERNEL_FUNCTION_TABLE_SIZE__      0x000ff
 
 #define _KERNEL_STACK_COUNTER__            0x00100
 #define _KERNEL_FLAGS__                    0x00104
@@ -33,13 +33,12 @@
 
 // Kernel function tables
 #include "kernel/driver_table.h"      // Device drivers
-#include "kernel/module_table.h"      // Function modules
-#include "kernel/bus.h"               // System bus interface
 #include "kernel/scheduler.h"         // Task scheduler
+#include "kernel/bus.h"               // System bus interface
 
 
 // Kernel function table
-uint8_t kernel_load_module(uint8_t index, Module entry_pointer);
+uint8_t kernel_load_device(uint8_t index, void(*entry_pointer)() );
 void    kernel_call_extern(uint8_t index);
 
 
@@ -47,11 +46,9 @@ void    kernel_call_extern(uint8_t index);
 struct __INITIATE_KERNEL_TABLES_ {
 	__INITIATE_KERNEL_TABLES_() {
 		
-		__extern_initiate();  // Initiate device driver system
+		__extern_initiate();
 		
-		__module_init_();     // Initiate function module system
-		
-		__scheduler_init_();  // Initiate scheduler
+		__scheduler_init_();
 		
 	}
 } static __initiate_kernel_tables_;
@@ -63,23 +60,6 @@ struct __INITIATE_KERNEL_TABLES_ {
 
 // Hardware information detection
 #include "drivers/hardware_detect.h"
-
-
-union FunctionPointer {
-	
-	FunctionPointer() {
-		byte[0] = 0x00;
-		byte[1] = 0x00;
-	}
-	
-	char    byte[2];
-	uint8_t byte_t[2];
-	
-	void(*pointer)();
-	void(*device)();
-	
-};
-
 
 
 
@@ -189,9 +169,24 @@ void __kernel_initiate(void) {
 	
 }
 
-/*
-// Load a kernel module onto the function table
-uint8_t kernel_load_module(uint8_t index, void(*entry_pointer)() ) {
+
+union FunctionPointer {
+	
+	FunctionPointer() {
+		byte[0] = 0x00;
+		byte[1] = 0x00;
+	}
+	
+	char    byte[2];
+	uint8_t byte_t[2];
+	
+	void(*pointer)();
+	void(*device)();
+	
+};
+
+// Load a device onto the external function table
+uint8_t kernel_load_device(uint8_t index, void(*entry_pointer)() ) {
 	
 	FunctionPointer function;
 	function.device = entry_pointer;
@@ -217,7 +212,6 @@ void kernel_call_extern(uint8_t index) {
 	
 	return;
 }
-*/
 
 
 

@@ -28,7 +28,7 @@ struct CommandConsole {
 	CommandConsole() {
 		
 		// Load the device driver
-		load_library(_COMMAND_CONSOLE__, sizeof(_COMMAND_CONSOLE__), (Device)ConsoleLibraryEntryPoint);
+		load_library(_COMMAND_CONSOLE__, sizeof(_COMMAND_CONSOLE__), (Device)ConsoleLibraryEntryPoint, _DEVICE_TYPE_DRIVER__);
 		
 		for (uint8_t i=0; i<promptStringLength; i++) promptString[i] = 0x20;
 		promptString[0]      = '>';
@@ -172,8 +172,8 @@ void ConsoleLibraryEntryPoint(uint8_t functionCall, uint8_t& paramA, uint8_t& pa
 	
 	switch(functionCall) {
 		
-		case _DRIVER_INITIATE__: {console.initiate(); break;}
-		case _DRIVER_SHUTDOWN__: {break;}
+		case _DEVICE_INITIATE__: {console.initiate(); break;}
+		case _DEVICE_SHUTDOWN__: {break;}
 		
 		case 0x00: console.printChar(paramA); break;
 		case 0x01: console.printLn(); break;

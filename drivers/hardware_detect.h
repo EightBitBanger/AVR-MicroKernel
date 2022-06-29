@@ -61,12 +61,12 @@ void __detect_hardware(uint32_t address, uint32_t stride, uint8_t device_count) 
 			WrappedPointer pointer;
 			pointer.address = current_address;
 			
-			call_extern(device_driver, _DRIVER_ADDRESS__, pointer.byte_t[0], pointer.byte_t[1], pointer.byte_t[2], pointer.byte_t[3]);
+			call_extern(device_driver, _DEVICE_ADDRESS__, pointer.byte_t[0], pointer.byte_t[1], pointer.byte_t[2], pointer.byte_t[3]);
 			
 			// Re-initiate the command console
 			if (get_func_address(_COMMAND_CONSOLE__, sizeof(_COMMAND_CONSOLE__), device_driver) == 0) continue;
 			
-			call_extern(device_driver, _DRIVER_INITIATE__);
+			call_extern(device_driver, _DEVICE_INITIATE__);
 		}
 		
 	}

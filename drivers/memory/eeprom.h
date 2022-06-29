@@ -9,7 +9,7 @@ void EEPROMDeviceDriverEntryPoint(uint8_t, uint8_t&, uint8_t&, uint8_t&, uint8_t
 struct EEPROMDriverLoader {
 	
 	// Load the device driver
-	EEPROMDriverLoader() {load_library(_DATA_MEMORY__, sizeof(_DATA_MEMORY__), (Device)EEPROMDeviceDriverEntryPoint);}
+	EEPROMDriverLoader() {load_library(_DATA_MEMORY__, sizeof(_DATA_MEMORY__), (Device)EEPROMDeviceDriverEntryPoint, _DEVICE_TYPE_DRIVER__);}
 	
 };EEPROMDriverLoader eepromDriverLoader;
 
@@ -63,9 +63,9 @@ void EEPROMDeviceDriverEntryPoint(uint8_t functionCall, uint8_t& paramA, uint8_t
 	
 	switch(functionCall) {
 		
-		case _DRIVER_INITIATE__: {eepromStorage.initiate(); break;}
-		case _DRIVER_SHUTDOWN__: {eepromStorage.shutdown(); break;}
-		case _DRIVER_ADDRESS__:  {eepromStorage.pointer.byte_t[0] = paramA; eepromStorage.pointer.byte_t[1] = paramB; eepromStorage.pointer.byte_t[2] = paramC; eepromStorage.pointer.byte_t[3] = paramD; break;}
+		case _DEVICE_INITIATE__: {eepromStorage.initiate(); break;}
+		case _DEVICE_SHUTDOWN__: {eepromStorage.shutdown(); break;}
+		case _DEVICE_ADDRESS__:  {eepromStorage.pointer.byte_t[0] = paramA; eepromStorage.pointer.byte_t[1] = paramB; eepromStorage.pointer.byte_t[2] = paramC; eepromStorage.pointer.byte_t[3] = paramD; break;}
 		
 		case 0x01:  eepromStorage.write(eepromStorage.pointer.address, paramA); break;
 		case 0x02:  eepromStorage.read(eepromStorage.pointer.address, (char&)paramA); break;

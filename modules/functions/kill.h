@@ -1,18 +1,18 @@
 //
 // Kill command
 
-void command_kill(void);
+void command_kill(uint8_t, uint8_t&, uint8_t&, uint8_t&, uint8_t&);
 
 #define __MODULE_NAME_  "kill"
 
 struct ModuleLoaderKill {
 	ModuleLoaderKill() {
-		load_module(__MODULE_NAME_, sizeof(__MODULE_NAME_), command_kill);
+		load_library(__MODULE_NAME_, sizeof(__MODULE_NAME_), (Device)command_kill, _DEVICE_TYPE_MODULE__);
 	}
 }static loadModuleKill;
 #undef __MODULE_NAME_
 
-void command_kill(void) {
+void command_kill(uint8_t, uint8_t&, uint8_t&, uint8_t&, uint8_t&) {
 	
 	Device consoleDriver;
 	if (get_func_address(_COMMAND_CONSOLE__, sizeof(_COMMAND_CONSOLE__), consoleDriver) == 0) return;

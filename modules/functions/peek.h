@@ -1,18 +1,18 @@
 // Peek a memory address
 
-void command_peek(void);
+void command_peek(uint8_t, uint8_t&, uint8_t&, uint8_t&, uint8_t&);
 
 #define __MODULE_NAME_  "peek"
 
 struct ModuleLoaderPeek {
 	ModuleLoaderPeek() {
-		load_module(__MODULE_NAME_, sizeof(__MODULE_NAME_), command_peek);
+		load_module(__MODULE_NAME_, sizeof(__MODULE_NAME_), (Device)command_peek, _DEVICE_TYPE_MODULE__);
 	}
 } static moduleLoaderPeek;
 #undef __MODULE_NAME_
 
 
-void command_peek(void) {
+void command_peek(uint8_t, uint8_t&, uint8_t&, uint8_t&, uint8_t&) {
 	
 	Bus device_bus;
 	

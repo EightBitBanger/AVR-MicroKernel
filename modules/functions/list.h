@@ -1,7 +1,7 @@
 //
 // List command
 
-void command_list(void);
+void command_list(uint8_t, uint8_t&, uint8_t&, uint8_t&, uint8_t&);
 void list_function_task(void);
 
 #define __MODULE_NAME_  "list"
@@ -23,13 +23,13 @@ struct ModuleLoaderList {
 		iteration    = 0x40000;
 		iterationMax = 0x40000 + 80;
 		
-		load_module(__MODULE_NAME_, sizeof(__MODULE_NAME_), command_list);
+		load_module(__MODULE_NAME_, sizeof(__MODULE_NAME_), (Device)command_list, _DEVICE_TYPE_MODULE__);
 	}
 }static moduleLoaderList;
 #undef __MODULE_NAME_
 
 
-void command_list(void) {
+void command_list(uint8_t, uint8_t&, uint8_t&, uint8_t&, uint8_t&) {
 	
 	for (uint8_t i=0; i < 80; i++) {
 		

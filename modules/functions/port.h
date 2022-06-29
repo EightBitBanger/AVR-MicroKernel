@@ -1,7 +1,7 @@
 //
 // Port control function
 
-void __io_control_(void);
+void __io_control_(uint8_t, uint8_t&, uint8_t&, uint8_t&, uint8_t&);
 
 #define __MODULE_NAME_  "port"
 
@@ -11,13 +11,13 @@ struct ModuleLoaderPort {
 	
 	ModuleLoaderPort() {
 		address=0x00000;
-		load_module(__MODULE_NAME_, sizeof(__MODULE_NAME_), __io_control_);
+		load_module(__MODULE_NAME_, sizeof(__MODULE_NAME_), (Device)__io_control_, _DEVICE_TYPE_MODULE__);
 	}
 }static moduleLoaderPort;
 #undef __MODULE_NAME_
 
 
-void __io_control_(void) {
+void __io_control_(uint8_t, uint8_t&, uint8_t&, uint8_t&, uint8_t&) {
 	
 	Bus device_bus;
 	

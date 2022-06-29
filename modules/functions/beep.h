@@ -1,13 +1,13 @@
 //
 // Audio test app
 
-void __application_main_(void);
+void __application_main_(uint8_t, uint8_t&, uint8_t&, uint8_t&, uint8_t&);
 
 #define __MODULE_NAME_  "beep"
 
 struct ModuleLoaderBeep {
 	ModuleLoaderBeep() {
-		load_module(__MODULE_NAME_,  sizeof(__MODULE_NAME_), __application_main_);
+		load_module(__MODULE_NAME_,  sizeof(__MODULE_NAME_), (Device)__application_main_, _DEVICE_TYPE_MODULE__);
 	}
 }static beepModuleLoader;
 #undef __MODULE_NAME_
@@ -15,7 +15,7 @@ struct ModuleLoaderBeep {
 //
 // Entry point
 
-void __application_main_(void) {
+void __application_main_(uint8_t, uint8_t&, uint8_t&, uint8_t&, uint8_t&) {
 	
 	Bus device_bus;
 	device_bus.waitstate_write = 0;

@@ -18,7 +18,7 @@ struct GPIOCardDriver {
 		portAddress = 0x60000;
 		
 		// Load the device driver
-		load_library("GPIO", sizeof("GPIO"), (Device)GPIOCardDeviceDriverEntryPoint);
+		load_library("GPIO", sizeof("GPIO"), (Device)GPIOCardDeviceDriverEntryPoint, _DEVICE_TYPE_DRIVER__);
 	}
 	
 	void initiate(void) {
@@ -49,8 +49,8 @@ void GPIOCardDeviceDriverEntryPoint(uint8_t functionCall, uint8_t& paramA, uint8
 	
 	switch(functionCall) {
 		
-		case _DRIVER_INITIATE__: {GPIOCardDriver.initiate(); break;}
-		case _DRIVER_SHUTDOWN__: {GPIOCardDriver.shutdown(); break;}
+		case _DEVICE_INITIATE__: {GPIOCardDriver.initiate(); break;}
+		case _DEVICE_SHUTDOWN__: {GPIOCardDriver.shutdown(); break;}
 		
 		case 0x00: {GPIOCardDriver.write(GPIOCardDriver.portAddress + paramA, paramB); break;}
 		

@@ -1,19 +1,19 @@
 //
 // Task command -List running tasks
 
-void command_task(void);
+void command_task(uint8_t, uint8_t&, uint8_t&, uint8_t&, uint8_t&);
 
 #define __MODULE_NAME_  "task"
 
 struct ModuleLoaderTask {
 	ModuleLoaderTask() {
-		load_module(__MODULE_NAME_, sizeof(__MODULE_NAME_), command_task);
+		load_library(__MODULE_NAME_, sizeof(__MODULE_NAME_), (Device)command_task, _DEVICE_TYPE_MODULE__);
 	}
 }static loadModuleTask;
 #undef __MODULE_NAME_
 
 
-void command_task(void) {
+void command_task(uint8_t, uint8_t&, uint8_t&, uint8_t&, uint8_t&) {
 	
 	Device consoleDriver;
 	if (get_func_address(_COMMAND_CONSOLE__, sizeof(_COMMAND_CONSOLE__), consoleDriver) == 0) return;

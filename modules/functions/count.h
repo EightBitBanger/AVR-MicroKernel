@@ -1,7 +1,7 @@
 //
 // Counter program
 
-void counter_entry_point(void);
+void counter_entry_point(uint8_t, uint8_t&, uint8_t&, uint8_t&, uint8_t&);
 void counter_task(void);
 
 #define __MODULE_NAME_  "count"
@@ -12,12 +12,12 @@ struct ModuleLoaderCounter {
 	uint8_t counter;
 	
 	ModuleLoaderCounter() {
-		load_module(__MODULE_NAME_,  sizeof(__MODULE_NAME_), counter_entry_point);
+		load_module(__MODULE_NAME_,  sizeof(__MODULE_NAME_), (Device)counter_entry_point, _DEVICE_TYPE_MODULE__);
 	}
 }static counterModuleLoader;
 
 
-void counter_entry_point(void) {
+void counter_entry_point(uint8_t, uint8_t&, uint8_t&, uint8_t&, uint8_t&) {
 	
 	counterModuleLoader.counter = 0;
 	

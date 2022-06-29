@@ -1,7 +1,7 @@
 //
 // Memory testing
 
-void mem_check_entry_point(void);
+void mem_check_entry_point(uint8_t, uint8_t&, uint8_t&, uint8_t&, uint8_t&);
 void mem_check_task(void);
 
 #define __MODULE_NAME_  "memchk"
@@ -13,13 +13,13 @@ struct ModuleLoaderApp {
 	uint32_t address_counter;
 	
 	ModuleLoaderApp() {
-		load_module(__MODULE_NAME_,  sizeof(__MODULE_NAME_), mem_check_entry_point);
+		load_library(__MODULE_NAME_,  sizeof(__MODULE_NAME_), (Device)mem_check_entry_point, _DEVICE_TYPE_MODULE__);
 	}
 }static loadModuleAppEntryPoint;
 #undef __MODULE_NAME_
 
 
-void mem_check_entry_point(void) {
+void mem_check_entry_point(uint8_t, uint8_t&, uint8_t&, uint8_t&, uint8_t&) {
 	
 	loadModuleAppEntryPoint.byte_counter    = 0;
 	loadModuleAppEntryPoint.address_counter = 0x00000;
@@ -27,7 +27,7 @@ void mem_check_entry_point(void) {
 	loadModuleAppEntryPoint.device_bus.waitstate_write = 0;
 	loadModuleAppEntryPoint.device_bus.waitstate_read  = 2;
 	
-	task_create("memchk", sizeof("memchk"), mem_check_task, 4, _TASK_SERVICE__);
+	task_create("memchk", sizeof("memchk"), mem_check_task, _TASK_PRIORITY_NORMAL__, _TASK_SERVICE__);
 	
 	return;
 }

@@ -1,7 +1,7 @@
 //
 // Application example
 
-void application_entry_point(void);
+void application_entry_point(uint8_t, uint8_t&, uint8_t&, uint8_t&, uint8_t&);
 void application_task(void);
 
 #define __MODULE_NAME_  "app"
@@ -9,13 +9,13 @@ void application_task(void);
 struct ModuleLoaderApplication {
 	
 	ModuleLoaderApplication() {
-		load_module(__MODULE_NAME_,  sizeof(__MODULE_NAME_), application_entry_point);
+		load_module(__MODULE_NAME_,  sizeof(__MODULE_NAME_), (Device)application_entry_point, _DEVICE_TYPE_MODULE__);
 	}
 }static applicationModuleLoader;
 
 
 
-void application_entry_point(void) {
+void application_entry_point(uint8_t, uint8_t&, uint8_t&, uint8_t&, uint8_t&) {
 	
 	// External memory kernel function table call test
 	//kernel_load_module(0, (void(*)())application_task);
