@@ -13,7 +13,7 @@ struct ModuleLoaderApp {
 	uint32_t address_counter;
 	
 	ModuleLoaderApp() {
-		load_library(__MODULE_NAME_,  sizeof(__MODULE_NAME_), (Device)mem_check_entry_point, _DEVICE_TYPE_MODULE__);
+		load_device(__MODULE_NAME_,  sizeof(__MODULE_NAME_), (Device)mem_check_entry_point, _DEVICE_TYPE_MODULE__);
 	}
 }static loadModuleAppEntryPoint;
 #undef __MODULE_NAME_

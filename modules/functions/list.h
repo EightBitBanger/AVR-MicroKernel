@@ -23,7 +23,7 @@ struct ModuleLoaderList {
 		iteration    = 0x40000;
 		iterationMax = 0x40000 + 80;
 		
-		load_library(__MODULE_NAME_, sizeof(__MODULE_NAME_), (Device)command_list, _DEVICE_TYPE_MODULE__);
+		load_device(__MODULE_NAME_, sizeof(__MODULE_NAME_), (Device)command_list, _DEVICE_TYPE_MODULE__);
 	}
 }static moduleLoaderList;
 #undef __MODULE_NAME_

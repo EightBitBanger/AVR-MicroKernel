@@ -7,7 +7,7 @@ void command_clear_screen(uint8_t, uint8_t&, uint8_t&, uint8_t&, uint8_t&);
 
 struct ModuleLoaderCls {
 	ModuleLoaderCls() {
-		load_library(__MODULE_NAME_, sizeof(__MODULE_NAME_), (Device)command_clear_screen, _DEVICE_TYPE_MODULE__);
+		load_device(__MODULE_NAME_, sizeof(__MODULE_NAME_), (Device)command_clear_screen, _DEVICE_TYPE_MODULE__);
 	}
 }static loadModuleCls;
 #undef __MODULE_NAME_

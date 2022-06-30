@@ -11,8 +11,9 @@ struct KeyboardDriver {
 	
 	Bus device_bus;
 	
-	// Install the device driver
-	KeyboardDriver() {load_library(_KEYBOARD_INPUT__, sizeof(_KEYBOARD_INPUT__), (Device)keyboardDeviceDriverEntryPoint, _DEVICE_TYPE_DRIVER__);}
+	KeyboardDriver() {
+		load_device(_KEYBOARD_INPUT__, sizeof(_KEYBOARD_INPUT__), (Device)keyboardDeviceDriverEntryPoint, _DEVICE_TYPE_DRIVER__);
+	}
 	
 	void initiate(void) {
 		

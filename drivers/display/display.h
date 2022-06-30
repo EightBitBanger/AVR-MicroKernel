@@ -13,7 +13,9 @@ struct DisplayDriver {
 	uint32_t device_address;
 	
 	// Load the device driver
-	DisplayDriver() {load_library(_DISPLAY_CONSOLE__, sizeof(_DISPLAY_CONSOLE__), (Device)DisplayDeviceDriverEntryPoint, _DEVICE_TYPE_DRIVER__);}
+	DisplayDriver() {
+		load_device(_DISPLAY_CONSOLE__, sizeof(_DISPLAY_CONSOLE__), (Device)DisplayDeviceDriverEntryPoint, _DEVICE_TYPE_DRIVER__);
+	}
 	
 	void initiate(void) {
 		

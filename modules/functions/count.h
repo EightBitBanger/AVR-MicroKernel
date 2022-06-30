@@ -12,7 +12,7 @@ struct ModuleLoaderCounter {
 	uint8_t counter;
 	
 	ModuleLoaderCounter() {
-		load_library(__MODULE_NAME_,  sizeof(__MODULE_NAME_), (Device)counter_entry_point, _DEVICE_TYPE_MODULE__);
+		load_device(__MODULE_NAME_,  sizeof(__MODULE_NAME_), (Device)counter_entry_point, _DEVICE_TYPE_MODULE__);
 	}
 }static counterModuleLoader;
 

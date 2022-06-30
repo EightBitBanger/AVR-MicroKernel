@@ -9,7 +9,7 @@ void application_task(void);
 struct ModuleLoaderApplication {
 	
 	ModuleLoaderApplication() {
-		load_library(__MODULE_NAME_,  sizeof(__MODULE_NAME_), (Device)application_entry_point, _DEVICE_TYPE_MODULE__);
+		load_device(__MODULE_NAME_,  sizeof(__MODULE_NAME_), (Device)application_entry_point, _DEVICE_TYPE_MODULE__);
 	}
 }static applicationModuleLoader;
 
@@ -30,16 +30,7 @@ void application_entry_point(uint8_t, uint8_t&, uint8_t&, uint8_t&, uint8_t&) {
 	
 	if (get_func_address(_DISPLAY_CONSOLE__, sizeof(_DISPLAY_CONSOLE__), console_device) == 0) return;
 	
-	if (get_func_address(_EXTENDED_MEMORY__, sizeof(_EXTENDED_MEMORY__), extended_memory) == 0) {
-		
-		for (uint8_t i=0; i<sizeof(error_exmem_not_installed); i++) 
-			call_extern(console_device, 0x00, (uint8_t&)error_exmem_not_installed[i]);
-		
-		call_extern(console_device, 0x01);
-		
-		return;
-	}
-	
+	if (get_func_address(_EXTENDED_MEMORY__, sizeof(_EXTENDED_MEMORY__), extended_memory) == 0) return;
 	
 	WrappedPointer pointer;
 	pointer.address = 255;

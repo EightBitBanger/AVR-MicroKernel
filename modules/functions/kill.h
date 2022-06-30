@@ -7,7 +7,7 @@ void command_kill(uint8_t, uint8_t&, uint8_t&, uint8_t&, uint8_t&);
 
 struct ModuleLoaderKill {
 	ModuleLoaderKill() {
-		load_library(__MODULE_NAME_, sizeof(__MODULE_NAME_), (Device)command_kill, _DEVICE_TYPE_MODULE__);
+		load_device(__MODULE_NAME_, sizeof(__MODULE_NAME_), (Device)command_kill, _DEVICE_TYPE_MODULE__);
 	}
 }static loadModuleKill;
 #undef __MODULE_NAME_

@@ -27,8 +27,7 @@ struct ExtendedMemoryDriver {
 		currentAddress = 0;
 		returnAddress  = 0;
 		
-		// Load the device driver
-		load_library(_EXTENDED_MEMORY__, sizeof(_EXTENDED_MEMORY__), (Device)ExtendedMemoryDeviceDriverEntryPoint, _DEVICE_TYPE_DRIVER__);
+		load_device(_EXTENDED_MEMORY__, sizeof(_EXTENDED_MEMORY__), (Device)ExtendedMemoryDeviceDriverEntryPoint, _DEVICE_TYPE_DRIVER__);
 	}
 	
 	void initiate(void) {

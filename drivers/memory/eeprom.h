@@ -8,8 +8,9 @@ void EEPROMDeviceDriverEntryPoint(uint8_t, uint8_t&, uint8_t&, uint8_t&, uint8_t
 
 struct EEPROMDriverLoader {
 	
-	// Load the device driver
-	EEPROMDriverLoader() {load_library(_DATA_MEMORY__, sizeof(_DATA_MEMORY__), (Device)EEPROMDeviceDriverEntryPoint, _DEVICE_TYPE_DRIVER__);}
+	EEPROMDriverLoader() {
+		load_device(_DATA_MEMORY__, sizeof(_DATA_MEMORY__), (Device)EEPROMDeviceDriverEntryPoint, _DEVICE_TYPE_DRIVER__);
+	}
 	
 };EEPROMDriverLoader eepromDriverLoader;
 

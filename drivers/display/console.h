@@ -28,7 +28,7 @@ struct CommandConsole {
 	CommandConsole() {
 		
 		// Load the device driver
-		load_library(_COMMAND_CONSOLE__, sizeof(_COMMAND_CONSOLE__), (Device)ConsoleLibraryEntryPoint, _DEVICE_TYPE_DRIVER__);
+		load_device(_COMMAND_CONSOLE__, sizeof(_COMMAND_CONSOLE__), (Device)ConsoleLibraryEntryPoint, _DEVICE_TYPE_DRIVER__);
 		
 		for (uint8_t i=0; i<promptStringLength; i++) promptString[i] = 0x20;
 		promptString[0]      = '>';

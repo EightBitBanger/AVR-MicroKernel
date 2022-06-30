@@ -7,7 +7,7 @@ void command_memory(uint8_t, uint8_t&, uint8_t&, uint8_t&, uint8_t&);
 
 struct ModuleLoaderMem {
 	ModuleLoaderMem() {
-		load_library(__MODULE_NAME_,  sizeof(__MODULE_NAME_), (Device)command_memory, _DEVICE_TYPE_MODULE__);
+		load_device(__MODULE_NAME_,  sizeof(__MODULE_NAME_), (Device)command_memory, _DEVICE_TYPE_MODULE__);
 	}
 }static loadModuleMem;
 #undef __MODULE_NAME_
@@ -16,11 +16,7 @@ void command_memory(uint8_t, uint8_t&, uint8_t&, uint8_t&, uint8_t&) {
 	
 	Device memDriverPtr;
 	
-	if (get_func_address(_EXTENDED_MEMORY__, sizeof(_EXTENDED_MEMORY__), memDriverPtr) == 0) {
-		console.print(error_exmem_not_installed, sizeof(error_exmem_not_installed));
-		console.printLn();
-		return;
-	}
+	if (get_func_address(_EXTENDED_MEMORY__, sizeof(_EXTENDED_MEMORY__), memDriverPtr) == 0) return;
 	
 	// Check total memory
 	call_extern(memDriverPtr, 0x04);

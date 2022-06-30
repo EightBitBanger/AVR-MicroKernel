@@ -7,7 +7,7 @@ void command_task(uint8_t, uint8_t&, uint8_t&, uint8_t&, uint8_t&);
 
 struct ModuleLoaderTask {
 	ModuleLoaderTask() {
-		load_library(__MODULE_NAME_, sizeof(__MODULE_NAME_), (Device)command_task, _DEVICE_TYPE_MODULE__);
+		load_device(__MODULE_NAME_, sizeof(__MODULE_NAME_), (Device)command_task, _DEVICE_TYPE_MODULE__);
 	}
 }static loadModuleTask;
 #undef __MODULE_NAME_

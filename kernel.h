@@ -31,15 +31,15 @@
 #include "kernel/std/string_const.h"  // System message strings
 #include "kernel/std/cstring.h"       // C string functions
 
-// Kernel function tables
-#include "kernel/driver_table.h"      // Device drivers
+// Kernel systems
+#include "kernel/resources.h"         // System resource manager
 #include "kernel/scheduler.h"         // Task scheduler
 #include "kernel/bus.h"               // System bus interface
 
 
 // Kernel function table
-//uint8_t kernel_load_device(uint8_t index, void(*entry_pointer)() );
-//void    kernel_call_extern(uint8_t index);
+uint8_t kernel_load_device(uint8_t index, void(*entry_pointer)() );
+void    kernel_call_extern(uint8_t index);
 
 
 // Kernel table initiator
@@ -68,13 +68,16 @@ void __kernel_initiate(void) {
 	char skip=0;
 	char byte=0;
 	
-	Device console_device;
-	Device memory_device;
-	Device speaker_device;
+	Device console_device = 0;
+	Device memory_device  = 0;
+	Device speaker_device = 0;
 	
+	// Error beep code
+	uint8_t length   = 74;
+	uint8_t tone     = 1;
+	uint8_t beepcode = 1;
 	
-	if (get_func_address(_COMMAND_CONSOLE__, sizeof(_COMMAND_CONSOLE__), console_device) == 0) return;
-	
+	// Display setup
 	uint8_t character = '0';
 	uint8_t line      = 0;
 	uint8_t pos       = 0;
@@ -87,12 +90,16 @@ void __kernel_initiate(void) {
 	Bus device_bus;
 	uint8_t test_byte=0x55;
 	
-	// External bus wait states
+	// External bus wait state
 	device_bus.waitstate_write = 0;
 	device_bus.waitstate_read  = 2;
 	
+	get_func_address(_COMMAND_CONSOLE__, sizeof(_COMMAND_CONSOLE__), console_device);
+	get_func_address(_INTERNAL_SPEAKER__, sizeof(_INTERNAL_SPEAKER__), speaker_device);
+	get_func_address(_EXTENDED_MEMORY__, sizeof(_EXTENDED_MEMORY__), memory_device);
+	
 	// Allocate available external memory
-	if (get_func_address(_EXTENDED_MEMORY__, sizeof(_EXTENDED_MEMORY__), memory_device) == 1) {
+	if (memory_device != nullptr) {
 		
 		for (total_memory.address=0x00000; total_memory.address < 0x40000; total_memory.address++) {
 			
@@ -103,22 +110,26 @@ void __kernel_initiate(void) {
 			test_byte++;
 			
 			// Display total memory
-			if (skip > 100) {skip=0;
-				call_extern(console_device, 0x0a, line, pos);
-				call_extern(console_device, 0x04, total_memory.byte_t[0], total_memory.byte_t[1], total_memory.byte_t[2], total_memory.byte_t[3]);
-			} else {skip++;}
+			if (console_device != nullptr) {
+				if (skip > 100) {skip=0;
+					call_extern(console_device, 0x0a, line, pos);
+					call_extern(console_device, 0x04, total_memory.byte_t[0], total_memory.byte_t[1], total_memory.byte_t[2], total_memory.byte_t[3]);
+				} else {skip++;}
+			}
 			
 		}
 		
 		// Display final memory count
-		call_extern(console_device, 0x0a, line, pos);
-		call_extern(console_device, 0x04, total_memory.byte_t[0], total_memory.byte_t[1], total_memory.byte_t[2], total_memory.byte_t[3]);
+		if (console_device != nullptr) {
+			call_extern(console_device, 0x0a, line, pos);
+			call_extern(console_device, 0x04, total_memory.byte_t[0], total_memory.byte_t[1], total_memory.byte_t[2], total_memory.byte_t[3]);
+		}
 		
-		
-		// Zero the kernel memory range
 		uint8_t size = 0xff;
 		WrappedPointer start_address;
 		start_address.address = 0x00000;
+		
+		// Zero the kernel memory range
 		call_extern(memory_device, 0x0a, start_address.byte_t[0], start_address.byte_t[1], start_address.byte_t[2], start_address.byte_t[3]);
 		for (uint8_t i=0; i < 10; i++) 
 			call_extern(memory_device, 0x02, size);
@@ -127,46 +138,22 @@ void __kernel_initiate(void) {
 		call_extern(memory_device, 0x0a, total_memory.byte_t[0], total_memory.byte_t[1], total_memory.byte_t[2], total_memory.byte_t[3]);
 		call_extern(memory_device, 0x05);
 		
-	} else {
-		
-		// ERROR - memory not installed
-		for (uint8_t i=0; i<sizeof(error_exmem_not_installed); i++) 
-			call_extern(console_device, 0x00, (uint8_t&)error_exmem_not_installed[i]);
-		call_extern(console_device, 0x01);
-		
-		// Error beep code 
-		uint8_t length   = 74;
-		uint8_t tone     = 1;
-		uint8_t beepcode = 1;
-		
-		if (get_func_address(_INTERNAL_SPEAKER__, sizeof(_INTERNAL_SPEAKER__), speaker_device) == 1) {
-			
-			for (uint8_t i=0; i<beepcode; i++) {
-				call_extern(speaker_device, 0x00, tone, length);
-				_delay_ms(350);
-			}
-			
-		}
-		
 	}
 	
 	// Place the cursor
 	line = 1; pos = 0;
-	
 	call_extern(console_device, 0x0a, line, pos);
 	call_extern(console_device, 0x02);
 	
-	// Speaker test - PASSED \ single beep
-	uint8_t length = 74;
-	uint8_t tone   = 1;
-	
-	if (get_func_address(_INTERNAL_SPEAKER__, sizeof(_INTERNAL_SPEAKER__), speaker_device) == 1) {
-		
+	// Speaker beep code test
+	for (uint8_t i=0; i < beepcode; i++) {
 		call_extern(speaker_device, 0x00, tone, length);
 		_delay_ms(350);
-		
 	}
 	
+	if (beepcode > 2) while(1) asm("nop");
+	
+	return;
 }
 
 

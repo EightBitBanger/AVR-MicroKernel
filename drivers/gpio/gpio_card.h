@@ -17,8 +17,7 @@ struct GPIOCardDriver {
 		
 		portAddress = 0x60000;
 		
-		// Load the device driver
-		load_library("GPIO", sizeof("GPIO"), (Device)GPIOCardDeviceDriverEntryPoint, _DEVICE_TYPE_DRIVER__);
+		load_device("GPIO", sizeof("GPIO"), (Device)GPIOCardDeviceDriverEntryPoint, _DEVICE_TYPE_DRIVER__);
 	}
 	
 	void initiate(void) {
