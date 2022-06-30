@@ -28,16 +28,15 @@
 
 // Standard includes
 #include "kernel/std/pointers.h"      // Pointer types
-#include "kernel/std/string_const.h"  // System message strings
+#include "kernel/std/string_const.h"  // Message/error strings
 #include "kernel/std/cstring.h"       // C string functions
 
 // Kernel systems
-#include "kernel/resources.h"         // System resource manager
+#include "kernel/resources.h"         // System resource management
 #include "kernel/scheduler.h"         // Task scheduler
 #include "kernel/bus.h"               // System bus interface
 
 
-// Kernel function table
 uint8_t kernel_load_device(uint8_t index, void(*entry_pointer)() );
 void    kernel_call_extern(uint8_t index);
 
@@ -72,7 +71,7 @@ void __kernel_initiate(void) {
 	Device memory_device  = 0;
 	Device speaker_device = 0;
 	
-	// Error beep code
+	// Beep code
 	uint8_t length   = 74;
 	uint8_t tone     = 1;
 	uint8_t beepcode = 1;
@@ -157,7 +156,7 @@ void __kernel_initiate(void) {
 }
 
 
-/*
+
 union FunctionPointer {
 	
 	FunctionPointer() {
@@ -200,7 +199,7 @@ void kernel_call_extern(uint8_t index) {
 	
 	return;
 }
-*/
+
 
 
 
