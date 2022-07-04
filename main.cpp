@@ -9,7 +9,7 @@ int main(void) {
 	address_zero();
 	bus_zero();
 	
-	_delay_ms(500);
+	_delay_ms(100);
 	
 	// Initiate device drivers
 	__extern_call_init();
@@ -22,7 +22,7 @@ int main(void) {
 	__kernel_initiate();
 	
 	// Fire up the scheduler with a counter base rate of 20
-	__scheduler_start(20);
+	__scheduler_start(1);
 	
 	while(1) 
 		asm("nop");

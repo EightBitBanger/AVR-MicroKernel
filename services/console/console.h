@@ -1,10 +1,20 @@
 //
 // Command console service
 
+
+// Event handler entry point
 void keyboard_event_handler(void);
+
+// Enter function
 void eventKeyboardEnter(void);
+
+// Backspace function
 void eventKeyboardBackspace(void);
+
+// Accept a character onto the keyboard string of typed characters
 void eventKeyboardAcceptChar(uint8_t new_char);
+
+
 
 struct CommandConsoleServiceLauncher {
 	
@@ -16,10 +26,10 @@ struct CommandConsoleServiceLauncher {
 		
 		currentChar  = 0x00;
 		
-		task_create("console", 8, keyboard_event_handler, 1200, _TASK_SERVICE__);
-		
 		// Link to the keyboard device driver
-		if (get_func_address(_KEYBOARD_INPUT__, sizeof(_KEYBOARD_INPUT__), keyboard_device) == 0) return;
+		get_func_address(_KEYBOARD_INPUT__, sizeof(_KEYBOARD_INPUT__), keyboard_device);
+		
+		task_create("console", 8, keyboard_event_handler, 1200, _TASK_SERVICE__);
 		
 	}
 }static commandConsole;
@@ -29,6 +39,8 @@ void keyboard_event_handler(void) {
 	commandConsole.currentChar  = 0x00;
 	uint8_t scanCodeAccepted    = 0x00;
 	uint8_t readKeyCode         = 0x00;
+	
+	get_func_address(_KEYBOARD_INPUT__, sizeof(_KEYBOARD_INPUT__), commandConsole.keyboard_device);
 	
 	// Read keyboard character
 	call_extern(commandConsole.keyboard_device, 0x00, readKeyCode);
@@ -44,7 +56,8 @@ void keyboard_event_handler(void) {
 	}
 	
 	// Prevent wild key repeats
-	if (console.lastChar == commandConsole.currentChar) {console.lastChar = commandConsole.currentChar; return;} console.lastChar = commandConsole.currentChar;
+	if (console.lastChar == commandConsole.currentChar) {return;}
+	console.lastChar = commandConsole.currentChar;
 	
 	// Check special keys
 	switch (commandConsole.currentChar) {
@@ -139,7 +152,6 @@ void eventKeyboardAcceptChar(uint8_t new_char) {
 	
 	console.keyboard_string[console.keyboard_string_length] = new_char;
 	console.keyboard_string_length++;
-	
 	
 	// Add the ASCII char
 	console.printChar((char&)new_char);

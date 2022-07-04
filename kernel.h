@@ -32,7 +32,7 @@
 #include "kernel/std/cstring.h"       // C string functions
 
 // Kernel systems
-#include "kernel/resources.h"         // System resource management
+#include "kernel/device_table.h"      // Device resource manager
 #include "kernel/scheduler.h"         // Task scheduler
 #include "kernel/bus.h"               // System bus interface
 
@@ -81,10 +81,6 @@ void __kernel_initiate(void) {
 	uint8_t line      = 0;
 	uint8_t pos       = 0;
 	
-	// Initiate the cursor
-	call_extern(console_device, 0x0a, line, pos);
-	call_extern(console_device, 0x00, character);
-	
 	WrappedPointer total_memory;
 	Bus device_bus;
 	uint8_t test_byte=0x55;
@@ -96,6 +92,10 @@ void __kernel_initiate(void) {
 	get_func_address(_COMMAND_CONSOLE__, sizeof(_COMMAND_CONSOLE__), console_device);
 	get_func_address(_INTERNAL_SPEAKER__, sizeof(_INTERNAL_SPEAKER__), speaker_device);
 	get_func_address(_EXTENDED_MEMORY__, sizeof(_EXTENDED_MEMORY__), memory_device);
+	
+	// Initiate the cursor
+	call_extern(console_device, 0x0a, line, pos);
+	call_extern(console_device, 0x00, character);
 	
 	// Allocate available external memory
 	if (memory_device != nullptr) {
@@ -109,20 +109,15 @@ void __kernel_initiate(void) {
 			test_byte++;
 			
 			// Display total memory
-			if (console_device != nullptr) {
-				if (skip > 100) {skip=0;
-					call_extern(console_device, 0x0a, line, pos);
-					call_extern(console_device, 0x04, total_memory.byte_t[0], total_memory.byte_t[1], total_memory.byte_t[2], total_memory.byte_t[3]);
-				} else {skip++;}
-			}
-			
+			if (skip > 100) {skip=0;
+				call_extern(console_device, 0x0a, line, pos);
+				call_extern(console_device, 0x04, total_memory.byte_t[0], total_memory.byte_t[1], total_memory.byte_t[2], total_memory.byte_t[3]);
+			} else {skip++;}
 		}
 		
 		// Display final memory count
-		if (console_device != nullptr) {
-			call_extern(console_device, 0x0a, line, pos);
-			call_extern(console_device, 0x04, total_memory.byte_t[0], total_memory.byte_t[1], total_memory.byte_t[2], total_memory.byte_t[3]);
-		}
+		call_extern(console_device, 0x0a, line, pos);
+		call_extern(console_device, 0x04, total_memory.byte_t[0], total_memory.byte_t[1], total_memory.byte_t[2], total_memory.byte_t[3]);
 		
 		uint8_t size = 0xff;
 		WrappedPointer start_address;
@@ -150,7 +145,7 @@ void __kernel_initiate(void) {
 		_delay_ms(350);
 	}
 	
-	if (beepcode > 2) while(1) asm("nop");
+	//if (beepcode > 2) while(1) asm("nop");
 	
 	return;
 }

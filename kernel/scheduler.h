@@ -6,14 +6,14 @@
 
 #include <avr/interrupt.h>
 
-#define _PROCESS_LIST_SIZE__           30
+#define _PROCESS_LIST_SIZE__           10
 #define _PROCESS_NAME_LENGTH_MAX__     10
 
 #define _TASK_USER__                  'u' // User task
 #define _TASK_SERVICE__               's' // System service task
 #define _TASK_VOLATILE__              'v' // Volatile task
 
-#define _TASK_PRIORITY_BACKGROUND__       1300
+#define _TASK_PRIORITY_BACKGROUND__       1500
 #define _TASK_PRIORITY_LOW__               500
 #define _TASK_PRIORITY_NORMAL__            100
 #define _TASK_PRIORITY_HIGH__               50
@@ -51,11 +51,12 @@ struct ProcessDescriptorTable {
 // Schedule a new task
 uint8_t task_create(const char task_name[], uint8_t name_length, void(*task_ptr)(), uint32_t priority, uint8_t task_type) {
 	
-	if ((priority == 0) || (name_length > _PROCESS_NAME_LENGTH_MAX__-1)) return 0;
-	
-	uint8_t index;
+	// Check name length
+	if (name_length > _PROCESS_NAME_LENGTH_MAX__) 
+		name_length = _PROCESS_NAME_LENGTH_MAX__;
 	
 	// Find an available slot
+	uint8_t index;
 	for (index=0; index <= _PROCESS_LIST_SIZE__; index++) {
 		if (proc_info.processPriority[index] == 0) break;
 	}
@@ -101,7 +102,9 @@ uint8_t task_destroy(uint8_t index) {
 // Get a task index by its name
 uint8_t get_task_index(char task_name[], uint8_t name_length) {
 	
-	if (name_length > _PROCESS_NAME_LENGTH_MAX__-1) return 0;
+	// Check name length
+	if (name_length > _PROCESS_NAME_LENGTH_MAX__)
+		name_length = _PROCESS_NAME_LENGTH_MAX__;
 	
 	char list_task_name[name_length];
 	
@@ -124,7 +127,7 @@ uint8_t get_task_index(char task_name[], uint8_t name_length) {
 
 
 //
-// Interrupt timer 0
+// Interrupt timer 0 - general task execution
 
 ISR (TIMER0_OVF_vect) {
 	
@@ -182,6 +185,7 @@ void __scheduler_init_(void) {
 #endif
 }
 
+
 void __scheduler_start(uint8_t timer_priority) {
 #ifdef __CORE_SCHEDULER_
 	
@@ -194,6 +198,7 @@ void __scheduler_start(uint8_t timer_priority) {
 #endif
 }
 
+
 void __scheduler_stop(void) {
 #ifdef __CORE_SCHEDULER_
 	
@@ -204,7 +209,6 @@ void __scheduler_stop(void) {
 	TCNT0 = 0;
 #endif
 }
-
 
 
 #endif

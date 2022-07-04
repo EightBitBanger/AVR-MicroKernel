@@ -29,18 +29,19 @@ void __detect_hardware(uint32_t address, uint32_t stride, uint8_t device_count);
 
 
 void get_hardware_info(Bus& device_bus, uint32_t address, HardwareInformation& h_info) {
-#ifdef __HARDWARE_AUTO_DETECT_
+	
 	// Get device ID byte
 	bus_read_byte(device_bus, address, h_info.device_id);
 	
 	// Get device name 10 bytes
 	for (uint8_t i=0; i < 10; i++) 
 		bus_read_byte(device_bus, address + i + 0x01, h_info.device_name[i]);
-#endif	
+	
+	return;
 }
 
 void __detect_hardware(uint32_t address, uint32_t stride, uint8_t device_count) {
-#ifdef __HARDWARE_AUTO_DETECT_
+	
 	Bus device_bus;
 	device_bus.waitstate_read  = 10;
 	device_bus.waitstate_write = 10;
@@ -70,7 +71,8 @@ void __detect_hardware(uint32_t address, uint32_t stride, uint8_t device_count) 
 		}
 		
 	}
-#endif
+	
+	return;
 }
 
 

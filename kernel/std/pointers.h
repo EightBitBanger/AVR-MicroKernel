@@ -14,7 +14,8 @@
 #endif
 
 
-// Address pointer wrapper
+
+
 union WrappedPointer {
 	
 #ifdef _32_BIT_POINTERS__
