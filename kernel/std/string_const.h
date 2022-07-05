@@ -18,11 +18,15 @@ char msg_device_disabled[]            = "Device disabled";
 char msg_task_stopped[]               = "Task stopped";
 char msg_task_not_found[]             = "Task not found";
 char msg_format_complete[]            = "Format complete.";
-char msg_bytes_free[]                 = "bytes free";
+char msg_bytes_free[]                 = "bytes";
 // Error messages
 char error_stack_error[]              = "Stack error!";
 char error_stack_fault[]              = "Stack fault!";
 char error_out_of_memory[]            = "Out of memory!";
 char error_seg_fault[]                = "Segmentation-fault";
+
+// Kernel version information
+char msg_kernel_version[]             = "AVR-Kernel 1.0";
+
 
 

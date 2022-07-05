@@ -9,7 +9,8 @@ int main(void) {
 	address_zero();
 	bus_zero();
 	
-	_delay_ms(100);
+	// Allow peripheral devices time to initiate
+	_delay_ms(800);
 	
 	// Initiate device drivers
 	__extern_call_init();

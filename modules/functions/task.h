@@ -34,6 +34,7 @@ void command_task(uint8_t, uint8_t&, uint8_t&, uint8_t&, uint8_t&) {
 		
 		for (uint8_t a=0; a < _PROCESS_NAME_LENGTH_MAX__; a++) {
 			uint8_t nameChar = proc_info.processName[i][a];
+			if (nameChar == 0x20) break;
 			call_extern(consoleDriver, 0x00, nameChar);
 		}
 		
