@@ -52,13 +52,14 @@ struct __INITIATE_KERNEL_TABLES_ {
 	}
 } static __initiate_kernel_tables_;
 
+// Hardware information detection
+#include "kernel/hardware_detect.h"
+
 // Load device drivers, function modules and system services
 #include "drivers/config.h"
 #include "modules/config.h"
 #include "services/config.h"
 
-// Hardware information detection
-#include "kernel/hardware_detect.h"
 
 
 
@@ -90,7 +91,7 @@ void __kernel_initiate(void) {
 	console.initiate();
 	
 	// Allow peripheral devices time to initiate
-	_delay_ms(500);
+	_delay_ms(1000);
 	
 	//
 	// Kernel version information
@@ -151,7 +152,7 @@ void __kernel_initiate(void) {
 	}
 	
 	// Setup the command prompt
-	console.promptString[0] = 'A'; // Scope select
+	console.promptString[0] = 'C'; // Scope select
 	console.promptString[1] = '>';
 	console.promptStringLength = 2;
 	

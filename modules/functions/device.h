@@ -22,6 +22,8 @@ void command_drv(uint8_t, uint8_t&, uint8_t&, uint8_t&, uint8_t&) {
 		
 		if (deviceTable.device_name[i][0] == 0x20) continue;
 		
+		if (deviceTable.device_type[i] != _DEVICE_TYPE_DRIVER__) continue;
+		
 		for (uint8_t a=0; a < _DEVICE_NAME_LENGTH_MAX__; a++) {
 			
 			uint8_t nameChar = (uint8_t)deviceTable.device_name[i][a];

@@ -10,11 +10,15 @@
 #include "functions/kill.h"
 #include "functions/mem.h"
 #include "functions/memchk.h"
+#include "functions/slot.h"
+#include "functions/net.h"
 
 
 #include "functions/beep.h"
 #include "functions/list.h"
 #include "functions/sound.h"
+
+#include "functions/banner.h"
 
 #include "functions/peek.h"
 #include "functions/port.h"

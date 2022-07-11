@@ -1,8 +1,8 @@
 //
-// Device manager
+// Device resource manager
 
-#ifndef ____DEVICE_SYSTEM__
-#define ____DEVICE_SYSTEM__
+#ifndef ____DEVICE_RESOURCE_SYSTEM__
+#define ____DEVICE_RESOURCE_SYSTEM__
 
 
 #define _DEVICE_TABLE_SIZE__           50  // Resource table size

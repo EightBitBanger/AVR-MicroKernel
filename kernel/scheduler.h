@@ -57,12 +57,12 @@ uint8_t task_create(const char task_name[], uint8_t name_length, void(*task_ptr)
 	
 	// Find an available slot
 	uint8_t index;
-	for (index=0; index <= _PROCESS_LIST_SIZE__; index++) {
+	for (index=0; index < _PROCESS_LIST_SIZE__; index++) {
 		if (proc_info.processPriority[index] == 0) break;
 	}
 	
 	// No free slots
-	if (index == _PROCESS_LIST_SIZE__) return 0;
+	if (index >= _PROCESS_LIST_SIZE__) return 0;
 	
 	// Launch the new process
 	for (uint8_t a=0; a < name_length-1; a++)
