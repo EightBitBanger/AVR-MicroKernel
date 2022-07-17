@@ -18,13 +18,12 @@ struct ModuleLoaderSlot {
 void slot_entry_point(uint8_t, uint8_t&, uint8_t&, uint8_t&, uint8_t&) {
 	
 	Bus device_bus;
-	uint8_t index;
 	uint32_t address;
 	HardwareInformation hinfo;
 	
-	index = console.keyboard_string[5] - 0x30;
+	uint8_t param0 = console.keyboard_string[5] - 0x30;
 	
-	address = 0x40000 + (index * 0x10000);
+	address = 0x40000 + (param0 * 0x10000);
 	
 	device_bus.waitstate_write = 40;
 	device_bus.waitstate_read  = 40;

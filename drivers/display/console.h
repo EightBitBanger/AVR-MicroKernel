@@ -1,6 +1,6 @@
 //
-// Command console program
-//  Requires support of display and keyboard drivers
+// Command console
+//  This driver requires support of associated display and keyboard drivers
 
 #define _MAX_KEYBOARD_STRING_LENGTH__  32
 
@@ -27,7 +27,6 @@ struct CommandConsole {
 	
 	CommandConsole() {
 		
-		// Load the device driver
 		load_device(_COMMAND_CONSOLE__, sizeof(_COMMAND_CONSOLE__), (Device)ConsoleLibraryEntryPoint, _DEVICE_TYPE_DRIVER__);
 		
 		for (uint8_t i=0; i<promptStringLength; i++) promptString[i] = 0x20;
@@ -74,6 +73,11 @@ struct CommandConsole {
 		cursorLine = Line;
 		cursorPos  = Pos;
 		call_extern(displayDriverPtr, 0x00, Line, Pos);
+		return;
+	}
+	
+	void updateCursorPosition(void) {
+		call_extern(displayDriverPtr, 0x00, cursorLine, cursorPos);
 		return;
 	}
 	
@@ -167,7 +171,6 @@ struct CommandConsole {
 }static console;
 
 
-// Driver entry point
 void ConsoleLibraryEntryPoint(uint8_t functionCall, uint8_t& paramA, uint8_t& paramB, uint8_t& paramC, uint8_t& paramD) {
 	
 	switch(functionCall) {

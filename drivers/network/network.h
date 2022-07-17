@@ -36,7 +36,6 @@ struct NetworkInterfaceDriver {
 	void write(uint32_t address, char byte) {bus_write_byte(device_bus, address, byte); return;}
 	void read(uint32_t address, char& byte) {bus_read_byte(device_bus, address, byte); return;}
 	
-	
 	// TX flag
 	void writeTXflag(uint8_t flag) {write(device_address + 0x0a, flag);}
 	void readTXflag(uint8_t& flag) {read(device_address + 0x0a, (char&)flag);}
@@ -48,6 +47,13 @@ struct NetworkInterfaceDriver {
 	void writeTXbuffer(uint8_t frame_data) {write(device_address + 0x0c, frame_data);}
 	void readTXbuffer(uint8_t& frame_data) {read(device_address + 0x0c, (char&)frame_data);}
 	
+	// Setup baud rate
+	void writeBaudrateFlag(uint8_t flag) {write(device_address + 0x0d, flag);}
+	void writeBaudrateLow(uint8_t baudrate)   {write(device_address + 0x0e, baudrate);}
+	void writeBaudrateHigh(uint8_t baudrate)  {write(device_address + 0x0f, baudrate);}
+	void readBaudrateLow(uint8_t& baudrate)   {read(device_address + 0x0e, (char&)baudrate);}
+	void readBaudrateHigh(uint8_t& baudrate)  {read(device_address + 0x0f, (char&)baudrate);}
+	
 	// RX frame buffer array
 	void writeRXbuffer(uint8_t index, uint8_t frame_data) {write(device_address + 0x10 + index, frame_data);}
 	void readRXbuffer(uint8_t index, uint8_t& frame_data) {read(device_address + 0x10 + index, (char&)frame_data);}
@@ -57,10 +63,8 @@ struct NetworkInterfaceDriver {
 
 
 
-// Driver entry point
+// Device Driver entry point
 void NetworkInterfaceDeviceDriverEntryPoint(uint8_t functionCall, uint8_t& paramA, uint8_t& paramB, uint8_t& paramC, uint8_t& paramD) {
-	
-	WrappedPointer pointer;
 	
 	switch(functionCall) {
 		
@@ -80,8 +84,12 @@ void NetworkInterfaceDeviceDriverEntryPoint(uint8_t functionCall, uint8_t& param
 		case 0x04: {networkInterfaceDriver.writeTXbuffer(paramA); break;}
 		case 0x05: {networkInterfaceDriver.readTXbuffer(paramA); break;}
 		
-		case 0x06: {networkInterfaceDriver.writeRXbuffer(paramA, paramB); break;}
-		case 0x07: {networkInterfaceDriver.readRXbuffer(paramA, paramB); break;}
+		case 0x06: {networkInterfaceDriver.writeBaudrateFlag(paramA); break;}
+		case 0x07: {networkInterfaceDriver.writeBaudrateLow(paramA); break;}
+		case 0x08: {networkInterfaceDriver.writeBaudrateHigh(paramA); break;}
+		
+		case 0x09: {networkInterfaceDriver.writeRXbuffer(paramA, paramB); break;}
+		case 0x0a: {networkInterfaceDriver.readRXbuffer(paramA, paramB); break;}
 		
 		default: break;
 	}

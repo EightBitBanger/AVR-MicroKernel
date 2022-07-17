@@ -27,7 +27,7 @@ struct CommandConsoleServiceLauncher {
 		// Link to the keyboard device driver
 		get_func_address(_KEYBOARD_INPUT__, sizeof(_KEYBOARD_INPUT__), keyboard_device);
 		
-		task_create(_SERVICE_NAME__, sizeof(_SERVICE_NAME__), keyboard_event_handler, 1200, _TASK_SERVICE__);
+		task_create(_SERVICE_NAME__, sizeof(_SERVICE_NAME__), keyboard_event_handler, 100, _TASK_SERVICE__);
 		
 	}
 }static commandConsole;
@@ -44,8 +44,10 @@ void keyboard_event_handler(void) {
 	get_func_address(_KEYBOARD_INPUT__, sizeof(_KEYBOARD_INPUT__), commandConsole.keyboard_device);
 	
 	// Read keyboard character
-	call_extern(commandConsole.keyboard_device, 0x00, readKeyCode);
-	currentChar = readKeyCode;
+	for (uint8_t i=0; i<5; i++) {
+		call_extern(commandConsole.keyboard_device, 0x00, readKeyCode);
+		if (readKeyCode != 0x00) break;
+	}
 	
 	// Check MAX string length
 	if (console.keyboard_string_length < _MAX_KEYBOARD_STRING_LENGTH__) {
@@ -57,7 +59,9 @@ void keyboard_event_handler(void) {
 	}
 	
 	// Prevent wild key repeats
-	if (console.lastChar == currentChar) {return;}
+	if (console.lastChar == currentChar) 
+		return;
+	
 	console.lastChar = currentChar;
 	
 	// Check special keys
