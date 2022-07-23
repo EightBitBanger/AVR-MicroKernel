@@ -24,6 +24,7 @@ char error_stack_error[]              = "Stack error!";
 char error_stack_fault[]              = "Stack fault!";
 char error_out_of_memory[]            = "Out of memory!";
 char error_seg_fault[]                = "Segmentation-fault";
+char error_driver_error[]             = "Device driver error";
 
 // Kernel version information
 char msg_kernel_version[]             = "AVR-Kernel 1.0";

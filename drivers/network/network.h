@@ -49,10 +49,8 @@ struct NetworkInterfaceDriver {
 	
 	// Setup baud rate
 	void writeBaudrateFlag(uint8_t flag) {write(device_address + 0x0d, flag);}
-	void writeBaudrateLow(uint8_t baudrate)   {write(device_address + 0x0e, baudrate);}
-	void writeBaudrateHigh(uint8_t baudrate)  {write(device_address + 0x0f, baudrate);}
-	void readBaudrateLow(uint8_t& baudrate)   {read(device_address + 0x0e, (char&)baudrate);}
-	void readBaudrateHigh(uint8_t& baudrate)  {read(device_address + 0x0f, (char&)baudrate);}
+	void writeBaudrate(uint8_t baudrate)   {write(device_address + 0x0e, baudrate);}
+	void readBaudrate(uint8_t& baudrate)   {read(device_address + 0x0e, (char&)baudrate);}
 	
 	// RX frame buffer array
 	void writeRXbuffer(uint8_t index, uint8_t frame_data) {write(device_address + 0x10 + index, frame_data);}
@@ -85,8 +83,7 @@ void NetworkInterfaceDeviceDriverEntryPoint(uint8_t functionCall, uint8_t& param
 		case 0x05: {networkInterfaceDriver.readTXbuffer(paramA); break;}
 		
 		case 0x06: {networkInterfaceDriver.writeBaudrateFlag(paramA); break;}
-		case 0x07: {networkInterfaceDriver.writeBaudrateLow(paramA); break;}
-		case 0x08: {networkInterfaceDriver.writeBaudrateHigh(paramA); break;}
+		case 0x07: {networkInterfaceDriver.writeBaudrate(paramA); break;}
 		
 		case 0x09: {networkInterfaceDriver.writeRXbuffer(paramA, paramB); break;}
 		case 0x0a: {networkInterfaceDriver.readRXbuffer(paramA, paramB); break;}

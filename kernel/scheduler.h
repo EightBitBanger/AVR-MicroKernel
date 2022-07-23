@@ -6,18 +6,18 @@
 
 #include <avr/interrupt.h>
 
-#define _PROCESS_LIST_SIZE__           10
-#define _PROCESS_NAME_LENGTH_MAX__     10
+#define _PROCESS_LIST_SIZE__              10
+#define _PROCESS_NAME_LENGTH_MAX__        10
 
-#define _TASK_USER__                  'u' // User task
-#define _TASK_SERVICE__               's' // System service task
-#define _TASK_VOLATILE__              'v' // Volatile task
+#define _TASK_USER__                      'u' // User task
+#define _TASK_SERVICE__                   's' // System service task
+#define _TASK_VOLATILE__                  'v' // Volatile task
 
 #define _TASK_PRIORITY_BACKGROUND__       1500
-#define _TASK_PRIORITY_LOW__               500
-#define _TASK_PRIORITY_NORMAL__            100
-#define _TASK_PRIORITY_HIGH__               50
-#define _TASK_PRIORITY_REALTIME__           10
+#define _TASK_PRIORITY_LOW__              500
+#define _TASK_PRIORITY_NORMAL__           100
+#define _TASK_PRIORITY_HIGH__             50
+#define _TASK_PRIORITY_REALTIME__         10
 
 #ifdef __CORE_SCHEDULER_
 
