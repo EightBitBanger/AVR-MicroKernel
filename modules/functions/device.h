@@ -5,6 +5,11 @@ void command_drv(uint8_t, uint8_t&, uint8_t&, uint8_t&, uint8_t&);
 
 #define __MODULE_NAME_  "device"
 
+char msg_device_enabled[]      = "Device enabled";
+char msg_device_disabled[]     = "Device disabled";
+char error_driver_error[]      = "Device driver error";
+char error_device_not_found[]  = "Device not found";
+
 struct ModuleLoaderDrv {
 	ModuleLoaderDrv() {
 		load_device(__MODULE_NAME_, sizeof(__MODULE_NAME_), (Device)command_drv, _DEVICE_TYPE_MODULE__);
@@ -16,9 +21,10 @@ void command_drv(uint8_t, uint8_t&, uint8_t&, uint8_t&, uint8_t&) {
 	Device consoleDriver;
 	if (get_func_address(_COMMAND_CONSOLE__, sizeof(_COMMAND_CONSOLE__), consoleDriver) == 0) return;
 	
-	// Get the parameter from the keyboard string
 	uint8_t param0  = console.keyboard_string[sizeof(__MODULE_NAME_)];
 	uint8_t param1  = console.keyboard_string[sizeof(__MODULE_NAME_) + 2];
+	
+	uint8_t page_counter=0;
 	
 	// List devices
 	if (param0 == 'l') {
@@ -27,21 +33,108 @@ void command_drv(uint8_t, uint8_t&, uint8_t&, uint8_t&, uint8_t&) {
 			
 			if (deviceTable.device_name[i][0] == 0x20) continue;
 			
-			if (deviceTable.device_type[i] != _DEVICE_TYPE_DRIVER__) continue;
-			
-			for (uint8_t a=0; a < _DEVICE_NAME_LENGTH_MAX__; a++) {
+			// List all devices
+			if (param1 == 0x20) {
 				
-				uint8_t nameChar = (uint8_t)deviceTable.device_name[i][a];
-				if (nameChar == 0x20) break;
+				// Print index
+				console.printInt(i);
+				console.printSpace();
 				
-				call_extern(consoleDriver, 0x00, nameChar); // Write char
+				// Print name
+				for (uint8_t a=0; a < _DEVICE_NAME_LENGTH_MAX__; a++) {
+					uint8_t nameChar = (uint8_t)deviceTable.device_name[i][a];
+					if (nameChar == 0x20) break;
+					call_extern(consoleDriver, 0x00, nameChar); // Write char
+				}
 				
+				page_counter++;
+				call_extern(consoleDriver, 0x01); // New line
 			}
 			
-			call_extern(consoleDriver, 0x03); // space
+			// List device drivers
+			if (param1 == 'd') {
+				
+				if (deviceTable.device_type[i] != _DEVICE_TYPE_DRIVER__) continue;
+				
+				// Print index
+				console.printInt(i);
+				console.printSpace();
+				
+				// Print name
+				for (uint8_t a=0; a < _DEVICE_NAME_LENGTH_MAX__; a++) {
+					uint8_t nameChar = (uint8_t)deviceTable.device_name[i][a];
+					if (nameChar == 0x20) break;
+					call_extern(consoleDriver, 0x00, nameChar); // Write char
+				}
+				
+				page_counter++;
+				call_extern(consoleDriver, 0x01); // New line
+			}
+			
+			// List device libraries
+			if (param1 == 'l') {
+				
+				if (deviceTable.device_type[i] != _DEVICE_TYPE_LIBRARY__) continue;
+				
+				// Print index
+				console.printInt(i);
+				console.printSpace();
+				
+				// Print name
+				for (uint8_t a=0; a < _DEVICE_NAME_LENGTH_MAX__; a++) {
+					uint8_t nameChar = (uint8_t)deviceTable.device_name[i][a];
+					if (nameChar == 0x20) break;
+					call_extern(consoleDriver, 0x00, nameChar); // Write char
+				}
+				
+				page_counter++;
+				call_extern(consoleDriver, 0x01); // New line
+			}
+			
+			// List device modules
+			if (param1 == 'm') {
+				
+				if (deviceTable.device_type[i] != _DEVICE_TYPE_MODULE__) continue;
+				
+				// Print index
+				console.printInt(i);
+				console.printSpace();
+				
+				// Print name
+				for (uint8_t a=0; a < _DEVICE_NAME_LENGTH_MAX__; a++) {
+					uint8_t nameChar = (uint8_t)deviceTable.device_name[i][a];
+					if (nameChar == 0x20) break;
+					call_extern(consoleDriver, 0x00, nameChar); // Write char
+				}
+				
+				page_counter++;
+				call_extern(consoleDriver, 0x01); // New line
+			}
+			
+			// Page pause
+			if (page_counter > 2) {page_counter = 0;
+				
+				// Link to the keyboard driver
+				Device keyboard_device;
+				if (get_func_address(_KEYBOARD_INPUT__, sizeof(_KEYBOARD_INPUT__), keyboard_device) == 0) return;
+				
+				console.print(msg_press_anykey, sizeof(msg_press_anykey));
+				console.updateCursorPosition();
+				
+				uint8_t currentChar = 0x00;
+				uint8_t lastChar    = 0x00;
+				call_extern(keyboard_device, 0x00, lastChar);
+				currentChar = lastChar;
+				
+				while(1) {
+					call_extern(keyboard_device, 0x00, currentChar);
+					if (lastChar != currentChar) break;
+				}
+				
+				call_extern(consoleDriver, 0x01); // New line
+			}
 			
 		}
-		call_extern(consoleDriver, 0x01); // New line
 		
 		return;
 	}
@@ -50,7 +143,7 @@ void command_drv(uint8_t, uint8_t&, uint8_t&, uint8_t&, uint8_t&) {
 	// No parameters - help anyone ?
 	if (param0 == 0x20) {
 		
-		char help_line_a[] = "device l - list";
+		char help_line_a[] = "device l dlm - list";
 		char help_line_b[] = "device f n - free";
 		
 		console.print(help_line_a, sizeof(help_line_a)); console.printLn();

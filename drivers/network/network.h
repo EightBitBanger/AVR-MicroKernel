@@ -22,8 +22,6 @@ struct NetworkInterfaceDriver {
 	
 	void initiate(void) {
 		
-		char byte;
-		
 		device_bus.waitstate_read  = 10;
 		device_bus.waitstate_write = 10;
 		

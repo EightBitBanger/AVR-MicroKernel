@@ -14,15 +14,16 @@ struct DisplayDriver {
 	
 	// Load the device driver
 	DisplayDriver() {
+		
+		device_address = 0x00000;
+		
+		device_bus.waitstate_read  = 10;
+		device_bus.waitstate_write = 10;
+		
 		load_device(_DISPLAY_CONSOLE__, sizeof(_DISPLAY_CONSOLE__), (Device)DisplayDeviceDriverEntryPoint, _DEVICE_TYPE_DRIVER__);
 	}
 	
 	void initiate(void) {
-		
-		device_address = 0x40000;
-		
-		device_bus.waitstate_read  = 10;
-		device_bus.waitstate_write = 10;
 		
 	}
 	

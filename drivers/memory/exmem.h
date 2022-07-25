@@ -8,6 +8,11 @@
 
 void ExtendedMemoryDeviceDriverEntryPoint(uint8_t, uint8_t&, uint8_t&, uint8_t&, uint8_t&);
 
+char msg_bytes_free[]       = "bytes free";
+char error_stack_error[]    = "Stack error!";
+char error_stack_fault[]    = "Stack fault!";
+char error_out_of_memory[]  = "Out of memory!";
+char error_seg_fault[]      = "Segmentation-fault";
 
 struct ExtendedMemoryDriver {
 	
@@ -27,15 +32,13 @@ struct ExtendedMemoryDriver {
 		currentAddress = 0;
 		returnAddress  = 0;
 		
+		device_bus.waitstate_read  = 2;
+		device_bus.waitstate_write = 0;
+		
 		load_device(_EXTENDED_MEMORY__, sizeof(_EXTENDED_MEMORY__), (Device)ExtendedMemoryDeviceDriverEntryPoint, _DEVICE_TYPE_DRIVER__);
 	}
 	
 	void initiate(void) {
-		
-		char byte;
-		
-		device_bus.waitstate_read  = 2;
-		device_bus.waitstate_write = 0;
 		
 	}
 	

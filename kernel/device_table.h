@@ -5,8 +5,8 @@
 #define ____DEVICE_RESOURCE_SYSTEM__
 
 
-#define _DEVICE_TABLE_SIZE__           50  // Resource table size
-#define _DEVICE_NAME_LENGTH_MAX__       8  // Resource name length
+#define _DEVICE_TABLE_SIZE__           50  // Device table size
+#define _DEVICE_NAME_LENGTH_MAX__       8  // Device name length
 
 #define _DEVICE_INITIATE__           0xff
 #define _DEVICE_SHUTDOWN__           0xfe
@@ -25,19 +25,12 @@ uint8_t load_device(const char name[], uint8_t name_length, Device device_pointe
 // Unload a device from the table
 uint8_t free_device(const char name[], uint8_t name_length);
 
-// Get a device entry pointer by its name
+// Get a device entry pointer by its name (Note: slow)
 uint8_t get_func_address(const char device_name[], uint8_t name_length, Device& device_pointer);
 // Call a function pointer with the given parameters
 uint8_t call_extern(Device& entry_pointer, uint8_t function_call, uint8_t& paramA, uint8_t& paramB, uint8_t& paramC, uint8_t& paramD);
 
-// Zero the device driver table
-void __extern_initiate(void);
-// Initiate all currently loaded device drivers
-void __extern_call_init(void);
-// Shutdown all currently loaded device drivers
-void __extern_call_shutdown(void);
 
-// Device resource table
 struct DeviceTable {
 	
 	uint8_t device_type[_DEVICE_TABLE_SIZE__];
@@ -138,7 +131,6 @@ uint8_t call_extern(Device& entry_pointer, uint8_t function_call, uint8_t& param
 
 
 void __extern_call_init() {
-#ifdef __CORE_MAIN_
 	for (uint8_t i=0; i < _DEVICE_TABLE_SIZE__; i++) {
 		if ((deviceTable.device_type[i] == _DEVICE_TYPE_DRIVER__) && (deviceTable.device_table[i] != 0)) {
 			Device deviceDriver;
@@ -147,12 +139,10 @@ void __extern_call_init() {
 		}
 		_delay_us(100);
 	}
-#endif
 }
 
 
 void __extern_call_shutdown(void) {
-#ifdef __CORE_MAIN_
 	for (uint8_t i=0; i < _DEVICE_TABLE_SIZE__; i++) {
 		if ((deviceTable.device_type[i] == _DEVICE_TYPE_DRIVER__) && (deviceTable.device_table[i] != 0)) {
 			Device deviceDriver;
@@ -161,12 +151,9 @@ void __extern_call_shutdown(void) {
 		}
 		_delay_ms(100);
 	}
-#endif
-	
 }
 
 void __extern_initiate(void) {
-#ifdef __CORE_MAIN_
 	for (uint8_t i=0; i < _DEVICE_TABLE_SIZE__; i++) {
 		
 		deviceTable.device_type[i] = 0x00;
@@ -177,7 +164,6 @@ void __extern_initiate(void) {
 		deviceTable.device_table[i] = 0;
 		
 	}
-#endif
 }
 
 

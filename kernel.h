@@ -4,6 +4,22 @@
 #ifndef ____KERNEL_MAIN__
 #define ____KERNEL_MAIN__
 
+//
+// Kernel configuration
+
+#define __CORE_MAIN_             // Include the device management system
+#define __CORE_SCHEDULER_        // Include the task scheduler
+#define __HARDWARE_AUTO_DETECT_  // Include hardware auto detection
+
+//#define __BOOT_SAFEMODE_      // Load only the devices required to boot
+//#define __BOOT_LIGHTWEIGHT_   // Load minimal device modules required to boot
+//#define __BOOT_NOSERVICES_    // Load only the system services required to boot
+
+#define _32_BIT_POINTERS__
+//#define _64_BIT_POINTERS__
+
+
+//
 // Kernel memory map
 #define _KERNEL_BEGIN__                    0x00000
 #define _KERNEL_END__                      0x007ff
@@ -22,13 +38,13 @@
 #define _KERNEL_STATE_OUT_OF_MEMORY__   0xa0
 #define _KERNEL_STATE_SEG_FAULT__       0xff
 
+// Message constants
+char msg_kernel_version[]    = "AVR-Kernel";
+char msg_press_anykey[]      = "Press any key...";
 
-
-#include "kernel/config.h"
 
 // Standard includes
 #include "kernel/std/pointers.h"      // Pointer types
-#include "kernel/std/string_const.h"  // Message/error strings
 #include "kernel/std/cstring.h"       // C string functions
 
 // Kernel systems

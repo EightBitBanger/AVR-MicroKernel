@@ -127,17 +127,17 @@ uint8_t get_task_index(char task_name[], uint8_t name_length) {
 
 
 //
-// Interrupt timer 0 - general task execution
+// Interrupt timer 0
 
 ISR (TIMER0_OVF_vect) {
-	
+#ifdef __CORE_SCHEDULER_
 	for (uint8_t PID=0; PID < _PROCESS_LIST_SIZE__; PID++) {
 		
 		if (proc_info.processPriority[PID] == 0) continue;
 		
 		if (proc_info.processCounters[PID] >= proc_info.processPriority[PID]) {
 			proc_info.processCounters[PID]=0;
-			proc_info.process_pointer_table[PID]();
+			proc_info.process_pointer_table[PID](); // Call the task`s entry point
 		} else {
 			proc_info.processCounters[PID]++;
 			continue;
@@ -149,11 +149,15 @@ ISR (TIMER0_OVF_vect) {
 			
 			// Terminate volatile tasks
 			case _TASK_VOLATILE__: {
-				for (uint8_t i=0; i < _PROCESS_NAME_LENGTH_MAX__; i++) proc_info.processName[PID][i] = 0x20;
+				
+				for (uint8_t i=0; i < _PROCESS_NAME_LENGTH_MAX__; i++) 
+					proc_info.processName[PID][i] = 0x20;
+				
 				proc_info.processType[PID] = 0;
 				proc_info.processPriority[PID] = 0;
 				proc_info.processCounters[PID] = 0;
 				proc_info.process_pointer_table[PID] = 0;
+				
 				break;
 			}
 			
@@ -164,7 +168,7 @@ ISR (TIMER0_OVF_vect) {
 		
 		
 	}
-	
+#endif
 	return;
 }
 
@@ -172,7 +176,7 @@ ISR (TIMER0_OVF_vect) {
 
 
 void __scheduler_init_(void) {
-#ifdef __CORE_SCHEDULER_
+	
 	for (uint8_t i=0; i < _PROCESS_LIST_SIZE__; i++) {
 		proc_info.processType[i]     = 0x00;
 		proc_info.processPriority[i] = 0x00;
@@ -182,32 +186,30 @@ void __scheduler_init_(void) {
 		for (uint8_t a=0; a < _PROCESS_NAME_LENGTH_MAX__; a++)
 			proc_info.processName[i][a] = 0x20;
 	}
-#endif
+	
 }
 
 
-void __scheduler_start(uint8_t timer_priority) {
-#ifdef __CORE_SCHEDULER_
+void __scheduler_start(uint8_t timer_base_rate) {
 	
 	TCCR0A  = 0x00;          // Normal counter and waveform
 	TCCR0B |= (1 << CS10);   // Timer mode with NO prescaler
 	TIMSK0 |= (1 << TOIE0);  // Enable timer overflow interrupt
 	
-	TCNT0 = timer_priority;  // Set timer priority
+	TCNT0 = timer_base_rate;  // Set counter base rate
 	sei();                   // Enable interrupts
-#endif
+	
 }
 
 
 void __scheduler_stop(void) {
-#ifdef __CORE_SCHEDULER_
 	
 	TCCR0A  = 0x00;
 	TCCR0B &= ~(1 << CS10);
 	TIMSK0 &= ~(1 << TOIE0);
 	
 	TCNT0 = 0;
-#endif
+	return;
 }
 
 

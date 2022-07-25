@@ -18,19 +18,27 @@ struct ModuleLoaderSlot {
 void slot_entry_point(uint8_t, uint8_t&, uint8_t&, uint8_t&, uint8_t&) {
 	
 	Bus device_bus;
-	uint32_t address;
 	HardwareInformation hinfo;
 	
-	uint8_t param0 = console.keyboard_string[5] - 0x30;
+	uint8_t param0  = console.keyboard_string[sizeof(__MODULE_NAME_)];
+	uint8_t param1  = console.keyboard_string[sizeof(__MODULE_NAME_) + 2];
 	
-	address = 0x40000 + (param0 * 0x10000);
+	// Slot query selection
+	if ((param0 >= '1') & (param0 <= '5')) {
+		
+		uint32_t address = 0x30000 + ((param0 - '0') * 0x10000);
+		
+		device_bus.waitstate_write = 20;
+		device_bus.waitstate_read  = 20;
+		
+		get_hardware_info(address, device_bus, hinfo);
+		
+		console.print(hinfo.device_name, 10);
+		console.printLn();
+		return;
+	}
 	
-	device_bus.waitstate_write = 40;
-	device_bus.waitstate_read  = 40;
-	
-	get_hardware_info(address, device_bus, hinfo);
-	
-	console.print(hinfo.device_name, 10);
+	console.print(error_device_not_found, sizeof(error_device_not_found));
 	console.printLn();
 	
 	return;

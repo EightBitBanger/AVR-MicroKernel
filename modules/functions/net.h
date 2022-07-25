@@ -39,6 +39,10 @@ struct ModuleLoaderNet {
 }static netModuleLoader;
 
 
+// Send a packet
+void network_send_packet(Device networkDevice, uint8_t packet[]);
+
+
 void net_entry_point(uint8_t, uint8_t&, uint8_t&, uint8_t&, uint8_t&) {
 	
 	uint8_t  flag       = 0xff;
@@ -62,30 +66,8 @@ void net_entry_point(uint8_t, uint8_t&, uint8_t&, uint8_t&, uint8_t&) {
 	// Data test
 	if (param0 == 't') {
 		
-		uint8_t packet[] = {0xaa, 'b', 'c', 'd'};
-		
-		for (uint8_t i=0; i < sizeof(packet);) {
-			
-			call_extern(networkDevice, 0x01, flag);
-			if (flag == 0) {
-				
-				flag = 0xff;
-				byte = packet[i];
-				
-				// Write data to the TX frame buffer
-				//netModuleLoader.byte
-				call_extern(networkDevice, 0x04, byte);
-				call_extern(networkDevice, 0x00, flag);
-				
-				// Transfer waitstate
-				for (uint32_t t=0; t < netModuleLoader.waitstate; t++) 
-					_delay_ms(1);
-				
-				i++;
-				
-			}
-			
-		}
+		uint8_t packet[] = {0x55, 0x00, 'a', 0xaa};
+		network_send_packet(networkDevice, packet);
 		
 		return;
 	}
@@ -116,22 +98,13 @@ void net_entry_point(uint8_t, uint8_t&, uint8_t&, uint8_t&, uint8_t&) {
 	// Send a byte
 	if (param0 == 's') {
 		
-		// Send a frame
-		call_extern(networkDevice, 0x01, flag);
-		if (flag == 0) {
-			
-			flag = 0xff;
-			
-			// Write data to the TX frame buffer
-			call_extern(networkDevice, 0x04, param1);
-			call_extern(networkDevice, 0x00, flag);
-			
-		}
+		uint8_t packet[] = {0x55, 0x00, param1, 0xaa};
 		
-		char msg_string[] = "Byte sent = ";
-		console.print(msg_string, sizeof(msg_string));
-		console.printChar(param1);
-		console.printLn();
+		if (network_send_packet(networkDevice, packet)) {
+			char msg_string[] = "Sent";
+			console.print(msg_string, sizeof(msg_string));
+			console.printLn();
+		}
 		
 		return;
 	}
@@ -365,4 +338,34 @@ void net_entry_point(uint8_t, uint8_t&, uint8_t&, uint8_t&, uint8_t&) {
 }
 
 #undef __MODULE_NAME_
+
+void network_send_packet(Device network_device, uint8_t packet[]) {
+	
+	uint8_t flag = 0;
+	uint8_t byte = 0;
+	
+	for (uint8_t i=0; i <= 3;) {
+		
+		call_extern(networkDevice, 0x01, flag);
+		if (flag == 0) {
+			
+			flag = 0xff;
+			byte = packet[i];
+			
+			// Write data to the TX frame buffer
+			call_extern(networkDevice, 0x04, byte);
+			call_extern(networkDevice, 0x00, flag);
+			
+			// Transfer waitstate
+			for (uint32_t t=0; t < netModuleLoader.waitstate; t++)
+			_delay_ms(1);
+			
+			i++;
+			
+		}
+		
+	}
+	
+}
+
 

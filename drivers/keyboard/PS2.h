@@ -12,13 +12,15 @@ struct KeyboardDriver {
 	Bus device_bus;
 	
 	KeyboardDriver() {
+		
+		device_bus.waitstate_read  = 1;
+		device_bus.waitstate_write = 0;
+		
 		load_device(_KEYBOARD_INPUT__, sizeof(_KEYBOARD_INPUT__), (Device)keyboardDeviceDriverEntryPoint, _DEVICE_TYPE_DRIVER__);
+		
 	}
 	
 	void initiate(void) {
-		
-		device_bus.waitstate_read  = 0;
-		device_bus.waitstate_write = 0;
 		
 	}
 	

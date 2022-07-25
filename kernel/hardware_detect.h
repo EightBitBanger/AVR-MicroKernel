@@ -3,6 +3,14 @@
 #ifndef __HARDWARE_DETECT_
 #define __HARDWARE_DETECT_
 
+// Default system device categories
+char _DISPLAY_CONSOLE__[]      = "display";
+char _KEYBOARD_INPUT__[]       = "kb";
+char _EXTENDED_MEMORY__[]      = "exMem";
+char _DATA_MEMORY__[]          = "nvMem";
+char _COMMAND_CONSOLE__[]      = "console";
+char _INTERNAL_SPEAKER__[]     = "audio";
+char _NETWORK_INTERFACE__[]    = "network";
 
 struct HardwareInformation {
 	
@@ -42,8 +50,8 @@ void __detect_hardware(uint32_t address, uint32_t stride, uint8_t device_count) 
 	
 	// External bus interface
 	Bus device_bus;
-	device_bus.waitstate_read  = 10;
-	device_bus.waitstate_write = 10;
+	device_bus.waitstate_read  = 20;
+	device_bus.waitstate_write = 20;
 	
 	Device device_driver;
 	WrappedPointer pointer;

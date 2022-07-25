@@ -17,15 +17,14 @@ struct GPIOCardDriver {
 		
 		portAddress = 0x60000;
 		
+		device_bus.waitstate_read  = 8;
+		device_bus.waitstate_write = 8;
+		
 		load_device("GPIO", sizeof("GPIO"), (Device)GPIOCardDeviceDriverEntryPoint, _DEVICE_TYPE_DRIVER__);
+		
 	}
 	
 	void initiate(void) {
-		
-		char byte;
-		
-		device_bus.waitstate_read  = 8;
-		device_bus.waitstate_write = 8;
 		
 	}
 	

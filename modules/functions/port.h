@@ -1,44 +1,74 @@
 //
 // Port control function
 
-void __io_control_(uint8_t, uint8_t&, uint8_t&, uint8_t&, uint8_t&);
+void __port_control_(uint8_t, uint8_t&, uint8_t&, uint8_t&, uint8_t&);
 
 #define __MODULE_NAME_  "port"
 
 struct ModuleLoaderPort {
 	
-	uint32_t address;
+	uint32_t slot_address;
+	uint32_t port_address;
 	
 	ModuleLoaderPort() {
-		address=0x00000;
-		load_device(__MODULE_NAME_, sizeof(__MODULE_NAME_), (Device)__io_control_, _DEVICE_TYPE_MODULE__);
+		load_device(__MODULE_NAME_, sizeof(__MODULE_NAME_), (Device)__port_control_, _DEVICE_TYPE_MODULE__);
 	}
 }static moduleLoaderPort;
-#undef __MODULE_NAME_
 
 
-void __io_control_(uint8_t, uint8_t&, uint8_t&, uint8_t&, uint8_t&) {
+void __port_control_(uint8_t, uint8_t&, uint8_t&, uint8_t&, uint8_t&) {
 	
 	Bus device_bus;
 	
 	device_bus.waitstate_read  = 10;
 	device_bus.waitstate_write = 10;
 	
-	// Port selection
-	if ((console.keyboard_string[5] == 'a') == 1) {
-		moduleLoaderPort.address = 0x60000;
+	uint8_t param0  = console.keyboard_string[sizeof(__MODULE_NAME_)];
+	uint8_t param1  = console.keyboard_string[sizeof(__MODULE_NAME_) + 2];
+	
+	// GPIO Port selection
+	if (param0 == 'p') {
+		
+		if ((param1 >= 'a') & (param1 <= 'd')) 
+			moduleLoaderPort.port_address = param1 - 'a';
+		
+		char msg_string[] = "Port ";
+		console.print(msg_string, sizeof(msg_string));
+		console.printChar(moduleLoaderPort.port_address + 'a');
+		console.printLn();
 		return;
 	}
-	if ((console.keyboard_string[5] == 'b') == 1) {
-		moduleLoaderPort.address = 0x60001;
+	
+	// Hardware slot selection
+	if (param0 == 's') {
+		
+		if ((param1 >= '1') & (param1 <= '5')) 
+			moduleLoaderPort.slot_address = ((param1 - '0') * 0x10000) + 0x30000;
+		
+		char msg_string[] = "Slot ";
+		console.print(msg_string, sizeof(msg_string));
+		console.printChar( ((moduleLoaderPort.slot_address - 0x30000) / 0x10000) + '0');
+		console.printLn();
 		return;
 	}
-	if ((console.keyboard_string[5] == 'c') == 1) {
-		moduleLoaderPort.address = 0x60002;
-		return;
-	}
-	if ((console.keyboard_string[5] == 'd') == 1) {
-		moduleLoaderPort.address = 0x60003;
+	
+	// Bit field value
+	if (param0 == 'b') {
+		uint8_t byte = 0x00;
+		
+		if (console.keyboard_string[7]  == 0x31) byte |= 0b00000001;
+		if (console.keyboard_string[8]  == 0x31) byte |= 0b00000010;
+		if (console.keyboard_string[9]  == 0x31) byte |= 0b00000100;
+		if (console.keyboard_string[10] == 0x31) byte |= 0b00001000;
+		if (console.keyboard_string[11] == 0x31) byte |= 0b00010000;
+		if (console.keyboard_string[12] == 0x31) byte |= 0b00100000;
+		if (console.keyboard_string[13] == 0x31) byte |= 0b01000000;
+		if (console.keyboard_string[14] == 0x31) byte |= 0b10000000;
+		
+		uint32_t address = (moduleLoaderPort.slot_address + moduleLoaderPort.port_address);
+		
+		bus_write_byte(device_bus, address, byte);
+		
 		return;
 	}
 	
@@ -52,26 +82,30 @@ void __io_control_(uint8_t, uint8_t&, uint8_t&, uint8_t&, uint8_t&) {
 		
 		value = string_get_hex_char(string);
 		
-		bus_write_byte(device_bus, moduleLoaderPort.address, value);
+		uint32_t address = (moduleLoaderPort.slot_address + moduleLoaderPort.port_address);
+		
+		bus_write_byte(device_bus, address, value);
 		
 		return;
 	}
 	
-	// Bit field value
-	uint8_t byte = 0x00;
-	
-	if (console.keyboard_string[5]  == 0x31) byte |= 0b00000001;
-	if (console.keyboard_string[6]  == 0x31) byte |= 0b00000010;
-	if (console.keyboard_string[7]  == 0x31) byte |= 0b00000100;
-	if (console.keyboard_string[8]  == 0x31) byte |= 0b00001000;
-	if (console.keyboard_string[9]  == 0x31) byte |= 0b00010000;
-	if (console.keyboard_string[10] == 0x31) byte |= 0b00100000;
-	if (console.keyboard_string[11] == 0x31) byte |= 0b01000000;
-	if (console.keyboard_string[12] == 0x31) byte |= 0b10000000;
-	
-	bus_write_byte(device_bus, moduleLoaderPort.address, byte);
+	//
+	// No parameters - help anyone ?
+	if (param0 == 0x20) {
+		
+		char help_line_a[] = "port p n - set port";
+		char help_line_b[] = "port s n - set slot";
+		char help_line_c[] = "port 0x00 - set data";
+		
+		console.print(help_line_a, sizeof(help_line_a)); console.printLn();
+		console.print(help_line_b, sizeof(help_line_b)); console.printLn();
+		console.print(help_line_c, sizeof(help_line_c)); console.printLn();
+		
+		return;
+	}
 	
 	return;
 }
 
+#undef __MODULE_NAME_
 
