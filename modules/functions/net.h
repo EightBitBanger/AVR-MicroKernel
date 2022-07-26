@@ -20,6 +20,12 @@
 //	28.8K		 42				0x002A			29.07 K					0.9%
 //	33.6K		 36				0x0024			33.784 K				0.5%
 
+#define _PACKET_START_BYTE__   0x55
+#define _PACKET_TYPE_DATA__    0x00
+#define _PACKET_STOP_BYTE__    0xaa
+
+#define _NETWORK_WAITSTATE__  1200
+
 void net_entry_point(uint8_t, uint8_t&, uint8_t&, uint8_t&, uint8_t&);
 
 #define __MODULE_NAME_  "net"
@@ -40,7 +46,7 @@ struct ModuleLoaderNet {
 
 
 // Send a packet
-void network_send_packet(Device networkDevice, uint8_t packet[]);
+uint8_t network_send_packet(Device networkDevice, uint8_t packet[]);
 
 
 void net_entry_point(uint8_t, uint8_t&, uint8_t&, uint8_t&, uint8_t&) {
@@ -60,14 +66,25 @@ void net_entry_point(uint8_t, uint8_t&, uint8_t&, uint8_t&, uint8_t&) {
 	// Get the parameter from the keyboard string
 	uint8_t param0  = console.keyboard_string[sizeof(__MODULE_NAME_)];
 	uint8_t param1  = console.keyboard_string[sizeof(__MODULE_NAME_) + 2];
+	uint8_t param2  = console.keyboard_string[sizeof(__MODULE_NAME_) + 4];
 	
 	
 	//
-	// Data test
+	// Data thrash test
 	if (param0 == 't') {
 		
-		uint8_t packet[] = {0x55, 0x00, 'a', 0xaa};
-		network_send_packet(networkDevice, packet);
+		if ((param1 >= '0') & (param1 <= '9')) {
+			
+			counter = (param1 - '0') * 8;
+			
+			for (uint8_t i=0; i < counter; i++) {
+				
+				uint8_t packet[] = {_PACKET_START_BYTE__, _PACKET_TYPE_DATA__, netModuleLoader.byte, _PACKET_STOP_BYTE__};
+				network_send_packet(networkDevice, packet);
+				
+			}
+			
+		}
 		
 		return;
 	}
@@ -78,16 +95,17 @@ void net_entry_point(uint8_t, uint8_t&, uint8_t&, uint8_t&, uint8_t&) {
 	if (param0 == 'w') {
 		
 		if ((param1 > '0') & (param1 <= '9')) {
-			netModuleLoader.waitstate = (param1 - '0') * 20;
+			netModuleLoader.waitstate = (param1 - '0') * 2;
 		} else if (param1 == '0') {
-			netModuleLoader.waitstate = 10;
+			netModuleLoader.waitstate = 1;
 		}
 		
-		char msg_string[] = "waitstate";
-		console.print(msg_string, sizeof(msg_string));
-		console.printSpace();
+		console.printInt( (netModuleLoader.waitstate * _NETWORK_WAITSTATE__) );
 		
-		console.printInt(netModuleLoader.waitstate);
+		char msg_string[] = "us";
+		console.printSpace();
+		console.print(msg_string, sizeof(msg_string));
+		
 		console.printLn();
 		
 		return;
@@ -98,9 +116,9 @@ void net_entry_point(uint8_t, uint8_t&, uint8_t&, uint8_t&, uint8_t&) {
 	// Send a byte
 	if (param0 == 's') {
 		
-		uint8_t packet[] = {0x55, 0x00, param1, 0xaa};
+		uint8_t packet[] = {_PACKET_START_BYTE__, _PACKET_TYPE_DATA__, param1, _PACKET_STOP_BYTE__};
 		
-		if (network_send_packet(networkDevice, packet)) {
+		if (network_send_packet(networkDevice, packet) == 1) {
 			char msg_string[] = "Sent";
 			console.print(msg_string, sizeof(msg_string));
 			console.printLn();
@@ -298,16 +316,14 @@ void net_entry_point(uint8_t, uint8_t&, uint8_t&, uint8_t&, uint8_t&) {
 	}
 	
 	//
-	// Set the data thrashing byte
+	// Set the data testing byte
 	if (param0 == 'd') {
 		
-		if ((param1 >= '0') & (param1 <= '9')) 
-			netModuleLoader.byte = param1;
+		if ((param1 >= '0') & (param1 <= '9')) netModuleLoader.byte = param1;
+		if ((param1 >= 'a') & (param1 <= 'z')) netModuleLoader.byte = param1;
+		if (param1 == 0x20) netModuleLoader.byte = 0x20;
 		
-		if ((param1 >= 'a') & (param1 <= 'z')) 
-			netModuleLoader.byte = param1;
-		
-		char msg_string[] = "Data =";
+		char msg_string[] = "Data ";
 		console.print(msg_string, sizeof(msg_string));
 		console.printSpace();
 		console.printChar(netModuleLoader.byte);
@@ -339,26 +355,26 @@ void net_entry_point(uint8_t, uint8_t&, uint8_t&, uint8_t&, uint8_t&) {
 
 #undef __MODULE_NAME_
 
-void network_send_packet(Device network_device, uint8_t packet[]) {
+uint8_t network_send_packet(Device network_device, uint8_t packet[]) {
 	
 	uint8_t flag = 0;
 	uint8_t byte = 0;
 	
 	for (uint8_t i=0; i <= 3;) {
 		
-		call_extern(networkDevice, 0x01, flag);
+		call_extern(network_device, 0x01, flag);
 		if (flag == 0) {
 			
 			flag = 0xff;
 			byte = packet[i];
 			
 			// Write data to the TX frame buffer
-			call_extern(networkDevice, 0x04, byte);
-			call_extern(networkDevice, 0x00, flag);
+			call_extern(network_device, 0x04, byte);
+			call_extern(network_device, 0x00, flag);
 			
 			// Transfer waitstate
 			for (uint32_t t=0; t < netModuleLoader.waitstate; t++)
-			_delay_ms(1);
+				_delay_us(_NETWORK_WAITSTATE__);
 			
 			i++;
 			
@@ -366,6 +382,7 @@ void network_send_packet(Device network_device, uint8_t packet[]) {
 		
 	}
 	
+	return 1;
 }
 
 

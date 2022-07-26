@@ -1,34 +1,31 @@
+//
 // Kernel function modules
 
 #include "functions/cls.h"      // Clear the display
-#include "functions/device.h"   // Device listing
+#include "functions/device.h"   // Device table function
 
 #ifndef __BOOT_LIGHTWEIGHT_
 
-// Kernel function modules
-
 // Testing
 #include "functions/mem.h"      // Memory check
-#include "functions/slot.h"     // Peripheral slot check
-#include "functions/net.h"      // Network testing
+#include "functions/net.h"      // Network testing and configuration
 // Functionality
 #include "functions/task.h"     // Task management
-#include "functions/port.h"     // GPIO port
+#include "functions/port.h"     // GPIO port configuration
 // Applications
 #include "functions/app.h"      // Test application
 
 
+//
+// Unused / In-testing
 /*
-
 #include "functions/beep.h"
-#include "functions/list.h"
 #include "functions/sound.h"
 
-
+#include "functions/list.h"
 #include "functions/count.h"
 
 #include "functions/banner.h"
-
 */
 
 #endif

@@ -1,3 +1,4 @@
+//
 // Hardware detection
 
 #ifndef __HARDWARE_DETECT_

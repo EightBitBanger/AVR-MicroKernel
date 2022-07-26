@@ -23,7 +23,7 @@ void router_entry_point(uint8_t, uint8_t&, uint8_t&, uint8_t&, uint8_t&) {
 	
 	uint8_t  retry      = 3;
 	uint32_t timeout    = 245000;
-	uint8_t counter    = 0;
+	uint8_t  counter    = 0;
 	uint8_t  address    = 0x00;
 	uint8_t  data       = 0x00;
 	
