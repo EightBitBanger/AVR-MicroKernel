@@ -1,11 +1,11 @@
 //
-// Device resource manager
+// Device resource table
 
 #ifndef ____DEVICE_RESOURCE_SYSTEM__
 #define ____DEVICE_RESOURCE_SYSTEM__
 
 
-#define _DEVICE_TABLE_SIZE__           50  // Device table size
+#define _DEVICE_TABLE_SIZE__           30  // Device table size
 #define _DEVICE_NAME_LENGTH_MAX__       8  // Device name length
 
 #define _DEVICE_INITIATE__           0xff
@@ -20,13 +20,16 @@ static uint8_t nullchar = 0;
 
 typedef void(*Device)(uint8_t, uint8_t&, uint8_t&, uint8_t&, uint8_t&);
 
+
 // Load a device onto the device table
 uint8_t load_device(const char name[], uint8_t name_length, Device device_pointer, uint8_t type);
+
 // Unload a device from the table
 uint8_t free_device(const char name[], uint8_t name_length);
 
-// Get a device entry pointer by its name (Note: slow)
+// Get a device entry pointer by its name (Note: slow performance)
 uint8_t get_func_address(const char device_name[], uint8_t name_length, Device& device_pointer);
+
 // Call a function pointer with the given parameters
 uint8_t call_extern(Device& entry_pointer, uint8_t function_call, uint8_t& paramA, uint8_t& paramB, uint8_t& paramC, uint8_t& paramD);
 
@@ -43,7 +46,6 @@ struct DeviceTable {
 
 uint8_t load_device(const char name[], uint8_t name_length, Device device_pointer, uint8_t type) {
 	
-	// Check name length
 	if (name_length > _DEVICE_NAME_LENGTH_MAX__)
 		name_length = _DEVICE_NAME_LENGTH_MAX__;
 	
@@ -67,7 +69,6 @@ uint8_t load_device(const char name[], uint8_t name_length, Device device_pointe
 
 uint8_t free_device(const char name[], uint8_t name_length) {
 	
-	// Check name length
 	if (name_length > _DEVICE_NAME_LENGTH_MAX__)
 		name_length = _DEVICE_NAME_LENGTH_MAX__;
 	

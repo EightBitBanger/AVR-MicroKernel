@@ -17,13 +17,13 @@
 // Control signals
 // NOTE: Signals are specific to external logic requirements
 #define _CONTROL_DATA_DIRECTION__     0x00 // Data direction signal
-#define _CONTROL_BUS_ENABLE__         0x01 // Bus enable signal
-#define _CONTROL_CLOCK__              0x02 // Peripheral device clock signal
+#define _CONTROL_BUS_ENABLE__         0x01 // Bus enable
+#define _CONTROL_CLOCK__              0x02 // Peripheral device clock
 #define _CONTROL_ADDRESS_LATCH__      0x03 // Address latch enable
 #define _CONTROL_READ__               0x04 // Read signal
 #define _CONTROL_WRITE__              0x05 // Write signal
-#define _CONTROL_UNUSED_A__           0x06 // Unused signals
-#define _CONTROL_UNUSED_B__           0x07 
+#define _CONTROL_UNUSED_A__           0x06 // Unused
+#define _CONTROL_UNUSED_B__           0x07 // Unused
 
 #define _CONTROL_READ_CYCLE__       0b00100100
 #define _CONTROL_WRITE_CYCLE__      0b00010101

@@ -24,7 +24,7 @@
 #define _PACKET_TYPE_DATA__    0x00
 #define _PACKET_STOP_BYTE__    0xaa
 
-#define _NETWORK_WAITSTATE__  1200
+#define _NETWORK_WAITSTATE__  12000
 
 void net_entry_point(uint8_t, uint8_t&, uint8_t&, uint8_t&, uint8_t&);
 
@@ -37,7 +37,7 @@ struct ModuleLoaderNet {
 	
 	ModuleLoaderNet() {
 		
-		waitstate = 40;
+		waitstate = 4;
 		byte      = 0;
 	 	
 		load_device(__MODULE_NAME_,  sizeof(__MODULE_NAME_), (Device)net_entry_point, _DEVICE_TYPE_MODULE__);
@@ -95,9 +95,7 @@ void net_entry_point(uint8_t, uint8_t&, uint8_t&, uint8_t&, uint8_t&) {
 	if (param0 == 'w') {
 		
 		if ((param1 > '0') & (param1 <= '9')) {
-			netModuleLoader.waitstate = (param1 - '0') * 2;
-		} else if (param1 == '0') {
-			netModuleLoader.waitstate = 1;
+			netModuleLoader.waitstate = (param1 - '0');
 		}
 		
 		console.printInt( (netModuleLoader.waitstate * _NETWORK_WAITSTATE__) );
@@ -268,13 +266,9 @@ void net_entry_point(uint8_t, uint8_t&, uint8_t&, uint8_t&, uint8_t&) {
 		
 		for (uint8_t i=0; i < retry; i++) {
 			
-			// Write data to the TX frame buffer
-			byte = 0x55;
-			call_extern(networkDevice, 0x04, byte);
+			uint8_t ping_packet[] = {0x55, 0x55, 0x00, 0xaa};
 			
-			// Send the frame
-			flag = 0xff;
-			call_extern(networkDevice, 0x00, flag);
+			network_send_packet(networkDevice, ping_packet);
 			
 			for (counter=0; counter < timeout; counter++) {
 				
@@ -288,14 +282,30 @@ void net_entry_point(uint8_t, uint8_t&, uint8_t&, uint8_t&, uint8_t&) {
 					call_extern(networkDevice, 0x0a, address, byte);
 					
 					// Verify the received data is a return probing signal
-					if (byte == 0x55) break;
+					if (byte == 0x55) {
+						
+						// Clear packet
+						uint8_t data = 0x00;
+						for (uint8_t a=i; a <= (i + 3); a++)
+							call_extern(networkDevice, 0x09, a, data);
+						
+						break;
+					}
+					
 				}
+				
+				_delay_us(1);
 				
 			}
 			
 			// Clear RX flag
 			byte = 0x00;
 			call_extern(networkDevice, 0x02, byte);
+			
+			// Clear packet
+			uint8_t data = 0x00;
+			for (uint8_t a=0; a <= 20; a++)
+				call_extern(networkDevice, 0x09, a, data);
 			
 			if (counter == timeout) {
 				console.print("Timed out", sizeof("Timed out"));
@@ -372,13 +382,13 @@ uint8_t network_send_packet(Device network_device, uint8_t packet[]) {
 			call_extern(network_device, 0x04, byte);
 			call_extern(network_device, 0x00, flag);
 			
-			// Transfer waitstate
-			for (uint32_t t=0; t < netModuleLoader.waitstate; t++)
-				_delay_us(_NETWORK_WAITSTATE__);
-			
 			i++;
 			
 		}
+		
+		// Transfer waitstate
+		for (uint32_t t=0; t < netModuleLoader.waitstate; t++)
+			_delay_us(_NETWORK_WAITSTATE__);
 		
 	}
 	
