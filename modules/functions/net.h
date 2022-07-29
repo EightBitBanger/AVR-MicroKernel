@@ -32,7 +32,7 @@ void net_entry_point(uint8_t, uint8_t&, uint8_t&, uint8_t&, uint8_t&);
 
 struct ModuleLoaderNet {
 	
-	uint32_t waitstate;
+	uint8_t waitstate;
 	uint8_t byte;
 	
 	ModuleLoaderNet() {
@@ -46,7 +46,7 @@ struct ModuleLoaderNet {
 
 
 // Send a packet
-uint8_t network_send_packet(Device networkDevice, uint8_t packet[]);
+uint8_t network_send(Device networkDevice, uint8_t packet[]);
 
 
 void net_entry_point(uint8_t, uint8_t&, uint8_t&, uint8_t&, uint8_t&) {
@@ -56,14 +56,14 @@ void net_entry_point(uint8_t, uint8_t&, uint8_t&, uint8_t&, uint8_t&) {
 	uint8_t  flagOld    = 0xff;
 	uint8_t  byte       = 0x00;
 	
-	uint32_t timeout    = 245000;
+	uint32_t timeout    = 230000;
 	uint32_t counter    = 0;
 	
 	Device networkDevice;
 	
 	if (get_func_address(_NETWORK_INTERFACE__, sizeof(_NETWORK_INTERFACE__), networkDevice) == 0) return;
 	
-	// Get the parameter from the keyboard string
+	// Get the parameters from the keyboard string
 	uint8_t param0  = console.keyboard_string[sizeof(__MODULE_NAME_)];
 	uint8_t param1  = console.keyboard_string[sizeof(__MODULE_NAME_) + 2];
 	uint8_t param2  = console.keyboard_string[sizeof(__MODULE_NAME_) + 4];
@@ -80,7 +80,7 @@ void net_entry_point(uint8_t, uint8_t&, uint8_t&, uint8_t&, uint8_t&) {
 			for (uint8_t i=0; i < counter; i++) {
 				
 				uint8_t packet[] = {_PACKET_START_BYTE__, _PACKET_TYPE_DATA__, netModuleLoader.byte, _PACKET_STOP_BYTE__};
-				network_send_packet(networkDevice, packet);
+				network_send(networkDevice, packet);
 				
 			}
 			
@@ -116,7 +116,7 @@ void net_entry_point(uint8_t, uint8_t&, uint8_t&, uint8_t&, uint8_t&) {
 		
 		uint8_t packet[] = {_PACKET_START_BYTE__, _PACKET_TYPE_DATA__, param1, _PACKET_STOP_BYTE__};
 		
-		if (network_send_packet(networkDevice, packet) == 1) {
+		if (network_send(networkDevice, packet) == 1) {
 			char msg_string[] = "Sent";
 			console.print(msg_string, sizeof(msg_string));
 			console.printLn();
@@ -268,28 +268,44 @@ void net_entry_point(uint8_t, uint8_t&, uint8_t&, uint8_t&, uint8_t&) {
 			
 			uint8_t ping_packet[] = {0x55, 0x55, 0x00, 0xaa};
 			
-			network_send_packet(networkDevice, ping_packet);
+			network_send(networkDevice, ping_packet);
 			
 			for (counter=0; counter < timeout; counter++) {
 				
 				// Check the receive flag
-				call_extern(networkDevice, 0x03, flag);
+				uint8_t RXflag;
+				call_extern(networkDevice, 0x03, RXflag);
 				
-				if (flag != 0) {
+				if (RXflag > 0) {
 					
 					// Read RX buffer data
 					uint8_t address = 0x00;
 					call_extern(networkDevice, 0x0a, address, byte);
 					
-					// Verify the received data is a return probing signal
-					if (byte == 0x55) {
+					// Check return packets
+					for (uint8_t a=0; a <= RXflag; a++) {
 						
-						// Clear packet
-						uint8_t data = 0x00;
-						for (uint8_t a=i; a <= (i + 3); a++)
-							call_extern(networkDevice, 0x09, a, data);
+						// Verify the received data is a return probing signal
+						if (byte == 0x55) {
+							
+							// Clear RX flag
+							byte = 0x00;
+							call_extern(networkDevice, 0x02, byte);
+							
+							// Clear packet
+							uint8_t data = 0x00;
+							for (uint8_t b=a; b <= 3; b++)
+								call_extern(networkDevice, 0x09, b, data);
+							
+							console.printInt(counter);
+							console.printSpace();
+							console.printChar('u');
+							console.printChar('s');
+							console.printLn();
+							
+							break;
+						}
 						
-						break;
 					}
 					
 				}
@@ -298,26 +314,12 @@ void net_entry_point(uint8_t, uint8_t&, uint8_t&, uint8_t&, uint8_t&) {
 				
 			}
 			
-			// Clear RX flag
-			byte = 0x00;
-			call_extern(networkDevice, 0x02, byte);
-			
-			// Clear packet
-			uint8_t data = 0x00;
-			for (uint8_t a=0; a <= 20; a++)
-				call_extern(networkDevice, 0x09, a, data);
-			
 			if (counter == timeout) {
+				
 				console.print("Timed out", sizeof("Timed out"));
 				console.printLn();
-			} else {
-				console.printInt(counter);
-				console.printSpace();
-				console.printChar('u');
-				console.printChar('s');
-				console.printLn();
 				
-				_delay_ms(300);
+				continue;
 			}
 			
 		}
@@ -365,7 +367,8 @@ void net_entry_point(uint8_t, uint8_t&, uint8_t&, uint8_t&, uint8_t&) {
 
 #undef __MODULE_NAME_
 
-uint8_t network_send_packet(Device network_device, uint8_t packet[]) {
+
+uint8_t network_send(Device network_device, uint8_t packet_buffer[]) {
 	
 	uint8_t flag = 0;
 	uint8_t byte = 0;
@@ -376,7 +379,7 @@ uint8_t network_send_packet(Device network_device, uint8_t packet[]) {
 		if (flag == 0) {
 			
 			flag = 0xff;
-			byte = packet[i];
+			byte = packet_buffer[i];
 			
 			// Write data to the TX frame buffer
 			call_extern(network_device, 0x04, byte);
@@ -395,4 +398,71 @@ uint8_t network_send_packet(Device network_device, uint8_t packet[]) {
 	return 1;
 }
 
+
+uint8_t network_receive(Device network_device, uint8_t packet_buffer[]) {
+	
+	uint8_t flag=0;
+	uint8_t byte=0;
+	uint8_t count=0;
+	
+	uint8_t start_byte=0;
+	uint8_t type_byte=0;
+	uint8_t data_byte=0;
+	uint8_t end_byte=0;
+	
+	uint8_t address=0;
+	
+	call_extern(network_device, 0x03, count);
+	if (count > 0) {
+		
+		for (uint8_t i=0; i < count; i++) {
+			
+			// Extract and check the start byte
+			call_extern(network_device, 0x0a, i, start_byte);
+			
+			if (start_byte == 0x55) {
+				
+				// Extract and check the end byte
+				address = i + 3;
+				call_extern(network_device, 0x0a, address, end_byte);
+				
+				if (end_byte == 0xaa) {
+					
+					// Extract the packet type
+					address = i + 1;
+					call_extern(network_device, 0x0a, address, type_byte);
+					
+					// Extract the packet data
+					address = i + 2;
+					call_extern(network_device, 0x0a, address, data_byte);
+					
+					// Reassemble the packet
+					packet_buffer[0] = start_byte;
+					packet_buffer[1] = type_byte;
+					packet_buffer[2] = data_byte;
+					packet_buffer[3] = end_byte;
+					
+					// Clear the packet
+					byte = 0x00;
+					for (uint8_t a=i; a <= (i + 3); a++)
+						call_extern(network_device, 0x09, a, byte);
+					
+					// Zero the RX flag
+					call_extern(network_device, 0x03, flag);
+					if (flag >= 200) {
+						flag = 0;
+						call_extern(network_device, 0x02, flag);
+					}
+					
+					return 1;
+				}
+				
+			}
+			
+		}
+		
+	}
+	
+	return 0;
+}
 
