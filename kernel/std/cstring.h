@@ -12,7 +12,7 @@ uint8_t int_get_string(uint32_t, char[]);
 
 uint8_t string_length(char[], uint8_t);
 
-// Returns the value from the given hex chars. String should contain two hex chars ex: "0xff"
+// Returns the value from the given hex chars. String should contain two hex chars ex: "3f"
 uint8_t string_get_hex_char(char string[]);
 
 

@@ -2,7 +2,7 @@
 // Kernel function modules
 
 #include "functions/cls.h"      // Clear the display
-#include "functions/device.h"   // Device table function
+#include "functions/device.h"   // Device table configuration
 
 #ifndef __BOOT_LIGHTWEIGHT_
 

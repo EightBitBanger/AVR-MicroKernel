@@ -22,6 +22,9 @@ struct CommandConsoleServiceLauncher {
 	
 	Device keyboard_device;
 	
+	uint8_t scanCodeLow;
+	uint8_t scanCodeHigh;
+	
 	CommandConsoleServiceLauncher() {
 		
 		// Link to the keyboard device driver
@@ -29,19 +32,33 @@ struct CommandConsoleServiceLauncher {
 		
 		task_create(_SERVICE_NAME__, sizeof(_SERVICE_NAME__), keyboard_event_handler, 20, _TASK_SERVICE__);
 		
+		// Initiate the current key state
+		call_extern(keyboard_device, 0x02, scanCodeLow, scanCodeHigh);
+		
+		call_extern(keyboard_device, 0x00, console.lastChar);
+		
 	}
 }static commandConsole;
 #undef _SERVICE_NAME__
 
-
 void keyboard_event_handler(void) {
 	
-	//currentChar  = 0x00;
 	uint8_t currentChar         = 0x00;
 	uint8_t scanCodeAccepted    = 0x00;
 	uint8_t readKeyCode         = 0x00;
 	
-	// Read keyboard character
+	uint8_t scanCodeLow         = 0x00;
+	uint8_t scanCodeHigh        = 0x00;
+	
+	// Check for a scan code change
+	call_extern(commandConsole.keyboard_device, 0x02, scanCodeLow, scanCodeHigh);
+	if ((commandConsole.scanCodeLow == scanCodeLow) & (commandConsole.scanCodeHigh == scanCodeHigh)) 
+		return;
+	
+	commandConsole.scanCodeLow  = scanCodeLow;
+	commandConsole.scanCodeHigh = scanCodeHigh;
+	
+	// Read and convert scan code to an ASCII character
 	call_extern(commandConsole.keyboard_device, 0x00, readKeyCode);
 	
 	// Check MAX string length
@@ -53,10 +70,7 @@ void keyboard_event_handler(void) {
 		if (readKeyCode < 0x20) currentChar = readKeyCode;
 	}
 	
-	// Prevent wild key repeats
-	if (console.lastChar == currentChar) 
-		return;
-	
+	if (console.lastChar == currentChar) return;
 	console.lastChar = currentChar;
 	
 	// Check special keys
@@ -159,12 +173,13 @@ void eventKeyboardAcceptChar(uint8_t new_char) {
 	
 	// Check to increment the display line
 	if (console.cursorPos == 20) {
+		
 		if (console.cursorLine == 3) {
 			console.shiftUp();
-			_delay_ms(80);
-			} else {
+		} else {
 			console.cursorLine++;
 		}
+		
 		console.cursorPos=0;
 		
 		console.setCursorPosition(console.cursorLine, console.cursorPos);

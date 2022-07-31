@@ -4,7 +4,7 @@
 #ifndef _DRIVER_TEMPLATE__
 #define _DRIVER_TEMPLATE__
 
-#define _DEVICE_DRIVER_NAME__    "template"
+#define _DEVICE_DRIVER_NAME__    "name"
 #define _HARDWARE_WAITSTATE__    10
 
 void templateDeviceDriverEntryPoint(uint8_t, uint8_t&, uint8_t&, uint8_t&, uint8_t&);

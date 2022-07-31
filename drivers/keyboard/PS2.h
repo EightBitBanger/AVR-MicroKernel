@@ -15,8 +15,8 @@ struct KeyboardDriver {
 	
 	KeyboardDriver() {
 		
-		device_bus.waitstate_read  = 1;
-		device_bus.waitstate_write = 0;
+		device_bus.waitstate_read  = 4;
+		device_bus.waitstate_write = 4;
 		
 		load_device(_KEYBOARD_INPUT__, sizeof(_KEYBOARD_INPUT__), (Device)keyboardDeviceDriverEntryPoint, _DEVICE_TYPE_DRIVER__);
 		
@@ -37,6 +37,16 @@ struct KeyboardDriver {
 		return;
 	}
 	
+	// Read keyboard scan codes
+	void read_scancodes(uint8_t& scan_code_low, uint8_t& scan_code_high) {
+		
+		char byteLow, byteHigh;
+		bus_read_byte(device_bus, _KEYBOARD_REGISTER_LO__, (char&)scan_code_low);
+		bus_read_byte(device_bus, _KEYBOARD_REGISTER_HI__, (char&)scan_code_high);
+		
+		return;
+	}
+	
 }static keyboard;
 
 
@@ -49,6 +59,7 @@ void keyboardDeviceDriverEntryPoint(uint8_t functionCall, uint8_t& paramA, uint8
 		
 		case 0x00: {keyboard.read(paramA); break;}
 		case 0x01: {decodeScanCode(paramA, paramB, paramC); break;}
+		case 0x02: {keyboard.read_scancodes(paramA, paramB); break;}
 		
 		default: break;
 	}
@@ -64,7 +75,7 @@ void decodeScanCode(uint8_t scancode_low, uint8_t scancode_high, uint8_t& scan_c
 		
 		case 0xdf: {
 			switch (scancode_high) {
-				case 0x9a: {scan_code = 0x05; return;}
+				case 0x9a: {scan_code = 0x05; return;} // Left
 				case 0x90: {scan_code = 'i'; return;}
 				case 0xc6: {scan_code = 's'; return;}
 				case 0x88: {scan_code = 'd'; return;}
@@ -81,7 +92,8 @@ void decodeScanCode(uint8_t scancode_low, uint8_t scancode_high, uint8_t& scan_c
 			switch (scancode_high) {
 				case 0xd9: {scan_code = 0x01; return;} // Backspace
 				case 0xd6: {scan_code = 0x02; return;} // Enter
-				case 0xdc: {scan_code = 0x04; return;}
+				case 0xdc: {scan_code = 0x04; return;} // Down
+				case 0x9d: {scan_code = 0x07; return;} // Escape
 				case 0x91: {scan_code = '9'; return;}
 				case 0x8f: {scan_code = '8'; return;}
 				case 0xcd: {scan_code = '6'; return;}
@@ -102,8 +114,10 @@ void decodeScanCode(uint8_t scancode_low, uint8_t scancode_high, uint8_t& scan_c
 		
 		case 0x5f: {
 			switch (scancode_high) {
-				case 0x9d: {scan_code = 0x03; return;}
+				case 0x9d: {scan_code = 0x03; return;} // Up
 				case 0x8a: {scan_code = 0x20; return;} // Space
+				case 0xc4: {scan_code = 0x09; return;} // Alt
+				case 0xdc: {scan_code = 0x10; return;} // Delete
 				case 0x91: {scan_code = '0'; return;}
 				case 0x8f: {scan_code = '7'; return;}
 				case 0x89: {scan_code = '4'; return;}
@@ -121,7 +135,8 @@ void decodeScanCode(uint8_t scancode_low, uint8_t scancode_high, uint8_t& scan_c
 		
 		case 0x1f: {
 			switch (scancode_high) {
-				case 0xdd: scan_code = 0x06; return;
+				case 0xdd: scan_code = 0x06; return; // Right
+				case 0xc5: scan_code = 0x08; return; // Control
 				case 0xc9: scan_code = 'e'; return;
 				case 0x8b: scan_code = 't'; return;
 				case 0xcf: scan_code = 'u'; return;

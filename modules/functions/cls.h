@@ -23,8 +23,6 @@ void command_clear_screen(uint8_t function, uint8_t& paramA, uint8_t& paramB, ui
 	console.cursorLine  = 0;
 	console.cursorPos   = 1;
 	
-	_delay_ms(50);
-	
 	// Initiate the prompt
 	console.promptState = 1;
 	

@@ -125,6 +125,7 @@ void command_drv(uint8_t, uint8_t&, uint8_t&, uint8_t&, uint8_t&) {
 				uint8_t lastChar    = 0x00;
 				call_extern(keyboard_device, 0x00, lastChar);
 				currentChar = lastChar;
+				console.lastChar = lastChar;
 				
 				while(1) {
 					call_extern(keyboard_device, 0x00, currentChar);

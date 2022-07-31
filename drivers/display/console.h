@@ -62,9 +62,9 @@ struct CommandConsole {
 	}
 	
 	// Clear the display buffer
-	void clearBuffer(void) {call_extern(displayDriverPtr, 0x04); _delay_ms(80); return;}
+	void clearBuffer(void) {call_extern(displayDriverPtr, 0x04); _delay_ms(40); return;}
 	// Clear the mask buffer
-	void clearMask(void) {call_extern(displayDriverPtr, 0x05); _delay_ms(80); return;}
+	void clearMask(void) {call_extern(displayDriverPtr, 0x05); _delay_ms(40); return;}
 	
 	// Clear the keyboard string
 	void clearKeyboardString(void) {for (uint8_t i=0; i <= 20; i++) {keyboard_string[i] = 0x20;} keyboard_string_length=0;}
@@ -88,7 +88,7 @@ struct CommandConsole {
 	void setCursorRefreshRate(uint8_t refresh_rate) {call_extern(displayDriverPtr, 0x03, refresh_rate); return;}
 	
 	// Shift the display up one line
-	void shiftUp(void) {call_extern(displayDriverPtr, 0x07); _delay_ms(100);}
+	void shiftUp(void) {call_extern(displayDriverPtr, 0x07); _delay_ms(20);}
 	
 	void checkShiftUp(void) {
 		if (cursorPos == 20) {cursorPos=0;
@@ -118,6 +118,7 @@ struct CommandConsole {
 		checkShiftUp();
 		return;
 	}
+	
 	void printInt(uint32_t number) {
 		
 		char numberString[10];
@@ -129,6 +130,29 @@ struct CommandConsole {
 			cursorPos++;
 			checkShiftUp();
 		}
+		
+		call_extern(displayDriverPtr, 0x00, cursorLine, cursorPos); // Set the cursor line and position
+		
+		return;
+	}
+	
+	// Print an integer as a hex value
+	void printHex(uint8_t integer) {
+		
+		char hex[2] = {0, 0};
+		
+		while (integer >= 16) {
+			integer -= 16;
+			hex[0]++;
+		}
+		
+		while (integer > 0) {
+			integer -= 1;
+			hex[1]++;
+		}
+		
+		if (hex[0] > 9) {printChar( hex[0] + 'a' - 10 );} else {printChar( hex[0] + '0' );}
+		if (hex[1] > 9) {printChar( hex[1] + 'a' - 10 );} else {printChar( hex[1] + '0' );}
 		
 		call_extern(displayDriverPtr, 0x00, cursorLine, cursorPos); // Set the cursor line and position
 		
