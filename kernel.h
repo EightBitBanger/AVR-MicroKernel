@@ -40,7 +40,6 @@
 
 // Message constants
 char msg_kernel_version[]    = "AVR-Kernel";
-char msg_press_anykey[]      = "Press any key...";
 
 
 // Standard includes

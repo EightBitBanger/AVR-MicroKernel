@@ -52,7 +52,7 @@ void keyboard_event_handler(void) {
 	
 	// Check for a scan code change
 	call_extern(commandConsole.keyboard_device, 0x02, scanCodeLow, scanCodeHigh);
-	if ((commandConsole.scanCodeLow == scanCodeLow) & (commandConsole.scanCodeHigh == scanCodeHigh)) 
+	if ((commandConsole.scanCodeLow == scanCodeLow) & (commandConsole.scanCodeHigh == scanCodeHigh))
 		return;
 	
 	commandConsole.scanCodeLow  = scanCodeLow;

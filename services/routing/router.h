@@ -102,7 +102,7 @@ void router_entry_point(uint8_t, uint8_t&, uint8_t&, uint8_t&, uint8_t&) {
 								
 								uint8_t ping_packet[] = {0x55, 0x55, 0x00, 0xaa};
 								
-								network_send_packet(networkDevice, ping_packet);
+								network_send(networkDevice, ping_packet);
 								
 								// Clear packet
 								data = 0x00;

@@ -113,26 +113,7 @@ void command_drv(uint8_t, uint8_t&, uint8_t&, uint8_t&, uint8_t&) {
 			
 			// Page pause
 			if (page_counter > 2) {page_counter = 0;
-				
-				// Link to the keyboard driver
-				Device keyboard_device;
-				if (get_func_address(_KEYBOARD_INPUT__, sizeof(_KEYBOARD_INPUT__), keyboard_device) == 0) return;
-				
-				console.print(msg_press_anykey, sizeof(msg_press_anykey));
-				console.updateCursorPosition();
-				
-				uint8_t currentChar = 0x00;
-				uint8_t lastChar    = 0x00;
-				call_extern(keyboard_device, 0x00, lastChar);
-				currentChar = lastChar;
-				console.lastChar = lastChar;
-				
-				while(1) {
-					call_extern(keyboard_device, 0x00, currentChar);
-					if (lastChar != currentChar) break;
-				}
-				
-				call_extern(consoleDriver, 0x01); // New line
+				call_extern(consoleDriver, 0x0d);
 			}
 			
 		}

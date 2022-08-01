@@ -15,8 +15,8 @@ struct KeyboardDriver {
 	
 	KeyboardDriver() {
 		
-		device_bus.waitstate_read  = 4;
-		device_bus.waitstate_write = 4;
+		device_bus.waitstate_read  = 0;
+		device_bus.waitstate_write = 0;
 		
 		load_device(_KEYBOARD_INPUT__, sizeof(_KEYBOARD_INPUT__), (Device)keyboardDeviceDriverEntryPoint, _DEVICE_TYPE_DRIVER__);
 		

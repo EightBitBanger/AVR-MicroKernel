@@ -1,10 +1,12 @@
 //
-// Command console
+// Command console library
 //  This driver requires support of associated display and keyboard drivers
 
 #define _MAX_KEYBOARD_STRING_LENGTH__  32
 
 void ConsoleLibraryEntryPoint(uint8_t, uint8_t&, uint8_t&, uint8_t&, uint8_t&);
+
+char msg_press_anykey[]      = "Press any key...";
 
 struct CommandConsole {
 	
@@ -21,6 +23,10 @@ struct CommandConsole {
 	uint8_t keyboardState;
 	uint8_t lastChar;
 	uint8_t last_string_length;
+	uint8_t consoleReturn;
+	
+	uint8_t scanCodeLow;
+	uint8_t scanCodeHigh;
 	
 	Device displayDriverPtr;
 	Device keyboardDriverPtr;
@@ -39,10 +45,10 @@ struct CommandConsole {
 		
 		keyboard_string_length = 0;
 		
-		keyboardState=0;
-		lastChar=0;
-		last_string_length=0;
-		
+		keyboardState      = 0;
+		lastChar           = 0;
+		last_string_length = 0;
+		consoleReturn      = 0;
 	}
 	
 	void initiate(void) {
@@ -95,6 +101,8 @@ struct CommandConsole {
 			if (cursorLine < 3) {cursorLine++;} else {shiftUp();}
 		}
 	}
+	
+	
 	
 	// Print chars/strings to the console
 	void print(const char char_array[], uint8_t string_length) {
@@ -192,6 +200,44 @@ struct CommandConsole {
 		return;
 	}
 	
+	
+	
+	// Hold until key state changes
+	void pause_press_anykey(void) {
+		
+		uint8_t currentLow   = 0x00;
+		uint8_t currentHigh  = 0x00;
+		
+		// Set the initial scan code
+		call_extern(keyboardDriverPtr, 0x02, currentLow, currentHigh);
+		scanCodeLow  = currentLow;
+		scanCodeHigh = currentHigh;
+		
+		// Print message
+		print(msg_press_anykey, sizeof(msg_press_anykey));
+		updateCursorPosition();
+		
+		_delay_ms(100);
+		
+		while(1) {
+			
+			// Check for a scan code change
+			call_extern(keyboardDriverPtr, 0x02, currentLow, currentHigh);
+			if ((currentLow == scanCodeLow) & (currentHigh == scanCodeHigh))
+				continue;
+			
+			scanCodeLow = currentLow;
+			scanCodeHigh = currentHigh;
+			
+			break;
+		}
+		
+		_delay_ms(100);
+		
+		printLn();
+		return;
+	}
+	
 }static console;
 
 
@@ -213,9 +259,11 @@ void ConsoleLibraryEntryPoint(uint8_t functionCall, uint8_t& paramA, uint8_t& pa
 			console.printInt(pointer.address);
 			break;
 		}
+		
 		case 0x0a: console.setCursorPosition(paramA, paramB); break;
 		case 0x0b: console.setCursorCharacter(paramA); break;
 		case 0x0c: console.setCursorBlinkRate(paramA); break;
+		case 0x0d: console.pause_press_anykey(); break;
 		
 		default: break;
 	}
