@@ -232,9 +232,9 @@ struct CommandConsole {
 			break;
 		}
 		
+		printLn();
 		_delay_ms(100);
 		
-		printLn();
 		return;
 	}
 	

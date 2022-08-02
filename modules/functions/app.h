@@ -19,9 +19,16 @@ void application_entry_point(uint8_t, uint8_t&, uint8_t&, uint8_t&, uint8_t&) {
 	
 	task_create(__MODULE_NAME_, sizeof(__MODULE_NAME_), application_task, _TASK_PRIORITY_NORMAL__, _TASK_USER__);
 	
+	
+	
+	/*
+	
 	uint8_t last_char=0;
 	
 	while(1) {
+		
+		
+		continue;
 		
 		char byteLow, byteHigh;
 		bus_read_byte(keyboard.device_bus, _KEYBOARD_REGISTER_LO__, byteLow);
@@ -46,11 +53,30 @@ void application_entry_point(uint8_t, uint8_t&, uint8_t&, uint8_t&, uint8_t&) {
 		}
 		
 	}
+	*/
 	
 	return;
 }
 
+uint32_t second_counter=0;
+
 void application_task(void) {
+	
+	if (clock_ms > 1000) {
+		
+		clock_ms = 0;
+		second_counter++;
+		
+		uint8_t line = console.cursorLine;
+		uint8_t pos  = console.cursorPos;
+		
+		console.setCursorPosition(0, 8);
+		console.printInt(second_counter);
+		
+		console.setCursorPosition(line, pos);
+		console.updateCursorPosition();
+		
+	}
 	
 	return;
 }

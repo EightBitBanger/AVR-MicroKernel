@@ -27,7 +27,7 @@ int main(void) {
 	
 	// Fire up the scheduler with a counter base rate of 20
 #ifdef __CORE_SCHEDULER_
-	__scheduler_start(20);
+	__scheduler_start();
 #endif
 	
 	while(1) 

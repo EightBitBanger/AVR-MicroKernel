@@ -13,25 +13,30 @@
 #define _TASK_SERVICE__                   's' // System service task
 #define _TASK_VOLATILE__                  'v' // Volatile task
 
-#define _TASK_PRIORITY_BACKGROUND__       1500
-#define _TASK_PRIORITY_LOW__              500
-#define _TASK_PRIORITY_NORMAL__           100
-#define _TASK_PRIORITY_HIGH__             50
-#define _TASK_PRIORITY_REALTIME__         10
+
+
+
+#define _TASK_PRIORITY_BACKGROUND__       80
+#define _TASK_PRIORITY_LOW__              40
+#define _TASK_PRIORITY_NORMAL__           20
+#define _TASK_PRIORITY_HIGH__             10
+#define _TASK_PRIORITY_REALTIME__         1
 
 #ifdef __CORE_SCHEDULER_
 
 // Schedule a new task
 uint8_t task_create(const char task_name[], uint8_t name_length, void(*task_ptr)(), uint32_t priority, uint8_t task_type);
+
 // Remove a running task
 uint8_t task_destroy(uint8_t PID);
+
 // Get a task index by its name
 uint8_t get_task_index(const char task_name[], uint8_t name_length);
 
-void __scheduler_init_(void);
-void __scheduler_start(uint8_t timer_priority);
-void __scheduler_stop(void);
 
+
+// Millisecond timer counter
+static volatile uint32_t clock_ms = 0;
 
 //
 // Process information descriptor table
@@ -47,8 +52,6 @@ struct ProcessDescriptorTable {
 }volatile static proc_info;
 
 
-//
-// Schedule a new task
 uint8_t task_create(const char task_name[], uint8_t name_length, void(*task_ptr)(), uint32_t priority, uint8_t task_type) {
 	
 	// Check name length
@@ -77,8 +80,6 @@ uint8_t task_create(const char task_name[], uint8_t name_length, void(*task_ptr)
 }
 
 
-//
-// Remove a running task
 uint8_t task_destroy(uint8_t index) {
 	
 	uint8_t PID = index - 1;
@@ -98,8 +99,6 @@ uint8_t task_destroy(uint8_t index) {
 }
 
 
-//
-// Get a task index by its name
 uint8_t get_task_index(char task_name[], uint8_t name_length) {
 	
 	// Check name length
@@ -127,27 +126,26 @@ uint8_t get_task_index(char task_name[], uint8_t name_length) {
 
 
 //
-// Interrupt timer 0
-
-ISR (TIMER0_OVF_vect) {
+// Scheduler timer interrupt
+ISR (TIMER0_COMPA_vect) {
 #ifdef __CORE_SCHEDULER_
+	
+	clock_ms++;
+	
 	for (uint8_t PID=0; PID < _PROCESS_LIST_SIZE__; PID++) {
 		
 		if (proc_info.processPriority[PID] == 0) continue;
 		
 		if (proc_info.processCounters[PID] >= proc_info.processPriority[PID]) {
 			proc_info.processCounters[PID]=0;
-			proc_info.process_pointer_table[PID](); // Call the task`s entry point
+			proc_info.process_pointer_table[PID]();
 		} else {
 			proc_info.processCounters[PID]++;
 			continue;
 		}
 		
-		
-		// Task type
 		switch (proc_info.processType[PID]) {
 			
-			// Terminate volatile tasks
 			case _TASK_VOLATILE__: {
 				
 				for (uint8_t i=0; i < _PROCESS_NAME_LENGTH_MAX__; i++) 
@@ -190,25 +188,39 @@ void __scheduler_init_(void) {
 }
 
 
-void __scheduler_start(uint8_t timer_base_rate) {
+void __scheduler_start(void) {
 	
-	TCCR0A  = 0x00;          // Normal counter and waveform
-	TCCR0B |= (1 << CS10);   // Timer mode with NO prescaler
-	TIMSK0 |= (1 << TOIE0);  // Enable timer overflow interrupt
+	//
+	// Timer1 - Low level function scheduler
+	TCCR0A  = 2;      // 0 - Normal counter and waveform
+	                  // 2 - No OC0A, no OC0B, CTC
 	
-	TCNT0 = timer_base_rate;  // Set counter base rate
-	sei();                   // Enable interrupts
+	TCCR0B  = 4;      // 0 - Timer stopped
+	                  // 1 - No prescaler
+					  // 2 - div8
+					  // 3 - div64
+					  // 4 - div256
+					  // 5 - div1024
 	
+	TIMSK0  = 2;      // 1 - Timer overflow int
+	                  // 2 -  Timer output Compare A Match
+	                  // 3 -  Timer output Compare B Match
+	
+	//TCNT0   = 0;      // (TIMER1_OVF_vect)    Start timer off from 0
+	OCR0A   = 93;     // (TIMER0_COMPA_vect)  24M/256/(1+93) = 997 Hz
+	
+	
+	// Enable interrupts
+	sei();
+	
+	return;
 }
 
 
 void __scheduler_stop(void) {
 	
-	TCCR0A  = 0x00;
-	TCCR0B &= ~(1 << CS10);
-	TIMSK0 &= ~(1 << TOIE0);
+	TCCR0B  = 0;
 	
-	TCNT0 = 0;
 	return;
 }
 
