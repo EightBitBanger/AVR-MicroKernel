@@ -14,8 +14,6 @@
 #define _TASK_VOLATILE__                  'v' // Volatile task
 
 
-
-
 #define _TASK_PRIORITY_BACKGROUND__       80
 #define _TASK_PRIORITY_LOW__              40
 #define _TASK_PRIORITY_NORMAL__           20
