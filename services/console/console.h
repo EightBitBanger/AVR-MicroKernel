@@ -105,7 +105,7 @@ void eventKeyboardEnter(void) {
 		// Function look up
 		for (uint8_t i=0; i<_DEVICE_TABLE_SIZE__; i++) {
 			
-			if (deviceTable.device_type[i] != _DEVICE_TYPE_MODULE__) continue;
+			if (device_table.type[i] != _DEVICE_TYPE_MODULE__) continue;
 			
 			char functionName[_DEVICE_NAME_LENGTH_MAX__];
 			for (uint8_t a=0; a<_DEVICE_NAME_LENGTH_MAX__; a++) functionName[a] = 0x20;
@@ -114,8 +114,8 @@ void eventKeyboardEnter(void) {
 			uint8_t name_length;
 			for (name_length=0; name_length < _DEVICE_NAME_LENGTH_MAX__; name_length++) {
 				
-				functionName[name_length] = deviceTable.device_name[i][name_length];
-				if (deviceTable.device_name[i][name_length] == 0x20) break;
+				functionName[name_length] = device_table.name[i][name_length];
+				if (device_table.name[i][name_length] == 0x20) break;
 				
 			}
 			
@@ -125,7 +125,7 @@ void eventKeyboardEnter(void) {
 			
 			// Execute the command
 			uint8_t argument=0x00;
-			deviceTable.device_table[i](0x00, argument, argument, argument, argument);
+			device_table.pointer_table[i](0x00, argument, argument, argument, argument);
 			
 			break;
 		}

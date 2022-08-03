@@ -31,7 +31,7 @@ void command_drv(uint8_t, uint8_t&, uint8_t&, uint8_t&, uint8_t&) {
 		
 		for (uint8_t i=0; i<_DEVICE_TABLE_SIZE__; i++) {
 			
-			if (deviceTable.device_name[i][0] == 0x20) continue;
+			if (device_table.name[i][0] == 0x20) continue;
 			
 			// List all devices
 			if (param1 == 0x20) {
@@ -42,7 +42,7 @@ void command_drv(uint8_t, uint8_t&, uint8_t&, uint8_t&, uint8_t&) {
 				
 				// Print name
 				for (uint8_t a=0; a < _DEVICE_NAME_LENGTH_MAX__; a++) {
-					uint8_t nameChar = (uint8_t)deviceTable.device_name[i][a];
+					uint8_t nameChar = (uint8_t)device_table.name[i][a];
 					if (nameChar == 0x20) break;
 					call_extern(consoleDriver, 0x00, nameChar); // Write char
 				}
@@ -54,7 +54,7 @@ void command_drv(uint8_t, uint8_t&, uint8_t&, uint8_t&, uint8_t&) {
 			// List device drivers
 			if (param1 == 'd') {
 				
-				if (deviceTable.device_type[i] != _DEVICE_TYPE_DRIVER__) continue;
+				if (device_table.type[i] != _DEVICE_TYPE_DRIVER__) continue;
 				
 				// Print index
 				console.printInt(i);
@@ -62,7 +62,7 @@ void command_drv(uint8_t, uint8_t&, uint8_t&, uint8_t&, uint8_t&) {
 				
 				// Print name
 				for (uint8_t a=0; a < _DEVICE_NAME_LENGTH_MAX__; a++) {
-					uint8_t nameChar = (uint8_t)deviceTable.device_name[i][a];
+					uint8_t nameChar = (uint8_t)device_table.name[i][a];
 					if (nameChar == 0x20) break;
 					call_extern(consoleDriver, 0x00, nameChar); // Write char
 				}
@@ -74,7 +74,7 @@ void command_drv(uint8_t, uint8_t&, uint8_t&, uint8_t&, uint8_t&) {
 			// List device libraries
 			if (param1 == 'l') {
 				
-				if (deviceTable.device_type[i] != _DEVICE_TYPE_LIBRARY__) continue;
+				if (device_table.type[i] != _DEVICE_TYPE_LIBRARY__) continue;
 				
 				// Print index
 				console.printInt(i);
@@ -82,7 +82,7 @@ void command_drv(uint8_t, uint8_t&, uint8_t&, uint8_t&, uint8_t&) {
 				
 				// Print name
 				for (uint8_t a=0; a < _DEVICE_NAME_LENGTH_MAX__; a++) {
-					uint8_t nameChar = (uint8_t)deviceTable.device_name[i][a];
+					uint8_t nameChar = (uint8_t)device_table.name[i][a];
 					if (nameChar == 0x20) break;
 					call_extern(consoleDriver, 0x00, nameChar); // Write char
 				}
@@ -94,7 +94,7 @@ void command_drv(uint8_t, uint8_t&, uint8_t&, uint8_t&, uint8_t&) {
 			// List device modules
 			if (param1 == 'm') {
 				
-				if (deviceTable.device_type[i] != _DEVICE_TYPE_MODULE__) continue;
+				if (device_table.type[i] != _DEVICE_TYPE_MODULE__) continue;
 				
 				// Print index
 				console.printInt(i);
@@ -102,7 +102,7 @@ void command_drv(uint8_t, uint8_t&, uint8_t&, uint8_t&, uint8_t&) {
 				
 				// Print name
 				for (uint8_t a=0; a < _DEVICE_NAME_LENGTH_MAX__; a++) {
-					uint8_t nameChar = (uint8_t)deviceTable.device_name[i][a];
+					uint8_t nameChar = (uint8_t)device_table.name[i][a];
 					if (nameChar == 0x20) break;
 					call_extern(consoleDriver, 0x00, nameChar); // Write char
 				}
