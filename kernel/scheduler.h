@@ -34,18 +34,18 @@ uint8_t get_task_index(const char task_name[], uint8_t name_length);
 
 
 // Millisecond timer counter
-static volatile uint32_t clock_ms = 0;
+static volatile uint32_t timer_ms = 0;
 
 //
 // Process information descriptor table
 
 struct ProcessDescriptorTable {
 	
-	uint8_t  processName[_PROCESS_LIST_SIZE__][_PROCESS_NAME_LENGTH_MAX__];
-	uint8_t  processType[_PROCESS_LIST_SIZE__];
-	uint16_t processPriority[_PROCESS_LIST_SIZE__];
-	uint16_t processCounters[_PROCESS_LIST_SIZE__];
-	void (*process_pointer_table[_PROCESS_LIST_SIZE__])();
+	uint8_t  name[_PROCESS_LIST_SIZE__][_PROCESS_NAME_LENGTH_MAX__];
+	uint8_t  type[_PROCESS_LIST_SIZE__];
+	uint16_t priority[_PROCESS_LIST_SIZE__];
+	uint16_t counter[_PROCESS_LIST_SIZE__];
+	void (*pointer_table[_PROCESS_LIST_SIZE__])();
 	
 }volatile static proc_info;
 
@@ -59,7 +59,7 @@ uint8_t task_create(const char task_name[], uint8_t name_length, void(*task_ptr)
 	// Find an available slot
 	uint8_t index;
 	for (index=0; index < _PROCESS_LIST_SIZE__; index++) {
-		if (proc_info.processPriority[index] == 0) break;
+		if (proc_info.priority[index] == 0) break;
 	}
 	
 	// No free slots
@@ -67,14 +67,14 @@ uint8_t task_create(const char task_name[], uint8_t name_length, void(*task_ptr)
 	
 	// Launch the new process
 	for (uint8_t a=0; a < name_length-1; a++)
-		proc_info.processName[index][a] = task_name[a];
+		proc_info.name[index][a] = task_name[a];
 	
-	proc_info.processType[index]           = task_type;
-	proc_info.processPriority[index]       = priority;
-	proc_info.processCounters[index]       = 0;
-	proc_info.process_pointer_table[index] = task_ptr;
+	proc_info.type[index]           = task_type;
+	proc_info.priority[index]       = priority;
+	proc_info.counter[index]       = 0;
+	proc_info.pointer_table[index] = task_ptr;
 	
-	return index + 1;
+	return (index + 1);
 }
 
 
@@ -83,15 +83,15 @@ uint8_t task_destroy(uint8_t index) {
 	uint8_t PID = index - 1;
 	
 	if (PID > _PROCESS_LIST_SIZE__) return 0;
-	if (proc_info.processName[PID][0] == 0x20) return 0;
+	if (proc_info.name[PID][0] == 0x20) return 0;
 	
-	proc_info.processType[PID]     = 0;
-	proc_info.processPriority[PID] = 0;
-	proc_info.processCounters[PID] = 0;
-	proc_info.process_pointer_table[PID] = 0;
+	proc_info.type[PID]     = 0;
+	proc_info.priority[PID] = 0;
+	proc_info.counter[PID] = 0;
+	proc_info.pointer_table[PID] = 0;
 	
 	for (uint8_t i=0; i < _PROCESS_NAME_LENGTH_MAX__; i++)
-		proc_info.processName[PID][i] = 0x20;
+		proc_info.name[PID][i] = 0x20;
 	
 	return 1;
 }
@@ -107,11 +107,11 @@ uint8_t get_task_index(char task_name[], uint8_t name_length) {
 	
 	for (uint8_t index=0; index< _PROCESS_LIST_SIZE__; index++) {
 		
-		if (proc_info.processName[index][0] == 0x20) continue;
+		if (proc_info.name[index][0] == 0x20) continue;
 		
 		// Get task name from the list
 		for (uint8_t i=0; i < name_length; i++) 
-			list_task_name[i] = proc_info.processName[index][i];
+			list_task_name[i] = proc_info.name[index][i];
 		
 		if (string_compare(task_name, list_task_name, name_length) == 1) 
 			return (index + 1);
@@ -124,35 +124,37 @@ uint8_t get_task_index(char task_name[], uint8_t name_length) {
 
 
 //
-// Scheduler timer interrupt
-ISR (TIMER0_COMPA_vect) {
+// Scheduler interrupt routine
+
 #ifdef __CORE_SCHEDULER_
+
+ISR (TIMER0_COMPA_vect) {
 	
-	clock_ms++;
+	timer_ms++;
 	
 	for (uint8_t PID=0; PID < _PROCESS_LIST_SIZE__; PID++) {
 		
-		if (proc_info.processPriority[PID] == 0) continue;
+		if (proc_info.priority[PID] == 0) continue;
 		
-		if (proc_info.processCounters[PID] >= proc_info.processPriority[PID]) {
-			proc_info.processCounters[PID]=0;
-			proc_info.process_pointer_table[PID]();
+		if (proc_info.counter[PID] >= proc_info.priority[PID]) {
+			proc_info.counter[PID]=0;
+			proc_info.pointer_table[PID]();
 		} else {
-			proc_info.processCounters[PID]++;
+			proc_info.counter[PID]++;
 			continue;
 		}
 		
-		switch (proc_info.processType[PID]) {
+		switch (proc_info.type[PID]) {
 			
 			case _TASK_VOLATILE__: {
 				
 				for (uint8_t i=0; i < _PROCESS_NAME_LENGTH_MAX__; i++) 
-					proc_info.processName[PID][i] = 0x20;
+					proc_info.name[PID][i] = 0x20;
 				
-				proc_info.processType[PID] = 0;
-				proc_info.processPriority[PID] = 0;
-				proc_info.processCounters[PID] = 0;
-				proc_info.process_pointer_table[PID] = 0;
+				proc_info.type[PID] = 0;
+				proc_info.priority[PID] = 0;
+				proc_info.counter[PID] = 0;
+				proc_info.pointer_table[PID] = 0;
 				
 				break;
 			}
@@ -164,25 +166,26 @@ ISR (TIMER0_COMPA_vect) {
 		
 		
 	}
-#endif
 	return;
 }
 
+#endif
 #endif
 
 
 void __scheduler_init_(void) {
 	
 	for (uint8_t i=0; i < _PROCESS_LIST_SIZE__; i++) {
-		proc_info.processType[i]     = 0x00;
-		proc_info.processPriority[i] = 0x00;
-		proc_info.processCounters[i] = 0x00;
-		proc_info.process_pointer_table[i] = 0;
+		proc_info.type[i]     = 0x00;
+		proc_info.priority[i] = 0x00;
+		proc_info.counter[i] = 0x00;
+		proc_info.pointer_table[i] = 0;
 		
 		for (uint8_t a=0; a < _PROCESS_NAME_LENGTH_MAX__; a++)
-			proc_info.processName[i][a] = 0x20;
+			proc_info.name[i][a] = 0x20;
 	}
 	
+	return;
 }
 
 

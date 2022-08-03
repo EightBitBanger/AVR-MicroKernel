@@ -62,15 +62,15 @@ uint32_t second_counter=0;
 
 void application_task(void) {
 	
-	if (clock_ms > 1000) {
+	if (timer_ms > 1000) {
 		
-		clock_ms = 0;
+		timer_ms = 0;
 		second_counter++;
 		
 		uint8_t line = console.cursorLine;
 		uint8_t pos  = console.cursorPos;
 		
-		console.setCursorPosition(0, 8);
+		console.setCursorPosition(0, 10);
 		console.printInt(second_counter);
 		
 		console.setCursorPosition(line, pos);

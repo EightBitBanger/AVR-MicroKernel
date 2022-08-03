@@ -31,7 +31,7 @@ void command_task(uint8_t, uint8_t&, uint8_t&, uint8_t&, uint8_t&) {
 		
 		for (uint8_t i=0; i<_PROCESS_LIST_SIZE__; i++) {
 			
-			if (proc_info.processName[i][0] == 0x20) continue;
+			if (proc_info.name[i][0] == 0x20) continue;
 			
 			// Process ID
 			uint8_t PID = i + 0x30 + 1;
@@ -41,18 +41,18 @@ void command_task(uint8_t, uint8_t&, uint8_t&, uint8_t&, uint8_t&) {
 			
 			// Task type
 			if (param1 == 't') {
-				console.printChar((uint8_t&)proc_info.processType[i]);
+				console.printChar((uint8_t&)proc_info.type[i]);
 				console.printSpace();
 			}
 			
 			// Task priority
 			if (param1 == 'p') {
-				console.printInt((uint8_t&)proc_info.processPriority[i]);
+				console.printInt((uint8_t&)proc_info.priority[i]);
 				console.printSpace();
 			}
 			
 			for (uint8_t a=0; a < _PROCESS_NAME_LENGTH_MAX__; a++) {
-				uint8_t nameChar = proc_info.processName[i][a];
+				uint8_t nameChar = proc_info.name[i][a];
 				if (nameChar == 0x20) break;
 				console.printChar(nameChar);
 			}
