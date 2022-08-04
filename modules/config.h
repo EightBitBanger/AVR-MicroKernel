@@ -15,18 +15,5 @@
 // Applications
 #include "functions/app.h"      // Test application
 
-
-//
-// Unused / In-testing
-/*
-#include "functions/beep.h"
-#include "functions/sound.h"
-
-#include "functions/list.h"
-#include "functions/count.h"
-
-#include "functions/banner.h"
-*/
-
 #endif
 

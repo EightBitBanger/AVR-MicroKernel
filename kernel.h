@@ -85,6 +85,7 @@ void __kernel_initiate(void) {
 	
 	Device memory_device  = 0;
 	Device speaker_device = 0;
+	Device console_device = 0;
 	
 	// Beep code
 	uint8_t length   = 74;
@@ -99,28 +100,32 @@ void __kernel_initiate(void) {
 	device_bus.waitstate_write = 0;
 	device_bus.waitstate_read  = 2;
 	
-	get_func_address(_INTERNAL_SPEAKER__, sizeof(_INTERNAL_SPEAKER__), speaker_device);
-	get_func_address(_EXTENDED_MEMORY__, sizeof(_EXTENDED_MEMORY__), memory_device);
+	if (get_func_address(_INTERNAL_SPEAKER__, sizeof(_INTERNAL_SPEAKER__), speaker_device) == 0) return;
+	if (get_func_address(_EXTENDED_MEMORY__, sizeof(_EXTENDED_MEMORY__), memory_device) == 0) return;
+	if (get_func_address(_COMMAND_CONSOLE__, sizeof(_COMMAND_CONSOLE__), console_device) == 0) return;
 	
 	// Initiate the console
-	console.initiate();
+	call_extern(console_device, _DEVICE_INITIATE__);
 	
 	// Allow peripheral devices time to initiate
-	_delay_ms(1000);
+	_delay_ms(750);
 	
 	//
-	// Kernel version information
-	console.setCursorPosition(0, 0);
+	// Print kernel version information
+	uint8_t pos=0;
+	uint8_t line=0;
+	call_extern(console_device, 0x0a, line, pos);
 	
 	for (uint8_t i=0; i < sizeof(msg_kernel_version)-1; i++)
-		console.printChar( msg_kernel_version[i] );
-	console.printLn();
+		call_extern(console_device, 0x00, (uint8_t&)msg_kernel_version[i]);
+	call_extern(console_device, 0x01); // New line
 	
 	// Allocate available external memory
 	if (memory_device != nullptr) {
 		
 		// Zero memory allocated
-		console.printChar('0');
+		uint8_t zerochar = '0';
+		call_extern(console_device, 0x00, zerochar);
 		
 		// Begin allocating memory
 		for (total_memory.address=0x00000; total_memory.address < 0x40000; total_memory.address++) {
@@ -132,24 +137,28 @@ void __kernel_initiate(void) {
 			test_byte++;
 			
 			// Display total memory
-			if (skip > 100) {skip=0;
+			if (skip > 245) {skip=0;
 				// Reset cursor
-				console.setCursorPosition(console.cursorLine, 0);
+				pos=0;
+				line=1;
+				call_extern(console_device, 0x0a, line, pos);
 				
-				console.printInt(total_memory.address);
+				call_extern(console_device, 0x04, total_memory.byte_t[0], total_memory.byte_t[1], total_memory.byte_t[2], total_memory.byte_t[3]);
 				
 			} else {skip++;}
 		}
 		
 		// Display final memory count
-		console.cursorPos = 0;
-		console.setCursorPosition(console.cursorLine, console.cursorPos);
-		console.printInt(total_memory.address);
+		line=1;
+		pos=0;
+		call_extern(console_device, 0x0a, line, pos);
+		call_extern(console_device, 0x04, total_memory.byte_t[0], total_memory.byte_t[1], total_memory.byte_t[2], total_memory.byte_t[3]);
 		
 		// Message "bytes"
-		console.printSpace();
-		for (uint8_t i=0; i < sizeof(msg_bytes_free)-1; i++) 
-			console.printChar( (uint8_t&)msg_bytes_free[i] );
+		call_extern(console_device, 0x03); // Space
+		char bytesfreemsg[] = "bytes free";
+		for (uint8_t i=0; i < sizeof(bytesfreemsg)-1; i++) 
+			call_extern(console_device, 0x00, (uint8_t&)bytesfreemsg[i]);
 		
 		uint8_t size = 0xff;
 		WrappedPointer start_address;
@@ -167,14 +176,13 @@ void __kernel_initiate(void) {
 	}
 	
 	// Setup the command prompt
-	console.promptString[0] = 'C'; // Scope select
-	console.promptString[1] = '>';
-	console.promptStringLength = 2;
+	//console.promptString[0] = 'C'; // Scope select
+	//console.promptString[1] = '>';
+	//console.promptStringLength = 2;
 	
 	// Drop a command prompt
-	console.printLn();
-	console.printPrompt();
-	
+	call_extern(console_device, 0x01); // New line
+	call_extern(console_device, 0x02); // Print prompt
 	
 	// Speaker beep code test
 	for (uint8_t i=0; i < beepcode; i++) {

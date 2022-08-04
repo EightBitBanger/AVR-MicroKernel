@@ -2,6 +2,9 @@
 // Command console library
 //  This driver requires support of associated display and keyboard drivers
 
+#ifndef _CONSOLE_DRIVER__
+#define _CONSOLE_DRIVER__
+
 #define _MAX_KEYBOARD_STRING_LENGTH__  32
 
 void ConsoleLibraryEntryPoint(uint8_t, uint8_t&, uint8_t&, uint8_t&, uint8_t&);
@@ -265,10 +268,18 @@ void ConsoleLibraryEntryPoint(uint8_t functionCall, uint8_t& paramA, uint8_t& pa
 		case 0x0c: console.setCursorBlinkRate(paramA); break;
 		case 0x0d: console.pause_press_anykey(); break;
 		
+		case 0x0e: console.promptStringLength = paramA; break;
+		case 0x0f: console.promptString[0] = paramA;
+		           console.promptString[1] = paramB;
+		           console.promptString[2] = paramC;
+				   console.promptString[3] = paramD; break;
+		
 		default: break;
 	}
 	
 	return;
 }
 
+
+#endif
 
