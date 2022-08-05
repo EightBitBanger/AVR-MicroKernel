@@ -1,10 +1,9 @@
 //
 // System service configuration
 
-#ifndef __BOOT_NOSERVICES_
+#ifndef __ARDUINO_BOARD_
 
-#include "console/console.h"        // Command console 
-//#include "routing/router.h"         // Network routing
+#include "console/console.h"        // Command console
 
 #endif
 

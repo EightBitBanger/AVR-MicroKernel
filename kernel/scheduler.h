@@ -174,7 +174,7 @@ ISR (TIMER0_COMPA_vect) {
 
 
 void __scheduler_init_(void) {
-	
+#ifdef __CORE_SCHEDULER_
 	for (uint8_t i=0; i < _PROCESS_LIST_SIZE__; i++) {
 		proc_info.type[i]     = 0x00;
 		proc_info.priority[i] = 0x00;
@@ -184,13 +184,13 @@ void __scheduler_init_(void) {
 		for (uint8_t a=0; a < _PROCESS_NAME_LENGTH_MAX__; a++)
 			proc_info.name[i][a] = 0x20;
 	}
-	
+#endif
 	return;
 }
 
 
 void __scheduler_start(void) {
-	
+#ifdef __CORE_SCHEDULER_
 	//
 	// Timer1 - Low level function scheduler
 	TCCR0A  = 2;      // 0 - Normal counter and waveform
@@ -214,14 +214,17 @@ void __scheduler_start(void) {
 	// Enable interrupts
 	sei();
 	
+#endif
 	return;
 }
 
 
 void __scheduler_stop(void) {
+#ifdef __CORE_SCHEDULER_
 	
 	TCCR0B  = 0;
 	
+#endif
 	return;
 }
 

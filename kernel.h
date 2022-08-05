@@ -14,6 +14,8 @@
 //#define __BOOT_SAFEMODE_      // Load only the devices required to boot
 //#define __BOOT_LIGHTWEIGHT_   // Load minimal device modules
 
+//#define __ARDUINO_BOARD_
+
 #define _32_BIT_POINTERS__
 //#define _64_BIT_POINTERS__
 

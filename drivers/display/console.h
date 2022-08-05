@@ -62,8 +62,6 @@ struct CommandConsole {
 		
 		// Link to the display driver
 		if (get_func_address(_DISPLAY_CONSOLE__, sizeof(_DISPLAY_CONSOLE__), displayDriverPtr) == 0) return;
-		//call_extern(displayDriverPtr, 0x05); // Clear mask memory
-		//call_extern(displayDriverPtr, 0x04); // Clear char memory
 		
 		//printPrompt();
 		clearKeyboardString();
@@ -106,7 +104,6 @@ struct CommandConsole {
 	}
 	
 	
-	
 	// Print chars/strings to the console
 	void print(const char char_array[], uint8_t string_length) {
 		for (uint8_t i=0; i<string_length-1; i++) {
@@ -130,10 +127,10 @@ struct CommandConsole {
 		return;
 	}
 	
-	void printInt(uint32_t number) {
+	void printInt(uint32_t integer) {
 		
 		char numberString[10];
-		uint8_t place = int_get_string(number, numberString);
+		uint8_t place = int_get_string(integer, numberString);
 		if (place==0) place++;
 		
 		for (uint8_t i=0; i<place; i++) {

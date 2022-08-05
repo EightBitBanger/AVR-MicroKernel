@@ -1,6 +1,8 @@
 //
 // Kernel function modules
 
+#ifndef __ARDUINO_BOARD_
+
 #include "functions/cls.h"      // Clear the display
 #include "functions/device.h"   // Device table configuration
 
@@ -14,6 +16,8 @@
 #include "functions/port.h"     // GPIO port configuration
 // Applications
 #include "functions/app.h"      // Test application
+
+#endif
 
 #endif
 
