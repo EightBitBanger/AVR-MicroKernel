@@ -7,13 +7,12 @@
 //
 // Kernel configuration
 
-#define __CORE_MAIN_             // Include the device management system
+#define __CORE_MAIN_             // Include core kernel components
 #define __CORE_SCHEDULER_        // Include the task scheduler
-#define __HARDWARE_AUTO_DETECT_  // Include hardware auto detection
+#define __HARDWARE_AUTO_DETECT_  // Use hardware auto detection
 
 //#define __BOOT_SAFEMODE_      // Load only the devices required to boot
-//#define __BOOT_LIGHTWEIGHT_   // Load minimal device modules required to boot
-//#define __BOOT_NOSERVICES_    // Load only the system services required to boot
+//#define __BOOT_LIGHTWEIGHT_   // Load minimal device modules
 
 #define _32_BIT_POINTERS__
 //#define _64_BIT_POINTERS__
@@ -39,7 +38,7 @@
 #define _KERNEL_STATE_SEG_FAULT__       0xff
 
 // Message constants
-char msg_kernel_version[]    = "AVR-Kernel";
+char msg_kernel_version[]    = "AVR-Kernel 1.0";
 
 
 // Standard includes
@@ -100,8 +99,6 @@ void __kernel_initiate(void) {
 	device_bus.waitstate_write = 0;
 	device_bus.waitstate_read  = 2;
 	
-	if (get_func_address(_INTERNAL_SPEAKER__, sizeof(_INTERNAL_SPEAKER__), speaker_device) == 0) return;
-	if (get_func_address(_EXTENDED_MEMORY__, sizeof(_EXTENDED_MEMORY__), memory_device) == 0) return;
 	if (get_func_address(_COMMAND_CONSOLE__, sizeof(_COMMAND_CONSOLE__), console_device) == 0) return;
 	
 	// Initiate the console
@@ -110,7 +107,7 @@ void __kernel_initiate(void) {
 	// Allow peripheral devices time to initiate
 	_delay_ms(750);
 	
-	//
+	
 	// Print kernel version information
 	uint8_t pos=0;
 	uint8_t line=0;
@@ -121,76 +118,83 @@ void __kernel_initiate(void) {
 	call_extern(console_device, 0x01); // New line
 	
 	// Allocate available external memory
-	if (memory_device != nullptr) {
+	if (get_func_address(_EXTENDED_MEMORY__, sizeof(_EXTENDED_MEMORY__), memory_device) != 0) {
 		
-		// Zero memory allocated
-		uint8_t zerochar = '0';
-		call_extern(console_device, 0x00, zerochar);
-		
-		// Begin allocating memory
-		for (total_memory.address=0x00000; total_memory.address < 0x40000; total_memory.address++) {
+		if (memory_device != nullptr) {
 			
-			bus_write_byte(device_bus, total_memory.address, test_byte);
-			bus_read_byte(device_bus, total_memory.address, byte);
+			// Zero memory allocated
+			uint8_t zerochar = '0';
+			call_extern(console_device, 0x00, zerochar);
 			
-			if (byte != test_byte) break;
-			test_byte++;
-			
-			// Display total memory
-			if (skip > 245) {skip=0;
-				// Reset cursor
-				pos=0;
-				line=1;
-				call_extern(console_device, 0x0a, line, pos);
+			// Begin allocating memory
+			for (total_memory.address=0x00000; total_memory.address < 0x40000; total_memory.address++) {
 				
-				call_extern(console_device, 0x04, total_memory.byte_t[0], total_memory.byte_t[1], total_memory.byte_t[2], total_memory.byte_t[3]);
+				bus_write_byte(device_bus, total_memory.address, test_byte);
+				bus_read_byte(device_bus, total_memory.address, byte);
 				
-			} else {skip++;}
+				if (byte != test_byte) break;
+				test_byte++;
+				
+				// Print total memory
+				if (skip > 245) {skip=0;
+					// Reset cursor
+					pos=0;
+					line=1;
+					call_extern(console_device, 0x0a, line, pos);
+					
+					call_extern(console_device, 0x04, total_memory.byte_t[0], total_memory.byte_t[1], total_memory.byte_t[2], total_memory.byte_t[3]);
+					
+				} else {skip++;}
+			}
+			
+			// Print final memory count
+			line=1;
+			pos=0;
+			call_extern(console_device, 0x0a, line, pos);
+			call_extern(console_device, 0x04, total_memory.byte_t[0], total_memory.byte_t[1], total_memory.byte_t[2], total_memory.byte_t[3]);
+			
+			// Print "bytes free"
+			call_extern(console_device, 0x03); // Space
+			char bytesfreemsg[] = "bytes free";
+			for (uint8_t i=0; i < sizeof(bytesfreemsg)-1; i++) 
+				call_extern(console_device, 0x00, (uint8_t&)bytesfreemsg[i]);
+			
+			uint8_t size = 0xff;
+			WrappedPointer start_address;
+			start_address.address = 0x00000;
+			
+			// Zero the kernel memory range
+			call_extern(memory_device, 0x0a, start_address.byte_t[0], start_address.byte_t[1], start_address.byte_t[2], start_address.byte_t[3]);
+			for (uint8_t i=0; i < 10; i++) 
+				call_extern(memory_device, 0x02, size);
+			
+			// Write total memory size to kernel memory
+			call_extern(memory_device, 0x0a, total_memory.byte_t[0], total_memory.byte_t[1], total_memory.byte_t[2], total_memory.byte_t[3]);
+			call_extern(memory_device, 0x05);
+			
 		}
-		
-		// Display final memory count
-		line=1;
-		pos=0;
-		call_extern(console_device, 0x0a, line, pos);
-		call_extern(console_device, 0x04, total_memory.byte_t[0], total_memory.byte_t[1], total_memory.byte_t[2], total_memory.byte_t[3]);
-		
-		// Message "bytes"
-		call_extern(console_device, 0x03); // Space
-		char bytesfreemsg[] = "bytes free";
-		for (uint8_t i=0; i < sizeof(bytesfreemsg)-1; i++) 
-			call_extern(console_device, 0x00, (uint8_t&)bytesfreemsg[i]);
-		
-		uint8_t size = 0xff;
-		WrappedPointer start_address;
-		start_address.address = 0x00000;
-		
-		// Zero the kernel memory range
-		call_extern(memory_device, 0x0a, start_address.byte_t[0], start_address.byte_t[1], start_address.byte_t[2], start_address.byte_t[3]);
-		for (uint8_t i=0; i < 10; i++) 
-			call_extern(memory_device, 0x02, size);
-		
-		// Write total memory size to kernel memory
-		call_extern(memory_device, 0x0a, total_memory.byte_t[0], total_memory.byte_t[1], total_memory.byte_t[2], total_memory.byte_t[3]);
-		call_extern(memory_device, 0x05);
-		
 	}
 	
 	// Setup the command prompt
-	//console.promptString[0] = 'C'; // Scope select
-	//console.promptString[1] = '>';
-	//console.promptStringLength = 2;
+	uint8_t prompt_string[5] = "C>  ";
+	uint8_t prompt_length = 0x02;
+	call_extern(console_device, 0x0e, prompt_length);
+	call_extern(console_device, 0x0f, prompt_string[0], prompt_string[1], prompt_string[2], prompt_string[3]);
 	
 	// Drop a command prompt
 	call_extern(console_device, 0x01); // New line
 	call_extern(console_device, 0x02); // Print prompt
 	
-	// Speaker beep code test
-	for (uint8_t i=0; i < beepcode; i++) {
-		call_extern(speaker_device, 0x00, tone, length);
-		_delay_ms(350);
+	if (get_func_address(_INTERNAL_SPEAKER__, sizeof(_INTERNAL_SPEAKER__), speaker_device) != 0) {
+		
+		// Speaker beep code test
+		for (uint8_t i=0; i < beepcode; i++) {
+			call_extern(speaker_device, 0x00, tone, length);
+			_delay_ms(350);
+		}
+		
+		//if (beepcode > 2) while(1) asm("nop");
 	}
-	
-	//if (beepcode > 2) while(1) asm("nop");
 	
 	return;
 }
