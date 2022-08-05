@@ -104,9 +104,6 @@ void __kernel_initiate(void) {
 	// Initiate the console
 	call_extern(console_device, _DEVICE_INITIATE__);
 	
-	// Allow peripheral devices time to initiate
-	_delay_ms(750);
-	
 	
 	// Print kernel version information
 	uint8_t pos=0;

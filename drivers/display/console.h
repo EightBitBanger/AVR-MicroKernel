@@ -62,8 +62,8 @@ struct CommandConsole {
 		
 		// Link to the display driver
 		if (get_func_address(_DISPLAY_CONSOLE__, sizeof(_DISPLAY_CONSOLE__), displayDriverPtr) == 0) return;
-		call_extern(displayDriverPtr, 0x05); // Clear mask memory
-		call_extern(displayDriverPtr, 0x04); // Clear char memory
+		//call_extern(displayDriverPtr, 0x05); // Clear mask memory
+		//call_extern(displayDriverPtr, 0x04); // Clear char memory
 		
 		//printPrompt();
 		clearKeyboardString();
@@ -248,7 +248,7 @@ void ConsoleLibraryEntryPoint(uint8_t functionCall, uint8_t& paramA, uint8_t& pa
 	
 	switch(functionCall) {
 		
-		case _DEVICE_INITIATE__: {console.initiate(); break;}
+		case _DEVICE_INITIATE__: {console.initiate(); _delay_ms(200); break;}
 		case _DEVICE_SHUTDOWN__: {break;}
 		
 		case 0x00: console.printChar(paramA); break;
