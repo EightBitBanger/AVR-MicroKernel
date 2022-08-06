@@ -60,12 +60,12 @@ void __detect_hardware(void) {
 		
 		get_hardware_info(current_address, device_bus, h_info);
 		
-		if (get_func_address(h_info.device_name, _DEVICE_NAME_LENGTH_MAX__, device_driver) == 1) {
+		if (get_func_address(h_info.device_name, DEVICE_NAME_LENGTH_MAX, device_driver) == 1) {
 			
 			pointer.address = current_address;
-			call_extern(device_driver, _DEVICE_ADDRESS__, pointer.byte_t[0], pointer.byte_t[1], pointer.byte_t[2], pointer.byte_t[3]);
+			call_extern(device_driver, DEVICE_CALL_ADDRESS, pointer.byte_t[0], pointer.byte_t[1], pointer.byte_t[2], pointer.byte_t[3]);
 			
-			call_extern(device_driver, _DEVICE_INITIATE__);
+			call_extern(device_driver, DEVICE_CALL_INITIATE);
 			
 			continue;
 		}

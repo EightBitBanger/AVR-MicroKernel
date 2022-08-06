@@ -17,7 +17,7 @@ struct NetworkInterfaceDriver {
 		
 		device_address = 0x00000;
 		
-		load_device(_NETWORK_INTERFACE__, sizeof(_NETWORK_INTERFACE__), (Device)NetworkInterfaceDeviceDriverEntryPoint, _DEVICE_TYPE_DRIVER__);
+		load_device(_NETWORK_INTERFACE__, sizeof(_NETWORK_INTERFACE__), (Device)NetworkInterfaceDeviceDriverEntryPoint, DEVICE_TYPE_DRIVER);
 	}
 	
 	void initiate(void) {
@@ -64,9 +64,9 @@ void NetworkInterfaceDeviceDriverEntryPoint(uint8_t functionCall, uint8_t& param
 	
 	switch(functionCall) {
 		
-		case _DEVICE_INITIATE__: {networkInterfaceDriver.initiate(); break;}
-		case _DEVICE_SHUTDOWN__: {networkInterfaceDriver.shutdown(); break;}
-		case _DEVICE_ADDRESS__: {
+		case DEVICE_CALL_INITIATE: {networkInterfaceDriver.initiate(); break;}
+		case DEVICE_CALL_SHUTDOWN: {networkInterfaceDriver.shutdown(); break;}
+		case DEVICE_CALL_ADDRESS: {
 			WrappedPointer pointer; pointer.byte_t[0] = paramA; pointer.byte_t[1] = paramB; pointer.byte_t[2] = paramC; pointer.byte_t[3] = paramD;
 			networkInterfaceDriver.device_address = pointer.address;
 		}

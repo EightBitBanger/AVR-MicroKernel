@@ -30,7 +30,7 @@ struct CommandConsoleServiceLauncher {
 		// Link to the keyboard device driver
 		get_func_address(_KEYBOARD_INPUT__, sizeof(_KEYBOARD_INPUT__), keyboard_device);
 		
-		task_create(_SERVICE_NAME__, sizeof(_SERVICE_NAME__), keyboard_event_handler, _TASK_PRIORITY_REALTIME__, _TASK_SERVICE__);
+		task_create(_SERVICE_NAME__, sizeof(_SERVICE_NAME__), keyboard_event_handler, TASK_PRIORITY_REALTIME, TASK_SERVICE);
 		
 		// Initiate the current key state
 		call_extern(keyboard_device, 0x02, scanCodeLow, scanCodeHigh);
@@ -103,16 +103,16 @@ void eventKeyboardEnter(void) {
 	if (console.last_string_length > 0) {console.cursorPos=0;
 		
 		// Function look up
-		for (uint8_t i=0; i<_DEVICE_TABLE_SIZE__; i++) {
+		for (uint8_t i=0; i<DEVICE_TABLE_SIZE; i++) {
 			
-			if (device_table.type[i] != _DEVICE_TYPE_MODULE__) continue;
+			if (device_table.type[i] != DEVICE_TYPE_MODULE) continue;
 			
-			char functionName[_DEVICE_NAME_LENGTH_MAX__];
-			for (uint8_t a=0; a<_DEVICE_NAME_LENGTH_MAX__; a++) functionName[a] = 0x20;
+			char functionName[DEVICE_NAME_LENGTH_MAX];
+			for (uint8_t a=0; a<DEVICE_NAME_LENGTH_MAX; a++) functionName[a] = 0x20;
 			
 			// Extract name from function index
 			uint8_t name_length;
-			for (name_length=0; name_length < _DEVICE_NAME_LENGTH_MAX__; name_length++) {
+			for (name_length=0; name_length < DEVICE_NAME_LENGTH_MAX; name_length++) {
 				
 				functionName[name_length] = device_table.name[i][name_length];
 				if (device_table.name[i][name_length] == 0x20) break;
@@ -125,7 +125,7 @@ void eventKeyboardEnter(void) {
 			
 			// Execute the command
 			uint8_t argument=0x00;
-			device_table.pointer_table[i](0x00, argument, argument, argument, argument);
+			device_table.table[i](0x00, argument, argument, argument, argument);
 			
 			break;
 		}

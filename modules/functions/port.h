@@ -11,7 +11,7 @@ struct ModuleLoaderPort {
 	uint32_t port_address;
 	
 	ModuleLoaderPort() {
-		load_device(__MODULE_NAME_, sizeof(__MODULE_NAME_), (Device)__port_control_, _DEVICE_TYPE_MODULE__);
+		load_device(__MODULE_NAME_, sizeof(__MODULE_NAME_), (Device)__port_control_, DEVICE_TYPE_MODULE);
 	}
 }static moduleLoaderPort;
 

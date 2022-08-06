@@ -20,7 +20,7 @@ struct DisplayDriver {
 		device_bus.waitstate_read  = 10;
 		device_bus.waitstate_write = 10;
 		
-		load_device(_DISPLAY_CONSOLE__, sizeof(_DISPLAY_CONSOLE__), (Device)DisplayDeviceDriverEntryPoint, _DEVICE_TYPE_DRIVER__);
+		load_device(_DISPLAY_CONSOLE__, sizeof(_DISPLAY_CONSOLE__), (Device)DisplayDeviceDriverEntryPoint, DEVICE_TYPE_DRIVER);
 	}
 	
 	void initiate(void) {
@@ -93,9 +93,9 @@ void DisplayDeviceDriverEntryPoint(uint8_t functionCall, uint8_t& paramA, uint8_
 	
 	switch(functionCall) {
 		
-		case _DEVICE_INITIATE__: {displayDriver.initiate(); break;}
-		case _DEVICE_SHUTDOWN__: {displayDriver.shutdown(); break;}
-		case _DEVICE_ADDRESS__: {
+		case DEVICE_CALL_INITIATE: {displayDriver.initiate(); break;}
+		case DEVICE_CALL_SHUTDOWN: {displayDriver.shutdown(); break;}
+		case DEVICE_CALL_ADDRESS: {
 			WrappedPointer pointer; pointer.byte_t[0] = paramA; pointer.byte_t[1] = paramB; pointer.byte_t[2] = paramC; pointer.byte_t[3] = paramD;
 			displayDriver.device_address = pointer.address;
 		}

@@ -21,7 +21,7 @@ struct SpeakerDriver {
 		baseFreq    = 1000;
 		
 		// Load the device driver
-		load_device(_INTERNAL_SPEAKER__, sizeof(_INTERNAL_SPEAKER__), (Device)SpeakerDriverDeviceDriverEntryPoint, _DEVICE_TYPE_DRIVER__);
+		load_device(_INTERNAL_SPEAKER__, sizeof(_INTERNAL_SPEAKER__), (Device)SpeakerDriverDeviceDriverEntryPoint, DEVICE_TYPE_DRIVER);
 	}
 	
 	void initiate(void) {
@@ -69,8 +69,8 @@ void SpeakerDriverDeviceDriverEntryPoint(uint8_t functionCall, uint8_t& paramA, 
 	
 	switch(functionCall) {
 		
-		case _DEVICE_INITIATE__: {speakerDriver.initiate(); break;}
-		case _DEVICE_SHUTDOWN__: {speakerDriver.shutdown(); break;}
+		case DEVICE_CALL_INITIATE: {speakerDriver.initiate(); break;}
+		case DEVICE_CALL_SHUTDOWN: {speakerDriver.shutdown(); break;}
 		
 		case 0x00: {speakerDriver.beep(paramA, paramB); break;}
 		

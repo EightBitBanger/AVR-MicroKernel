@@ -99,7 +99,7 @@ void __kernel_initiate(void) {
 	if (get_func_address(_COMMAND_CONSOLE__, sizeof(_COMMAND_CONSOLE__), console_device) == 0) return;
 	
 	// Initiate the console
-	call_extern(console_device, _DEVICE_INITIATE__);
+	call_extern(console_device, DEVICE_CALL_INITIATE);
 	
 	
 	// Print kernel version information

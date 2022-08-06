@@ -36,7 +36,7 @@ struct CommandConsole {
 	
 	CommandConsole() {
 		
-		load_device(_COMMAND_CONSOLE__, sizeof(_COMMAND_CONSOLE__), (Device)ConsoleLibraryEntryPoint, _DEVICE_TYPE_LIBRARY__);
+		load_device(_COMMAND_CONSOLE__, sizeof(_COMMAND_CONSOLE__), (Device)ConsoleLibraryEntryPoint, DEVICE_TYPE_LIBRARY);
 		
 		for (uint8_t i=0; i<promptStringLength; i++) promptString[i] = 0x20;
 		promptString[0]      = '>';
@@ -241,8 +241,8 @@ void ConsoleLibraryEntryPoint(uint8_t functionCall, uint8_t& paramA, uint8_t& pa
 	
 	switch(functionCall) {
 		
-		case _DEVICE_INITIATE__: {console.initiate(); _delay_ms(200); break;}
-		case _DEVICE_SHUTDOWN__: {break;}
+		case DEVICE_CALL_INITIATE: {console.initiate(); _delay_ms(200); break;}
+		case DEVICE_CALL_SHUTDOWN: {break;}
 		
 		case 0x00: console.printChar(paramA); break;
 		case 0x01: console.printLn(); break;
