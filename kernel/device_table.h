@@ -131,6 +131,7 @@ void call_extern(Device& entry_pointer, uint8_t function_call, uint8_t& paramA=n
 
 
 void __extern_call_init(void) {
+#ifdef __CORE_MAIN_
 	
 	for (uint8_t i=0; i < _DEVICE_TABLE_SIZE__; i++) {
 		
@@ -142,10 +143,12 @@ void __extern_call_init(void) {
 		
 	}
 	
+#endif
 }
 
 
 void __extern_call_shutdown(void) {
+#ifdef __CORE_MAIN_
 	
 	for (uint8_t i=0; i < _DEVICE_TABLE_SIZE__; i++) {
 		
@@ -157,9 +160,11 @@ void __extern_call_shutdown(void) {
 		
 	}
 	
+#endif
 }
 
 void __extern_initiate(void) {
+#ifdef __CORE_MAIN_
 	
 	for (uint8_t i=0; i < _DEVICE_TABLE_SIZE__; i++) {
 		
@@ -170,6 +175,7 @@ void __extern_initiate(void) {
 		device_table.pointer_table[i] = 0;
 	}
 	
+#endif
 }
 
 

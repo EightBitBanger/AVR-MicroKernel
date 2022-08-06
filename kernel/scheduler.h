@@ -3,6 +3,7 @@
 
 #include <avr/interrupt.h>
 
+// Task list
 #define _PROCESS_LIST_SIZE__              10
 #define _PROCESS_NAME_LENGTH_MAX__        10
 
@@ -10,14 +11,29 @@
 #define _TASK_SERVICE__                   's' // System service task
 #define _TASK_VOLATILE__                  'v' // Volatile task
 
-
 #define _TASK_PRIORITY_BACKGROUND__       80
 #define _TASK_PRIORITY_LOW__              40
 #define _TASK_PRIORITY_NORMAL__           20
 #define _TASK_PRIORITY_HIGH__             10
 #define _TASK_PRIORITY_REALTIME__         1
 
-#ifdef __CORE_SCHEDULER_
+
+#define _SCHEDULER_TCCRxA    2  // 0 - Normal counter and waveform
+                                // 2 - No OC0A, no OC0B, CTC
+
+#define _SCHEDULER_TCCRxB    4  // 0 - Timer stopped
+							    // 1 - No prescaler
+							    // 2 - div8
+							    // 3 - div64
+							    // 4 - div256
+							    // 5 - div1024
+
+#define _SCHEDULER_TIMSK     2  // 1 - Timer overflow int
+							    // 2 - Timer output Compare A Match
+							    // 3 - Timer output Compare B Match
+
+#define _SCHEDULER_OCR     100  // 24,000,000 / 256 / (1 + 93)  = 997Kh
+
 
 // Schedule a new task
 uint8_t task_create(const char task_name[], uint8_t name_length, void(*task_ptr)(), uint32_t priority, uint8_t task_type);
@@ -28,7 +44,7 @@ uint8_t get_task_index(const char task_name[], uint8_t name_length);
 
 
 // Millisecond timer/counter
-static volatile uint32_t timer_ms = 0;
+static volatile uint32_t timer_ms  = 0;
 
 
 struct ProcessDescriptorTable {
@@ -115,11 +131,6 @@ uint8_t get_task_index(char task_name[], uint8_t name_length) {
 
 
 
-//
-// Scheduler interrupt routine
-
-#ifdef __CORE_SCHEDULER_
-
 ISR (TIMER0_COMPA_vect) {
 	
 	timer_ms++;
@@ -161,8 +172,6 @@ ISR (TIMER0_COMPA_vect) {
 	return;
 }
 
-#endif
-#endif
 
 
 void __scheduler_init_(void) {
@@ -185,25 +194,12 @@ void __scheduler_init_(void) {
 
 void __scheduler_start(void) {
 #ifdef __CORE_SCHEDULER_
-	//
-	// Timer1 - Low level function scheduler
-	TCCR0A  = 2;      // 0 - Normal counter and waveform
-	                  // 2 - No OC0A, no OC0B, CTC
 	
-	TCCR0B  = 4;      // 0 - Timer stopped
-	                  // 1 - No prescaler
-					  // 2 - div8
-					  // 3 - div64
-					  // 4 - div256
-					  // 5 - div1024
+	TCCR0A  = _SCHEDULER_TCCRxA;
+	TCCR0B  = _SCHEDULER_TCCRxB;
+	TIMSK0  = _SCHEDULER_TIMSK;
 	
-	TIMSK0  = 2;      // 1 - Timer overflow int
-	                  // 2 -  Timer output Compare A Match
-	                  // 3 -  Timer output Compare B Match
-	
-	//TCNT0   = 0;      // (TIMER1_OVF_vect)    Start timer off from 0
-	OCR0A   = 93;     // (TIMER0_COMPA_vect)  24M/256/(1+93) = 997 Hz
-	
+	OCR0A   = _SCHEDULER_OCR;
 	
 	// Enable interrupts
 	sei();

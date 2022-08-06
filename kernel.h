@@ -11,8 +11,8 @@
 #define __CORE_SCHEDULER_        // Include the task scheduler
 #define __HARDWARE_AUTO_DETECT_  // Use hardware auto detection
 
-//#define __BOOT_SAFEMODE_      // Load only the devices required to boot
-//#define __BOOT_LIGHTWEIGHT_   // Load minimal device modules
+//#define __BOOT_SAFEMODE_         // Load only the devices required to boot
+//#define __BOOT_LIGHTWEIGHT_      // Load minimal device modules
 
 //#define __ARDUINO_BOARD_
 
@@ -88,11 +88,6 @@ void __kernel_initiate(void) {
 	Device speaker_device = 0;
 	Device console_device = 0;
 	
-	// Beep code
-	uint8_t length   = 74;
-	uint8_t tone     = 1;
-	uint8_t beepcode = 1;
-	
 	WrappedPointer total_memory;
 	Bus device_bus;
 	uint8_t test_byte=0x55;
@@ -121,7 +116,7 @@ void __kernel_initiate(void) {
 		
 		if (memory_device != nullptr) {
 			
-			// Zero memory allocated
+			// Print zero
 			uint8_t zerochar = '0';
 			call_extern(console_device, 0x00, zerochar);
 			
@@ -136,6 +131,7 @@ void __kernel_initiate(void) {
 				
 				// Print total memory
 				if (skip > 245) {skip=0;
+					
 					// Reset cursor
 					pos=0;
 					line=1;
@@ -186,6 +182,11 @@ void __kernel_initiate(void) {
 	
 	if (get_func_address(_INTERNAL_SPEAKER__, sizeof(_INTERNAL_SPEAKER__), speaker_device) != 0) {
 		
+		// Beep code
+		uint8_t length   = 74;
+		uint8_t tone     = 1;
+		uint8_t beepcode = 1;
+		
 		// Speaker beep code test
 		for (uint8_t i=0; i < beepcode; i++) {
 			call_extern(speaker_device, 0x00, tone, length);
@@ -197,71 +198,6 @@ void __kernel_initiate(void) {
 	
 	return;
 }
-
-
-
-union FunctionPointer {
-	
-	FunctionPointer() {
-		byte[0] = 0x00;
-		byte[1] = 0x00;
-	}
-	
-	char    byte[2];
-	uint8_t byte_t[2];
-	
-	void(*pointer)();
-	void(*device)();
-	
-};
-
-// Load a device onto the external function table
-uint8_t kernel_load_device(uint8_t index, void(*entry_pointer)() ) {
-	
-	FunctionPointer function;
-	function.device = entry_pointer;
-	
-	uint32_t function_address = _KERNEL_FUNCTION_TABLE_BEGIN__ + (index * 2);
-	
-	//extendedMemoryDriver.write(function_address,   function.byte[0]);
-	//extendedMemoryDriver.write(function_address+1, function.byte[1]);
-	
-	return 1;
-}
-
-// Call an external function pointer
-void kernel_call_extern(uint8_t index) {
-	
-	FunctionPointer function;
-	uint32_t function_address = _KERNEL_FUNCTION_TABLE_BEGIN__ + (index * 2);
-	
-	//extendedMemoryDriver.read(function_address,   function.byte[0]);
-	//extendedMemoryDriver.read(function_address+1, function.byte[1]);
-	
-	function.device();
-	
-	return;
-}
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 #endif
