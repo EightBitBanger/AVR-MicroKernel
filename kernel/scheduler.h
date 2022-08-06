@@ -1,6 +1,3 @@
-//
-// Co-operative scheduler
-
 #ifndef ____TASK_SCHEDULER__
 #define ____TASK_SCHEDULER__
 
@@ -24,20 +21,15 @@
 
 // Schedule a new task
 uint8_t task_create(const char task_name[], uint8_t name_length, void(*task_ptr)(), uint32_t priority, uint8_t task_type);
-
 // Remove a running task
 uint8_t task_destroy(uint8_t PID);
-
 // Get a task index by its name
 uint8_t get_task_index(const char task_name[], uint8_t name_length);
 
 
-
-// Millisecond timer counter
+// Millisecond timer/counter
 static volatile uint32_t timer_ms = 0;
 
-//
-// Process information descriptor table
 
 struct ProcessDescriptorTable {
 	
@@ -175,6 +167,7 @@ ISR (TIMER0_COMPA_vect) {
 
 void __scheduler_init_(void) {
 #ifdef __CORE_SCHEDULER_
+	
 	for (uint8_t i=0; i < _PROCESS_LIST_SIZE__; i++) {
 		proc_info.type[i]     = 0x00;
 		proc_info.priority[i] = 0x00;
@@ -184,6 +177,7 @@ void __scheduler_init_(void) {
 		for (uint8_t a=0; a < _PROCESS_NAME_LENGTH_MAX__; a++)
 			proc_info.name[i][a] = 0x20;
 	}
+	
 #endif
 	return;
 }

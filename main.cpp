@@ -14,27 +14,21 @@ int main(void) {
 	
 	// Initiate device drivers
 #ifdef __CORE_MAIN_
-	
 	__extern_call_init();
-	
 #endif
 	
 	// Attempt to identify devices on the system bus
 #ifdef __HARDWARE_AUTO_DETECT_
-	
-	__detect_hardware(0x40000, 0x10000, 5);
-	
+	__detect_hardware();
 #endif
 	
 #ifdef __CORE_MAIN_
-	
 	__kernel_initiate();
-	
 #endif
 	
-	// Fire up the scheduler with a counter base rate of 20
 #ifdef __CORE_SCHEDULER_
 	
+	// Fire up the scheduler
 	__scheduler_start();
 	
 	while(1) asm("nop");

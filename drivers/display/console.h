@@ -1,6 +1,6 @@
 //
 // Command console library
-//  This driver requires support of associated display and keyboard drivers
+// NOTE: This driver requires support of associated display and keyboard drivers
 
 #ifndef _CONSOLE_DRIVER__
 #define _CONSOLE_DRIVER__
@@ -9,7 +9,7 @@
 
 void ConsoleLibraryEntryPoint(uint8_t, uint8_t&, uint8_t&, uint8_t&, uint8_t&);
 
-char msg_press_anykey[]      = "Press any key...";
+char msg_press_anykey[] = "Press any key...";
 
 struct CommandConsole {
 	
@@ -180,7 +180,6 @@ struct CommandConsole {
 	// Print a command prompt
 	void printPrompt(void) {
 		
-		// Cursor position following the prompt
 		cursorPos = promptStringLength;
 		uint8_t promptPos = 0;
 		
@@ -208,12 +207,10 @@ struct CommandConsole {
 		uint8_t currentLow   = 0x00;
 		uint8_t currentHigh  = 0x00;
 		
-		// Set the initial scan code
 		call_extern(keyboardDriverPtr, 0x02, currentLow, currentHigh);
 		scanCodeLow  = currentLow;
 		scanCodeHigh = currentHigh;
 		
-		// Print message
 		print(msg_press_anykey, sizeof(msg_press_anykey));
 		updateCursorPosition();
 		
@@ -221,7 +218,6 @@ struct CommandConsole {
 		
 		while(1) {
 			
-			// Check for a scan code change
 			call_extern(keyboardDriverPtr, 0x02, currentLow, currentHigh);
 			if ((currentLow == scanCodeLow) & (currentHigh == scanCodeHigh))
 				continue;
