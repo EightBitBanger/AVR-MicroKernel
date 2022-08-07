@@ -7,7 +7,7 @@ void command_memory(uint8_t, uint8_t&, uint8_t&, uint8_t&, uint8_t&);
 
 struct ModuleLoaderMem {
 	ModuleLoaderMem() {
-		load_device(__MODULE_NAME_,  sizeof(__MODULE_NAME_), (Device)command_memory, _DEVICE_TYPE_MODULE__);
+		load_device(__MODULE_NAME_,  sizeof(__MODULE_NAME_), (Device)command_memory, DEVICE_TYPE_MODULE);
 	}
 }static loadModuleMem;
 #undef __MODULE_NAME_

@@ -40,7 +40,7 @@ struct ModuleLoaderNet {
 		waitstate = 4;
 		byte      = 0;
 	 	
-		load_device(__MODULE_NAME_,  sizeof(__MODULE_NAME_), (Device)net_entry_point, _DEVICE_TYPE_MODULE__);
+		load_device(__MODULE_NAME_,  sizeof(__MODULE_NAME_), (Device)net_entry_point, DEVICE_TYPE_MODULE);
 	}
 }static netModuleLoader;
 

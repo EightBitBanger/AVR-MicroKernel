@@ -1,6 +1,7 @@
 //
 // Device driver configuration
 
+#ifndef __ARDUINO_BOARD_
 
 // Safe mode device drivers
 #include "display/display.h"     // Liquid Crystal display card
@@ -19,4 +20,17 @@
 #include "gpio/gpio_card.h"      // GPIO card
 
 #endif
+
+#endif
+
+
+
+#ifdef __ARDUINO_BOARD_
+
+// Arduino boards
+#include "arduino/uno.h"         // Arduino UNO device driver
+
+
+#endif
+
 

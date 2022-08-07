@@ -10,7 +10,7 @@ char msg_task_not_found[]  = "Task not found";
 
 struct ModuleLoaderTask {
 	ModuleLoaderTask() {
-		load_device(__MODULE_NAME_, sizeof(__MODULE_NAME_), (Device)command_task, _DEVICE_TYPE_MODULE__);
+		load_device(__MODULE_NAME_, sizeof(__MODULE_NAME_), (Device)command_task, DEVICE_TYPE_MODULE);
 	}
 }static loadModuleTask;
 
@@ -29,7 +29,7 @@ void command_task(uint8_t, uint8_t&, uint8_t&, uint8_t&, uint8_t&) {
 	// List running processes/services
 	if (param0 == 'l') {
 		
-		for (uint8_t i=0; i<_PROCESS_LIST_SIZE__; i++) {
+		for (uint8_t i=0; i<PROCESS_LIST_SIZE; i++) {
 			
 			if (proc_info.name[i][0] == 0x20) continue;
 			
@@ -51,7 +51,7 @@ void command_task(uint8_t, uint8_t&, uint8_t&, uint8_t&, uint8_t&) {
 				console.printSpace();
 			}
 			
-			for (uint8_t a=0; a < _PROCESS_NAME_LENGTH_MAX__; a++) {
+			for (uint8_t a=0; a < PROCESS_NAME_LENGTH_MAX; a++) {
 				uint8_t nameChar = proc_info.name[i][a];
 				if (nameChar == 0x20) break;
 				console.printChar(nameChar);

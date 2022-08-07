@@ -1,12 +1,15 @@
 //
 // Command console library
-//  This driver requires support of associated display and keyboard drivers
+// NOTE: This driver requires support of associated display and keyboard drivers
+
+#ifndef _CONSOLE_DRIVER__
+#define _CONSOLE_DRIVER__
 
 #define _MAX_KEYBOARD_STRING_LENGTH__  32
 
 void ConsoleLibraryEntryPoint(uint8_t, uint8_t&, uint8_t&, uint8_t&, uint8_t&);
 
-char msg_press_anykey[]      = "Press any key...";
+char msg_press_anykey[] = "Press any key...";
 
 struct CommandConsole {
 	
@@ -33,7 +36,7 @@ struct CommandConsole {
 	
 	CommandConsole() {
 		
-		load_device(_COMMAND_CONSOLE__, sizeof(_COMMAND_CONSOLE__), (Device)ConsoleLibraryEntryPoint, _DEVICE_TYPE_LIBRARY__);
+		load_device(_COMMAND_CONSOLE__, sizeof(_COMMAND_CONSOLE__), (Device)ConsoleLibraryEntryPoint, DEVICE_TYPE_LIBRARY);
 		
 		for (uint8_t i=0; i<promptStringLength; i++) promptString[i] = 0x20;
 		promptString[0]      = '>';
@@ -59,8 +62,6 @@ struct CommandConsole {
 		
 		// Link to the display driver
 		if (get_func_address(_DISPLAY_CONSOLE__, sizeof(_DISPLAY_CONSOLE__), displayDriverPtr) == 0) return;
-		call_extern(displayDriverPtr, 0x05); // Clear mask memory
-		call_extern(displayDriverPtr, 0x04); // Clear char memory
 		
 		//printPrompt();
 		clearKeyboardString();
@@ -103,7 +104,6 @@ struct CommandConsole {
 	}
 	
 	
-	
 	// Print chars/strings to the console
 	void print(const char char_array[], uint8_t string_length) {
 		for (uint8_t i=0; i<string_length-1; i++) {
@@ -127,10 +127,10 @@ struct CommandConsole {
 		return;
 	}
 	
-	void printInt(uint32_t number) {
+	void printInt(uint32_t integer) {
 		
 		char numberString[10];
-		uint8_t place = int_get_string(number, numberString);
+		uint8_t place = int_get_string(integer, numberString);
 		if (place==0) place++;
 		
 		for (uint8_t i=0; i<place; i++) {
@@ -180,7 +180,6 @@ struct CommandConsole {
 	// Print a command prompt
 	void printPrompt(void) {
 		
-		// Cursor position following the prompt
 		cursorPos = promptStringLength;
 		uint8_t promptPos = 0;
 		
@@ -208,12 +207,10 @@ struct CommandConsole {
 		uint8_t currentLow   = 0x00;
 		uint8_t currentHigh  = 0x00;
 		
-		// Set the initial scan code
 		call_extern(keyboardDriverPtr, 0x02, currentLow, currentHigh);
 		scanCodeLow  = currentLow;
 		scanCodeHigh = currentHigh;
 		
-		// Print message
 		print(msg_press_anykey, sizeof(msg_press_anykey));
 		updateCursorPosition();
 		
@@ -221,7 +218,6 @@ struct CommandConsole {
 		
 		while(1) {
 			
-			// Check for a scan code change
 			call_extern(keyboardDriverPtr, 0x02, currentLow, currentHigh);
 			if ((currentLow == scanCodeLow) & (currentHigh == scanCodeHigh))
 				continue;
@@ -245,8 +241,8 @@ void ConsoleLibraryEntryPoint(uint8_t functionCall, uint8_t& paramA, uint8_t& pa
 	
 	switch(functionCall) {
 		
-		case _DEVICE_INITIATE__: {console.initiate(); break;}
-		case _DEVICE_SHUTDOWN__: {break;}
+		case DEVICE_CALL_INITIATE: {console.initiate(); _delay_ms(200); break;}
+		case DEVICE_CALL_SHUTDOWN: {break;}
 		
 		case 0x00: console.printChar(paramA); break;
 		case 0x01: console.printLn(); break;
@@ -265,10 +261,18 @@ void ConsoleLibraryEntryPoint(uint8_t functionCall, uint8_t& paramA, uint8_t& pa
 		case 0x0c: console.setCursorBlinkRate(paramA); break;
 		case 0x0d: console.pause_press_anykey(); break;
 		
+		case 0x0e: console.promptStringLength = paramA; break;
+		case 0x0f: console.promptString[0] = paramA;
+		           console.promptString[1] = paramB;
+		           console.promptString[2] = paramC;
+				   console.promptString[3] = paramD; break;
+		
 		default: break;
 	}
 	
 	return;
 }
 
+
+#endif
 

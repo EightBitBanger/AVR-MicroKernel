@@ -9,7 +9,7 @@ void application_task(void);
 struct ModuleLoaderApplication {
 	
 	ModuleLoaderApplication() {
-		load_device(__MODULE_NAME_,  sizeof(__MODULE_NAME_), (Device)application_entry_point, _DEVICE_TYPE_MODULE__);
+		load_device(__MODULE_NAME_,  sizeof(__MODULE_NAME_), (Device)application_entry_point, DEVICE_TYPE_MODULE);
 	}
 }static applicationModuleLoader;
 
@@ -17,7 +17,7 @@ struct ModuleLoaderApplication {
 
 void application_entry_point(uint8_t, uint8_t&, uint8_t&, uint8_t&, uint8_t&) {
 	
-	task_create(__MODULE_NAME_, sizeof(__MODULE_NAME_), application_task, _TASK_PRIORITY_NORMAL__, _TASK_USER__);
+	task_create(__MODULE_NAME_, sizeof(__MODULE_NAME_), application_task, TASK_PRIORITY_NORMAL, TASK_USER);
 	
 	
 	

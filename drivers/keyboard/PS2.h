@@ -18,7 +18,7 @@ struct KeyboardDriver {
 		device_bus.waitstate_read  = 0;
 		device_bus.waitstate_write = 0;
 		
-		load_device(_KEYBOARD_INPUT__, sizeof(_KEYBOARD_INPUT__), (Device)keyboardDeviceDriverEntryPoint, _DEVICE_TYPE_DRIVER__);
+		load_device(_KEYBOARD_INPUT__, sizeof(_KEYBOARD_INPUT__), (Device)keyboardDeviceDriverEntryPoint, DEVICE_TYPE_DRIVER);
 		
 	}
 	
@@ -54,8 +54,8 @@ void keyboardDeviceDriverEntryPoint(uint8_t functionCall, uint8_t& paramA, uint8
 	
 	switch(functionCall) {
 		
-		case _DEVICE_INITIATE__: {keyboard.initiate(); break;}
-		case _DEVICE_SHUTDOWN__: {keyboard.shutdown(); break;}
+		case DEVICE_CALL_INITIATE: {keyboard.initiate(); break;}
+		case DEVICE_CALL_SHUTDOWN: {keyboard.shutdown(); break;}
 		
 		case 0x00: {keyboard.read(paramA); break;}
 		case 0x01: {decodeScanCode(paramA, paramB, paramC); break;}
