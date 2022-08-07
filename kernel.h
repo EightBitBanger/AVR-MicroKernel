@@ -14,7 +14,7 @@
 //#define __BOOT_SAFEMODE_         // Load only the devices required to boot
 //#define __BOOT_LIGHTWEIGHT_      // Load minimal device modules
 
-//#define __ARDUINO_BOARD_
+//#define __ARDUINO_BOARD_         // Compile for an Arduino UNO
 
 #define _32_BIT_POINTERS__
 //#define _64_BIT_POINTERS__
@@ -142,30 +142,35 @@ void __kernel_initiate(void) {
 				} else {skip++;}
 			}
 			
-			// Print final memory count
-			line=1;
-			pos=0;
-			call_extern(console_device, 0x0a, line, pos);
-			call_extern(console_device, 0x04, total_memory.byte_t[0], total_memory.byte_t[1], total_memory.byte_t[2], total_memory.byte_t[3]);
-			
-			// Print "bytes free"
-			call_extern(console_device, 0x03); // Space
-			char bytesfreemsg[] = "bytes free";
-			for (uint8_t i=0; i < sizeof(bytesfreemsg)-1; i++) 
-				call_extern(console_device, 0x00, (uint8_t&)bytesfreemsg[i]);
-			
-			uint8_t size = 0xff;
-			WrappedPointer start_address;
-			start_address.address = 0x00000;
-			
-			// Zero the kernel memory range
-			call_extern(memory_device, 0x0a, start_address.byte_t[0], start_address.byte_t[1], start_address.byte_t[2], start_address.byte_t[3]);
-			for (uint8_t i=0; i < 10; i++) 
-				call_extern(memory_device, 0x02, size);
-			
-			// Write total memory size to kernel memory
-			call_extern(memory_device, 0x0a, total_memory.byte_t[0], total_memory.byte_t[1], total_memory.byte_t[2], total_memory.byte_t[3]);
-			call_extern(memory_device, 0x05);
+			if (total_memory.address > 0) {
+				
+				// Print final memory count
+				line=1;
+				pos=0;
+				call_extern(console_device, 0x0a, line, pos);
+				call_extern(console_device, 0x04, total_memory.byte_t[0], total_memory.byte_t[1], total_memory.byte_t[2], total_memory.byte_t[3]);
+				
+				// Print "bytes free"
+				call_extern(console_device, 0x03); // Space
+				char bytesfreemsg[] = "bytes free";
+				for (uint8_t i=0; i < sizeof(bytesfreemsg)-1; i++) 
+					call_extern(console_device, 0x00, (uint8_t&)bytesfreemsg[i]);
+				
+				uint8_t size = 0xff;
+				WrappedPointer start_address;
+				start_address.address = 0x00000;
+				
+				// Zero the kernel memory range
+				call_extern(memory_device, 0x0a, start_address.byte_t[0], start_address.byte_t[1], start_address.byte_t[2], start_address.byte_t[3]);
+				for (uint8_t i=0; i < 10; i++) 
+					call_extern(memory_device, 0x02, size);
+				
+				// Write total memory size to kernel memory
+				call_extern(memory_device, 0x0a, total_memory.byte_t[0], total_memory.byte_t[1], total_memory.byte_t[2], total_memory.byte_t[3]);
+				call_extern(memory_device, 0x05);
+				
+				call_extern(console_device, 0x01); // New line
+			}
 			
 		}
 	}
@@ -177,7 +182,6 @@ void __kernel_initiate(void) {
 	call_extern(console_device, 0x0f, prompt_string[0], prompt_string[1], prompt_string[2], prompt_string[3]);
 	
 	// Drop a command prompt
-	call_extern(console_device, 0x01); // New line
 	call_extern(console_device, 0x02); // Print prompt
 	
 	if (get_func_address(_INTERNAL_SPEAKER__, sizeof(_INTERNAL_SPEAKER__), speaker_device) != 0) {
