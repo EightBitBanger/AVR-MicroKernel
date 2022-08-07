@@ -32,10 +32,10 @@ void call_extern(Device& entry_pointer, uint8_t function_call, uint8_t& paramA, 
 
 struct DeviceTable {
 	
-	char    name[DEVICE_TABLE_SIZE][DEVICE_NAME_LENGTH_MAX];
-	uint8_t type[DEVICE_TABLE_SIZE];
+	char    name  [DEVICE_TABLE_SIZE][DEVICE_NAME_LENGTH_MAX];
+	uint8_t type  [DEVICE_TABLE_SIZE];
 	
-	void (*table[DEVICE_TABLE_SIZE])(uint8_t, uint8_t&, uint8_t&, uint8_t&, uint8_t&);
+	void  (*table [DEVICE_TABLE_SIZE])(uint8_t, uint8_t&, uint8_t&, uint8_t&, uint8_t&);
 	
 }volatile static device_table;
 

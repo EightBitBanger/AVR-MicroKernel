@@ -11,7 +11,6 @@
 #define _BUS_LOWER_PORT_A__     // Define port A as the lower address bus
 #define _BUS_MIDDLE_PORT_C__    // Define Port C as the middle address bus
 #define _BUS_UPPER_PORT_D__     // Define port D as the upper address bus
-
 #define _BUS_CONTROL_PORT_B__   // Define port B as the control bus
 
 // Control signals
