@@ -7,14 +7,14 @@
 #define PROCESS_LIST_SIZE              10
 #define PROCESS_NAME_LENGTH_MAX        10
 
-#define TASK_USER                      'u' // User task
-#define TASK_SERVICE                   's' // System service task
-#define TASK_VOLATILE                  'v' // Volatile task
+#define TASK_TYPE_USER                 'u' // User task
+#define TASK_TYPE_SERVICE              's' // System service task
+#define TASK_TYPE_VOLATILE             'v' // Volatile task
 
-#define TASK_PRIORITY_BACKGROUND       80
-#define TASK_PRIORITY_LOW              40
-#define TASK_PRIORITY_NORMAL           20
-#define TASK_PRIORITY_HIGH             10
+#define TASK_PRIORITY_BACKGROUND       64
+#define TASK_PRIORITY_LOW              32
+#define TASK_PRIORITY_NORMAL           16
+#define TASK_PRIORITY_HIGH             8
 #define TASK_PRIORITY_REALTIME         1
 
 
@@ -36,14 +36,14 @@
 
 
 // Schedule a new task
-uint8_t task_create(const char task_name[], uint8_t name_length, void(*task_ptr)(), uint32_t priority, uint8_t task_type);
+uint8_t task_create(const char* name, uint8_t name_length, void(*task_ptr)(), uint32_t priority, uint8_t type);
 // Remove a running task
 uint8_t task_destroy(uint8_t PID);
 // Get a task index by its name
-uint8_t get_task_index(const char task_name[], uint8_t name_length);
+uint8_t get_task_index(const char* name, uint8_t name_length);
 
 
-// Millisecond timer/counter
+// Millisecond timer
 static volatile uint32_t timer_ms  = 0;
 
 
@@ -58,26 +58,21 @@ struct ProcessDescriptorTable {
 }volatile static proc_info;
 
 
-uint8_t task_create(const char task_name[], uint8_t name_length, void(*task_ptr)(), uint32_t priority, uint8_t task_type) {
+uint8_t task_create(const char* name, uint8_t name_length, void(*task_ptr)(), uint32_t priority, uint8_t type) {
 	
-	// Check name length
 	if (name_length > PROCESS_NAME_LENGTH_MAX) 
 		name_length = PROCESS_NAME_LENGTH_MAX;
 	
-	// Find an available slot
 	uint8_t index;
-	for (index=0; index < PROCESS_LIST_SIZE; index++) {
+	for (index=0; index < PROCESS_LIST_SIZE; index++) 
 		if (proc_info.priority[index] == 0) break;
-	}
 	
-	// No free slots
 	if (index >= PROCESS_LIST_SIZE) return 0;
 	
-	// Launch the new process
 	for (uint8_t a=0; a < name_length-1; a++)
-		proc_info.name[index][a] = task_name[a];
+		proc_info.name[index][a] = name[a];
 	
-	proc_info.type[index]      = task_type;
+	proc_info.type[index]      = type;
 	proc_info.priority[index]  = priority;
 	proc_info.counter[index]   = 0;
 	proc_info.table[index]     = task_ptr;
@@ -105,23 +100,24 @@ uint8_t task_destroy(uint8_t index) {
 }
 
 
-uint8_t get_task_index(char task_name[], uint8_t name_length) {
+uint8_t get_task_index(const char* name, uint8_t name_length) {
 	
-	// Check name length
 	if (name_length > PROCESS_NAME_LENGTH_MAX)
 		name_length = PROCESS_NAME_LENGTH_MAX;
 	
-	char list_task_name[name_length];
+	char task_name[name_length];
+	for (uint8_t i=0; i < name_length; i++)
+		task_name[i] = name[i];
 	
 	for (uint8_t index=0; index< PROCESS_LIST_SIZE; index++) {
 		
 		if (proc_info.name[index][0] == 0x20) continue;
 		
-		// Get task name from the list
+		char list_task_name[name_length];
 		for (uint8_t i=0; i < name_length; i++) 
 			list_task_name[i] = proc_info.name[index][i];
 		
-		if (string_compare(task_name, list_task_name, name_length) == 1) 
+		if (strcmp(task_name, list_task_name, name_length) == 1) 
 			return (index + 1);
 		
 	}
@@ -149,7 +145,7 @@ ISR (TIMER0_COMPA_vect) {
 		
 		switch (proc_info.type[PID]) {
 			
-			case TASK_VOLATILE: {
+			case TASK_TYPE_VOLATILE: {
 				
 				for (uint8_t i=0; i < PROCESS_NAME_LENGTH_MAX; i++) 
 					proc_info.name[PID][i] = 0x20;
@@ -201,7 +197,6 @@ void __scheduler_start(void) {
 	
 	OCR0A   = _SCHEDULER_OCR;
 	
-	// Enable interrupts
 	sei();
 	
 #endif

@@ -69,7 +69,7 @@ struct __INITIATE_KERNEL_TABLES_ {
 } static __initiate_kernel_tables_;
 
 // Hardware information detection
-#include "kernel/hardware_detect.h"
+#include "kernel/hardware_detection.h"
 
 // Load device drivers, function modules and system services
 #include "drivers/config.h"

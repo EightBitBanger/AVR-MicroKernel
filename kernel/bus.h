@@ -1,13 +1,9 @@
-//
-// IO abstraction for implementation of a bus interface
-
 #ifndef ____BUS_INTERFACE__
 #define ____BUS_INTERFACE__
 
+// Bus abstraction for implementation of an IO bus interface
 
-// Address bus port layout
 // NOTE: Address and data buses are multiplexed requiring external logic
-
 #define _BUS_LOWER_PORT_A__     // Define port A as the lower address bus
 #define _BUS_MIDDLE_PORT_C__    // Define Port C as the middle address bus
 #define _BUS_UPPER_PORT_D__     // Define port D as the upper address bus

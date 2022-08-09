@@ -6,16 +6,12 @@
 
 // Event handler entry point
 void keyboard_event_handler(void);
-
 // Enter function
 void eventKeyboardEnter(void);
-
 // Backspace function
 void eventKeyboardBackspace(void);
-
 // Accept a character onto the keyboard string of typed characters
 void eventKeyboardAcceptChar(uint8_t new_char);
-
 
 
 struct CommandConsoleServiceLauncher {
@@ -30,7 +26,7 @@ struct CommandConsoleServiceLauncher {
 		// Link to the keyboard device driver
 		get_func_address(_KEYBOARD_INPUT__, sizeof(_KEYBOARD_INPUT__), keyboard_device);
 		
-		task_create(_SERVICE_NAME__, sizeof(_SERVICE_NAME__), keyboard_event_handler, TASK_PRIORITY_REALTIME, TASK_SERVICE);
+		task_create(_SERVICE_NAME__, sizeof(_SERVICE_NAME__), keyboard_event_handler, TASK_PRIORITY_REALTIME, TASK_TYPE_SERVICE);
 		
 		// Initiate the current key state
 		call_extern(keyboard_device, 0x02, scanCodeLow, scanCodeHigh);
@@ -120,7 +116,7 @@ void eventKeyboardEnter(void) {
 			}
 			
 			// Check for the function name in keyboard string
-			if (string_compare(functionName, console.keyboard_string, name_length+1) == 0) continue;
+			if (strcmp(functionName, console.keyboard_string, name_length+1) == 0) continue;
 			if ((console.keyboard_string[ name_length ]) != 0x20) continue;
 			
 			// Execute the command

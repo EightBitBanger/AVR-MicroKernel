@@ -1,48 +1,38 @@
-//
-// C string functions
+#ifndef __C_STRING____
+#define __C_STRING____
 
-// Return the number of given characters in the string
-uint8_t string_char_count(char[], unsigned int, char);
 
+// Return the number of given sub characters in the string
+uint8_t strsub(char* string, unsigned int string_size, char sub_character);
 // Compare a string to another string of the length specified
-uint8_t string_compare(char[], char[], uint8_t);
+uint8_t strcmp(char* string_a, char* string_b, uint8_t string_length);
 
-// Convert an integer to a char array
-uint8_t int_get_string(uint32_t, char[]);
-
-uint8_t string_length(char[], uint8_t);
-
+// Convert an integer to a string representation of the given number
+uint8_t int_get_string(uint32_t number, char* destination_string);
 // Returns the value from the given hex chars. String should contain two hex chars ex: "3f"
-uint8_t string_get_hex_char(char string[]);
+uint8_t string_get_hex_char(char* string);
 
 
 
-
-uint8_t string_char_count(char cstring[], unsigned int string_size, char sub_character) {
+uint8_t strsub(char* string, unsigned int string_size, char sub_character) {
 	
 	uint8_t count=0;
 	
 	for (uint8_t i=0; i < string_size; i++) {
-		if (cstring[i] == sub_character) count++;
+		if (string[i] == sub_character) count++;
 	}
 	
 	return count;
 }
 
-uint8_t string_compare(char string_a[], char string_b[], uint8_t string_length) {
+
+uint8_t strcmp(char* string_a, char* string_b, uint8_t string_length) {
 	for (uint8_t i=0; i < string_length-1; i++) {if (string_a[i] != string_b[i]) return 0;}
 	return 1;
 }
 
-uint8_t string_length(char cstring[], uint8_t string_length) {
-	uint32_t length = 0;
-	for (uint32_t i=0; i < string_length; i++) {
-		length++; if (cstring[i] == 0x20) break;
-	}
-	return length;
-}
 
-uint8_t int_get_string(uint32_t number, char destination_string[]) {
+uint8_t int_get_string(uint32_t number, char* destination_string) {
 	
 	uint8_t ones = 0x30;
 	uint8_t tens = 0x30;
@@ -85,7 +75,7 @@ uint8_t int_get_string(uint32_t number, char destination_string[]) {
 	return place;
 }
 
-uint8_t string_get_hex_char(char string[]) {
+uint8_t string_get_hex_char(char* string) {
 	
 	uint32_t value_a = 0;
 	uint32_t value_b = 0;
@@ -103,5 +93,7 @@ uint8_t string_get_hex_char(char string[]) {
 	
 	return value_a + (value_b * 16);
 }
+
+#endif
 
 

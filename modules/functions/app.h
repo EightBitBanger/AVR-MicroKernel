@@ -17,7 +17,7 @@ struct ModuleLoaderApplication {
 
 void application_entry_point(uint8_t, uint8_t&, uint8_t&, uint8_t&, uint8_t&) {
 	
-	task_create(__MODULE_NAME_, sizeof(__MODULE_NAME_), application_task, TASK_PRIORITY_NORMAL, TASK_USER);
+	task_create(__MODULE_NAME_, sizeof(__MODULE_NAME_), application_task, TASK_PRIORITY_NORMAL, TASK_TYPE_USER);
 	
 	
 	
