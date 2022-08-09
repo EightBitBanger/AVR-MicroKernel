@@ -62,21 +62,16 @@ struct EEPROMStorage {
 
 void EEPROMDeviceDriverEntryPoint(uint8_t functionCall, uint8_t& paramA, uint8_t& paramB, uint8_t& paramC, uint8_t& paramD) {
 	
-	switch(functionCall) {
-		
-		case DEVICE_CALL_INITIATE: {eepromStorage.initiate(); break;}
-		case DEVICE_CALL_SHUTDOWN: {eepromStorage.shutdown(); break;}
-		case DEVICE_CALL_ADDRESS:  {eepromStorage.pointer.byte_t[0] = paramA; eepromStorage.pointer.byte_t[1] = paramB; eepromStorage.pointer.byte_t[2] = paramC; eepromStorage.pointer.byte_t[3] = paramD; break;}
-		
-		case 0x01:  eepromStorage.write(eepromStorage.pointer.address, paramA); break;
-		case 0x02:  eepromStorage.read(eepromStorage.pointer.address, (char&)paramA); break;
-		
-		// Auto increment Read / Write
-		case 0x03:  eepromStorage.write(eepromStorage.pointer.address, paramA);       eepromStorage.pointer.address++; break;
-		case 0x04:  eepromStorage.read(eepromStorage.pointer.address, (char&)paramA); eepromStorage.pointer.address++; break;
-		
-		default: break;
-	}
+	if (functionCall == DEVICE_CALL_INITIATE) {eepromStorage.initiate(); return;}
+	if (functionCall == DEVICE_CALL_SHUTDOWN) {eepromStorage.shutdown(); return;}
+	if (functionCall == DEVICE_CALL_ADDRESS) {eepromStorage.pointer.byte_t[0] = paramA; eepromStorage.pointer.byte_t[1] = paramB; eepromStorage.pointer.byte_t[2] = paramC; eepromStorage.pointer.byte_t[3] = paramD; return;}
+	
+	if (functionCall == 0x01) {eepromStorage.write(eepromStorage.pointer.address, paramA); return;}
+	if (functionCall == 0x02) {eepromStorage.read(eepromStorage.pointer.address, (char&)paramA); return;}
+	
+	// Auto increment Read / Write
+	if (functionCall == 0x03) {eepromStorage.write(eepromStorage.pointer.address, paramA);       eepromStorage.pointer.address++; return;}
+	if (functionCall == 0x04) {eepromStorage.read(eepromStorage.pointer.address, (char&)paramA); eepromStorage.pointer.address++; return;}
 	
 	return;
 }

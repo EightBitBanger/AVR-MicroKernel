@@ -29,31 +29,14 @@ struct TemplateDeviceDriver {
 
 void arduinoUNODeviceDriverEntryPoint(uint8_t functionCall, uint8_t& paramA, uint8_t& paramB, uint8_t& paramC, uint8_t& paramD) {
 	
-	switch(functionCall) {
-		
-		case DEVICE_CALL_INITIATE: {arduinoUNODeviceDriver.initiate(); break;}
-		case DEVICE_CALL_SHUTDOWN: {arduinoUNODeviceDriver.shutdown(); break;}
-		
-		//case 0x00: {break;}
-		
-		default: break;
-	}
+	if (functionCall == DEVICE_CALL_INITIATE) {arduinoUNODeviceDriver.initiate(); return;}
+	if (functionCall == DEVICE_CALL_SHUTDOWN) {arduinoUNODeviceDriver.shutdown(); return;}
 	
 	return;
 }
 
 
 #undef _DEVICE_DRIVER_NAME__
-
-
-
-
-
-
-
-
-
-
 
 
 #endif

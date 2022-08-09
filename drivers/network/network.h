@@ -62,32 +62,28 @@ struct NetworkInterfaceDriver {
 // Device Driver entry point
 void NetworkInterfaceDeviceDriverEntryPoint(uint8_t functionCall, uint8_t& paramA, uint8_t& paramB, uint8_t& paramC, uint8_t& paramD) {
 	
-	switch(functionCall) {
-		
-		case DEVICE_CALL_INITIATE: {networkInterfaceDriver.initiate(); break;}
-		case DEVICE_CALL_SHUTDOWN: {networkInterfaceDriver.shutdown(); break;}
-		case DEVICE_CALL_ADDRESS: {
-			WrappedPointer pointer; pointer.byte_t[0] = paramA; pointer.byte_t[1] = paramB; pointer.byte_t[2] = paramC; pointer.byte_t[3] = paramD;
-			networkInterfaceDriver.device_address = pointer.address;
-		}
-		
-		case 0x00: {networkInterfaceDriver.writeTXflag(paramA); break;}
-		case 0x01: {networkInterfaceDriver.readTXflag(paramA); break;}
-		
-		case 0x02: {networkInterfaceDriver.writeRXflag(paramA); break;}
-		case 0x03: {networkInterfaceDriver.readRXflag(paramA); break;}
-		
-		case 0x04: {networkInterfaceDriver.writeTXbuffer(paramA); break;}
-		case 0x05: {networkInterfaceDriver.readTXbuffer(paramA); break;}
-		
-		case 0x06: {networkInterfaceDriver.writeBaudrateFlag(paramA); break;}
-		case 0x07: {networkInterfaceDriver.writeBaudrate(paramA); break;}
-		
-		case 0x09: {networkInterfaceDriver.writeRXbuffer(paramA, paramB); break;}
-		case 0x0a: {networkInterfaceDriver.readRXbuffer(paramA, paramB); break;}
-		
-		default: break;
+	if (functionCall == DEVICE_CALL_INITIATE) {networkInterfaceDriver.initiate(); return;}
+	if (functionCall == DEVICE_CALL_SHUTDOWN) {networkInterfaceDriver.shutdown(); return;}
+	if (functionCall == DEVICE_CALL_ADDRESS) {
+		WrappedPointer pointer; pointer.byte_t[0] = paramA; pointer.byte_t[1] = paramB; pointer.byte_t[2] = paramC; pointer.byte_t[3] = paramD;
+		networkInterfaceDriver.device_address = pointer.address;
+		return;
 	}
+	
+	if (functionCall == 0x00) {networkInterfaceDriver.writeTXflag(paramA); return;}
+	if (functionCall == 0x01) {networkInterfaceDriver.readTXflag(paramA); return;}
+	
+	if (functionCall == 0x02) {networkInterfaceDriver.writeRXflag(paramA); return;}
+	if (functionCall == 0x03) {networkInterfaceDriver.readRXflag(paramA); return;}
+	
+	if (functionCall == 0x04) {networkInterfaceDriver.writeTXbuffer(paramA); return;}
+	if (functionCall == 0x05) {networkInterfaceDriver.readTXbuffer(paramA); return;}
+	
+	if (functionCall == 0x06) {networkInterfaceDriver.writeBaudrateFlag(paramA); return;}
+	if (functionCall == 0x07) {networkInterfaceDriver.writeBaudrate(paramA); return;}
+	
+	if (functionCall == 0x09) {networkInterfaceDriver.writeRXbuffer(paramA, paramB); return;}
+	if (functionCall == 0x0a) {networkInterfaceDriver.readRXbuffer(paramA, paramB); return;}
 	
 	return;
 }

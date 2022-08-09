@@ -22,7 +22,7 @@ struct TemplateDeviceDriver {
 		device_bus.waitstate_read  = _HARDWARE_WAITSTATE__;
 		device_bus.waitstate_write = _HARDWARE_WAITSTATE__;
 		
-		load_device(_DEVICE_DRIVER_NAME__, sizeof(_DEVICE_DRIVER_NAME__), (Device)templateDeviceDriverEntryPoint, _DEVICE_TYPE_DRIVER__);
+		load_device(_DEVICE_DRIVER_NAME__, sizeof(_DEVICE_DRIVER_NAME__), (Device)templateDeviceDriverEntryPoint, DEVICE_TYPE_DRIVER);
 	}
 	
 	void initiate(void) {
@@ -42,20 +42,16 @@ struct TemplateDeviceDriver {
 
 void templateDeviceDriverEntryPoint(uint8_t functionCall, uint8_t& paramA, uint8_t& paramB, uint8_t& paramC, uint8_t& paramD) {
 	
-	switch(functionCall) {
-		
-		case _DEVICE_INITIATE__: {templateDeviceDriver.initiate(); break;}
-		case _DEVICE_SHUTDOWN__: {templateDeviceDriver.shutdown(); break;}
-		case _DEVICE_ADDRESS__: {
-			WrappedPointer pointer; pointer.byte_t[0] = paramA; pointer.byte_t[1] = paramB; pointer.byte_t[2] = paramC; pointer.byte_t[3] = paramD;
-			templateDeviceDriver.device_address = pointer.address;
-		}
-		
-		case 0x00: {templateDeviceDriver.read(templateDeviceDriver.device_address, (char&)paramA); break;}
-		case 0x01: {templateDeviceDriver.write(templateDeviceDriver.device_address, (char)paramA); break;}
-		
-		default: break;
+	if (functionCall == DEVICE_CALL_INITIATE) {templateDeviceDriver.initiate(); return;}
+	if (functionCall == DEVICE_CALL_SHUTDOWN) {templateDeviceDriver.shutdown(); return;}
+	if (functionCall == DEVICE_CALL_ADDRESS) {
+		WrappedPointer pointer; pointer.byte_t[0] = paramA; pointer.byte_t[1] = paramB; pointer.byte_t[2] = paramC; pointer.byte_t[3] = paramD;
+		templateDeviceDriver.device_address = pointer.address;
+		return;
 	}
+	
+	if (functionCall == 0x00) {templateDeviceDriver.read(templateDeviceDriver.device_address, (char&)paramA); return;}
+	if (functionCall == 0x01) {templateDeviceDriver.write(templateDeviceDriver.device_address, (char)paramA); return;}
 	
 	return;
 }

@@ -52,17 +52,12 @@ struct KeyboardDriver {
 
 void keyboardDeviceDriverEntryPoint(uint8_t functionCall, uint8_t& paramA, uint8_t& paramB, uint8_t& paramC, uint8_t& paramD) {
 	
-	switch(functionCall) {
-		
-		case DEVICE_CALL_INITIATE: {keyboard.initiate(); break;}
-		case DEVICE_CALL_SHUTDOWN: {keyboard.shutdown(); break;}
-		
-		case 0x00: {keyboard.read(paramA); break;}
-		case 0x01: {decodeScanCode(paramA, paramB, paramC); break;}
-		case 0x02: {keyboard.read_scancodes(paramA, paramB); break;}
-		
-		default: break;
-	}
+	if (functionCall == DEVICE_CALL_INITIATE) {keyboard.initiate(); return;}
+	if (functionCall == DEVICE_CALL_SHUTDOWN) {keyboard.shutdown(); return;}
+	
+	if (functionCall == 0x00) {keyboard.read(paramA); return;}
+	if (functionCall == 0x01) {decodeScanCode(paramA, paramB, paramC); return;}
+	if (functionCall == 0x02) {keyboard.read_scancodes(paramA, paramB); return;}
 	
 	return;
 }

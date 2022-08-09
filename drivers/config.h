@@ -9,7 +9,6 @@
 #include "keyboard/PS2.h"        // On-board PS2 keyboard
 
 
-
 #ifndef __BOOT_SAFEMODE_
 
 // Normal mode device drivers

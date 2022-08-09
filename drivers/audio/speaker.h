@@ -67,15 +67,8 @@ void SpeakerDriverDeviceDriverEntryPoint(uint8_t functionCall, uint8_t& paramA, 
 	
 	WrappedPointer pointer;
 	
-	switch(functionCall) {
-		
-		case DEVICE_CALL_INITIATE: {speakerDriver.initiate(); break;}
-		case DEVICE_CALL_SHUTDOWN: {speakerDriver.shutdown(); break;}
-		
-		case 0x00: {speakerDriver.beep(paramA, paramB); break;}
-		
-		default: break;
-	}
+	if (functionCall == DEVICE_CALL_INITIATE) {speakerDriver.initiate(); return;}
+	if (functionCall == DEVICE_CALL_SHUTDOWN) {speakerDriver.shutdown(); return;}
 	
 	return;
 }

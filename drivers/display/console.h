@@ -239,35 +239,31 @@ struct CommandConsole {
 
 void ConsoleLibraryEntryPoint(uint8_t functionCall, uint8_t& paramA, uint8_t& paramB, uint8_t& paramC, uint8_t& paramD) {
 	
-	switch(functionCall) {
-		
-		case DEVICE_CALL_INITIATE: {console.initiate(); _delay_ms(200); break;}
-		case DEVICE_CALL_SHUTDOWN: {break;}
-		
-		case 0x00: console.printChar(paramA); break;
-		case 0x01: console.printLn(); break;
-		case 0x02: console.printPrompt(); break;
-		case 0x03: console.printSpace(); break;
-		
-		case 0x04: {
+	if (functionCall == DEVICE_CALL_INITIATE) {console.initiate(); _delay_ms(200); return;}
+	if (functionCall == DEVICE_CALL_SHUTDOWN) {return;}
+	
+	if (functionCall == 0x00) {console.printChar(paramA); return;}
+	if (functionCall == 0x01) {console.printLn(); return;}
+	if (functionCall == 0x02) {console.printPrompt(); return;}
+	if (functionCall == 0x03) {console.printSpace(); return;}
+	
+	if (functionCall == 0x04) {
 			WrappedPointer pointer;
 			pointer.byte_t[0] = paramA; pointer.byte_t[1] = paramB; pointer.byte_t[2] = paramC; pointer.byte_t[3] = paramD;
 			console.printInt(pointer.address);
-			break;
+			return;
 		}
-		
-		case 0x0a: console.setCursorPosition(paramA, paramB); break;
-		case 0x0b: console.setCursorCharacter(paramA); break;
-		case 0x0c: console.setCursorBlinkRate(paramA); break;
-		case 0x0d: console.pause_press_anykey(); break;
-		
-		case 0x0e: console.promptStringLength = paramA; break;
-		case 0x0f: console.promptString[0] = paramA;
-		           console.promptString[1] = paramB;
-		           console.promptString[2] = paramC;
-				   console.promptString[3] = paramD; break;
-		
-		default: break;
+	
+	if (functionCall == 0x0a) {console.setCursorPosition(paramA, paramB); return;}
+	if (functionCall == 0x0b) {console.setCursorCharacter(paramA); return;}
+	if (functionCall == 0x0c) {console.setCursorBlinkRate(paramA); return;}
+	if (functionCall == 0x0d) {console.pause_press_anykey(); return;}
+	
+	if (functionCall == 0x0e) {console.promptStringLength = paramA; return;}
+	if (functionCall == 0x0f) {console.promptString[0] = paramA;
+		                       console.promptString[1] = paramB;
+		                       console.promptString[2] = paramC;
+				               console.promptString[3] = paramD; return;
 	}
 	
 	return;

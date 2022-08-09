@@ -105,38 +105,35 @@ void ExtendedMemoryDeviceDriverEntryPoint(uint8_t functionCall, uint8_t& paramA,
 	
 	WrappedPointer pointer;
 	
-	switch(functionCall) {
-		
-		case DEVICE_CALL_INITIATE: {extendedMemoryDriver.initiate(); break;}
-		case DEVICE_CALL_SHUTDOWN: {extendedMemoryDriver.shutdown(); break;}
-		
-		case 0x00:  extendedMemoryDriver.returnAddress = extendedMemoryDriver.stack_push(extendedMemoryDriver.currentAddress); break;
-		case 0x01:  extendedMemoryDriver.stack_pop(extendedMemoryDriver.currentAddress); break;
-		case 0x02:  extendedMemoryDriver.mem_zero(extendedMemoryDriver.currentAddress, paramA); extendedMemoryDriver.currentAddress += paramA; break;
-		case 0x03:  extendedMemoryDriver.returnAddress = extendedMemoryDriver.stack_size(); break;
-		case 0x04:  extendedMemoryDriver.returnAddress = extendedMemoryDriver._STACK_END__; break;
-		case 0x05:  extendedMemoryDriver._STACK_END__ = extendedMemoryDriver.currentAddress; break;
-		
-		
-		// Set the address pointer
-		case 0x0a: 
-			pointer.byte_t[0] = paramA;
-			pointer.byte_t[1] = paramB;
-			pointer.byte_t[2] = paramC;
-			pointer.byte_t[3] = paramD;
-			extendedMemoryDriver.currentAddress = pointer.address;
-			break;
-		
-		// Get the return pointer
-		case 0x0c: 
-			pointer.address = extendedMemoryDriver.returnAddress;
-			paramA = pointer.byte_t[0];
-			paramB = pointer.byte_t[1];
-			paramC = pointer.byte_t[2];
-			paramD = pointer.byte_t[3];
-			break;
-		
-		default: break;
+	if (functionCall == DEVICE_CALL_INITIATE) {extendedMemoryDriver.initiate(); return;}
+	if (functionCall == DEVICE_CALL_SHUTDOWN) {extendedMemoryDriver.shutdown(); return;}
+	
+	if (functionCall == 0x00) {extendedMemoryDriver.returnAddress = extendedMemoryDriver.stack_push(extendedMemoryDriver.currentAddress); return;}
+	if (functionCall == 0x01) {extendedMemoryDriver.stack_pop(extendedMemoryDriver.currentAddress); return;}
+	if (functionCall == 0x02) {extendedMemoryDriver.mem_zero(extendedMemoryDriver.currentAddress, paramA); extendedMemoryDriver.currentAddress += paramA; return;}
+	if (functionCall == 0x03) {extendedMemoryDriver.returnAddress = extendedMemoryDriver.stack_size(); return;}
+	if (functionCall == 0x04) {extendedMemoryDriver.returnAddress = extendedMemoryDriver._STACK_END__; return;}
+	if (functionCall == 0x05) {extendedMemoryDriver._STACK_END__ = extendedMemoryDriver.currentAddress; return;}
+	
+	
+	// Set the address pointer
+	if (functionCall == 0x0a) {
+		pointer.byte_t[0] = paramA;
+		pointer.byte_t[1] = paramB;
+		pointer.byte_t[2] = paramC;
+		pointer.byte_t[3] = paramD;
+		extendedMemoryDriver.currentAddress = pointer.address;
+		return;
+	}
+	
+	// Get the return pointer
+	if (functionCall == 0x0c) {
+		pointer.address = extendedMemoryDriver.returnAddress;
+		paramA = pointer.byte_t[0];
+		paramB = pointer.byte_t[1];
+		paramC = pointer.byte_t[2];
+		paramD = pointer.byte_t[3];
+		return;
 	}
 	
 	return;

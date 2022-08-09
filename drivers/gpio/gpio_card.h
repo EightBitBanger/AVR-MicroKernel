@@ -45,15 +45,9 @@ void GPIOCardDeviceDriverEntryPoint(uint8_t functionCall, uint8_t& paramA, uint8
 	
 	WrappedPointer pointer;
 	
-	switch(functionCall) {
-		
-		case DEVICE_CALL_INITIATE: {GPIOCardDriver.initiate(); break;}
-		case DEVICE_CALL_SHUTDOWN: {GPIOCardDriver.shutdown(); break;}
-		
-		case 0x00: {GPIOCardDriver.write(GPIOCardDriver.portAddress + paramA, paramB); break;}
-		
-		default: break;
-	}
+	if (functionCall == DEVICE_CALL_INITIATE) {GPIOCardDriver.initiate(); return;}
+	if (functionCall == DEVICE_CALL_SHUTDOWN) {GPIOCardDriver.shutdown(); return;}
+	if (functionCall == 0x00) {GPIOCardDriver.write(GPIOCardDriver.portAddress + paramA, paramB); return;}
 	
 	return;
 }

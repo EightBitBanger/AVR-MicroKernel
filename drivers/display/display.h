@@ -91,31 +91,26 @@ struct DisplayDriver {
 // Driver entry point
 void DisplayDeviceDriverEntryPoint(uint8_t functionCall, uint8_t& paramA, uint8_t& paramB, uint8_t& paramC, uint8_t& paramD) {
 	
-	switch(functionCall) {
-		
-		case DEVICE_CALL_INITIATE: {displayDriver.initiate(); break;}
-		case DEVICE_CALL_SHUTDOWN: {displayDriver.shutdown(); break;}
-		case DEVICE_CALL_ADDRESS: {
-			WrappedPointer pointer; pointer.byte_t[0] = paramA; pointer.byte_t[1] = paramB; pointer.byte_t[2] = paramC; pointer.byte_t[3] = paramD;
-			displayDriver.device_address = pointer.address;
-		}
-		
-		case 0x00: displayDriver.cursorSetPosition(paramA, paramB); break;
-		case 0x01: displayDriver.cursorSetCharacter(paramA); break;
-		case 0x02: displayDriver.cursorSetBlinkRate(paramA); break;
-		case 0x03: displayDriver.cursorSetRefreshRate(paramA); break;
-		
-		case 0x04: displayDriver.clearBuffer(); break;
-		case 0x05: displayDriver.clearMask(); break;
-		case 0x06: displayDriver.clearLine(paramA); break;
-		
-		case 0x07: displayDriver.frameShiftUp(); break;
-		case 0x08: displayDriver.frameShiftDown(); break;
-		
-		case 0x09: displayDriver.writeChar(paramA, paramB, paramC); break;
-		
-		default: break;
+	if (functionCall == DEVICE_CALL_INITIATE) {displayDriver.initiate(); return;}
+	if (functionCall == DEVICE_CALL_SHUTDOWN) {displayDriver.shutdown(); return;}
+	if (functionCall == DEVICE_CALL_ADDRESS) {
+		WrappedPointer pointer; pointer.byte_t[0] = paramA; pointer.byte_t[1] = paramB; pointer.byte_t[2] = paramC; pointer.byte_t[3] = paramD;
+		displayDriver.device_address = pointer.address; return;
 	}
+	
+	if (functionCall == 0x00) {displayDriver.cursorSetPosition(paramA, paramB); return;}
+	if (functionCall == 0x01) {displayDriver.cursorSetCharacter(paramA); return;}
+	if (functionCall == 0x02) {displayDriver.cursorSetBlinkRate(paramA); return;}
+	if (functionCall == 0x03) {displayDriver.cursorSetRefreshRate(paramA); return;}
+	
+	if (functionCall == 0x04) {displayDriver.clearBuffer(); return;}
+	if (functionCall == 0x05) {displayDriver.clearMask(); return;}
+	if (functionCall == 0x06) {displayDriver.clearLine(paramA); return;}
+	
+	if (functionCall == 0x07) {displayDriver.frameShiftUp(); return;}
+	if (functionCall == 0x08) {displayDriver.frameShiftDown(); return;}
+	
+	if (functionCall == 0x09) {displayDriver.writeChar(paramA, paramB, paramC); return;}
 	
 	return;
 }
