@@ -21,11 +21,11 @@ static uint8_t nullchar = 0;
 
 
 // Load a device onto the device table
-uint8_t load_device(const char name[], uint8_t name_length, Device device_pointer, uint8_t type);
+uint8_t load_device(const char* name, uint8_t name_length, Device device_pointer, uint8_t type);
 // Unload a device from the table
-uint8_t free_device(const char name[], uint8_t name_length);
+uint8_t free_device(const char* name, uint8_t name_length);
 // Get a device entry pointer by its name (Note: slow performance)
-uint8_t get_func_address(const char device_name[], uint8_t name_length, Device& device_pointer);
+uint8_t get_func_address(const char* device_name, uint8_t name_length, Device& device_pointer);
 // Call a device function pointer with the given parameters
 void call_extern(Device& entry_pointer, uint8_t function_call, uint8_t& paramA, uint8_t& paramB, uint8_t& paramC, uint8_t& paramD);
 
@@ -40,7 +40,7 @@ struct DeviceTable {
 }volatile static device_table;
 
 
-uint8_t load_device(const char name[], uint8_t name_length, Device device_pointer, uint8_t type) {
+uint8_t load_device(const char* name, uint8_t name_length, Device device_pointer, uint8_t type) {
 	
 	if (name_length > DEVICE_NAME_LENGTH_MAX)
 		name_length = DEVICE_NAME_LENGTH_MAX;
@@ -63,7 +63,7 @@ uint8_t load_device(const char name[], uint8_t name_length, Device device_pointe
 }
 
 
-uint8_t free_device(const char name[], uint8_t name_length) {
+uint8_t free_device(const char* name, uint8_t name_length) {
 	
 	if (name_length > DEVICE_NAME_LENGTH_MAX)
 		name_length = DEVICE_NAME_LENGTH_MAX;
@@ -93,7 +93,7 @@ uint8_t free_device(const char name[], uint8_t name_length) {
 }
 
 
-uint8_t get_func_address(const char device_name[], uint8_t name_length, Device& device_pointer) {
+uint8_t get_func_address(const char* device_name, uint8_t name_length, Device& device_pointer) {
 	
 	if (name_length > DEVICE_NAME_LENGTH_MAX) 
 		name_length = DEVICE_NAME_LENGTH_MAX;

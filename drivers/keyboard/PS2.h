@@ -30,8 +30,8 @@ struct KeyboardDriver {
 	void read(uint8_t& scan_code) {
 		
 		char byteLow, byteHigh;
-		bus_read_byte(device_bus, _KEYBOARD_REGISTER_LO__, byteLow);
-		bus_read_byte(device_bus, _KEYBOARD_REGISTER_HI__, byteHigh);
+		bus_read_byte(device_bus, _KEYBOARD_REGISTER_LO__, (char&)byteLow);
+		bus_read_byte(device_bus, _KEYBOARD_REGISTER_HI__, (char&)byteHigh);
 		
 		decodeScanCode(byteLow, byteHigh, scan_code);
 		return;

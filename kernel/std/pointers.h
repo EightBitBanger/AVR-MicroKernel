@@ -1,19 +1,14 @@
-// Pointer wrapper
-
 #ifndef __POINTER_WRAP_UP__
 #define __POINTER_WRAP_UP__
 
 
 #define nullptr 0x00000000
 
-
 #ifndef _32_BIT_POINTERS__
  #ifndef _64_BIT_POINTERS__
   #define _32_BIT_POINTERS__
  #endif
 #endif
-
-
 
 
 union WrappedPointer {

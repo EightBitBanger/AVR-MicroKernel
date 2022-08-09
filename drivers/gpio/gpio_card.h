@@ -1,5 +1,5 @@
 //
-// GPIO card
+// GPIO card driver
 
 #ifndef __GPIO_CARD__
 #define __GPIO_CARD__

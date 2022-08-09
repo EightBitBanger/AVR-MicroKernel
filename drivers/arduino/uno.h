@@ -1,8 +1,8 @@
 //
 // Arduino UNO board driver
 
-#ifndef _DRIVER_TEMPLATE__
-#define _DRIVER_TEMPLATE__
+#ifndef _ARDUINO_UNO_DRIVER__
+#define _ARDUINO_UNO_DRIVER__
 
 #define _DEVICE_DRIVER_NAME__    "uno"
 
@@ -11,7 +11,9 @@ void arduinoUNODeviceDriverEntryPoint(uint8_t, uint8_t&, uint8_t&, uint8_t&, uin
 struct TemplateDeviceDriver {
 	
 	TemplateDeviceDriver() {
-		load_device(_DEVICE_DRIVER_NAME__, sizeof(_DEVICE_DRIVER_NAME__), (Device)arduinoUNODeviceDriverEntryPoint, _DEVICE_TYPE_DRIVER__);
+		
+		load_device(_DEVICE_DRIVER_NAME__, sizeof(_DEVICE_DRIVER_NAME__), (Device)arduinoUNODeviceDriverEntryPoint, DEVICE_TYPE_DRIVER);
+		
 	}
 	
 	void initiate(void) {
@@ -29,8 +31,8 @@ void arduinoUNODeviceDriverEntryPoint(uint8_t functionCall, uint8_t& paramA, uin
 	
 	switch(functionCall) {
 		
-		case _DEVICE_INITIATE__: {arduinoUNODeviceDriver.initiate(); break;}
-		case _DEVICE_SHUTDOWN__: {arduinoUNODeviceDriver.shutdown(); break;}
+		case DEVICE_CALL_INITIATE: {arduinoUNODeviceDriver.initiate(); break;}
+		case DEVICE_CALL_SHUTDOWN: {arduinoUNODeviceDriver.shutdown(); break;}
 		
 		//case 0x00: {break;}
 		
@@ -41,7 +43,7 @@ void arduinoUNODeviceDriverEntryPoint(uint8_t functionCall, uint8_t& paramA, uin
 }
 
 
-#undef _HARDWARE_WAITSTATE__
+#undef _DEVICE_DRIVER_NAME__
 
 
 

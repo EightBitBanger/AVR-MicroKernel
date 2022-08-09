@@ -1,5 +1,5 @@
 //
-// Network interface client card
+// Network interface client card driver
 
 #ifndef __NETWORK_INTERFACE_CARD__
 #define __NETWORK_INTERFACE_CARD__
