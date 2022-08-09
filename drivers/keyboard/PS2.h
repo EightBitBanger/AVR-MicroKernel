@@ -71,87 +71,70 @@ void keyboardDeviceDriverEntryPoint(uint8_t functionCall, uint8_t& paramA, uint8
 // Decode the scan code returning an ASCII character
 void decodeScanCode(uint8_t scancode_low, uint8_t scancode_high, uint8_t& scan_code) {
 	
-	switch (scancode_low) {
-		
-		case 0xdf: {
-			switch (scancode_high) {
-				case 0x9a: {scan_code = 0x05; return;} // Left
-				case 0x90: {scan_code = 'i'; return;}
-				case 0xc6: {scan_code = 's'; return;}
-				case 0x88: {scan_code = 'd'; return;}
-				case 0xca: {scan_code = 'f'; return;}
-				case 0xcc: {scan_code = 'h'; return;}
-				case 0x8e: {scan_code = 'j'; return;}
-				case 0xd2: {scan_code = 'l'; return;}
-				default: break;
-			}
-			break;
-		}
-		
-		case 0x9f: {
-			switch (scancode_high) {
-				case 0xd9: {scan_code = 0x01; return;} // Backspace
-				case 0xd6: {scan_code = 0x02; return;} // Enter
-				case 0xdc: {scan_code = 0x04; return;} // Down
-				case 0x9d: {scan_code = 0x07; return;} // Escape
-				case 0x91: {scan_code = '9'; return;}
-				case 0x8f: {scan_code = '8'; return;}
-				case 0xcd: {scan_code = '6'; return;}
-				case 0xcb: {scan_code = '5'; return;}
-				case 0x89: {scan_code = '3'; return;}
-				case 0xc7: {scan_code = '2'; return;}
-				case 0x85: {scan_code = '1'; return;}
-				case 0x86: {scan_code = 'z'; return;}
-				case 0xc8: {scan_code = 'x'; return;}
-				case 0x8a: {scan_code = 'v'; return;}
-				case 0x8c: {scan_code = 'b'; return;}
-				case 0xce: {scan_code = 'm'; return;}
-				case 0xd0: {scan_code = 'k'; return;}
-				default: break;
-			}
-			break;
-		}
-		
-		case 0x5f: {
-			switch (scancode_high) {
-				case 0x9d: {scan_code = 0x03; return;} // Up
-				case 0x8a: {scan_code = 0x20; return;} // Space
-				case 0xc4: {scan_code = 0x09; return;} // Alt
-				case 0xdc: {scan_code = 0x10; return;} // Delete
-				case 0x91: {scan_code = '0'; return;}
-				case 0x8f: {scan_code = '7'; return;}
-				case 0x89: {scan_code = '4'; return;}
-				case 0xc8: {scan_code = 'c'; return;}
-				case 0x8c: {scan_code = 'n'; return;}
-				case 0x85: {scan_code = 'q'; return;}
-				case 0xc7: {scan_code = 'w'; return;}
-				case 0xcb: {scan_code = 'r'; return;}
-				case 0xcd: {scan_code = 'y'; return;}
-				case 0xd3: {scan_code = 'p'; return;}
-				default: break;
-			}
-			break;
-		}
-		
-		case 0x1f: {
-			switch (scancode_high) {
-				case 0xdd: scan_code = 0x06; return; // Right
-				case 0xc5: scan_code = 0x08; return; // Control
-				case 0xc9: scan_code = 'e'; return;
-				case 0x8b: scan_code = 't'; return;
-				case 0xcf: scan_code = 'u'; return;
-				case 0xd1: scan_code = 'o'; return;
-				case 0x87: scan_code = 'a'; return;
-				case 0x8d: scan_code = 'g'; return;
-				default: break;
-			}
-			break;
-		}
-		
-		default: break;
+	scan_code = 0x00;
+	
+	if (scancode_low == 0xdf) {
+		if (scancode_high == 0x9a) {scan_code = 0x05; return;} // Left
+		if (scancode_high == 0x90) {scan_code = 'i'; return;}
+		if (scancode_high == 0xc6) {scan_code = 's'; return;}
+		if (scancode_high == 0x88) {scan_code = 'd'; return;}
+		if (scancode_high == 0xca) {scan_code = 'f'; return;}
+		if (scancode_high == 0xcc) {scan_code = 'h'; return;}
+		if (scancode_high == 0x8e) {scan_code = 'j'; return;}
+		if (scancode_high == 0xd2) {scan_code = 'l'; return;}
+		return;
 	}
 	
-	scan_code = 0x00;
+	if (scancode_low == 0x9f) {
+		if (scancode_high == 0xd9) {scan_code = 0x01; return;} // Backspace
+		if (scancode_high == 0xd6) {scan_code = 0x02; return;} // Enter
+		if (scancode_high == 0xdc) {scan_code = 0x04; return;} // Down
+		if (scancode_high == 0x9d) {scan_code = 0x07; return;} // Escape
+		if (scancode_high == 0x91) {scan_code = '9'; return;}
+		if (scancode_high == 0x8f) {scan_code = '8'; return;}
+		if (scancode_high == 0xcd) {scan_code = '6'; return;}
+		if (scancode_high == 0xcb) {scan_code = '5'; return;}
+		if (scancode_high == 0x89) {scan_code = '3'; return;}
+		if (scancode_high == 0xc7) {scan_code = '2'; return;}
+		if (scancode_high == 0x85) {scan_code = '1'; return;}
+		if (scancode_high == 0x86) {scan_code = 'z'; return;}
+		if (scancode_high == 0xc8) {scan_code = 'x'; return;}
+		if (scancode_high == 0x8a) {scan_code = 'v'; return;}
+		if (scancode_high == 0x8c) {scan_code = 'b'; return;}
+		if (scancode_high == 0xce) {scan_code = 'm'; return;}
+		if (scancode_high == 0xd0) {scan_code = 'k'; return;}
+		return;
+	}
+	
+	if (scancode_low == 0x5f) {
+		if (scancode_high == 0x9d) {scan_code = 0x03; return;} // Up
+		if (scancode_high == 0x8a) {scan_code = 0x20; return;} // Space
+		if (scancode_high == 0xc4) {scan_code = 0x09; return;} // Alt
+		if (scancode_high == 0xdc) {scan_code = 0x10; return;} // Delete
+		if (scancode_high == 0x91) {scan_code = '0'; return;}
+		if (scancode_high == 0x8f) {scan_code = '7'; return;}
+		if (scancode_high == 0x89) {scan_code = '4'; return;}
+		if (scancode_high == 0xc8) {scan_code = 'c'; return;}
+		if (scancode_high == 0x8c) {scan_code = 'n'; return;}
+		if (scancode_high == 0x85) {scan_code = 'q'; return;}
+		if (scancode_high == 0xc7) {scan_code = 'w'; return;}
+		if (scancode_high == 0xcb) {scan_code = 'r'; return;}
+		if (scancode_high == 0xcd) {scan_code = 'y'; return;}
+		if (scancode_high == 0xd3) {scan_code = 'p'; return;}
+		return;
+	}
+	
+	if (scancode_low == 0x1f) {
+		if (scancode_high == 0xdd) {scan_code = 0x06; return;} // Right
+		if (scancode_high == 0xc5) {scan_code = 0x08; return;} // Control
+		if (scancode_high == 0xc9) {scan_code = 'e'; return;}
+		if (scancode_high == 0x8b) {scan_code = 't'; return;}
+		if (scancode_high == 0xcf) {scan_code = 'u'; return;}
+		if (scancode_high == 0xd1) {scan_code = 'o'; return;}
+		if (scancode_high == 0x87) {scan_code = 'a'; return;}
+		if (scancode_high == 0x8d) {scan_code = 'g'; return;}
+		return;
+	}
 	return;
 }
 
