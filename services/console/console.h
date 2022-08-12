@@ -121,7 +121,7 @@ void eventKeyboardEnter(void) {
 			
 			// Execute the command
 			uint8_t argument=0x00;
-			device_table.table[i](0x00, argument, argument, argument, argument);
+			device_table.table[i](0x00, &argument, &argument, &argument, &argument);
 			
 			break;
 		}
