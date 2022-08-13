@@ -1,20 +1,17 @@
 //
-// AVR kernel core
+// AVR kernel core configuration
 
 #ifndef ____KERNEL_MAIN__
 #define ____KERNEL_MAIN__
-
-//
-// Kernel configuration
 
 #define __CORE_MAIN_             // Include core kernel components
 #define __CORE_SCHEDULER_        // Include the task scheduler
 #define __HARDWARE_AUTO_DETECT_  // Use hardware auto detection
 
-//#define __BOOT_SAFEMODE_         // Load only the devices required to boot
+//#define __BOOT_SAFEMODE_         // Load only the device drivers required to boot
 //#define __BOOT_LIGHTWEIGHT_      // Load minimal device modules
 
-//#define __ARDUINO_BOARD_         // Compile for an Arduino UNO
+//#define __ARDUINO_BOARD_         // Compile for an Arduino
 
 #define _32_BIT_POINTERS__
 //#define _64_BIT_POINTERS__
@@ -48,13 +45,9 @@ char msg_kernel_version[]    = "AVR-Kernel 1.0";
 #include "kernel/std/cstring.h"       // C string functions
 
 // Kernel systems
-#include "kernel/device_table.h"      // Device resource manager
+#include "kernel/device.h"            // Device resource manager
 #include "kernel/scheduler.h"         // Task scheduler
 #include "kernel/bus.h"               // System bus interface
-
-
-uint8_t kernel_load_device(uint8_t index, void(*entry_pointer)() );
-void    kernel_call_extern(uint8_t index);
 
 
 // Kernel table initiator
@@ -84,9 +77,9 @@ void __kernel_initiate(void) {
 	char skip=0;
 	char byte=0;
 	
-	Device memory_device  = 0;
-	Device speaker_device = 0;
-	Device console_device = 0;
+	Device memory_device;
+	Device speaker_device;
+	Device console_device;
 	
 	WrappedPointer total_memory;
 	Bus device_bus;
