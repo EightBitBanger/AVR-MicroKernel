@@ -15,19 +15,17 @@
 #define DEVICE_TYPE_MODULE        0xfa
 
 
-typedef void(*Device)(uint8_t, uint8_t&, uint8_t&, uint8_t&, uint8_t&);
+typedef void(*Module)();
 
-static uint8_t nullchar = 0;
 
 
 // Load a device onto the device table
-uint8_t load_device(const char* name, uint8_t name_length, Device device_pointer, uint8_t type);
+uint8_t load_device(const char* name, uint8_t name_length, void(*device_pointer)(), uint8_t type);
 // Unload a device from the table
 uint8_t free_device(const char* name, uint8_t name_length);
 // Get a device entry pointer by its name (Note: slow)
-uint8_t get_func_address(const char* device_name, uint8_t name_length, Device& device_pointer);
-// Call a device function pointer with the given parameter(s)
-void call_extern(Device device_pointer, uint8_t function_call, uint8_t& paramA, uint8_t& paramB, uint8_t& paramC, uint8_t& paramD);
+Module get_func_address(const char* device_name, uint8_t name_length);
+
 
 
 // Call device initiation functions
@@ -43,12 +41,12 @@ struct DeviceTable {
 	char    name  [DEVICE_TABLE_SIZE][DEVICE_NAME_LENGTH_MAX];
 	uint8_t type  [DEVICE_TABLE_SIZE];
 	
-	void  (*table [DEVICE_TABLE_SIZE])(uint8_t, uint8_t*, uint8_t*, uint8_t*, uint8_t*);
+	void  (*table [DEVICE_TABLE_SIZE])();
 	
 }volatile static device_table;
 
 
-uint8_t load_device(const char* name, uint8_t name_length, Device device_pointer, uint8_t type) {
+uint8_t load_device(const char* name, uint8_t name_length, void(*device_pointer)(), uint8_t type) {
 	
 	if (name_length > DEVICE_NAME_LENGTH_MAX)
 		name_length = DEVICE_NAME_LENGTH_MAX;
@@ -64,8 +62,8 @@ uint8_t load_device(const char* name, uint8_t name_length, Device device_pointer
 	for (uint8_t i=0; i < name_length-1; i++)
 		device_table.name[free_index][i] = name[i];
 	
-	if (device_pointer == nullptr) return 0;
-	device_table.table[free_index] = (void(*)(uint8_t, uint8_t*, uint8_t*, uint8_t*, uint8_t*)) device_pointer;
+	if (device_pointer == 0) return 0;
+	device_table.table[free_index] = device_pointer;
 	
 	return 1;
 }
@@ -101,10 +99,10 @@ uint8_t free_device(const char* name, uint8_t name_length) {
 }
 
 
-uint8_t get_func_address(const char* device_name, uint8_t name_length, Device& device_pointer) {
+Module get_func_address(const char* device_name, uint8_t name_length) {
 	
-	if (name_length > DEVICE_NAME_LENGTH_MAX) 
-		name_length = DEVICE_NAME_LENGTH_MAX;
+	if (name_length > DEVICE_NAME_LENGTH_MAX)
+	name_length = DEVICE_NAME_LENGTH_MAX;
 	
 	for (uint8_t i=0; i < DEVICE_TABLE_SIZE; i++) {
 		
@@ -116,22 +114,14 @@ uint8_t get_func_address(const char* device_name, uint8_t name_length, Device& d
 			if (nameChar == device_name[a]) count++; else break;
 		}
 		
-		if (count == name_length-1) {
-			device_pointer = (void(*)(uint8_t, uint8_t&, uint8_t&, uint8_t&, uint8_t&))device_table.table[i];
-			return 1;
-		}
+		if (count == name_length-1)
+		return (Module)device_table.table[i];
+		
 	}
 	
-	return 0;
+	return (Module) nullptr;
 }
 
-
-void call_extern(Device device_pointer, uint8_t function_call, uint8_t& paramA=nullchar, uint8_t& paramB=nullchar, uint8_t& paramC=nullchar, uint8_t& paramD=nullchar) {
-	
-	device_pointer(function_call, paramA, paramB, paramC, paramD);
-	
-	return;
-}
 
 
 void __extern_call_init(void) {
@@ -140,9 +130,8 @@ void __extern_call_init(void) {
 	for (uint8_t i=0; i < DEVICE_TABLE_SIZE; i++) {
 		
 		if ((device_table.type[i] == DEVICE_TYPE_DRIVER) && (device_table.table[i] != 0)) {
-			Device deviceDriver;
-			deviceDriver = (void(*)(uint8_t, uint8_t&, uint8_t&, uint8_t&, uint8_t&))device_table.table[i];
-			call_extern(deviceDriver, DEVICE_CALL_INITIATE);
+			void(*deviceDriver)(uint8_t) = (void(*)(uint8_t))device_table.table[i];
+			deviceDriver(DEVICE_CALL_INITIATE);
 		}
 		
 	}
@@ -156,9 +145,8 @@ void __extern_call_shutdown(void) {
 	for (uint8_t i=0; i < DEVICE_TABLE_SIZE; i++) {
 		
 		if ((device_table.type[i] == DEVICE_TYPE_DRIVER) && (device_table.table[i] != 0)) {
-			Device deviceDriver;
-			deviceDriver = (void(*)(uint8_t, uint8_t&, uint8_t&, uint8_t&, uint8_t&))device_table.table[i];
-			call_extern(deviceDriver, DEVICE_CALL_SHUTDOWN);
+			void(*deviceDriver)(uint8_t) = (void(*)(uint8_t))device_table.table[i];
+			deviceDriver(DEVICE_CALL_SHUTDOWN);
 		}
 		
 	}

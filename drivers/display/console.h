@@ -36,7 +36,7 @@ struct CommandConsole {
 	
 	CommandConsole() {
 		
-		load_device(_COMMAND_CONSOLE__, sizeof(_COMMAND_CONSOLE__), (Device)ConsoleLibraryEntryPoint, DEVICE_TYPE_LIBRARY);
+		load_device(_COMMAND_CONSOLE__, sizeof(_COMMAND_CONSOLE__), (void(*)())ConsoleLibraryEntryPoint, DEVICE_TYPE_LIBRARY);
 		
 		for (uint8_t i=0; i<promptStringLength; i++) promptString[i] = 0x20;
 		promptString[0]      = '>';
@@ -57,12 +57,13 @@ struct CommandConsole {
 	void initiate(void) {
 		
 		// Link to the keyboard driver
-		if (get_func_address(_KEYBOARD_INPUT__, sizeof(_KEYBOARD_INPUT__), keyboardDriverPtr) == 0) return;
+		keyboardDriverPtr = (Device)get_func_address(_KEYBOARD_INPUT__, sizeof(_KEYBOARD_INPUT__));
+		if (keyboardDriverPtr == 0) return;
 		call_extern(keyboardDriverPtr, 0x00, lastChar);
 		
 		// Link to the display driver
-		if (get_func_address(_DISPLAY_CONSOLE__, sizeof(_DISPLAY_CONSOLE__), displayDriverPtr) == 0) return;
-		
+		displayDriverPtr = (Device)get_func_address(_DISPLAY_CONSOLE__, sizeof(_DISPLAY_CONSOLE__));
+		if (displayDriverPtr == 0) return;
 		//printPrompt();
 		clearKeyboardString();
 		

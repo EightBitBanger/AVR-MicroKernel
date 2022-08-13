@@ -1,8 +1,10 @@
 #ifndef __POINTER_WRAP_UP__
 #define __POINTER_WRAP_UP__
 
+// Referenceable null types
+static void(*nullptr)() = 0;
+static uint8_t nullchar = 0;
 
-#define nullptr 0x00000000
 
 #ifndef _32_BIT_POINTERS__
  #ifndef _64_BIT_POINTERS__

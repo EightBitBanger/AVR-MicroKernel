@@ -20,7 +20,7 @@ struct DisplayDriver {
 		device_bus.waitstate_read  = 10;
 		device_bus.waitstate_write = 10;
 		
-		load_device(_DISPLAY_CONSOLE__, sizeof(_DISPLAY_CONSOLE__), (Device)DisplayDeviceDriverEntryPoint, DEVICE_TYPE_DRIVER);
+		load_device(_DISPLAY_CONSOLE__, sizeof(_DISPLAY_CONSOLE__), (void(*)())DisplayDeviceDriverEntryPoint, DEVICE_TYPE_DRIVER);
 	}
 	
 	void initiate(void) {

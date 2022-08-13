@@ -21,7 +21,7 @@ struct SpeakerDriver {
 		baseFreq    = 1000;
 		
 		// Load the device driver
-		load_device(_INTERNAL_SPEAKER__, sizeof(_INTERNAL_SPEAKER__), (Device)SpeakerDriverDeviceDriverEntryPoint, DEVICE_TYPE_DRIVER);
+		load_device(_INTERNAL_SPEAKER__, sizeof(_INTERNAL_SPEAKER__), (void(*)())SpeakerDriverDeviceDriverEntryPoint, DEVICE_TYPE_DRIVER);
 	}
 	
 	void initiate(void) {

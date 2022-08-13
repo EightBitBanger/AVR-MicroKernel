@@ -60,7 +60,8 @@ void __detect_hardware(void) {
 		
 		get_hardware_info(current_address, device_bus, h_info);
 		
-		if (get_func_address(h_info.device_name, DEVICE_NAME_LENGTH_MAX, device_driver) == 1) {
+		device_driver = (Device)get_func_address(h_info.device_name, DEVICE_NAME_LENGTH_MAX);
+		if (device_driver != 0) {
 			
 			pointer.address = current_address;
 			call_extern(device_driver, DEVICE_CALL_ADDRESS, pointer.byte_t[0], pointer.byte_t[1], pointer.byte_t[2], pointer.byte_t[3]);

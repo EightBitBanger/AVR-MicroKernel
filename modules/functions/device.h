@@ -12,14 +12,15 @@ char error_device_not_found[]  = "Device not found";
 
 struct ModuleLoaderDrv {
 	ModuleLoaderDrv() {
-		load_device(__MODULE_NAME_, sizeof(__MODULE_NAME_), (Device)command_drv, DEVICE_TYPE_MODULE);
+		load_device(__MODULE_NAME_, sizeof(__MODULE_NAME_), (void(*)())command_drv, DEVICE_TYPE_MODULE);
 	}
 }static loadModuleDrv;
 
 void command_drv(uint8_t, uint8_t&, uint8_t&, uint8_t&, uint8_t&) {
 	
 	Device consoleDriver;
-	if (get_func_address(_COMMAND_CONSOLE__, sizeof(_COMMAND_CONSOLE__), consoleDriver) == 0) return;
+	consoleDriver = (Device)get_func_address(_COMMAND_CONSOLE__, sizeof(_COMMAND_CONSOLE__));
+	if (consoleDriver == 0) return;
 	
 	uint8_t param0  = console.keyboard_string[sizeof(__MODULE_NAME_)];
 	uint8_t param1  = console.keyboard_string[sizeof(__MODULE_NAME_) + 2];

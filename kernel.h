@@ -46,6 +46,7 @@ char msg_kernel_version[]    = "AVR-Kernel 1.0";
 
 // Kernel systems
 #include "kernel/device.h"            // Device resource manager
+#include "kernel/device_extern.h"     // External device driver caller
 #include "kernel/scheduler.h"         // Task scheduler
 #include "kernel/bus.h"               // System bus interface
 
@@ -89,7 +90,8 @@ void __kernel_initiate(void) {
 	device_bus.waitstate_write = 0;
 	device_bus.waitstate_read  = 2;
 	
-	if (get_func_address(_COMMAND_CONSOLE__, sizeof(_COMMAND_CONSOLE__), console_device) == 0) return;
+	console_device = (Device)get_func_address(_COMMAND_CONSOLE__, sizeof(_COMMAND_CONSOLE__));
+	if (console_device == 0) return;
 	
 	// Initiate the console
 	call_extern(console_device, DEVICE_CALL_INITIATE);
@@ -105,9 +107,10 @@ void __kernel_initiate(void) {
 	call_extern(console_device, 0x01); // New line
 	
 	// Allocate available external memory
-	if (get_func_address(_EXTENDED_MEMORY__, sizeof(_EXTENDED_MEMORY__), memory_device) != 0) {
+	memory_device = (Device)get_func_address(_EXTENDED_MEMORY__, sizeof(_EXTENDED_MEMORY__));
+	if (memory_device != 0) {
 		
-		if (memory_device != nullptr) {
+		if (memory_device != 0) {
 			
 			// Print zero
 			uint8_t zerochar = '0';
@@ -177,7 +180,8 @@ void __kernel_initiate(void) {
 	// Drop a command prompt
 	call_extern(console_device, 0x02); // Print prompt
 	
-	if (get_func_address(_INTERNAL_SPEAKER__, sizeof(_INTERNAL_SPEAKER__), speaker_device) != 0) {
+	speaker_device = (Device)get_func_address(_INTERNAL_SPEAKER__, sizeof(_INTERNAL_SPEAKER__));
+	if (speaker_device != 0) {
 		
 		// Beep code
 		uint8_t length   = 74;

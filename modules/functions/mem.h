@@ -7,7 +7,7 @@ void command_memory(uint8_t, uint8_t&, uint8_t&, uint8_t&, uint8_t&);
 
 struct ModuleLoaderMem {
 	ModuleLoaderMem() {
-		load_device(__MODULE_NAME_,  sizeof(__MODULE_NAME_), (Device)command_memory, DEVICE_TYPE_MODULE);
+		load_device(__MODULE_NAME_,  sizeof(__MODULE_NAME_), (void(*)())command_memory, DEVICE_TYPE_MODULE);
 	}
 }static loadModuleMem;
 #undef __MODULE_NAME_
@@ -16,7 +16,8 @@ void command_memory(uint8_t, uint8_t&, uint8_t&, uint8_t&, uint8_t&) {
 	
 	Device memDriverPtr;
 	
-	if (get_func_address(_EXTENDED_MEMORY__, sizeof(_EXTENDED_MEMORY__), memDriverPtr) == 0) return;
+	memDriverPtr = (Device)get_func_address(_EXTENDED_MEMORY__, sizeof(_EXTENDED_MEMORY__));
+	if (memDriverPtr == 0) return;
 	
 	// Check total memory
 	call_extern(memDriverPtr, 0x04);
