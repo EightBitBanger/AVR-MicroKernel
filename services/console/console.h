@@ -24,7 +24,8 @@ struct CommandConsoleServiceLauncher {
 	CommandConsoleServiceLauncher() {
 		
 		// Link to the keyboard device driver
-		get_func_address(_KEYBOARD_INPUT__, sizeof(_KEYBOARD_INPUT__), keyboard_device);
+		keyboard_device = (Device)get_func_address(_KEYBOARD_INPUT__, sizeof(_KEYBOARD_INPUT__));
+		
 		
 		task_create(_SERVICE_NAME__, sizeof(_SERVICE_NAME__), keyboard_event_handler, TASK_PRIORITY_REALTIME, TASK_TYPE_SERVICE);
 		
@@ -120,8 +121,9 @@ void eventKeyboardEnter(void) {
 			if ((console.keyboard_string[ name_length ]) != 0x20) continue;
 			
 			// Execute the command
-			uint8_t argument=0x00;
-			device_table.table[i](0x00, &argument, &argument, &argument, &argument);
+			Device console_function;
+			console_function = (void(*)(uint8_t, uint8_t&, uint8_t&, uint8_t&, uint8_t&))device_table.table[i];
+			console_function(0x00, nullchar, nullchar, nullchar, nullchar);
 			
 			break;
 		}

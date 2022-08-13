@@ -17,7 +17,7 @@ struct NetworkInterfaceDriver {
 		
 		device_address = 0x00000;
 		
-		load_device(_NETWORK_INTERFACE__, sizeof(_NETWORK_INTERFACE__), (Device)NetworkInterfaceDeviceDriverEntryPoint, DEVICE_TYPE_DRIVER);
+		load_device(_NETWORK_INTERFACE__, sizeof(_NETWORK_INTERFACE__), (void(*)())NetworkInterfaceDeviceDriverEntryPoint, DEVICE_TYPE_DRIVER);
 	}
 	
 	void initiate(void) {

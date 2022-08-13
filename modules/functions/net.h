@@ -44,7 +44,7 @@ struct ModuleLoaderNet {
 		waitstate = 4;
 		byte      = 0;
 	 	
-		load_device(__MODULE_NAME_,  sizeof(__MODULE_NAME_), (Device)net_entry_point, DEVICE_TYPE_MODULE);
+		load_device(__MODULE_NAME_,  sizeof(__MODULE_NAME_), (void(*)())net_entry_point, DEVICE_TYPE_MODULE);
 	}
 }static netModuleLoader;
 
@@ -65,7 +65,8 @@ void net_entry_point(uint8_t, uint8_t&, uint8_t&, uint8_t&, uint8_t&) {
 	
 	Device networkDevice;
 	
-	if (get_func_address(_NETWORK_INTERFACE__, sizeof(_NETWORK_INTERFACE__), networkDevice) == 0) return;
+	networkDevice = (Device)get_func_address(_NETWORK_INTERFACE__, sizeof(_NETWORK_INTERFACE__));
+	if (networkDevice == 0) return;
 	
 	// Get the parameters from the keyboard string
 	uint8_t param0  = console.keyboard_string[sizeof(__MODULE_NAME_)];

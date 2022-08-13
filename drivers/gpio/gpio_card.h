@@ -20,7 +20,7 @@ struct GPIOCardDriver {
 		device_bus.waitstate_read  = 8;
 		device_bus.waitstate_write = 8;
 		
-		load_device("GPIO", sizeof("GPIO"), (Device)GPIOCardDeviceDriverEntryPoint, DEVICE_TYPE_DRIVER);
+		load_device("GPIO", sizeof("GPIO"), (void(*)())GPIOCardDeviceDriverEntryPoint, DEVICE_TYPE_DRIVER);
 		
 	}
 	

@@ -10,7 +10,7 @@ char msg_task_not_found[]  = "Task not found";
 
 struct ModuleLoaderTask {
 	ModuleLoaderTask() {
-		load_device(__MODULE_NAME_, sizeof(__MODULE_NAME_), (Device)command_task, DEVICE_TYPE_MODULE);
+		load_device(__MODULE_NAME_, sizeof(__MODULE_NAME_), (void(*)())command_task, DEVICE_TYPE_MODULE);
 	}
 }static loadModuleTask;
 
@@ -18,7 +18,8 @@ struct ModuleLoaderTask {
 void command_task(uint8_t, uint8_t&, uint8_t&, uint8_t&, uint8_t&) {
 	
 	Device consoleDriver;
-	if (get_func_address(_COMMAND_CONSOLE__, sizeof(_COMMAND_CONSOLE__), consoleDriver) == 0) return;
+	consoleDriver = (Device)get_func_address(_COMMAND_CONSOLE__, sizeof(_COMMAND_CONSOLE__));
+	if (consoleDriver == 0) return;
 	
 	uint8_t page_counter=0;
 	
