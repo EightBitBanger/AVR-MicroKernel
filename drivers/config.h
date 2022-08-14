@@ -4,15 +4,16 @@
 #ifndef __ARDUINO_BOARD_
 
 // Safe mode device drivers
-#include "display/display.h"     // Liquid Crystal display card
+#include "display/display.h"     // 20x4 display driver
 #include "display/console.h"     // Command console library
-#include "keyboard/PS2.h"        // On-board PS2 keyboard
+#include "keyboard/PS2.h"        // On-board PS2 keyboard driver
 
 
 #ifndef __BOOT_SAFEMODE_
 
 // Normal mode device drivers
 #include "network/network.h"     // Network interface client
+#include "storage/storage.h"     // Mass storage driver
 #include "memory/eeprom.h"       // On-chip EEPROM storage
 #include "memory/exmem.h"        // On-board extended memory
 #include "audio/speaker.h"       // External speaker
