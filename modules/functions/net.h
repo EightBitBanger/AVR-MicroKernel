@@ -1,34 +1,11 @@
 //
 // Network diagnostic tool
 
-
-//		Baud rates based on 20.0 mhz
-//	
-//	Bit Rate	UBRR (dec)	    UBRR (hex)		Actual Bit Rate	       Error %
-//	
-//	300			4166			0x1046		   299.98					  0%
-//	600			2082			0x0822		   600.1					  0%
-//	900			1388			0x056C		   899.93					  0%
-//	1200		1041			0x0411		  1199.62					  0%
-//	1800		693				0x02B5		  1801.15					0.1%
-//	2400		520				0x0208		  2399.23					  0%
-//	3600		346				0x015A		  3602.31					0.1%
-//	4800		259				0x0103		  4807.69					0.2%
-//	9600		129				0x0081	      9615.38					0.2%
-//	14.4K		 86				0x0056			14.368 K			   -0.2%
-//	19.2K		 64				0x0040			19.231 K				0.2%
-//	28.8K		 42				0x002A			29.07 K					0.9%
-//	33.6K		 36				0x0024			33.784 K				0.5%
-//  57.6K	     21	            0x0015	        56.818 K	           -1.4%
-// 115.2K	     10	            0x000A	       113.636 K	           -1.4%
-// 153.6K	      7	            0x0007	       156.25 K	                1.7%
-// 230.4K	      4	            0x0004	       250.0 K	                8.5%
-
 #define _PACKET_START_BYTE__   0x55
 #define _PACKET_TYPE_DATA__    0x00
 #define _PACKET_STOP_BYTE__    0xaa
 
-#define _NETWORK_WAITSTATE__  12000
+#define _NETWORK_WAITSTATE__  8000
 
 void net_entry_point(uint8_t, uint8_t&, uint8_t&, uint8_t&, uint8_t&);
 
@@ -41,7 +18,7 @@ struct ModuleLoaderNet {
 	
 	ModuleLoaderNet() {
 		
-		waitstate = 4;
+		waitstate = 0;
 		byte      = 0;
 	 	
 		load_device(__MODULE_NAME_,  sizeof(__MODULE_NAME_), (void(*)())net_entry_point, DEVICE_TYPE_MODULE);
@@ -232,20 +209,16 @@ void net_entry_point(uint8_t, uint8_t&, uint8_t&, uint8_t&, uint8_t&) {
 		// Baud rates
 		switch (param1) {
 			
-			case '0': {console.printInt(300);  console.printLn(); baudrate = 0; break;}
-			case '1': {console.printInt(600);  console.printLn(); baudrate = 1; break;}
-			case '2': {console.printInt(900);  console.printLn(); baudrate = 2; break;}
-			case '3': {console.printInt(1200); console.printLn(); baudrate = 3; break;}
-			case '4': {console.printInt(2400); console.printLn(); baudrate = 4; break;}
-			case '5': {console.printInt(3600); console.printLn(); baudrate = 5; break;}
-			case '6': {console.printInt(4800); console.printLn(); baudrate = 6; break;}
-			case '7': {console.printInt(9600); console.printLn(); baudrate = 7; break;}
-			
-			case '8': {console.printInt(28); console.printChar('.'); console.printInt(8); console.printChar('k');
-				console.printLn(); baudrate = 8; break;}
-			
-			case '9': {console.printInt(33); console.printChar('.'); console.printInt(6); console.printChar('k');
-				console.printLn(); baudrate = 9; break;}
+			case '0': {console.printInt(900);  console.printLn(); baudrate = 0; break;}
+			case '1': {console.printInt(1200);  console.printLn(); baudrate = 1; break;}
+			case '2': {console.printInt(2400);  console.printLn(); baudrate = 2; break;}
+			case '3': {console.printInt(4800); console.printLn(); baudrate = 3; break;}
+			case '4': {console.printInt(9600); console.printLn(); baudrate = 4; break;}
+			case '5': {console.printInt(28); console.printChar('k'); console.printLn(); baudrate = 5; break;}
+			case '6': {console.printInt(33); console.printChar('k'); console.printLn(); baudrate = 6; break;}
+			case '7': {console.printInt(57); console.printChar('k'); console.printLn(); baudrate = 7; break;}
+			case '8': {console.printInt(125); console.printChar('k'); console.printLn(); baudrate = 8; break;}
+			case '9': {console.printInt(155); console.printChar('k'); console.printLn(); baudrate = 9; break;}
 			
 		}
 		
@@ -253,7 +226,7 @@ void net_entry_point(uint8_t, uint8_t&, uint8_t&, uint8_t&, uint8_t&) {
 		// Set the new baud rate
 		byte = 0xff;
 		call_extern(networkDevice, 0x07, baudrate);  // Set baud rate register
-		call_extern(networkDevice, 0x06, byte);      // Apply the baud rate
+		call_extern(networkDevice, 0x06, byte);      // Apply the baud rate flag
 		
 		return;
 	}

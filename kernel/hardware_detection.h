@@ -14,6 +14,7 @@ char _DATA_MEMORY__[]          = "nvMem";
 char _COMMAND_CONSOLE__[]      = "console";
 char _INTERNAL_SPEAKER__[]     = "audio";
 char _NETWORK_INTERFACE__[]    = "network";
+char _MASS_STORAGE__[]         = "storage";
 
 struct HardwareInformation {
 	

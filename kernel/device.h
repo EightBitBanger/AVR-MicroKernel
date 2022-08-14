@@ -18,14 +18,12 @@
 typedef void(*Module)();
 
 
-
 // Load a device onto the device table
 uint8_t load_device(const char* name, uint8_t name_length, void(*device_pointer)(), uint8_t type);
 // Unload a device from the table
 uint8_t free_device(const char* name, uint8_t name_length);
 // Get a device entry pointer by its name (Note: slow)
 Module get_func_address(const char* device_name, uint8_t name_length);
-
 
 
 // Call device initiation functions
