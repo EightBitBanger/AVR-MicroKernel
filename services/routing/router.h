@@ -8,7 +8,7 @@ void router_entry_point(uint8_t, uint8_t&, uint8_t&, uint8_t&, uint8_t&);
 struct ModuleLoaderRouter {
 	ModuleLoaderRouter() {
 		
-		task_create(__MODULE_NAME_, sizeof(__MODULE_NAME_), (void(*)())router_entry_point, 10, _TASK_SERVICE__);
+		task_create(__MODULE_NAME_, sizeof(__MODULE_NAME_), (void(*)())router_entry_point, 10, TASK_TYPE_SERVICE);
 		
 	}
 }static routerModuleLoader;
@@ -38,9 +38,9 @@ void router_entry_point(uint8_t, uint8_t&, uint8_t&, uint8_t&, uint8_t&) {
 	
 	Device networkDevice;
 	
-	if (get_func_address(_NETWORK_INTERFACE__, sizeof(_NETWORK_INTERFACE__), networkDevice) == 0) {
+	networkDevice = (Device)get_func_address(_NETWORK_INTERFACE__, sizeof(_NETWORK_INTERFACE__));
+	if (networkDevice == 0) 
 		console.print(error_driver_error, sizeof(error_driver_error));
-	}
 	
 	// Zero the RX flag
 	flag = 0;
@@ -97,7 +97,7 @@ void router_entry_point(uint8_t, uint8_t&, uint8_t&, uint8_t&, uint8_t&) {
 								break;
 							}
 							
-							// Data packet
+							// Ping packet
 							case 0x55: {
 								
 								uint8_t ping_packet[] = {0x55, 0x55, 0x00, 0xaa};

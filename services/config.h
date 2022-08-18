@@ -4,6 +4,7 @@
 #ifndef __ARDUINO_BOARD_
 
 #include "console/console.h"        // Command console
+//#include "routing/router.h"
 
 #endif
 

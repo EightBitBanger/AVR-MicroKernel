@@ -46,7 +46,6 @@ char msg_kernel_version[]    = "AVR-Kernel 1.0";
 
 // Kernel systems
 #include "kernel/device.h"            // Device resource manager
-#include "kernel/device_extern.h"     // External device driver caller
 #include "kernel/scheduler.h"         // Task scheduler
 #include "kernel/bus.h"               // System bus interface
 
