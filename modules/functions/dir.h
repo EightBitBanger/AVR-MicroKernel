@@ -1,29 +1,23 @@
-//
-// List command
+#ifndef _DIR_COMMAND__
+#define _DIR_COMMAND__
 
-void command_list(uint8_t, uint8_t&, uint8_t&, uint8_t&, uint8_t&);
+void command_dir(uint8_t, uint8_t&, uint8_t&, uint8_t&, uint8_t&);
 
-#define __MODULE_NAME_  "list"
+#define __MODULE_NAME_  "dir"
 
 struct ModuleLoaderList {
 	
-	uint32_t target_device;
-	uint32_t offset_device;
-	uint16_t page_counter;
 	
 	ModuleLoaderList() {
 		
-		target_device = 0x40000;
-		offset_device = 0x40000;
-		page_counter  = 0;
 		
 		
-		load_device(__MODULE_NAME_, sizeof(__MODULE_NAME_), (Module)command_list, DEVICE_TYPE_MODULE);
+		load_device(__MODULE_NAME_, sizeof(__MODULE_NAME_), (Module)command_dir, DEVICE_TYPE_MODULE);
 	}
 }static moduleLoaderList;
 
 
-void command_list(uint8_t, uint8_t&, uint8_t&, uint8_t&, uint8_t&) {
+void command_dir(uint8_t, uint8_t&, uint8_t&, uint8_t&, uint8_t&) {
 	
 	// Link to the storage driver
 	Device storageDevice = (Device)get_func_address(_MASS_STORAGE__, sizeof(_MASS_STORAGE__));
@@ -52,7 +46,7 @@ void command_list(uint8_t, uint8_t&, uint8_t&, uint8_t&, uint8_t&) {
 		uint8_t char_a = console.keyboard_string[sizeof(__MODULE_NAME_) + 3];
 		
 		if ((((char_a >= '0') & (char_a <= '9')) | ((char_a >= 'a') & (char_a <= 'f'))) |
-		   (((char_b >= '0') & (char_b <= '9')) | ((char_b >= 'a') & (char_b <= 'f')))) {
+		(((char_b >= '0') & (char_b <= '9')) | ((char_b >= 'a') & (char_b <= 'f')))) {
 			
 			hex_string[0] = char_a;
 			hex_string[1] = char_b;
@@ -77,11 +71,11 @@ void command_list(uint8_t, uint8_t&, uint8_t&, uint8_t&, uint8_t&) {
 	
 	// Reverse the page counter
 	if (param0 == 'r') {
-		if (moduleLoaderList.page_counter > 1) 
-			moduleLoaderList.page_counter--;
-	} else {
-		if (moduleLoaderList.page_counter < 0xffff) 
-			moduleLoaderList.page_counter++;
+		if (moduleLoaderList.page_counter > 1)
+		moduleLoaderList.page_counter--;
+		} else {
+		if (moduleLoaderList.page_counter < 0xffff)
+		moduleLoaderList.page_counter++;
 	}
 	
 	moduleLoaderList.offset_device = moduleLoaderList.target_device + (moduleLoaderList.page_counter * 60);
@@ -98,7 +92,7 @@ void command_list(uint8_t, uint8_t&, uint8_t&, uint8_t&, uint8_t&) {
 		
 		if (param1 == 'h') {
 			console.printHex(byte);
-		} else {
+			} else {
 			console.printChar(byte);
 		}
 		
@@ -109,4 +103,13 @@ void command_list(uint8_t, uint8_t&, uint8_t&, uint8_t&, uint8_t&) {
 
 
 #undef __MODULE_NAME_
+
+
+
+
+
+
+
+
+#endif
 
