@@ -16,7 +16,7 @@
 
 
 typedef void(*Module)();
-
+typedef void(*Device)(uint8_t, uint8_t&, uint8_t&, uint8_t&, uint8_t&);
 
 // Load a device onto the device table
 uint8_t load_device(const char* name, uint8_t name_length, void(*device_pointer)(), uint8_t type);
@@ -24,6 +24,8 @@ uint8_t load_device(const char* name, uint8_t name_length, void(*device_pointer)
 uint8_t free_device(const char* name, uint8_t name_length);
 // Get a device entry pointer by its name (Note: slow)
 Module get_func_address(const char* device_name, uint8_t name_length);
+// Call a device function pointer with the given parameter(s)
+void call_extern(Device device_pointer, uint8_t function_call, uint8_t& paramA, uint8_t& paramB, uint8_t& paramC, uint8_t& paramD);
 
 
 // Call device initiation functions
@@ -118,6 +120,14 @@ Module get_func_address(const char* device_name, uint8_t name_length) {
 	}
 	
 	return (Module) nullptr;
+}
+
+
+void call_extern(Device device_pointer, uint8_t function_call, uint8_t& paramA=nullchar, uint8_t& paramB=nullchar, uint8_t& paramC=nullchar, uint8_t& paramD=nullchar) {
+	
+	device_pointer(function_call, paramA, paramB, paramC, paramD);
+	
+	return;
 }
 
 

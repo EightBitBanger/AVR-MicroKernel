@@ -5,7 +5,7 @@
 #define _PACKET_TYPE_DATA__    0x00
 #define _PACKET_STOP_BYTE__    0xaa
 
-#define _NETWORK_WAITSTATE__  8000
+#define _NETWORK_WAITSTATE__  4000
 
 void net_entry_point(uint8_t, uint8_t&, uint8_t&, uint8_t&, uint8_t&);
 
@@ -14,11 +14,13 @@ void net_entry_point(uint8_t, uint8_t&, uint8_t&, uint8_t&, uint8_t&);
 struct ModuleLoaderNet {
 	
 	uint8_t waitstate;
+	uint8_t baudrate;
 	uint8_t byte;
 	
 	ModuleLoaderNet() {
 		
 		waitstate = 0;
+		baudrate  = 7; // Start at 56k baud
 		byte      = 0;
 	 	
 		load_device(__MODULE_NAME_,  sizeof(__MODULE_NAME_), (void(*)())net_entry_point, DEVICE_TYPE_MODULE);
@@ -100,11 +102,7 @@ void net_entry_point(uint8_t, uint8_t&, uint8_t&, uint8_t&, uint8_t&) {
 		
 		uint8_t packet[] = {_PACKET_START_BYTE__, _PACKET_TYPE_DATA__, param1, _PACKET_STOP_BYTE__};
 		
-		if (network_send(networkDevice, packet) == 1) {
-			char msg_string[] = "Sent";
-			console.print(msg_string, sizeof(msg_string));
-			console.printLn();
-		}
+		network_send(networkDevice, packet);
 		
 		return;
 	}
@@ -197,36 +195,34 @@ void net_entry_point(uint8_t, uint8_t&, uint8_t&, uint8_t&, uint8_t&) {
 	// Set baud rate
 	if (param0 == 'b') {
 		
-		uint8_t baudrate = 0;
+		char msg_string[] = "baud ";
+		console.print(msg_string, sizeof(msg_string));
 		
 		if ((param1 >= '0') & (param1 <= '9')) {
-			char msg_string[] = "baud ";
-			console.print(msg_string, sizeof(msg_string));
-		} else {
-			return;
-		}
-		
-		// Baud rates
-		switch (param1) {
 			
-			case '0': {console.printInt(900);  console.printLn(); baudrate = 0; break;}
-			case '1': {console.printInt(1200);  console.printLn(); baudrate = 1; break;}
-			case '2': {console.printInt(2400);  console.printLn(); baudrate = 2; break;}
-			case '3': {console.printInt(4800); console.printLn(); baudrate = 3; break;}
-			case '4': {console.printInt(9600); console.printLn(); baudrate = 4; break;}
-			case '5': {console.printInt(28); console.printChar('k'); console.printLn(); baudrate = 5; break;}
-			case '6': {console.printInt(33); console.printChar('k'); console.printLn(); baudrate = 6; break;}
-			case '7': {console.printInt(57); console.printChar('k'); console.printLn(); baudrate = 7; break;}
-			case '8': {console.printInt(125); console.printChar('k'); console.printLn(); baudrate = 8; break;}
-			case '9': {console.printInt(155); console.printChar('k'); console.printLn(); baudrate = 9; break;}
+			netModuleLoader.baudrate = param1 - '0';
 			
 		}
 		
-		//
-		// Set the new baud rate
+		switch (netModuleLoader.baudrate) {
+			
+			case 0: {console.printInt(900);  console.printLn(); break;}
+			case 1: {console.printInt(1200); console.printLn(); break;}
+			case 2: {console.printInt(2400); console.printLn(); break;}
+			case 3: {console.printInt(4800); console.printLn(); break;}
+			case 4: {console.printInt(9600); console.printLn(); break;}
+			case 5: {console.printInt(28);   console.printChar('k'); console.printLn(); break;}
+			case 6: {console.printInt(33);   console.printChar('k'); console.printLn(); break;}
+			case 7: {console.printInt(56);   console.printChar('k'); console.printLn(); break;}
+			case 8: {console.printInt(76);   console.printChar('k'); console.printLn(); break;}
+			case 9: {console.printInt(125);  console.printChar('k'); console.printLn(); break;}
+			
+		}
+		
+		// Set the baud rate
 		byte = 0xff;
-		call_extern(networkDevice, 0x07, baudrate);  // Set baud rate register
-		call_extern(networkDevice, 0x06, byte);      // Apply the baud rate flag
+		call_extern(networkDevice, 0x07, netModuleLoader.baudrate);  // Set baud rate register
+		call_extern(networkDevice, 0x06, byte);                      // Apply the baud rate flag
 		
 		return;
 	}
@@ -240,69 +236,62 @@ void net_entry_point(uint8_t, uint8_t&, uint8_t&, uint8_t&, uint8_t&) {
 		byte = 0x00;
 		call_extern(networkDevice, 0x02, byte);
 		
-		uint8_t retry = 3;
-		if ((param1 >= '0') & (param1 <= '9')) 
-			retry = param1 - '0';
+		// Clear packet
+		uint8_t data = 0x00;
+		for (uint8_t a=0; a <= 10; a++)
+			call_extern(networkDevice, 0x09, a, data);
 		
-		for (uint8_t i=0; i < retry; i++) {
+		// Send ping packet
+		uint8_t ping_packet[] = {0x55, 0x55, 0x00, 0xaa};
+		network_send(networkDevice, ping_packet);
+		
+		// Check return packets
+		for (counter=0; counter < timeout; counter++) {
 			
-			uint8_t ping_packet[] = {0x55, 0x55, 0x00, 0xaa};
+			_delay_us(1);
 			
-			network_send(networkDevice, ping_packet);
+			// Check the receive flag
+			uint8_t RXflag;
+			call_extern(networkDevice, 0x03, RXflag);
 			
-			for (counter=0; counter < timeout; counter++) {
+			if (RXflag > 0) {
 				
-				// Check the receive flag
-				uint8_t RXflag;
-				call_extern(networkDevice, 0x03, RXflag);
+				// Read RX buffer data
+				uint8_t address = 0x00;
+				call_extern(networkDevice, 0x0a, address, byte);
 				
-				if (RXflag > 0) {
+				// Check return packets
+				for (uint8_t a=0; a <= RXflag; a++) {
 					
-					// Read RX buffer data
-					uint8_t address = 0x00;
-					call_extern(networkDevice, 0x0a, address, byte);
-					
-					// Check return packets
-					for (uint8_t a=0; a <= RXflag; a++) {
+					// Verify the received data is a return probing signal
+					if (byte == 0x55) {
 						
-						// Verify the received data is a return probing signal
-						if (byte == 0x55) {
-							
-							// Clear RX flag
-							byte = 0x00;
-							call_extern(networkDevice, 0x02, byte);
-							
-							// Clear packet
-							uint8_t data = 0x00;
-							for (uint8_t b=a; b <= 3; b++)
-								call_extern(networkDevice, 0x09, b, data);
-							
-							console.printInt(counter);
-							console.printSpace();
-							console.printChar('u');
-							console.printChar('s');
-							console.printLn();
-							
-							break;
-						}
+						// Clear RX flag
+						byte = 0x00;
+						call_extern(networkDevice, 0x02, byte);
 						
+						// Clear packet
+						uint8_t data = 0x00;
+						for (uint8_t b=a; b <= 3; b++)
+							call_extern(networkDevice, 0x09, b, data);
+						
+						console.printInt(counter);
+						console.printSpace();
+						console.printChar('u');
+						console.printChar('s');
+						console.printLn();
+						
+						return;
 					}
 					
 				}
 				
-				_delay_us(1);
-				
-			}
-			
-			if (counter == timeout) {
-				
-				console.print("Timed out", sizeof("Timed out"));
-				console.printLn();
-				
-				continue;
 			}
 			
 		}
+		
+		console.print("Timed out", sizeof("Timed out"));
+		console.printLn();
 		
 		return;
 	}

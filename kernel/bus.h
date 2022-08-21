@@ -122,8 +122,8 @@
 
 struct BUS_BASE_TYPE {
 	
-	uint8_t  waitstate_read;
-	uint8_t  waitstate_write;
+	uint16_t  waitstate_read;
+	uint16_t  waitstate_write;
 	
 };
 
@@ -173,12 +173,12 @@ void bus_read_byte(Bus& bus, uint32_t address, char& buffer) {
 	
 	// Set data direction
 	_BUS_LOWER_DIR__ = 0x00;
-	_BUS_LOWER_OUT__ = 0x00; // Internal pull-up resistors
+	_BUS_LOWER_OUT__ = 0xff; // Internal pull-up resistors
 	
 	_CONTROL_OUT__ = _CONTROL_READ_CYCLE__;
 	
 	// Wait state
-	for (uint8_t i=0; i<bus.waitstate_read; i++) 
+	for (uint16_t i=0; i<bus.waitstate_read; i++) 
 		asm("nop");
 	
 	// Read the data byte
@@ -211,7 +211,7 @@ void bus_write_byte(Bus& bus, uint32_t address, char byte) {
 	_CONTROL_OUT__ = _CONTROL_WRITE_CYCLE__;
 	
 	// Wait state
-	for (uint8_t i=0; i<bus.waitstate_write; i++) 
+	for (uint16_t i=0; i<bus.waitstate_write; i++) 
 		asm("nop");
 	
 	// End write cycle

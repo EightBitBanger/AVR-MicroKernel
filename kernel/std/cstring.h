@@ -9,6 +9,8 @@ uint8_t strcmp(char* string_a, char* string_b, uint8_t string_length);
 
 // Convert an integer to a string representation of the given number
 uint8_t int_get_string(uint32_t number, char* destination_string);
+// Convert a string of three numbers to an integer Ex: "000" - "255"
+uint8_t string_get_int(char* string);
 // Returns the value from the given hex chars. String should contain two hex chars ex: "3f"
 uint8_t string_get_hex_char(char* string);
 
@@ -29,6 +31,18 @@ uint8_t strsub(char* string, unsigned int string_size, char sub_character) {
 uint8_t strcmp(char* string_a, char* string_b, uint8_t string_length) {
 	for (uint8_t i=0; i < string_length-1; i++) {if (string_a[i] != string_b[i]) return 0;}
 	return 1;
+}
+
+
+uint8_t string_get_int(char* string) {
+	
+	uint8_t integer=0;
+	
+	integer += (string[2] - '0') * 100;
+	integer += (string[1] - '0') * 10;
+	integer += (string[0] - '0') * 1;
+	
+	return integer;
 }
 
 
@@ -83,13 +97,13 @@ uint8_t string_get_hex_char(char* string) {
 	
 	// First digit
 	hex = string[1];
-	if ((hex > 0x30) && (hex < 0x40)) value_b += hex - 0x30;
-	if ((hex > 0x60) && (hex < 0x67)) value_b += 9 + (hex - 0x60);
+	if ((hex >= 0x30) && (hex <= 0x40)) value_b += hex - 0x30;
+	if ((hex >= 0x60) && (hex <= 0x67)) value_b += 9 + (hex - 0x60);
 	
 	// Second digit
 	hex = string[0];
-	if ((hex > 0x30) && (hex < 0x40)) value_a += hex - 0x30;
-	if ((hex > 0x60) && (hex < 0x67)) value_a += 9 + (hex - 0x60);
+	if ((hex >= 0x30) && (hex <= 0x40)) value_a += hex - 0x30;
+	if ((hex >= 0x60) && (hex <= 0x67)) value_a += 9 + (hex - 0x60);
 	
 	return value_a + (value_b * 16);
 }
