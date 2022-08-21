@@ -17,7 +17,7 @@ struct MassStorageDeviceDriver {
 		device_address = 0x00000;
 		
 		device_bus.waitstate_read  = 40;
-		device_bus.waitstate_write = 4000;
+		device_bus.waitstate_write = 100;
 		
 		load_device(_MASS_STORAGE__, sizeof(_MASS_STORAGE__), (Module)storageDeviceDriverEntryPoint, DEVICE_TYPE_DRIVER);
 	}
