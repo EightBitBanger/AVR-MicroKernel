@@ -11,13 +11,16 @@ struct MassStorageDeviceDriver {
 	Bus device_bus;
 	
 	uint32_t device_address;
+	uint8_t  page_count;
 	
 	MassStorageDeviceDriver() {
 		
 		device_address = 0x00000;
 		
 		device_bus.waitstate_read  = 40;
-		device_bus.waitstate_write = 0;
+		device_bus.waitstate_write = 100;
+		
+		page_count = 0;
 		
 		load_device(_MASS_STORAGE__, sizeof(_MASS_STORAGE__), (Module)storageDeviceDriverEntryPoint, DEVICE_TYPE_DRIVER);
 	}
@@ -30,7 +33,7 @@ struct MassStorageDeviceDriver {
 		
 	}
 	
-	void write(uint32_t address, char byte) {bus_write_byte(device_bus, address, byte); return;}
+	void write(uint32_t address, char byte) {bus_write_byte(device_bus, address, byte);return;}
 	
 	void read(uint32_t address, char& byte) {bus_read_byte(device_bus, address, byte); return;}
 	
@@ -48,7 +51,7 @@ void storageDeviceDriverEntryPoint(uint8_t functionCall, uint8_t& paramA, uint8_
 	}
 	
 	if (functionCall == 0x00) {massStorageDeviceDriver.read(massStorageDeviceDriver.device_address, (char&)paramA); return;}
-	if (functionCall == 0x01) {massStorageDeviceDriver.write(massStorageDeviceDriver.device_address, (char)paramA); return;}
+	if (functionCall == 0x01) {massStorageDeviceDriver.write(massStorageDeviceDriver.device_address, (char)paramA);return;}
 	
 	return;
 }

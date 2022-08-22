@@ -7,7 +7,13 @@ void command_mk(uint8_t, uint8_t&, uint8_t&, uint8_t&, uint8_t&);
 
 struct ModuleLoaderMk {
 	
+	uint32_t file_size;
+	uint32_t current_device;
+	
 	ModuleLoaderMk() {
+		
+		file_size       = 1;
+		current_device  = 0x40000;
 		
 		load_device(__MODULE_NAME_, sizeof(__MODULE_NAME_), (Module)command_mk, DEVICE_TYPE_MODULE);
 	}
@@ -27,9 +33,11 @@ void command_mk(uint8_t, uint8_t&, uint8_t&, uint8_t&, uint8_t&) {
 	WrappedPointer pointer;
 	char byte;
 	
-	uint8_t  stride        = 32;
-	uint32_t device_start  = moduleLoaderDir.current_device + 32;
-	uint32_t device_end    = moduleLoaderDir.current_device + (32 * 256);
+	uint32_t stride        = 32;
+	uint32_t device_start  = moduleLoaderMk.current_device;
+	uint32_t device_end    = moduleLoaderMk.current_device + (stride * 256);   // 8k
+	
+	uint8_t page_counter=0;
 	
 	// Get filename parameter
 	char filename[11] = "          ";
@@ -48,36 +56,58 @@ void command_mk(uint8_t, uint8_t&, uint8_t&, uint8_t&, uint8_t&) {
 		// Check sector is empty
 		if (byte == 0x00) {
 			
+			//
+			// Check enough room for the file size before creating file
+			//
+			
 			// Mark sector as used
-			byte = 0xff;
+			byte = 0x55; // File start byte
 			pointer.address = i;
 			call_extern(storageDevice, DEVICE_CALL_ADDRESS, pointer.byte_t[0], pointer.byte_t[1], pointer.byte_t[2], pointer.byte_t[3]);
 			call_extern(storageDevice, 0x01, (uint8_t&)byte);
 			
-			// Write filename
-			for (uint8_t a=0; a < 10; a++) {
+			if (page_counter >= 31) {page_counter=0; _delay_ms(5);} else {page_counter++;}
+			
+			// Write file name
+			for (uint32_t a=0; a < 10; a++) {
 				pointer.address = i + a + 1;
 				call_extern(storageDevice, DEVICE_CALL_ADDRESS, pointer.byte_t[0], pointer.byte_t[1], pointer.byte_t[2], pointer.byte_t[3]);
 				call_extern(storageDevice, 0x01, (uint8_t&)filename[a]);
+				
+				if (page_counter >= 31) {page_counter=0; _delay_ms(5);} else {page_counter++;}
 			}
 			
-			// Initiate filesize
+			// Write file size
 			WrappedPointer filesize;
-			filesize.address = 1;
-			for (uint8_t a=0; a < 4; a++) {
+			filesize.address = moduleLoaderMk.file_size;
+			if (filesize.address < 32) 
+				filesize.address = 32;
+			for (uint32_t a=0; a < 4; a++) {
 				
 				pointer.address = i + a + 11;
 				call_extern(storageDevice, DEVICE_CALL_ADDRESS, pointer.byte_t[0], pointer.byte_t[1], pointer.byte_t[2], pointer.byte_t[3]);
 				call_extern(storageDevice, 0x01, (uint8_t&)filesize.byte_t[a]);
 				
+				_delay_ms(5);
 			}
 			
-			// Mark data sector as used
-			byte = 0x55;
+			_delay_ms(5);
 			
-			pointer.address = i + 32;
-			call_extern(storageDevice, DEVICE_CALL_ADDRESS, pointer.byte_t[0], pointer.byte_t[1], pointer.byte_t[2], pointer.byte_t[3]);
-			call_extern(storageDevice, 0x01, (uint8_t&)byte);
+			uint32_t number_of_sectors = (moduleLoaderMk.file_size / 32) + 2;
+			
+			// Mark following sectors
+			byte = 0xff;
+			for (uint32_t a=1; a < number_of_sectors; a++) {
+				
+				if (a == number_of_sectors-1) byte = 0xaa;
+				
+				pointer.address = i + (a * stride);
+				call_extern(storageDevice, DEVICE_CALL_ADDRESS, pointer.byte_t[0], pointer.byte_t[1], pointer.byte_t[2], pointer.byte_t[3]);
+				call_extern(storageDevice, 0x01, (uint8_t&)byte);
+				
+				_delay_ms(5);
+				
+			}
 			
 			return;
 		}

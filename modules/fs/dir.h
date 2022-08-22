@@ -51,6 +51,9 @@ void command_dir(uint8_t, uint8_t&, uint8_t&, uint8_t&, uint8_t&) {
 		
 		if (byte != 0x00) {
 			
+			if (byte == 0xff) continue; // Ignore file data sectors
+			if (byte == 0xaa) continue; // Ignore file end sectors
+			
 			// Display filename
 			for (uint8_t a=0; a < 10; a++) {
 				pointer.address = i + a + 1;
