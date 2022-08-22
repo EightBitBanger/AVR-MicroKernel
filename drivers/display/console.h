@@ -120,6 +120,7 @@ struct CommandConsole {
 		checkShiftUp();
 		return;
 	}
+	
 	void printSpace(void) {
 		uint8_t character=0x20;
 		call_extern(displayDriverPtr, 0x09, (uint8_t&)character, cursorLine, cursorPos);
