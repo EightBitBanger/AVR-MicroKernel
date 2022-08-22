@@ -39,8 +39,8 @@ void command_dir(uint8_t, uint8_t&, uint8_t&, uint8_t&, uint8_t&) {
 	
 	// List current device contents
 	uint8_t  stride        = 32;
-	uint32_t device_start  = moduleLoaderDir.current_device + 32;
-	uint32_t device_end    = moduleLoaderDir.current_device + (1024 * 1);
+	uint32_t device_start  = moduleLoaderDir.current_device + stride;
+	uint32_t device_end    = moduleLoaderDir.current_device + (1024 * 8);
 	
 	
 	for (uint32_t i=device_start; i < device_end; i += stride) {
@@ -62,7 +62,7 @@ void command_dir(uint8_t, uint8_t&, uint8_t&, uint8_t&, uint8_t&) {
 				console.printChar(byte);
 			}
 			
-			// File size
+			// Display file size
 			WrappedPointer filesize;
 			for (uint8_t a=0; a < 4; a++) {
 				
@@ -79,9 +79,7 @@ void command_dir(uint8_t, uint8_t&, uint8_t&, uint8_t&, uint8_t&) {
 		}
 		
 		// Page pause
-		if (page_counter > 2) {page_counter = 0;
-			console.pause_press_anykey();
-		}
+		if (page_counter > 2) {page_counter = 0; console.pause_press_anykey();}
 		
 	}
 	

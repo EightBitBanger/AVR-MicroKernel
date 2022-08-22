@@ -66,15 +66,14 @@ void command_mk(uint8_t, uint8_t&, uint8_t&, uint8_t&, uint8_t&) {
 			call_extern(storageDevice, DEVICE_CALL_ADDRESS, pointer.byte_t[0], pointer.byte_t[1], pointer.byte_t[2], pointer.byte_t[3]);
 			call_extern(storageDevice, 0x01, (uint8_t&)byte);
 			
-			if (page_counter >= 31) {page_counter=0; _delay_ms(5);} else {page_counter++;}
+			_delay_ms(5);
 			
 			// Write file name
 			for (uint32_t a=0; a < 10; a++) {
 				pointer.address = i + a + 1;
 				call_extern(storageDevice, DEVICE_CALL_ADDRESS, pointer.byte_t[0], pointer.byte_t[1], pointer.byte_t[2], pointer.byte_t[3]);
 				call_extern(storageDevice, 0x01, (uint8_t&)filename[a]);
-				
-				if (page_counter >= 31) {page_counter=0; _delay_ms(5);} else {page_counter++;}
+				_delay_ms(5);
 			}
 			
 			// Write file size
@@ -87,11 +86,8 @@ void command_mk(uint8_t, uint8_t&, uint8_t&, uint8_t&, uint8_t&) {
 				pointer.address = i + a + 11;
 				call_extern(storageDevice, DEVICE_CALL_ADDRESS, pointer.byte_t[0], pointer.byte_t[1], pointer.byte_t[2], pointer.byte_t[3]);
 				call_extern(storageDevice, 0x01, (uint8_t&)filesize.byte_t[a]);
-				
 				_delay_ms(5);
 			}
-			
-			_delay_ms(5);
 			
 			uint32_t number_of_sectors = (moduleLoaderMk.file_size / 32) + 2;
 			
@@ -104,9 +100,7 @@ void command_mk(uint8_t, uint8_t&, uint8_t&, uint8_t&, uint8_t&) {
 				pointer.address = i + (a * stride);
 				call_extern(storageDevice, DEVICE_CALL_ADDRESS, pointer.byte_t[0], pointer.byte_t[1], pointer.byte_t[2], pointer.byte_t[3]);
 				call_extern(storageDevice, 0x01, (uint8_t&)byte);
-				
 				_delay_ms(5);
-				
 			}
 			
 			return;

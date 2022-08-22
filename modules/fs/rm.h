@@ -73,18 +73,16 @@ void command_rm(uint8_t, uint8_t&, uint8_t&, uint8_t&, uint8_t&) {
 					call_extern(storageDevice, 0x00, (uint8_t&)filesize.byte_t[a]);
 				}
 				
-				uint32_t number_of_sectors = (filesize.address / 32) + 2;
+				uint32_t number_of_sectors = (filesize.address / 32) + 1;
 				
-				// Zero the file sector headers
+				// Zero the file sectors
 				byte = 0x00;
 				for (uint32_t a=0; a < number_of_sectors; a++) {
 					
 					pointer.address = i + (a * stride);
 					call_extern(storageDevice, DEVICE_CALL_ADDRESS, pointer.byte_t[0], pointer.byte_t[1], pointer.byte_t[2], pointer.byte_t[3]);
 					call_extern(storageDevice, 0x01, (uint8_t&)byte);
-					
 					_delay_ms(5);
-					
 				}
 				
 				return;

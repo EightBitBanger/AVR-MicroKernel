@@ -33,7 +33,7 @@ struct MassStorageDeviceDriver {
 		
 	}
 	
-	void write(uint32_t address, char byte) {bus_write_byte(device_bus, address, byte);return;}
+	void write(uint32_t address, char byte) {bus_write_byte(device_bus, address, byte); return;}
 	
 	void read(uint32_t address, char& byte) {bus_read_byte(device_bus, address, byte); return;}
 	
@@ -51,7 +51,7 @@ void storageDeviceDriverEntryPoint(uint8_t functionCall, uint8_t& paramA, uint8_
 	}
 	
 	if (functionCall == 0x00) {massStorageDeviceDriver.read(massStorageDeviceDriver.device_address, (char&)paramA); return;}
-	if (functionCall == 0x01) {massStorageDeviceDriver.write(massStorageDeviceDriver.device_address, (char)paramA);return;}
+	if (functionCall == 0x01) {massStorageDeviceDriver.write(massStorageDeviceDriver.device_address, (char)paramA); return;}
 	
 	return;
 }
