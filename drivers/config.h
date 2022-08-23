@@ -12,12 +12,12 @@
 #ifndef __BOOT_SAFEMODE_
 
 // Normal mode device drivers
-#include "network/network.h"     // Network interface client
+//#include "network/network.h"     // Network interface client
 #include "storage/storage.h"     // Mass storage driver
-#include "memory/eeprom.h"       // On-chip EEPROM storage
-#include "memory/exmem.h"        // On-board extended memory
-#include "audio/speaker.h"       // External speaker
-#include "gpio/gpio_card.h"      // GPIO card
+//#include "memory/eeprom.h"       // On-chip EEPROM storage
+//#include "memory/exmem.h"        // On-board extended memory
+//#include "audio/speaker.h"       // External speaker
+//#include "gpio/gpio_card.h"      // GPIO card
 
 #endif
 

@@ -3,6 +3,8 @@
 
 void command_rm(uint8_t, uint8_t&, uint8_t&, uint8_t&, uint8_t&);
 
+char msg_file_not_found[] = "File not found.";
+
 #define __MODULE_NAME_  "rm"
 
 struct ModuleLoaderRm {
@@ -92,9 +94,8 @@ void command_rm(uint8_t, uint8_t&, uint8_t&, uint8_t&, uint8_t&) {
 		
 		
 	}
-	 
-	char filenotfound[] = "File not found.";
-	console.print(filenotfound, sizeof(filenotfound));
+	
+	console.print(msg_file_not_found, sizeof(msg_file_not_found));
 	console.printLn();
 	
 	return;

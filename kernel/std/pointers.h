@@ -5,7 +5,6 @@
 static void(*nullptr)() = 0;
 static uint8_t nullchar = 0;
 
-
 #ifndef _32_BIT_POINTERS__
  #ifndef _64_BIT_POINTERS__
   #define _32_BIT_POINTERS__

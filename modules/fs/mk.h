@@ -54,48 +54,48 @@ void command_mk(uint8_t, uint8_t&, uint8_t&, uint8_t&, uint8_t&) {
 		call_extern(storageDevice, 0x00, (uint8_t&)byte);
 		
 		// Check sector is empty
-		if (byte == 0x00) {
-			
-			//
-			// Check enough room for the file size before creating file
-			//
-			
-			// Mark sector as used
-			byte = 0x55; // File start byte
-			pointer.address = i;
+		if (byte != 0x00) continue;
+		
+		//
+		// Check enough room for the file size before creating file
+		//
+		
+		// Mark sector as used
+		byte = 0x55; // File start byte
+		pointer.address = i;
+		call_extern(storageDevice, DEVICE_CALL_ADDRESS, pointer.byte_t[0], pointer.byte_t[1], pointer.byte_t[2], pointer.byte_t[3]);
+		call_extern(storageDevice, 0x01, (uint8_t&)byte);
+		
+		_delay_ms(5);
+		
+		// Write file name
+		for (uint32_t a=0; a < 10; a++) {
+			pointer.address = i + a + 1;
 			call_extern(storageDevice, DEVICE_CALL_ADDRESS, pointer.byte_t[0], pointer.byte_t[1], pointer.byte_t[2], pointer.byte_t[3]);
-			call_extern(storageDevice, 0x01, (uint8_t&)byte);
-			
+			call_extern(storageDevice, 0x01, (uint8_t&)filename[a]);
 			_delay_ms(5);
+		}
+		
+		// Write file size
+		WrappedPointer filesize;
+		filesize.address = moduleLoaderMk.file_size;
+		if (filesize.address < 32) 
+			filesize.address = 32;
+		for (uint32_t a=0; a < 4; a++) {
 			
-			// Write file name
-			for (uint32_t a=0; a < 10; a++) {
-				pointer.address = i + a + 1;
-				call_extern(storageDevice, DEVICE_CALL_ADDRESS, pointer.byte_t[0], pointer.byte_t[1], pointer.byte_t[2], pointer.byte_t[3]);
-				call_extern(storageDevice, 0x01, (uint8_t&)filename[a]);
-				_delay_ms(5);
-			}
+			pointer.address = i + a + 11;
+			call_extern(storageDevice, DEVICE_CALL_ADDRESS, pointer.byte_t[0], pointer.byte_t[1], pointer.byte_t[2], pointer.byte_t[3]);
+			call_extern(storageDevice, 0x01, (uint8_t&)filesize.byte_t[a]);
+			_delay_ms(5);
+		}
+		
+		uint32_t number_of_sectors = (moduleLoaderMk.file_size / 32) + 2;
+		
+		// Mark following sectors
+		byte = 0xff;
+		for (uint32_t a=1; a < number_of_sectors; a++) {
 			
-			// Write file size
-			WrappedPointer filesize;
-			filesize.address = moduleLoaderMk.file_size;
-			if (filesize.address < 32) 
-				filesize.address = 32;
-			for (uint32_t a=0; a < 4; a++) {
-				
-				pointer.address = i + a + 11;
-				call_extern(storageDevice, DEVICE_CALL_ADDRESS, pointer.byte_t[0], pointer.byte_t[1], pointer.byte_t[2], pointer.byte_t[3]);
-				call_extern(storageDevice, 0x01, (uint8_t&)filesize.byte_t[a]);
-				_delay_ms(5);
-			}
-			
-			uint32_t number_of_sectors = (moduleLoaderMk.file_size / 32) + 2;
-			
-			// Mark following sectors
-			byte = 0xff;
-			for (uint32_t a=1; a < number_of_sectors; a++) {
-				
-				if (a == number_of_sectors-1) byte = 0xaa;
+			if (a == number_of_sectors-1) {byte = 0xaa;
 				
 				pointer.address = i + (a * stride);
 				call_extern(storageDevice, DEVICE_CALL_ADDRESS, pointer.byte_t[0], pointer.byte_t[1], pointer.byte_t[2], pointer.byte_t[3]);
