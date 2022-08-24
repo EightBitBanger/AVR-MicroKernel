@@ -168,7 +168,7 @@ void __kernel_initiate(void) {
 	}
 	
 	// Setup the command prompt
-	uint8_t prompt_string[5] = "C>  ";
+	uint8_t prompt_string[5] = "A>  ";
 	uint8_t prompt_length = 0x02;
 	call_extern(console_device, 0x0e, prompt_length);
 	call_extern(console_device, 0x0f, prompt_string[0], prompt_string[1], prompt_string[2], prompt_string[3]);

@@ -61,9 +61,10 @@ void net_entry_point(uint8_t, uint8_t&, uint8_t&, uint8_t&, uint8_t&) {
 			
 			counter = (param1 - '0') * 8;
 			
+			uint8_t packet[] = {_PACKET_START_BYTE__, _PACKET_TYPE_DATA__, netModuleLoader.byte, _PACKET_STOP_BYTE__};
+			
 			for (uint8_t i=0; i < counter; i++) {
 				
-				uint8_t packet[] = {_PACKET_START_BYTE__, _PACKET_TYPE_DATA__, netModuleLoader.byte, _PACKET_STOP_BYTE__};
 				network_send(networkDevice, packet);
 				
 				if (param1 == 'x') i = 0;

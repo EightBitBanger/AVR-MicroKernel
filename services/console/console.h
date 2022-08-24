@@ -26,7 +26,6 @@ struct CommandConsoleServiceLauncher {
 		// Link to the keyboard device driver
 		keyboard_device = (Device)get_func_address(_KEYBOARD_INPUT__, sizeof(_KEYBOARD_INPUT__));
 		
-		
 		task_create(_SERVICE_NAME__, sizeof(_SERVICE_NAME__), keyboard_event_handler, TASK_PRIORITY_REALTIME, TASK_TYPE_SERVICE);
 		
 		// Initiate the current key state

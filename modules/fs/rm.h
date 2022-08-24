@@ -8,13 +8,7 @@ char msg_file_not_found[] = "File not found.";
 #define __MODULE_NAME_  "rm"
 
 struct ModuleLoaderRm {
-	
-	uint32_t current_device;
-	
 	ModuleLoaderRm() {
-		
-		current_device = 0x40000;
-		
 		load_device(__MODULE_NAME_, sizeof(__MODULE_NAME_), (Module)command_rm, DEVICE_TYPE_MODULE);
 	}
 }static moduleLoaderRm;
@@ -32,9 +26,10 @@ void command_rm(uint8_t, uint8_t&, uint8_t&, uint8_t&, uint8_t&) {
 	char byte;
 	
 	// List current device contents
-	uint8_t  stride        = 32;
-	uint32_t device_start  = moduleLoaderRm.current_device + 32;
-	uint32_t device_end    = moduleLoaderRm.current_device + (1024 * 8);
+	uint32_t current_device = 0x30000 + (0x10000 * (console.promptString[0] - 'A' + 1));
+	uint8_t  stride         = 32;
+	uint32_t device_start   = current_device + 32;
+	uint32_t device_end     = current_device + (1024 * 8);
 	
 	uint8_t page_counter=0;
 	

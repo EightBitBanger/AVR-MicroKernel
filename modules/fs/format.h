@@ -44,7 +44,7 @@ void command_format(uint8_t, uint8_t&, uint8_t&, uint8_t&, uint8_t&) {
 		return;
 	}
 	
-	if ((param0 < '1') | (param0 > '5')) 
+	if ((param0 < 'a') | (param0 > 'f')) 
 		return;
 	
 	// Format the storage device
@@ -53,7 +53,7 @@ void command_format(uint8_t, uint8_t&, uint8_t&, uint8_t&, uint8_t&) {
 	uint8_t flag = 0x00;
 	uint8_t write_counter = 0;
 	
-	uint32_t base_address = 0x30000 + (0x10000 * (param0 - '0'));
+	uint32_t base_address = 0x30000 + (0x10000 * (param0 - 'a' + 1));
 	
 	char in_prog_str[] = "Formatting device...";
 	console.print(in_prog_str, sizeof(in_prog_str));

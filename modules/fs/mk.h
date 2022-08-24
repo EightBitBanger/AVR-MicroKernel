@@ -8,12 +8,10 @@ void command_mk(uint8_t, uint8_t&, uint8_t&, uint8_t&, uint8_t&);
 struct ModuleLoaderMk {
 	
 	uint32_t file_size;
-	uint32_t current_device;
 	
 	ModuleLoaderMk() {
 		
 		file_size       = 1;
-		current_device  = 0x40000;
 		
 		load_device(__MODULE_NAME_, sizeof(__MODULE_NAME_), (Module)command_mk, DEVICE_TYPE_MODULE);
 	}
@@ -33,9 +31,10 @@ void command_mk(uint8_t, uint8_t&, uint8_t&, uint8_t&, uint8_t&) {
 	WrappedPointer pointer;
 	char byte;
 	
-	uint32_t stride        = 32;
-	uint32_t device_start  = moduleLoaderMk.current_device;
-	uint32_t device_end    = moduleLoaderMk.current_device + (stride * 256);   // 8k
+	uint32_t current_device = 0x30000 + (0x10000 * (console.promptString[0] - 'A' + 1));
+	uint32_t stride         = 32;
+	uint32_t device_start   = current_device;
+	uint32_t device_end     = current_device + (stride * 256);   // 8k
 	
 	uint8_t page_counter=0;
 	
@@ -56,9 +55,21 @@ void command_mk(uint8_t, uint8_t&, uint8_t&, uint8_t&, uint8_t&) {
 		// Check sector is empty
 		if (byte != 0x00) continue;
 		
-		//
-		// Check enough room for the file size before creating file
-		//
+		// Check next bytes for file size
+		uint16_t count_free_sectors=0;
+		for (uint32_t a=device_start; a < device_end; a += stride) {
+			
+			pointer.address = i;
+			call_extern(storageDevice, DEVICE_CALL_ADDRESS, pointer.byte_t[0], pointer.byte_t[1], pointer.byte_t[2], pointer.byte_t[3]);
+			call_extern(storageDevice, 0x00, (uint8_t&)byte);
+			
+			if (byte != 0x00) continue;
+			
+			
+			
+			
+		}
+		
 		
 		// Mark sector as used
 		byte = 0x55; // File start byte
@@ -79,8 +90,7 @@ void command_mk(uint8_t, uint8_t&, uint8_t&, uint8_t&, uint8_t&) {
 		// Write file size
 		WrappedPointer filesize;
 		filesize.address = moduleLoaderMk.file_size;
-		if (filesize.address < 32) 
-			filesize.address = 32;
+		if (filesize.address == 0) filesize.address = 1;
 		for (uint32_t a=0; a < 4; a++) {
 			
 			pointer.address = i + a + 11;

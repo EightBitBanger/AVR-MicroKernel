@@ -9,13 +9,9 @@ char msg_file_count[] = "files";
 
 struct ModuleLoaderDir {
 	
-	uint32_t current_device;
-	
 	char    current_directory[8];
 	
 	ModuleLoaderDir() {
-		
-		current_device = 0x40000;
 		
 		for (uint8_t i=0; i < 8; i++) 
 			current_directory[i]=' ';
@@ -39,9 +35,10 @@ void command_dir(uint8_t, uint8_t&, uint8_t&, uint8_t&, uint8_t&) {
 	char byte;
 	
 	// List current device contents
-	uint8_t  stride        = 32;
-	uint32_t device_start  = moduleLoaderDir.current_device + stride;
-	uint32_t device_end    = moduleLoaderDir.current_device + (1024 * 8);
+	uint32_t current_device = 0x30000 + (0x10000 * (console.promptString[0] - 'A' + 1));
+	uint8_t  stride         = 32;
+	uint32_t device_start   = current_device + stride;
+	uint32_t device_end     = current_device + (1024 * 8);
 	
 	uint16_t file_count=0;
 	
@@ -86,6 +83,7 @@ void command_dir(uint8_t, uint8_t&, uint8_t&, uint8_t&, uint8_t&) {
 	}
 	
 	// Display total file count
+	console.printSpace();
 	console.printInt(file_count);
 	console.printSpace();
 	if (file_count > 10) console.printSpace();
