@@ -10,6 +10,7 @@
 #include "fs/mk.h"              // Make a new file
 #include "fs/rm.h"              // Remove a file
 #include "fs/cd.h"              // Change directory
+#include "fs/copy.h"            // Copy a file to new file
 #include "fs/format.h"          // Device format
 
 #include "system/task.h"        // Task management
