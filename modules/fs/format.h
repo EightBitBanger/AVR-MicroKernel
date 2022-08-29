@@ -65,9 +65,9 @@ void command_format(uint8_t, uint8_t&, uint8_t&, uint8_t&, uint8_t&) {
 		call_extern(storageDevice, DEVICE_CALL_ADDRESS, pointer.byte_t[0], pointer.byte_t[1], pointer.byte_t[2], pointer.byte_t[3]);
 		
 		if (write_counter == 0) {
-			call_extern(storageDevice, 0x01, (uint8_t&)flag); // Sector state flag
+			call_extern(storageDevice, 0x12, (uint8_t&)flag); // Sector state flag
 		} else {
-			call_extern(storageDevice, 0x01, (uint8_t&)byte); // Sector data byte
+			call_extern(storageDevice, 0x12, (uint8_t&)byte); // Sector data byte
 		}
 		
 		// 32 byte page counter
@@ -82,7 +82,7 @@ void command_format(uint8_t, uint8_t&, uint8_t&, uint8_t&, uint8_t&) {
 	for (uint8_t i=0; i < sizeof(header); i++) {
 		pointer.address = i + base_address;
 		call_extern(storageDevice, DEVICE_CALL_ADDRESS, pointer.byte_t[0], pointer.byte_t[1], pointer.byte_t[2], pointer.byte_t[3]);
-		call_extern(storageDevice, 0x01, (uint8_t&)header[i]);
+		call_extern(storageDevice, 0x12, (uint8_t&)header[i]);
 		
 		// 32 byte page counter
 		if (write_counter >= 31) {write_counter=0; _delay_ms(5);} else {write_counter++;}

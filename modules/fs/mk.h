@@ -7,6 +7,7 @@ void command_mk(uint8_t, uint8_t&, uint8_t&, uint8_t&, uint8_t&);
 
 char msg_file_created[] = "File created.";
 char msg_file_exists[]  = "File already exists.";
+char msg_file_not_found[]  = "File not found.";
 
 struct ModuleLoaderMk {
 	
@@ -23,14 +24,18 @@ struct ModuleLoaderMk {
 
 void command_mk(uint8_t, uint8_t&, uint8_t&, uint8_t&, uint8_t&) {
 	
+	Device storageDevice;
+	storageDevice = (Device)get_func_address(_MASS_STORAGE__, sizeof(_MASS_STORAGE__));
+	if (storageDevice == 0) return;
+	
 	// Get filename parameter
 	char filename[11] = "          ";
 	for (uint8_t a=0; a < 10; a++) {
 		uint8_t str_char = console.keyboard_string[sizeof(__MODULE_NAME_) + a];
 		if (str_char == ' ') break;
+		call_extern(storageDevice, a, (uint8_t&)str_char);
 		filename[a] = str_char;
 	}
-	
 	
 	if ((filename[0] == 's') & (filename[1] == ' ')) {
 		
@@ -61,17 +66,34 @@ void command_mk(uint8_t, uint8_t&, uint8_t&, uint8_t&, uint8_t&) {
 	}
 	
 	// Check if the file already exists
-	if (fs.file_get_size(filename) != 0) {
+	WrappedPointer return_value;
+	call_extern(storageDevice, 0x0c, return_value.byte_t[0], return_value.byte_t[1], return_value.byte_t[2], return_value.byte_t[3]);
+	
+	if (return_value.address != 0) {
 		console.print(msg_file_exists, sizeof(msg_file_exists));
 		console.printLn();
 		return;
 	}
 	
-	// Create the file
-	fs.file_create(filename, moduleLoaderMk.file_size * 32);
+	// Set the file size
+	WrappedPointer pointer;
+	pointer.address = moduleLoaderMk.file_size * 32;
+	call_extern(storageDevice, DEVICE_CALL_ADDRESS, pointer.byte_t[0], pointer.byte_t[1], pointer.byte_t[2], pointer.byte_t[3]);
 	
-	console.print(msg_file_created, sizeof(msg_file_created));
-	console.printLn();
+	// Create the file
+	uint8_t return_byte;
+	call_extern(storageDevice, 0x0a, return_byte);
+	
+	uint8_t char_space=0x20;
+	for (uint8_t a=0; a < 10; a++) 
+		call_extern(storageDevice, a, char_space);
+	
+	if (return_byte != 0) {
+		
+		console.print(msg_file_created, sizeof(msg_file_created));
+		console.printLn();
+		
+	}
 	
 	return;
 }

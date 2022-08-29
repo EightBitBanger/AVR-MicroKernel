@@ -16,6 +16,7 @@
 
 
 typedef void(*Module)();
+typedef void(*Driver)();
 typedef void(*Device)(uint8_t, uint8_t&, uint8_t&, uint8_t&, uint8_t&);
 
 // Load a device onto the device table

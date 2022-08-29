@@ -15,6 +15,8 @@ struct MassStorageDeviceDriver {
 	
 	Bus device_bus;
 	
+	char file_name[10];
+	
 	uint32_t device_address;
 	uint8_t  page_count;
 	
@@ -27,6 +29,9 @@ struct MassStorageDeviceDriver {
 		
 		device_address = 0x00000;
 		
+		for (uint8_t i=0; i < sizeof(file_name); i++) 
+			file_name[i]=0x20;
+		
 		device_bus.waitstate_read  = 40;
 		device_bus.waitstate_write = 100;
 		
@@ -36,7 +41,7 @@ struct MassStorageDeviceDriver {
 		file_size    = 0;
 		file_seek    = 0;
 		
-		load_device(_MASS_STORAGE__, sizeof(_MASS_STORAGE__), (Module)storageDeviceDriverEntryPoint, DEVICE_TYPE_DRIVER);
+		load_device(_MASS_STORAGE__, sizeof(_MASS_STORAGE__), (Driver)storageDeviceDriverEntryPoint, DEVICE_TYPE_DRIVER);
 	}
 	
 	void initiate(void) {}
@@ -94,7 +99,7 @@ struct MassStorageDeviceDriver {
 		console.printSpace();
 		console.printInt(file_count);
 		console.printSpace();
-		if (file_count > 10) console.printSpace();
+		//if (file_count > 10) console.printSpace();
 		if (file_count > 100) console.printSpace();
 		
 		if (file_count == 1) {
@@ -248,6 +253,29 @@ struct MassStorageDeviceDriver {
 	}
 	
 	
+	uint8_t file_rename(char* new_file_name) {
+		
+		WrappedPointer pointer;
+		char byte;
+		
+		uint32_t current_device = 0x30000 + (0x10000 * (console.promptString[0] - 'A' + 1));
+		uint32_t device_start   = current_device + FORMAT_STRIDE;
+		uint32_t device_end     = current_device + (FORMAT_STRIDE * 256);
+		
+		uint8_t page_counter=0;
+		
+		if (file_address != 0) {
+			
+			for (uint32_t a=0; a < 10; a++) {
+				write(file_address + a + 1, (uint8_t&)new_file_name[a]); _delay_ms(5);
+			}
+			
+		}
+		
+		return 0;
+	}
+	
+	
 	uint32_t file_get_size(char* file_name) {
 		
 		WrappedPointer pointer;
@@ -293,7 +321,7 @@ struct MassStorageDeviceDriver {
 	}
 	
 	
-	uint8_t file_open(char* file_name) {
+	uint8_t file_open(char* filename) {
 		
 		WrappedPointer pointer;
 		char byte;
@@ -322,7 +350,7 @@ struct MassStorageDeviceDriver {
 				read(i + a, (char&)current_file_name[a-1]);
 				
 				// Compare filenames
-				if (strcmp(current_file_name, file_name, 10) == 1) {
+				if (strcmp(current_file_name, filename, 10) == 1) {
 					
 					// Get file size
 					WrappedPointer filesize;
@@ -344,7 +372,7 @@ struct MassStorageDeviceDriver {
 		return 0;
 	}
 	
-	void file_close(void) {
+	uint8_t file_close(void) {
 		file_address=0;
 	}
 	
@@ -374,15 +402,45 @@ void storageDeviceDriverEntryPoint(uint8_t functionCall, uint8_t& paramA, uint8_
 		return;
 	}
 	
-	if (functionCall == 0x00) {fs.read(fs.device_address, (char&)paramA); return;}
-	if (functionCall == 0x01) {fs.write(fs.device_address, (char)paramA); return;}
+	if (functionCall == 0x00) {fs.file_name[0] = paramA; return;}
+	if (functionCall == 0x01) {fs.file_name[1] = paramA; return;}
+	if (functionCall == 0x02) {fs.file_name[2] = paramA; return;}
+	if (functionCall == 0x03) {fs.file_name[3] = paramA; return;}
+	if (functionCall == 0x04) {fs.file_name[4] = paramA; return;}
+	if (functionCall == 0x05) {fs.file_name[5] = paramA; return;}
+	if (functionCall == 0x06) {fs.file_name[6] = paramA; return;}
+	if (functionCall == 0x07) {fs.file_name[7] = paramA; return;}
+	if (functionCall == 0x08) {fs.file_name[8] = paramA; return;}
+	if (functionCall == 0x09) {fs.file_name[9] = paramA; return;}
+	
+	if (functionCall == 0x0a) {paramA = fs.file_create(fs.file_name, fs.device_address); return;}
+	if (functionCall == 0x0b) {paramA = fs.file_delete(fs.file_name); return;}
+	if (functionCall == 0x0c) {
+		WrappedPointer pointer;
+		pointer.address = fs.file_get_size(fs.file_name);
+		paramA = pointer.byte_t[0];
+		paramB = pointer.byte_t[1];
+		paramC = pointer.byte_t[2];
+		paramD = pointer.byte_t[3];
+		return;
+	}
+	
+	if (functionCall == 0x0d) {paramA = fs.file_open(fs.file_name); return;}
+	if (functionCall == 0x0e) {paramA = fs.file_close(); return;}
+	if (functionCall == 0x13) {paramA = fs.file_rename(fs.file_name); return;}
+	if (functionCall == 0x0f) {fs.file_read_byte(fs.device_address, (char&)paramA); return;}
+	if (functionCall == 0x10) {fs.file_write_byte(fs.device_address, (char&)paramA); return;}
+	
+	if (functionCall == 0x11) {fs.read(fs.device_address, (char&)paramA); return;}
+	if (functionCall == 0x12) {fs.write(fs.device_address, (char&)paramA); return;}
+	
+	if (functionCall == 0x2f) {fs.list_directory(paramA); return;}
 	
 	return;
 }
 
 
 #undef _HARDWARE_WAITSTATE__
-
 
 
 

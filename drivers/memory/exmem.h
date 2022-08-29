@@ -35,7 +35,7 @@ struct ExtendedMemoryDriver {
 		device_bus.waitstate_read  = 2;
 		device_bus.waitstate_write = 0;
 		
-		load_device(_EXTENDED_MEMORY__, sizeof(_EXTENDED_MEMORY__), (void(*)())ExtendedMemoryDeviceDriverEntryPoint, DEVICE_TYPE_DRIVER);
+		load_device(_EXTENDED_MEMORY__, sizeof(_EXTENDED_MEMORY__), (Driver)ExtendedMemoryDeviceDriverEntryPoint, DEVICE_TYPE_DRIVER);
 	}
 	
 	void initiate(void) {
@@ -54,13 +54,11 @@ struct ExtendedMemoryDriver {
 		WrappedPointer numberOfAllocations;
 		for (uint8_t i=0; i<4; i++) read(_KERNEL_STACK_COUNTER__ + i, numberOfAllocations.byte[i]);
 		
-		// Check out of memory
 		if ((numberOfAllocations.address + size + _STACK_BEGIN__) > _STACK_END__) {
 			write(_KERNEL_FLAGS__, _KERNEL_STATE_OUT_OF_MEMORY__);
 			return 0;
 		}
 		
-		// Get the beginning address pointing to the new allocation
 		uint32_t new_pointer = _STACK_BEGIN__ + (numberOfAllocations.address);
 		
 		numberOfAllocations.address += size;
@@ -113,7 +111,6 @@ void ExtendedMemoryDeviceDriverEntryPoint(uint8_t functionCall, uint8_t& paramA,
 	if (functionCall == 0x03) {extendedMemoryDriver.returnAddress = extendedMemoryDriver.stack_size(); return;}
 	if (functionCall == 0x04) {extendedMemoryDriver.returnAddress = extendedMemoryDriver._STACK_END__; return;}
 	if (functionCall == 0x05) {extendedMemoryDriver._STACK_END__ = extendedMemoryDriver.currentAddress; return;}
-	
 	
 	// Set the address pointer
 	if (functionCall == 0x0a) {

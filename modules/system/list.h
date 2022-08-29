@@ -94,7 +94,7 @@ void command_list(uint8_t, uint8_t&, uint8_t&, uint8_t&, uint8_t&) {
 		
 		pointer.address = i;
 		call_extern(storageDevice, DEVICE_CALL_ADDRESS, pointer.byte_t[0], pointer.byte_t[1], pointer.byte_t[2], pointer.byte_t[3]);
-		call_extern(storageDevice, 0x00, (uint8_t&)byte);
+		call_extern(storageDevice, 0x11, (uint8_t&)byte);
 		
 		if (param1 == 'h') {
 			console.printHex(byte);

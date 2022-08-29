@@ -19,22 +19,16 @@ void command_dir(uint8_t, uint8_t&, uint8_t&, uint8_t&, uint8_t&) {
 	Device storageDevice = (Device)get_func_address(_MASS_STORAGE__, sizeof(_MASS_STORAGE__));
 	if (storageDevice == 0) return;
 	
-	uint8_t param0 = console.keyboard_string[sizeof(__MODULE_NAME_)];
+	uint8_t state = 0;
+	if (console.keyboard_string[sizeof(__MODULE_NAME_)] == 'p') {state = 1;}
 	
-	if (param0 == 'p') {fs.list_directory(1);} else {fs.list_directory(0);}
+	call_extern(storageDevice, 0x2f, state);
 	
 	return;
 }
 
 
 #undef __MODULE_NAME_
-
-
-
-
-
-
-
 
 #endif
 

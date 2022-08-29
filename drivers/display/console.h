@@ -36,7 +36,7 @@ struct CommandConsole {
 	
 	CommandConsole() {
 		
-		load_device(_COMMAND_CONSOLE__, sizeof(_COMMAND_CONSOLE__), (void(*)())ConsoleLibraryEntryPoint, DEVICE_TYPE_LIBRARY);
+		load_device(_COMMAND_CONSOLE__, sizeof(_COMMAND_CONSOLE__), (Driver)ConsoleLibraryEntryPoint, DEVICE_TYPE_LIBRARY);
 		
 		for (uint8_t i=0; i<promptStringLength; i++) promptString[i] = 0x20;
 		promptString[0]      = '>';
