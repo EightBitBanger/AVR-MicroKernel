@@ -103,7 +103,7 @@ uint8_t free_device(const char* name, uint8_t name_length) {
 Module get_func_address(const char* device_name, uint8_t name_length) {
 	
 	if (name_length > DEVICE_NAME_LENGTH_MAX)
-	name_length = DEVICE_NAME_LENGTH_MAX;
+		name_length = DEVICE_NAME_LENGTH_MAX;
 	
 	for (uint8_t i=0; i < DEVICE_TABLE_SIZE; i++) {
 		

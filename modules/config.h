@@ -19,14 +19,14 @@
 //#include "system/port.h"        // GPIO port configuration
 #include "system/list.h"        // Data listing
 #include "system/cls.h"         // Clear the display
-#include "system/device.h"      // Device table configuration
+//#include "system/device.h"      // Device table configuration
 //#include "system/mem.h"         // Memory check
 //#include "system/net.h"         // Network testing and configuration
 
 
 // === TESTING ===
 // Applications
-//#include "functions/app.h"      // Test application
+#include "functions/app.h"      // Test application
 
 #endif
 
