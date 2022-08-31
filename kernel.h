@@ -109,69 +109,66 @@ void __kernel_initiate(void) {
 	memory_device = (Device)get_func_address(_EXTENDED_MEMORY__, sizeof(_EXTENDED_MEMORY__));
 	if (memory_device != 0) {
 		
-		if (memory_device != 0) {
+		// Print zero
+		uint8_t zerochar = '0';
+		call_extern(console_device, 0x00, zerochar);
+		
+		// Begin allocating memory
+		for (total_memory.address=0x00000; total_memory.address < 0x40000; total_memory.address++) {
 			
-			// Print zero
-			uint8_t zerochar = '0';
-			call_extern(console_device, 0x00, zerochar);
+			bus_write_byte(device_bus, total_memory.address, test_byte);
+			bus_read_byte(device_bus, total_memory.address, byte);
 			
-			// Begin allocating memory
-			for (total_memory.address=0x00000; total_memory.address < 0x40000; total_memory.address++) {
-				
-				bus_write_byte(device_bus, total_memory.address, test_byte);
-				bus_read_byte(device_bus, total_memory.address, byte);
-				
-				if (byte != test_byte) break;
-				test_byte++;
-				
-				// Print total memory
-				if (skip > 245) {skip=0;
-					
-					// Reset cursor
-					pos=0;
-					line=1;
-					call_extern(console_device, 0x0a, line, pos);
-					
-					call_extern(console_device, 0x04, total_memory.byte_t[0], total_memory.byte_t[1], total_memory.byte_t[2], total_memory.byte_t[3]);
-					
-				} else {skip++;}
-			}
+			if (byte != test_byte) break;
+			test_byte++;
 			
-			if (total_memory.address > 0) {
+			// Print total memory
+			if (skip > 245) {skip=0;
 				
-				// Print final memory count
-				line=1;
+				// Reset cursor
 				pos=0;
+				line=1;
 				call_extern(console_device, 0x0a, line, pos);
+				
 				call_extern(console_device, 0x04, total_memory.byte_t[0], total_memory.byte_t[1], total_memory.byte_t[2], total_memory.byte_t[3]);
 				
-				// Print "bytes free"
-				call_extern(console_device, 0x03); // Space
-				char bytesfreemsg[] = "bytes free";
-				for (uint8_t i=0; i < sizeof(bytesfreemsg)-1; i++) 
-					call_extern(console_device, 0x00, (uint8_t&)bytesfreemsg[i]);
-				
-				uint8_t size = 0xff;
-				WrappedPointer start_address;
-				start_address.address = 0x00000;
-				
-				// Zero the kernel memory range
-				call_extern(memory_device, 0x0a, start_address.byte_t[0], start_address.byte_t[1], start_address.byte_t[2], start_address.byte_t[3]);
-				for (uint8_t i=0; i < 10; i++) 
-					call_extern(memory_device, 0x02, size);
-				
-				// Write total memory size to kernel memory
-				call_extern(memory_device, 0x0a, total_memory.byte_t[0], total_memory.byte_t[1], total_memory.byte_t[2], total_memory.byte_t[3]);
-				call_extern(memory_device, 0x05);
-				
-				call_extern(console_device, 0x01); // New line
-			}
-			
+			} else {skip++;}
 		}
+		
+		if (total_memory.address > 0) {
+			
+			// Print final memory count
+			line=1;
+			pos=0;
+			call_extern(console_device, 0x0a, line, pos);
+			call_extern(console_device, 0x04, total_memory.byte_t[0], total_memory.byte_t[1], total_memory.byte_t[2], total_memory.byte_t[3]);
+			
+			// Print "bytes free"
+			call_extern(console_device, 0x03); // Space
+			char bytesfreemsg[] = "bytes free";
+			for (uint8_t i=0; i < sizeof(bytesfreemsg)-1; i++) 
+				call_extern(console_device, 0x00, (uint8_t&)bytesfreemsg[i]);
+			
+			uint8_t size = 0xff;
+			WrappedPointer start_address;
+			start_address.address = 0x00000;
+			
+			// Zero the kernel memory range
+			call_extern(memory_device, 0x0a, start_address.byte_t[0], start_address.byte_t[1], start_address.byte_t[2], start_address.byte_t[3]);
+			for (uint8_t i=0; i < 10; i++) 
+				call_extern(memory_device, 0x02, size);
+			
+			// Write total memory size to kernel memory
+			call_extern(memory_device, 0x0a, total_memory.byte_t[0], total_memory.byte_t[1], total_memory.byte_t[2], total_memory.byte_t[3]);
+			call_extern(memory_device, 0x05);
+			
+			call_extern(console_device, 0x01); // New line
+		}
+		
 	}
 	
 	// Setup the command prompt
-	uint8_t prompt_string[5] = "C>  ";
+	uint8_t prompt_string[5] = "A>  ";
 	uint8_t prompt_length = 0x02;
 	call_extern(console_device, 0x0e, prompt_length);
 	call_extern(console_device, 0x0f, prompt_string[0], prompt_string[1], prompt_string[2], prompt_string[3]);

@@ -80,7 +80,7 @@ void command_list(uint8_t, uint8_t&, uint8_t&, uint8_t&, uint8_t&) {
 		if (moduleLoaderList.page_counter > 1) 
 			moduleLoaderList.page_counter--;
 	} else {
-		if (moduleLoaderList.page_counter < 255) 
+		if (moduleLoaderList.page_counter < 0xffff) 
 			moduleLoaderList.page_counter++;
 	}
 	
@@ -94,7 +94,7 @@ void command_list(uint8_t, uint8_t&, uint8_t&, uint8_t&, uint8_t&) {
 		
 		pointer.address = i;
 		call_extern(storageDevice, DEVICE_CALL_ADDRESS, pointer.byte_t[0], pointer.byte_t[1], pointer.byte_t[2], pointer.byte_t[3]);
-		call_extern(storageDevice, 0x00, (uint8_t&)byte);
+		call_extern(storageDevice, 0x11, (uint8_t&)byte);
 		
 		if (param1 == 'h') {
 			console.printHex(byte);

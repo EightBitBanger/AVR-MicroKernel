@@ -4,15 +4,13 @@
 #define _SERVICE_NAME__    "console"
 
 
-// Event handler entry point
-void keyboard_event_handler(void);
-// Enter function
-void eventKeyboardEnter(void);
-// Backspace function
-void eventKeyboardBackspace(void);
-// Accept a character onto the keyboard string of typed characters
-void eventKeyboardAcceptChar(uint8_t new_char);
 
+void keyboard_event_handler(void);               // Event handler entry point
+void eventKeyboardEnter(void);                   // Enter function
+void eventKeyboardBackspace(void);               // Backspace function
+void eventKeyboardAcceptChar(uint8_t new_char);  // Accept a character onto the keyboard string of typed characters
+void eventKeyboardShiftPressed(void);            // Shift pressed state
+void eventKeyboardShiftReleased(void);           // Shift pressed state
 
 struct CommandConsoleServiceLauncher {
 	
@@ -25,7 +23,6 @@ struct CommandConsoleServiceLauncher {
 		
 		// Link to the keyboard device driver
 		keyboard_device = (Device)get_func_address(_KEYBOARD_INPUT__, sizeof(_KEYBOARD_INPUT__));
-		
 		
 		task_create(_SERVICE_NAME__, sizeof(_SERVICE_NAME__), keyboard_event_handler, TASK_PRIORITY_REALTIME, TASK_TYPE_SERVICE);
 		
@@ -73,15 +70,26 @@ void keyboard_event_handler(void) {
 	// Check special keys
 	switch (currentChar) {
 		
-		case 0x01: eventKeyboardBackspace(); break;
-		case 0x02: eventKeyboardEnter(); break;
+		case 0x01: {eventKeyboardBackspace(); break;}
+		case 0x02: {eventKeyboardEnter(); break;}
+		case 0x11: {eventKeyboardShiftPressed(); break;}
+		case 0x12: {eventKeyboardShiftReleased(); break;}
 		
 		default: break;
 	}
 	
 	// Check key accepted
-	if (scanCodeAccepted == 1)
+	if (scanCodeAccepted == 1) {
+		
+		// Check shift state
+		if (console.shiftState == 1) {
+			if ((currentChar >= 'a') & (currentChar <= 'z'))
+			currentChar -= 0x20;
+		}
+		
 		eventKeyboardAcceptChar(currentChar);
+		
+	}
 	
 	return;
 }
@@ -183,6 +191,16 @@ void eventKeyboardAcceptChar(uint8_t new_char) {
 		console.setCursorPosition(console.cursorLine, console.cursorPos);
 	}
 	
+	return;
+}
+
+void eventKeyboardShiftPressed(void) {
+	console.shiftState = 1;
+	return;
+}
+
+void eventKeyboardShiftReleased(void) {
+	console.shiftState = 0;
 	return;
 }
 

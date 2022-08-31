@@ -17,18 +17,11 @@ struct ModuleLoaderApplication {
 
 void application_entry_point(uint8_t, uint8_t&, uint8_t&, uint8_t&, uint8_t&) {
 	
-	task_create(__MODULE_NAME_, sizeof(__MODULE_NAME_), application_task, TASK_PRIORITY_NORMAL, TASK_TYPE_USER);
-	
-	
-	
-	/*
+	//task_create(__MODULE_NAME_, sizeof(__MODULE_NAME_), application_task, TASK_PRIORITY_NORMAL, TASK_TYPE_USER);
 	
 	uint8_t last_char=0;
 	
 	while(1) {
-		
-		
-		continue;
 		
 		char byteLow, byteHigh;
 		bus_read_byte(keyboard.device_bus, _KEYBOARD_REGISTER_LO__, byteLow);
@@ -53,7 +46,6 @@ void application_entry_point(uint8_t, uint8_t&, uint8_t&, uint8_t&, uint8_t&) {
 		}
 		
 	}
-	*/
 	
 	return;
 }

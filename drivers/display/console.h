@@ -27,6 +27,7 @@ struct CommandConsole {
 	uint8_t lastChar;
 	uint8_t last_string_length;
 	uint8_t consoleReturn;
+	uint8_t shiftState;
 	
 	uint8_t scanCodeLow;
 	uint8_t scanCodeHigh;
@@ -36,22 +37,35 @@ struct CommandConsole {
 	
 	CommandConsole() {
 		
-		load_device(_COMMAND_CONSOLE__, sizeof(_COMMAND_CONSOLE__), (void(*)())ConsoleLibraryEntryPoint, DEVICE_TYPE_LIBRARY);
+		load_device(_COMMAND_CONSOLE__, sizeof(_COMMAND_CONSOLE__), (Driver)ConsoleLibraryEntryPoint, DEVICE_TYPE_LIBRARY);
 		
-		for (uint8_t i=0; i<promptStringLength; i++) promptString[i] = 0x20;
+		// Prompt
+		for (uint8_t i=0; i<promptStringLength; i++) 
+			promptString[i]  = 0x20;
 		promptString[0]      = '>';
+		
 		promptStringLength   = 1;
+		promptState          = 1;
+		cursorLine           = 0;
+		cursorPos            = 0;
 		
-		promptState     = 1;
-		cursorLine      = 0;
-		cursorPos       = 0;
-		
+		// Keyboard string
 		keyboard_string_length = 0;
+		for (uint8_t i=0; i<_MAX_KEYBOARD_STRING_LENGTH__; i++)
+			keyboard_string[i] = 0x20;
 		
 		keyboardState      = 0;
 		lastChar           = 0;
 		last_string_length = 0;
 		consoleReturn      = 0;
+		shiftState         = 0;
+		
+		scanCodeLow        = 0;
+		scanCodeHigh       = 0;
+		
+		displayDriverPtr = 0;
+		keyboardDriverPtr = 0;
+		
 	}
 	
 	void initiate(void) {
@@ -120,6 +134,7 @@ struct CommandConsole {
 		checkShiftUp();
 		return;
 	}
+	
 	void printSpace(void) {
 		uint8_t character=0x20;
 		call_extern(displayDriverPtr, 0x09, (uint8_t&)character, cursorLine, cursorPos);
