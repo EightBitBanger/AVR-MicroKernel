@@ -14,14 +14,14 @@
 #include "fs/copy.h"            // Copy a file to new file
 #include "fs/type.h"            // Type a files contents
 #include "fs/format.h"          // Device format
-
-//#include "system/task.h"        // Task management
-//#include "system/port.h"        // GPIO port configuration
+// System functions
+#include "system/task.h"        // Task management
+#include "system/port.h"        // GPIO port configuration
 #include "system/list.h"        // Data listing
 #include "system/cls.h"         // Clear the display
-//#include "system/device.h"      // Device table configuration
-//#include "system/mem.h"         // Memory check
-//#include "system/net.h"         // Network testing and configuration
+#include "system/device.h"      // Device table configuration
+#include "system/mem.h"         // Memory check
+#include "system/net.h"         // Network testing and configuration
 
 
 // === TESTING ===

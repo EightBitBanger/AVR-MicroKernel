@@ -12,7 +12,7 @@ struct TemplateDeviceDriver {
 	
 	TemplateDeviceDriver() {
 		
-		load_device(_DEVICE_DRIVER_NAME__, sizeof(_DEVICE_DRIVER_NAME__), (Device)arduinoUNODeviceDriverEntryPoint, DEVICE_TYPE_DRIVER);
+		load_device(_DEVICE_DRIVER_NAME__, sizeof(_DEVICE_DRIVER_NAME__), (Module)arduinoUNODeviceDriverEntryPoint, DEVICE_TYPE_DRIVER);
 		
 	}
 	

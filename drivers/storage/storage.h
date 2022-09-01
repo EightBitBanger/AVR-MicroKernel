@@ -32,8 +32,8 @@ struct MassStorageDeviceDriver {
 		for (uint8_t i=0; i < sizeof(file_name); i++) 
 			file_name[i]=0x20;
 		
-		device_bus.waitstate_read  = 40;
-		device_bus.waitstate_write = 100;
+		device_bus.waitstate_read  = 2;
+		device_bus.waitstate_write = 0;
 		
 		page_count = 0;
 		
@@ -177,6 +177,10 @@ struct MassStorageDeviceDriver {
 				write(i + a + 11, (uint8_t&)file_size_ptr.byte_t[a]); _delay_ms(5);
 			}
 			
+			// Write default attributes
+			byte = 0xff;
+			write(i + 15, (uint8_t&)byte); _delay_ms(5);
+			
 			uint32_t number_of_sectors = (file_size / FORMAT_STRIDE) + 1;
 			if (number_of_sectors <= 2) number_of_sectors = 2;
 			
@@ -317,6 +321,109 @@ struct MassStorageDeviceDriver {
 			
 		}
 		
+		return 0;
+	}
+	
+	
+	uint8_t file_set_attribute(char* filename, uint8_t attribute) {
+		
+		WrappedPointer pointer;
+		char byte;
+		
+		// List current device contents
+		uint32_t current_device = 0x30000 + (0x10000 * (console.promptString[0] - 'A' + 1));
+		
+		uint32_t device_start   = current_device + FORMAT_STRIDE;
+		uint32_t device_end     = current_device + (1024 * 8);
+		
+		uint8_t page_counter=0;
+		
+		for (uint32_t i=device_start; i < device_end; i += FORMAT_STRIDE) {
+			
+			read(i, byte);
+			
+			// Check sector header byte
+			if (byte != 0x00) {
+				
+				if (byte == 0xff) continue; // Ignore file data sectors
+				if (byte == 0xaa) continue; // Ignore file end sectors
+				
+				// Get files name
+				char current_file_name[11] = "          ";
+				for (uint32_t a=1; a < 10; a++)
+				read(i + a, (char&)current_file_name[a-1]);
+				
+				// Compare filenames
+				if (strcmp(current_file_name, filename, 10) == 1) {
+					
+					// Get file size
+					WrappedPointer filesize;
+					for (uint32_t a=0; a < 4; a++)
+					read(i + a + 11, (char&)filesize.byte_t[a]);
+					
+					uint32_t number_of_sectors = (filesize.address / FORMAT_STRIDE) + 1;
+					
+					// Set file attribute
+					write(i + 15, attribute); _delay_ms(5);
+					
+					return 1;
+				}
+				
+			}
+			
+		}
+		return 0;
+	}
+	
+	
+	uint8_t file_get_attribute(char* filename) {
+		
+		WrappedPointer pointer;
+		char byte;
+		
+		// List current device contents
+		uint32_t current_device = 0x30000 + (0x10000 * (console.promptString[0] - 'A' + 1));
+		
+		uint32_t device_start   = current_device + FORMAT_STRIDE;
+		uint32_t device_end     = current_device + (1024 * 8);
+		
+		uint8_t page_counter=0;
+		
+		for (uint32_t i=device_start; i < device_end; i += FORMAT_STRIDE) {
+			
+			read(i, byte);
+			
+			// Check sector header byte
+			if (byte != 0x00) {
+				
+				if (byte == 0xff) continue; // Ignore file data sectors
+				if (byte == 0xaa) continue; // Ignore file end sectors
+				
+				// Get files name
+				char current_file_name[11] = "          ";
+				for (uint32_t a=1; a < 10; a++)
+				read(i + a, (char&)current_file_name[a-1]);
+				
+				// Compare filenames
+				if (strcmp(current_file_name, filename, 10) == 1) {
+					
+					// Get file size
+					WrappedPointer filesize;
+					for (uint32_t a=0; a < 4; a++)
+					read(i + a + 11, (char&)filesize.byte_t[a]);
+					
+					uint32_t number_of_sectors = (filesize.address / FORMAT_STRIDE) + 1;
+					
+					// Set file attribute
+					uint8_t attribute;
+					write(i + 15, attribute); _delay_ms(5);
+					
+					return attribute;
+				}
+				
+			}
+			
+		}
 		return 0;
 	}
 	

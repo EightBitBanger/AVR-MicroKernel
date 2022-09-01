@@ -8,10 +8,10 @@
 #define __CORE_SCHEDULER_        // Include the task scheduler
 #define __HARDWARE_AUTO_DETECT_  // Use hardware auto detection
 
-//#define __BOOT_SAFEMODE_         // Load only the device drivers required to boot
-//#define __BOOT_LIGHTWEIGHT_      // Load minimal device modules
+//#define __BOOT_SAFEMODE_         // Load only the drivers required to boot
+//#define __BOOT_LIGHTWEIGHT_      // Skip loading the command modules
 
-//#define __ARDUINO_BOARD_         // Compile for an Arduino
+//#define __ARDUINO_BOARD_         // Compile for an Arduino board
 
 #define _32_BIT_POINTERS__
 //#define _64_BIT_POINTERS__
@@ -45,7 +45,7 @@ char msg_kernel_version[]    = "AVR-Kernel 1.0";
 #include "kernel/std/cstring.h"       // C string functions
 
 // Kernel systems
-#include "kernel/device.h"            // Device resource manager
+#include "kernel/device_table.h"      // Device resource manager
 #include "kernel/scheduler.h"         // Task scheduler
 #include "kernel/bus.h"               // System bus interface
 

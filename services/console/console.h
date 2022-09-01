@@ -3,14 +3,12 @@
 
 #define _SERVICE_NAME__    "console"
 
-
-
 void keyboard_event_handler(void);               // Event handler entry point
 void eventKeyboardEnter(void);                   // Enter function
 void eventKeyboardBackspace(void);               // Backspace function
 void eventKeyboardAcceptChar(uint8_t new_char);  // Accept a character onto the keyboard string of typed characters
 void eventKeyboardShiftPressed(void);            // Shift pressed state
-void eventKeyboardShiftReleased(void);           // Shift pressed state
+void eventKeyboardShiftReleased(void);           // Shift released state
 
 struct CommandConsoleServiceLauncher {
 	

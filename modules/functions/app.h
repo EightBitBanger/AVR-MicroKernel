@@ -23,9 +23,13 @@ void application_entry_point(uint8_t, uint8_t&, uint8_t&, uint8_t&, uint8_t&) {
 	
 	while(1) {
 		
+		Bus device_bus;
+		device_bus.waitstate_read  = 2;
+		device_bus.waitstate_write = 0;
+		
 		char byteLow, byteHigh;
-		bus_read_byte(keyboard.device_bus, _KEYBOARD_REGISTER_LO__, byteLow);
-		bus_read_byte(keyboard.device_bus, _KEYBOARD_REGISTER_HI__, byteHigh);
+		bus_read_byte(device_bus, 0x90000, byteLow);
+		bus_read_byte(device_bus, 0xa0000, byteHigh);
 		
 		uint8_t current_char = byteLow;
 		

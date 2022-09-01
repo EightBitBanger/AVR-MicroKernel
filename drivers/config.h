@@ -7,7 +7,7 @@
 #include "display/console.h"     // Command console library
 #include "display/display.h"     // 20x4 display driver
 #include "keyboard/PS2.h"        // On-board PS2 keyboard driver
-#include "storage/storage.h"     // Mass storage driver
+#include "storage/storage.h"     // Basic file system and storage
 
 
 #ifndef __BOOT_SAFEMODE_
