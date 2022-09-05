@@ -30,11 +30,12 @@ void command_mk(uint8_t, uint8_t&, uint8_t&, uint8_t&, uint8_t&) {
 	
 	// Get filename parameter
 	char filename[11] = "          ";
-	for (uint8_t a=0; a < 10; a++) {
-		uint8_t str_char = console.keyboard_string[sizeof(__MODULE_NAME_) + a];
+	uint8_t name_length=0;
+	for (name_length=0; name_length < 10; name_length++) {
+		uint8_t str_char = console.keyboard_string[sizeof(__MODULE_NAME_) + name_length];
 		if (str_char == ' ') break;
-		call_extern(storageDevice, a, (uint8_t&)str_char);
-		filename[a] = str_char;
+		call_extern(storageDevice, name_length, (uint8_t&)str_char);
+		filename[name_length] = str_char;
 	}
 	
 	if ((filename[0] == 's') & (filename[1] == ' ')) {
@@ -65,6 +66,11 @@ void command_mk(uint8_t, uint8_t&, uint8_t&, uint8_t&, uint8_t&) {
 		}
 	}
 	
+	// Name length no less than three
+	if (name_length < 2) {
+		return;
+	}
+	
 	// Check if the file already exists
 	WrappedPointer return_value;
 	call_extern(storageDevice, 0x0c, return_value.byte_t[0], return_value.byte_t[1], return_value.byte_t[2], return_value.byte_t[3]);
@@ -77,7 +83,7 @@ void command_mk(uint8_t, uint8_t&, uint8_t&, uint8_t&, uint8_t&) {
 	
 	// Set the file size
 	WrappedPointer pointer;
-	pointer.address = moduleLoaderMk.file_size * 32;
+	pointer.address = moduleLoaderMk.file_size;
 	call_extern(storageDevice, DEVICE_CALL_ADDRESS, pointer.byte_t[0], pointer.byte_t[1], pointer.byte_t[2], pointer.byte_t[3]);
 	
 	// Create the file

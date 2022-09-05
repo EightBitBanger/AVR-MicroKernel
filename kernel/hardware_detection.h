@@ -1,8 +1,8 @@
 #ifndef __HARDWARE_DETECTION_
 #define __HARDWARE_DETECTION_
 
-#define  _HARDWARE_ADDRESS_BEGIN__    0x40000    // Starting slot address
-#define  _HARDWARE_ADDRESS_STRIDE__   0x10000    // Address block size per slot
+#define  _HARDWARE_ADDRESS_BEGIN__    0x40000    // Starting address slot
+#define  _HARDWARE_ADDRESS_STRIDE__   0x10000    // Address width per slot
 #define  _HARDWARE_SLOT_COUNT__       5          // Number of on board slots
 
 

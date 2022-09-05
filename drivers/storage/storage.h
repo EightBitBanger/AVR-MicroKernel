@@ -4,8 +4,12 @@
 #ifndef _DRIVER_MASS_STORAGE__
 #define _DRIVER_MASS_STORAGE__
 
-#define FORMAT_STRIDE  32
+#define SECTOR_SIZE  32
 
+
+
+
+#define DEVICE_CAPACITY  (SECTOR_SIZE * 256) // 8k bytes
 
 void storageDeviceDriverEntryPoint(uint8_t, uint8_t&, uint8_t&, uint8_t&, uint8_t&);
 
@@ -18,12 +22,12 @@ struct MassStorageDeviceDriver {
 	char file_name[10];
 	
 	uint32_t device_address;
-	uint8_t  page_count;
 	
 	// File state
 	uint32_t file_address;
 	uint32_t file_size;
 	uint32_t file_seek;
+	uint8_t  write_counter; // EEPROM page write counter
 	
 	MassStorageDeviceDriver() {
 		
@@ -34,8 +38,6 @@ struct MassStorageDeviceDriver {
 		
 		device_bus.waitstate_read  = 2;
 		device_bus.waitstate_write = 0;
-		
-		page_count = 0;
 		
 		file_address = 0;
 		file_size    = 0;
@@ -56,19 +58,21 @@ struct MassStorageDeviceDriver {
 		uint8_t page_counter=0;
 		char byte;
 		
+		// Link to the console driver to list the directory
+		Device consoleDevice = (Device)get_func_address(_COMMAND_CONSOLE__, sizeof(_COMMAND_CONSOLE__));
+		
+		
 		// List current device contents
 		uint32_t current_device = 0x30000 + (0x10000 * (console.promptString[0] - 'A' + 1));
-		uint32_t device_start   = current_device + FORMAT_STRIDE;
-		uint32_t device_end     = current_device + (1024 * 8);
+		uint32_t device_start   = current_device + SECTOR_SIZE;
+		uint32_t device_end     = current_device + DEVICE_CAPACITY;
 		
 		uint16_t file_count=0;
 		
-		for (uint32_t i=device_start; i < device_end; i += FORMAT_STRIDE) {
+		for (uint32_t i=device_start; i < device_end; i += SECTOR_SIZE) {
 			
 			read(i, byte);
 			
-			if (byte == 0xff) continue; // Ignore file data sectors
-			if (byte == 0xaa) continue; // Ignore file end sectors
 			if (byte != 0x55) continue; // Only file header sectors
 			
 			file_count++;
@@ -76,7 +80,7 @@ struct MassStorageDeviceDriver {
 			// Display file name
 			for (uint8_t a=0; a < 10; a++) {
 				read(i + a + 1, byte);
-				console.printChar(byte);
+				call_extern(consoleDevice, 0x00, (uint8_t&)byte);
 			}
 			
 			// Display file size
@@ -84,11 +88,13 @@ struct MassStorageDeviceDriver {
 			for (uint8_t a=0; a < 4; a++) 
 				read(i + a + 11, (char&)filesize.byte_t[a]);
 			
-			console.printSpace();
-			console.printInt(filesize.address);
+			call_extern(consoleDevice, 0x03); // Space
+			
+			pointer.address = filesize.address;
+			call_extern(consoleDevice, 0x04, pointer.byte_t[0], pointer.byte_t[1], pointer.byte_t[2], pointer.byte_t[3]);
 			
 			page_counter++;
-			console.printLn();
+			call_extern(consoleDevice, 0x01); // New line
 			
 			// Page pause
 			if (enable_page_pause == 1) if (page_counter > 2) {page_counter = 0; console.pause_press_anykey();}
@@ -96,21 +102,26 @@ struct MassStorageDeviceDriver {
 		}
 		
 		// Display total file count
-		console.printSpace();
-		console.printInt(file_count);
-		console.printSpace();
-		//if (file_count > 10) console.printSpace();
-		if (file_count > 100) console.printSpace();
+		call_extern(consoleDevice, 0x03); // Space
+		
+		pointer.address = file_count;
+		call_extern(consoleDevice, 0x04, pointer.byte_t[0], pointer.byte_t[1], pointer.byte_t[2], pointer.byte_t[3]);
+		
+		call_extern(consoleDevice, 0x03); // Space
+		
+		if (file_count > 100) call_extern(consoleDevice, 0x03); // Space
 		
 		if (file_count == 1) {
-			console.print(msg_file_count, sizeof(msg_file_count) - 1);
+			for (uint8_t a=0; a < sizeof(msg_file_count)-2; a++) 
+				call_extern(consoleDevice, 0x00, (uint8_t&)msg_file_count[a]);
 		} else {
-			console.print(msg_file_count, sizeof(msg_file_count));
+			for (uint8_t a=0; a < sizeof(msg_file_count)-1; a++)
+				call_extern(consoleDevice, 0x00, (uint8_t&)msg_file_count[a]);
 		}
-		console.printLn();
+		call_extern(consoleDevice, 0x01); // New line
 		
 		// Page pause
-		if (enable_page_pause == 1) if (page_counter > 2) {page_counter = 0; console.pause_press_anykey();}
+		if (enable_page_pause == 1) if (page_counter > 2) {page_counter = 0; call_extern(consoleDevice, 0x0d);}
 		
 		return;
 	}
@@ -124,20 +135,20 @@ struct MassStorageDeviceDriver {
 		uint32_t current_device = 0x30000 + (0x10000 * (console.promptString[0] - 'A' + 1));
 		
 		uint32_t device_start        = current_device;
-		uint32_t device_end          = current_device + (FORMAT_STRIDE * 256);   // 8k
+		uint32_t device_end          = current_device + DEVICE_CAPACITY;
 		
-		uint32_t total_sectors       = device_end / FORMAT_STRIDE;
+		uint32_t total_sectors       = device_end / SECTOR_SIZE;
 		uint32_t file_sector_size    = file_size;
 		uint32_t count_free_sectors  = 0;
 		
-		for (uint32_t i=device_start; i < device_end; i += FORMAT_STRIDE) {
+		for (uint32_t i=device_start; i < device_end; i += SECTOR_SIZE) {
 			
 			read(i, byte);
 			
 			if (byte != 0x00) continue;
 			
 			// Check the following sectors for required free space
-			for (uint32_t a=i; a < device_end; a+=FORMAT_STRIDE) {
+			for (uint32_t a=i; a < device_end; a+=SECTOR_SIZE) {
 				
 				read(i, byte);
 				
@@ -160,8 +171,9 @@ struct MassStorageDeviceDriver {
 				continue;
 			
 			
-			// File size is available, mark sector as "taken"
-			byte = 0x55; // File start byte
+			// File size is available
+			// Mark first sector as a file header sector
+			byte = 0x55; // File start byte 0x55
 			write(i, byte); _delay_ms(5);
 			
 			// Write file name
@@ -181,18 +193,18 @@ struct MassStorageDeviceDriver {
 			byte = 0xff;
 			write(i + 15, (uint8_t&)byte); _delay_ms(5);
 			
-			uint32_t number_of_sectors = (file_size / FORMAT_STRIDE) + 1;
+			uint32_t number_of_sectors = (file_size / SECTOR_SIZE) + 2;
 			if (number_of_sectors <= 2) number_of_sectors = 2;
 			
 			// Mark following sectors as "taken"
-			byte = 0xff; // Taken != 0
+			byte = 0xff; // Taken sectors 0xff
 			for (uint32_t a=1; a < number_of_sectors; a++) {
 				
 				// Mark last sector as "file end"
 				if (a == (number_of_sectors-1))
-					byte = 0xaa;
+					byte = 0xaa; // File end sector 0xaa
 				
-				write(i + (a * FORMAT_STRIDE), byte); _delay_ms(5);
+				write(i + (a * SECTOR_SIZE), byte); _delay_ms(5);
 				
 			}
 			
@@ -209,12 +221,12 @@ struct MassStorageDeviceDriver {
 		char byte;
 		
 		uint32_t current_device = 0x30000 + (0x10000 * (console.promptString[0] - 'A' + 1));
-		uint32_t device_start   = current_device + FORMAT_STRIDE;
-		uint32_t device_end     = current_device + (FORMAT_STRIDE * 256);
+		uint32_t device_start   = current_device + SECTOR_SIZE;
+		uint32_t device_end     = current_device + DEVICE_CAPACITY;
 		
 		uint8_t page_counter=0;
 		
-		for (uint32_t i=device_start; i < device_end; i += FORMAT_STRIDE) {
+		for (uint32_t i=device_start; i < device_end; i += SECTOR_SIZE) {
 			
 			read(i, byte);
 			
@@ -237,12 +249,13 @@ struct MassStorageDeviceDriver {
 					for (uint32_t a=0; a < 4; a++)
 					read(i + a + 11, (char&)filesize.byte_t[a]);
 					
-					uint32_t number_of_sectors = (filesize.address / FORMAT_STRIDE) + 1;
+					if (filesize.address < 32) filesize.address = 32;
+					uint32_t number_of_sectors = (filesize.address / SECTOR_SIZE) + 1;
 					
 					// Zero the file sectors
 					byte = 0x00;
 					for (uint32_t a=0; a < number_of_sectors; a++) {
-						write(i + (a * FORMAT_STRIDE), byte);
+						write(i + (a * SECTOR_SIZE), byte);
 						_delay_ms(5);
 					}
 					
@@ -263,8 +276,8 @@ struct MassStorageDeviceDriver {
 		char byte;
 		
 		uint32_t current_device = 0x30000 + (0x10000 * (console.promptString[0] - 'A' + 1));
-		uint32_t device_start   = current_device + FORMAT_STRIDE;
-		uint32_t device_end     = current_device + (FORMAT_STRIDE * 256);
+		uint32_t device_start   = current_device + SECTOR_SIZE;
+		uint32_t device_end     = current_device + DEVICE_CAPACITY;
 		
 		uint8_t page_counter=0;
 		
@@ -288,10 +301,10 @@ struct MassStorageDeviceDriver {
 		// List current device contents
 		uint32_t current_device = 0x30000 + (0x10000 * (console.promptString[0] - 'A' + 1));
 		
-		uint32_t device_start   = current_device + FORMAT_STRIDE;
-		uint32_t device_end     = current_device + (1024 * 8);
+		uint32_t device_start   = current_device + SECTOR_SIZE;
+		uint32_t device_end     = current_device + DEVICE_CAPACITY;
 		
-		for (uint32_t i=device_start; i < device_end; i += FORMAT_STRIDE) {
+		for (uint32_t i=device_start; i < device_end; i += SECTOR_SIZE) {
 			
 			read(i, byte);
 			
@@ -333,12 +346,12 @@ struct MassStorageDeviceDriver {
 		// List current device contents
 		uint32_t current_device = 0x30000 + (0x10000 * (console.promptString[0] - 'A' + 1));
 		
-		uint32_t device_start   = current_device + FORMAT_STRIDE;
-		uint32_t device_end     = current_device + (1024 * 8);
+		uint32_t device_start   = current_device + SECTOR_SIZE;
+		uint32_t device_end     = current_device + DEVICE_CAPACITY;
 		
 		uint8_t page_counter=0;
 		
-		for (uint32_t i=device_start; i < device_end; i += FORMAT_STRIDE) {
+		for (uint32_t i=device_start; i < device_end; i += SECTOR_SIZE) {
 			
 			read(i, byte);
 			
@@ -361,7 +374,7 @@ struct MassStorageDeviceDriver {
 					for (uint32_t a=0; a < 4; a++)
 					read(i + a + 11, (char&)filesize.byte_t[a]);
 					
-					uint32_t number_of_sectors = (filesize.address / FORMAT_STRIDE) + 1;
+					uint32_t number_of_sectors = (filesize.address / SECTOR_SIZE) + 1;
 					
 					// Set file attribute
 					write(i + 15, attribute); _delay_ms(5);
@@ -384,12 +397,12 @@ struct MassStorageDeviceDriver {
 		// List current device contents
 		uint32_t current_device = 0x30000 + (0x10000 * (console.promptString[0] - 'A' + 1));
 		
-		uint32_t device_start   = current_device + FORMAT_STRIDE;
-		uint32_t device_end     = current_device + (1024 * 8);
+		uint32_t device_start   = current_device + SECTOR_SIZE;
+		uint32_t device_end     = current_device + DEVICE_CAPACITY;
 		
 		uint8_t page_counter=0;
 		
-		for (uint32_t i=device_start; i < device_end; i += FORMAT_STRIDE) {
+		for (uint32_t i=device_start; i < device_end; i += SECTOR_SIZE) {
 			
 			read(i, byte);
 			
@@ -412,7 +425,7 @@ struct MassStorageDeviceDriver {
 					for (uint32_t a=0; a < 4; a++)
 					read(i + a + 11, (char&)filesize.byte_t[a]);
 					
-					uint32_t number_of_sectors = (filesize.address / FORMAT_STRIDE) + 1;
+					uint32_t number_of_sectors = (filesize.address / SECTOR_SIZE) + 1;
 					
 					// Set file attribute
 					uint8_t attribute;
@@ -436,12 +449,12 @@ struct MassStorageDeviceDriver {
 		// List current device contents
 		uint32_t current_device = 0x30000 + (0x10000 * (console.promptString[0] - 'A' + 1));
 		
-		uint32_t device_start   = current_device + FORMAT_STRIDE;
-		uint32_t device_end     = current_device + (1024 * 8);
+		uint32_t device_start   = current_device + SECTOR_SIZE;
+		uint32_t device_end     = current_device + DEVICE_CAPACITY;
 		
 		uint8_t page_counter=0;
 		
-		for (uint32_t i=device_start; i < device_end; i += FORMAT_STRIDE) {
+		for (uint32_t i=device_start; i < device_end; i += SECTOR_SIZE) {
 			
 			read(i, byte);
 			
@@ -464,7 +477,7 @@ struct MassStorageDeviceDriver {
 					for (uint32_t a=0; a < 4; a++)
 					read(i + a + 11, (char&)filesize.byte_t[a]);
 					
-					uint32_t number_of_sectors = (filesize.address / FORMAT_STRIDE) + 1;
+					uint32_t number_of_sectors = (filesize.address / SECTOR_SIZE) + 1;
 					
 					// Open the file
 					file_address = i;
@@ -485,7 +498,7 @@ struct MassStorageDeviceDriver {
 	
 	void file_write_byte(uint32_t address, char byte) {
 		write(file_address + address, byte);
-		_delay_ms(5);
+		if (write_counter >= 31) {write_counter=0; _delay_ms(5);} else {write_counter++;}
 	}
 	
 	

@@ -5,7 +5,7 @@ void command_copy(uint8_t, uint8_t&, uint8_t&, uint8_t&, uint8_t&);
 
 #define __MODULE_NAME_  "copy"
 
-#define MAX_COPY_BUFFER  512
+#define MAX_COPY_BUFFER  2048
 
 char msg_file_copied[] = "File copied.";
 char msg_file_cant_copy[] = "File cannot be copied.";
@@ -24,12 +24,12 @@ void command_copy(uint8_t, uint8_t&, uint8_t&, uint8_t&, uint8_t&) {
 	storageDevice = (Device)get_func_address(_MASS_STORAGE__, sizeof(_MASS_STORAGE__));
 	if (storageDevice == 0) return;
 	
-	char filenameA[32]; // Source
-	char filenameB[32]; // Destination
+	char file_source[10];
+	char file_dest[10];
 	
-	for (uint8_t i=0; i < 32; i++) {
-		filenameA[i] = 0x20;
-		filenameB[i] = 0x20;
+	for (uint8_t i=0; i < sizeof(file_source); i++) {
+		file_source[i] = 0x20;
+		file_dest[i] = 0x20;
 	}
 	
 	// Split keyboard string names
@@ -45,11 +45,11 @@ void command_copy(uint8_t, uint8_t&, uint8_t&, uint8_t&, uint8_t&) {
 			continue;
 		}
 		
-		if (swtch == 0) {filenameA[i] = str_char; i++;}
+		if (swtch == 0) {file_source[i] = str_char; i++;}
 		
 		if (swtch == 1) {
 			if (str_char == 0x20) break;
-			filenameB[i] = str_char;
+			file_dest[i] = str_char;
 			i++;
 		}
 		
@@ -59,7 +59,7 @@ void command_copy(uint8_t, uint8_t&, uint8_t&, uint8_t&, uint8_t&) {
 	// Get destination file size
 	WrappedPointer size_pointer;
 	for (uint8_t a=0; a < 10; a++)
-		call_extern(storageDevice, a, (uint8_t&)filenameB[a]);
+		call_extern(storageDevice, a, (uint8_t&)file_dest[a]);
 	call_extern(storageDevice, 0x0c, size_pointer.byte_t[0], size_pointer.byte_t[1], size_pointer.byte_t[2], size_pointer.byte_t[3]);
 	uint32_t destination_file_size = size_pointer.address;
 	
@@ -72,7 +72,7 @@ void command_copy(uint8_t, uint8_t&, uint8_t&, uint8_t&, uint8_t&) {
 	
 	// Get source file size
 	for (uint8_t a=0; a < 10; a++)
-		call_extern(storageDevice, a, (uint8_t&)filenameA[a]);
+		call_extern(storageDevice, a, (uint8_t&)file_source[a]);
 	call_extern(storageDevice, 0x0c, size_pointer.byte_t[0], size_pointer.byte_t[1], size_pointer.byte_t[2], size_pointer.byte_t[3]);
 	uint32_t file_size = size_pointer.address;
 	
@@ -91,11 +91,12 @@ void command_copy(uint8_t, uint8_t&, uint8_t&, uint8_t&, uint8_t&) {
 		}
 		
 		// Copy buffer
-		char buffer[MAX_COPY_BUFFER];
+		uint32_t buffer_ptr;
+		buffer_ptr = exMem.stack_push(MAX_COPY_BUFFER);
 		
 		// Set file name
 		for (uint8_t a=0; a < 10; a++)
-			call_extern(storageDevice, a, (uint8_t&)filenameA[a]);
+			call_extern(storageDevice, a, (uint8_t&)file_source[a]);
 		
 		// Open the source file
 		uint8_t return_value;
@@ -110,7 +111,10 @@ void command_copy(uint8_t, uint8_t&, uint8_t&, uint8_t&, uint8_t&) {
 				pointer.address = i + 32;
 				call_extern(storageDevice, DEVICE_CALL_ADDRESS, pointer.byte_t[0], pointer.byte_t[1], pointer.byte_t[2], pointer.byte_t[3]);
 				
-				call_extern(storageDevice, 0x0f, (uint8_t&)buffer[i]);
+				uint8_t buffer_byte;
+				call_extern(storageDevice, 0x0f, buffer_byte);
+				
+				exMem.write(buffer_ptr + i, buffer_byte);
 				
 			}
 			
@@ -118,7 +122,7 @@ void command_copy(uint8_t, uint8_t&, uint8_t&, uint8_t&, uint8_t&) {
 		
 		// Set file name
 		for (uint8_t a=0; a < 10; a++)
-			call_extern(storageDevice, a, (uint8_t&)filenameB[a]);
+			call_extern(storageDevice, a, (uint8_t&)file_dest[a]);
 		
 		// Set file size
 		WrappedPointer pointer;
@@ -133,14 +137,17 @@ void command_copy(uint8_t, uint8_t&, uint8_t&, uint8_t&, uint8_t&) {
 		
 		if (return_value != 0) {
 			
-			// Paste the buffer data
+			// Paste the buffer data to the new file
 			for (uint32_t i=0; i < file_size; i++) {
 				
 				WrappedPointer pointer;
 				pointer.address = i + 32;
 				call_extern(storageDevice, DEVICE_CALL_ADDRESS, pointer.byte_t[0], pointer.byte_t[1], pointer.byte_t[2], pointer.byte_t[3]);
 				
-				call_extern(storageDevice, 0x10, (uint8_t&)buffer[i]);
+				char buffer_byte;
+				exMem.read(buffer_ptr + i, buffer_byte);
+				
+				call_extern(storageDevice, 0x10, (uint8_t&)buffer_byte);
 				
 			}
 		}
@@ -151,6 +158,9 @@ void command_copy(uint8_t, uint8_t&, uint8_t&, uint8_t&, uint8_t&) {
 		
 		console.print(msg_file_copied, sizeof(msg_file_copied));
 		console.printLn();
+		
+		exMem.stack_pop(2048);
+		
 	}
 	
 	return;
