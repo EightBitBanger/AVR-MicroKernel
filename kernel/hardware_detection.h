@@ -9,12 +9,13 @@
 // Recognized device categories
 char _DISPLAY_CONSOLE__[]      = "display";
 char _KEYBOARD_INPUT__[]       = "kb";
-char _EXTENDED_MEMORY__[]      = "exMem";
-char _DATA_MEMORY__[]          = "nvMem";
+char _EXTENDED_MEMORY__[]      = "exmem";
+char _DATA_MEMORY__[]          = "nvmem";
 char _COMMAND_CONSOLE__[]      = "console";
 char _INTERNAL_SPEAKER__[]     = "audio";
 char _NETWORK_INTERFACE__[]    = "network";
 char _MASS_STORAGE__[]         = "storage";
+char _GPIO_INTERFACE__[]       = "gpio";
 
 struct HardwareInformation {
 	

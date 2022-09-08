@@ -4,9 +4,6 @@
 #ifndef __NETWORK_INTERFACE_CARD__
 #define __NETWORK_INTERFACE_CARD__
 
-void NetworkInterfaceDeviceDriverEntryPoint(uint8_t, uint8_t&, uint8_t&, uint8_t&, uint8_t&);
-
-
 struct NetworkInterfaceDriver {
 	
 	Bus device_bus;
@@ -17,17 +14,8 @@ struct NetworkInterfaceDriver {
 		
 		device_address = 0x00000;
 		
-		load_device(_NETWORK_INTERFACE__, sizeof(_NETWORK_INTERFACE__), (Driver)NetworkInterfaceDeviceDriverEntryPoint, DEVICE_TYPE_DRIVER);
-	}
-	
-	void initiate(void) {
-		
 		device_bus.waitstate_read  = 10;
 		device_bus.waitstate_write = 10;
-		
-	}
-	
-	void shutdown(void) {
 		
 	}
 	
@@ -62,8 +50,6 @@ struct NetworkInterfaceDriver {
 // Device Driver entry point
 void NetworkInterfaceDeviceDriverEntryPoint(uint8_t functionCall, uint8_t& paramA, uint8_t& paramB, uint8_t& paramC, uint8_t& paramD) {
 	
-	if (functionCall == DEVICE_CALL_INITIATE) {networkInterfaceDriver.initiate(); return;}
-	if (functionCall == DEVICE_CALL_SHUTDOWN) {networkInterfaceDriver.shutdown(); return;}
 	if (functionCall == DEVICE_CALL_ADDRESS) {
 		WrappedPointer pointer; pointer.byte_t[0] = paramA; pointer.byte_t[1] = paramB; pointer.byte_t[2] = paramC; pointer.byte_t[3] = paramD;
 		networkInterfaceDriver.device_address = pointer.address;

@@ -1,18 +1,7 @@
 #ifndef _RM_FUNCTION__
 #define _RM_FUNCTION__
 
-void command_rm(uint8_t, uint8_t&, uint8_t&, uint8_t&, uint8_t&);
-
 char msg_file_deleted[] = "File deleted.";
-
-#define __MODULE_NAME_  "rm"
-
-struct ModuleLoaderRm {
-	ModuleLoaderRm() {
-		load_device(__MODULE_NAME_, sizeof(__MODULE_NAME_), (Module)command_rm, DEVICE_TYPE_MODULE);
-	}
-}static moduleLoaderRm;
-
 
 void command_rm(uint8_t, uint8_t&, uint8_t&, uint8_t&, uint8_t&) {
 	
@@ -21,7 +10,7 @@ void command_rm(uint8_t, uint8_t&, uint8_t&, uint8_t&, uint8_t&) {
 	if (storageDevice == 0) return;
 	
 	for (uint8_t a=0; a < 10; a++) 
-		call_extern(storageDevice, a, (uint8_t&)console.keyboard_string[sizeof(__MODULE_NAME_) + a]);
+		call_extern(storageDevice, a, (uint8_t&)console.keyboard_string[sizeof("rm") + a]);
 	
 	// Delete the file
 	uint8_t return_byte;
@@ -41,10 +30,6 @@ void command_rm(uint8_t, uint8_t&, uint8_t&, uint8_t&, uint8_t&) {
 	
 	return;
 }
-
-
-#undef __MODULE_NAME_
-
 
 #endif
 

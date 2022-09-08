@@ -3,8 +3,6 @@
 
 void decodeScanCode(uint8_t scancode_low, uint8_t scancode_high, uint8_t& scan_code);
 
-void keyboardDeviceDriverEntryPoint(uint8_t, uint8_t&, uint8_t&, uint8_t&, uint8_t&);
-
 #define  _KEYBOARD_REGISTER_LO__   0x90000 // Lower keyboard register address
 #define  _KEYBOARD_REGISTER_HI__   0xa0000 // Upper keyboard register address
 
@@ -18,13 +16,7 @@ struct KeyboardDriver {
 		device_bus.waitstate_read  = 0;
 		device_bus.waitstate_write = 0;
 		
-		load_device(_KEYBOARD_INPUT__, sizeof(_KEYBOARD_INPUT__), (Driver)keyboardDeviceDriverEntryPoint, DEVICE_TYPE_DRIVER);
-		
 	}
-	
-	void initiate(void) {}
-	
-	void shutdown(void) {}
 	
 	// Read the current keyboard character
 	void read(uint8_t& scan_code) {
@@ -51,9 +43,6 @@ struct KeyboardDriver {
 
 
 void keyboardDeviceDriverEntryPoint(uint8_t functionCall, uint8_t& paramA, uint8_t& paramB, uint8_t& paramC, uint8_t& paramD) {
-	
-	if (functionCall == DEVICE_CALL_INITIATE) {keyboard.initiate(); return;}
-	if (functionCall == DEVICE_CALL_SHUTDOWN) {keyboard.shutdown(); return;}
 	
 	if (functionCall == 0x00) {keyboard.read(paramA); return;}
 	if (functionCall == 0x01) {decodeScanCode(paramA, paramB, paramC); return;}

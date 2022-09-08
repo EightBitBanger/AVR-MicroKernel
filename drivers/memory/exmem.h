@@ -6,8 +6,6 @@
 
 #include <avr/interrupt.h>
 
-void ExtendedMemoryDeviceDriverEntryPoint(uint8_t, uint8_t&, uint8_t&, uint8_t&, uint8_t&);
-
 char msg_bytes_free[]       = "bytes free";
 char error_stack_error[]    = "Stack error!";
 char error_stack_fault[]    = "Stack fault!";
@@ -34,15 +32,6 @@ struct exMem {
 		
 		device_bus.waitstate_read  = 2;
 		device_bus.waitstate_write = 0;
-		
-		load_device(_EXTENDED_MEMORY__, sizeof(_EXTENDED_MEMORY__), (Driver)ExtendedMemoryDeviceDriverEntryPoint, DEVICE_TYPE_DRIVER);
-	}
-	
-	void initiate(void) {
-		
-	}
-	
-	void shutdown(void) {
 		
 	}
 	
@@ -100,11 +89,6 @@ struct exMem {
 // Driver entry point
 void ExtendedMemoryDeviceDriverEntryPoint(uint8_t functionCall, uint8_t& paramA, uint8_t& paramB, uint8_t& paramC, uint8_t& paramD) {
 	
-	WrappedPointer pointer;
-	
-	if (functionCall == DEVICE_CALL_INITIATE) {exMem.initiate(); return;}
-	if (functionCall == DEVICE_CALL_SHUTDOWN) {exMem.shutdown(); return;}
-	
 	if (functionCall == 0x00) {exMem.returnAddress = exMem.stack_push(exMem.currentAddress); return;}
 	if (functionCall == 0x01) {exMem.stack_pop(exMem.currentAddress); return;}
 	if (functionCall == 0x02) {exMem.mem_zero(exMem.currentAddress, paramA); exMem.currentAddress += paramA; return;}
@@ -114,6 +98,7 @@ void ExtendedMemoryDeviceDriverEntryPoint(uint8_t functionCall, uint8_t& paramA,
 	
 	// Set the address pointer
 	if (functionCall == 0x0a) {
+		WrappedPointer pointer;
 		pointer.byte_t[0] = paramA;
 		pointer.byte_t[1] = paramB;
 		pointer.byte_t[2] = paramC;
@@ -124,6 +109,7 @@ void ExtendedMemoryDeviceDriverEntryPoint(uint8_t functionCall, uint8_t& paramA,
 	
 	// Get the return pointer
 	if (functionCall == 0x0c) {
+		WrappedPointer pointer;
 		pointer.address = exMem.returnAddress;
 		paramA = pointer.byte_t[0];
 		paramB = pointer.byte_t[1];

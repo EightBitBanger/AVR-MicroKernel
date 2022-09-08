@@ -1,20 +1,10 @@
 //
 // Device command
 
-void command_drv(uint8_t, uint8_t&, uint8_t&, uint8_t&, uint8_t&);
-
-#define __MODULE_NAME_  "device"
-
 char msg_device_enabled[]      = "Device enabled";
 char msg_device_disabled[]     = "Device disabled";
 char error_driver_error[]      = "Device driver error";
 char error_device_not_found[]  = "Device not found";
-
-struct ModuleLoaderDrv {
-	ModuleLoaderDrv() {
-		load_device(__MODULE_NAME_, sizeof(__MODULE_NAME_), (void(*)())command_drv, DEVICE_TYPE_MODULE);
-	}
-}static loadModuleDrv;
 
 void command_drv(uint8_t, uint8_t&, uint8_t&, uint8_t&, uint8_t&) {
 	
@@ -22,8 +12,8 @@ void command_drv(uint8_t, uint8_t&, uint8_t&, uint8_t&, uint8_t&) {
 	consoleDriver = (Device)get_func_address(_COMMAND_CONSOLE__, sizeof(_COMMAND_CONSOLE__));
 	if (consoleDriver == 0) return;
 	
-	uint8_t param0  = console.keyboard_string[sizeof(__MODULE_NAME_)];
-	uint8_t param1  = console.keyboard_string[sizeof(__MODULE_NAME_) + 2];
+	uint8_t param0  = console.keyboard_string[sizeof("device")];
+	uint8_t param1  = console.keyboard_string[sizeof("device") + 2];
 	
 	uint8_t page_counter=0;
 	
@@ -165,4 +155,3 @@ void command_drv(uint8_t, uint8_t&, uint8_t&, uint8_t&, uint8_t&) {
 	return;
 }
 
-#undef __MODULE_NAME_

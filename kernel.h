@@ -11,10 +11,12 @@
 //#define __BOOT_SAFEMODE_         // Load only the drivers required to boot
 //#define __BOOT_LIGHTWEIGHT_      // Skip loading the command modules
 
-//#define __ARDUINO_BOARD_         // Compile for an Arduino board
+//#define __ARDUINO_UNO_BOARD_     // Compile for an Arduino UNO board
+#define __AVR_CUSTOM_BOARD_      // Compile for a custom AVR board
 
-#define _32_BIT_POINTERS__
-//#define _64_BIT_POINTERS__
+
+//#define _32_BIT_POINTERS__
+#define _64_BIT_POINTERS__
 
 
 //
@@ -36,7 +38,7 @@
 #define _KERNEL_STATE_OUT_OF_MEMORY__   0xa0
 #define _KERNEL_STATE_SEG_FAULT__       0xff
 
-// Message constants
+
 char msg_kernel_version[]    = "AVR-Kernel 1.0";
 
 

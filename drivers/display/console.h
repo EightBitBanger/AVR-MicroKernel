@@ -7,8 +7,6 @@
 
 #define _MAX_KEYBOARD_STRING_LENGTH__  32
 
-void ConsoleLibraryEntryPoint(uint8_t, uint8_t&, uint8_t&, uint8_t&, uint8_t&);
-
 char msg_press_anykey[] = "Press any key...";
 
 struct CommandConsole {
@@ -36,8 +34,6 @@ struct CommandConsole {
 	Device keyboardDriverPtr;
 	
 	CommandConsole() {
-		
-		load_device(_COMMAND_CONSOLE__, sizeof(_COMMAND_CONSOLE__), (Driver)ConsoleLibraryEntryPoint, DEVICE_TYPE_LIBRARY);
 		
 		// Prompt
 		for (uint8_t i=0; i<promptStringLength; i++) 
@@ -256,7 +252,6 @@ struct CommandConsole {
 void ConsoleLibraryEntryPoint(uint8_t functionCall, uint8_t& paramA, uint8_t& paramB, uint8_t& paramC, uint8_t& paramD) {
 	
 	if (functionCall == DEVICE_CALL_INITIATE) {console.initiate(); _delay_ms(200); return;}
-	if (functionCall == DEVICE_CALL_SHUTDOWN) {return;}
 	
 	if (functionCall == 0x00) {console.printChar(paramA); return;}
 	if (functionCall == 0x01) {console.printLn(); return;}

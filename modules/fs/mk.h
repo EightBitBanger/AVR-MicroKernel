@@ -1,25 +1,22 @@
 #ifndef _MK_FUNCTION__
 #define _MK_FUNCTION__
 
-void command_mk(uint8_t, uint8_t&, uint8_t&, uint8_t&, uint8_t&);
-
-#define __MODULE_NAME_  "mk"
-
 char msg_file_created[] = "File created.";
 char msg_file_exists[]  = "File already exists.";
 char msg_file_not_found[]  = "File not found.";
 
-struct ModuleLoaderMk {
+void command_mk(uint8_t, uint8_t&, uint8_t&, uint8_t&, uint8_t&);
+
+struct __ModuleLoaderMk__ {
 	
 	uint32_t file_size;
 	
-	ModuleLoaderMk() {
+	__ModuleLoaderMk__() {
 		
 		file_size = 1;
 		
-		load_device(__MODULE_NAME_, sizeof(__MODULE_NAME_), (Module)command_mk, DEVICE_TYPE_MODULE);
 	}
-}static moduleLoaderMk;
+}static __moduleLoaderMk__;
 
 
 void command_mk(uint8_t, uint8_t&, uint8_t&, uint8_t&, uint8_t&) {
@@ -32,7 +29,7 @@ void command_mk(uint8_t, uint8_t&, uint8_t&, uint8_t&, uint8_t&) {
 	char filename[11] = "          ";
 	uint8_t name_length=0;
 	for (name_length=0; name_length < 10; name_length++) {
-		uint8_t str_char = console.keyboard_string[sizeof(__MODULE_NAME_) + name_length];
+		uint8_t str_char = console.keyboard_string[sizeof("mk") + name_length];
 		if (str_char == ' ') break;
 		call_extern(storageDevice, name_length, (uint8_t&)str_char);
 		filename[name_length] = str_char;
@@ -41,8 +38,8 @@ void command_mk(uint8_t, uint8_t&, uint8_t&, uint8_t&, uint8_t&) {
 	if ((filename[0] == 's') & (filename[1] == ' ')) {
 		
 		char hex_string[2] = {'0', '0'};
-		uint8_t char_b = console.keyboard_string[sizeof(__MODULE_NAME_) + 2];
-		uint8_t char_a = console.keyboard_string[sizeof(__MODULE_NAME_) + 3];
+		uint8_t char_b = console.keyboard_string[sizeof("mk") + 2];
+		uint8_t char_a = console.keyboard_string[sizeof("mk") + 3];
 		
 		if ((((char_a >= '0') & (char_a <= '9')) | ((char_a >= 'a') & (char_a <= 'f'))) |
 		(((char_b >= '0') & (char_b <= '9')) | ((char_b >= 'a') & (char_b <= 'f')))) {
@@ -50,11 +47,11 @@ void command_mk(uint8_t, uint8_t&, uint8_t&, uint8_t&, uint8_t&) {
 			hex_string[0] = char_a;
 			hex_string[1] = char_b;
 			
-			moduleLoaderMk.file_size = string_get_hex_char(hex_string);
+			__moduleLoaderMk__.file_size = string_get_hex_char(hex_string);
 			
 			char file_size[] = "File size (hex) ";
 			console.print(file_size, sizeof(file_size));
-			console.printHex(moduleLoaderMk.file_size);
+			console.printHex(__moduleLoaderMk__.file_size);
 			console.printLn();
 			
 			if (hex_string[0] == ' ') {
@@ -83,7 +80,7 @@ void command_mk(uint8_t, uint8_t&, uint8_t&, uint8_t&, uint8_t&) {
 	
 	// Set the file size
 	WrappedPointer pointer;
-	pointer.address = moduleLoaderMk.file_size;
+	pointer.address = __moduleLoaderMk__.file_size;
 	call_extern(storageDevice, DEVICE_CALL_ADDRESS, pointer.byte_t[0], pointer.byte_t[1], pointer.byte_t[2], pointer.byte_t[3]);
 	
 	// Create the file
@@ -103,10 +100,6 @@ void command_mk(uint8_t, uint8_t&, uint8_t&, uint8_t&, uint8_t&) {
 	
 	return;
 }
-
-
-#undef __MODULE_NAME_
-
 
 #endif
 

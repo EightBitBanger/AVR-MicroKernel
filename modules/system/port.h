@@ -1,19 +1,20 @@
 //
 // Port control function
 
-void __port_control_(uint8_t, uint8_t&, uint8_t&, uint8_t&, uint8_t&);
+void command_port(uint8_t, uint8_t&, uint8_t&, uint8_t&, uint8_t&);
 
-#define __MODULE_NAME_  "port"
-
-struct ModuleLoaderPort {
+struct ____moduleLoaderPort____ {
 	
 	uint32_t slot_address;
 	uint32_t port_address;
 	
-	ModuleLoaderPort() {
-		load_device(__MODULE_NAME_, sizeof(__MODULE_NAME_), (void(*)())__port_control_, DEVICE_TYPE_MODULE);
+	____moduleLoaderPort____() {
+		
+		slot_address = 0;
+		port_address = 0;
+		
 	}
-}static moduleLoaderPort;
+}static __moduleLoaderPort__;
 
 
 void __port_control_(uint8_t, uint8_t&, uint8_t&, uint8_t&, uint8_t&) {
@@ -23,18 +24,18 @@ void __port_control_(uint8_t, uint8_t&, uint8_t&, uint8_t&, uint8_t&) {
 	device_bus.waitstate_read  = 10;
 	device_bus.waitstate_write = 10;
 	
-	uint8_t param0  = console.keyboard_string[sizeof(__MODULE_NAME_)];
-	uint8_t param1  = console.keyboard_string[sizeof(__MODULE_NAME_) + 2];
+	uint8_t param0  = console.keyboard_string[sizeof("port")];
+	uint8_t param1  = console.keyboard_string[sizeof("port") + 2];
 	
 	// GPIO Port selection
 	if (param0 == 'p') {
 		
 		if ((param1 >= 'a') & (param1 <= 'd')) 
-			moduleLoaderPort.port_address = param1 - 'a';
+			__moduleLoaderPort__.port_address = param1 - 'a';
 		
 		char msg_string[] = "Port ";
 		console.print(msg_string, sizeof(msg_string));
-		console.printChar(moduleLoaderPort.port_address + 'a');
+		console.printChar(__moduleLoaderPort__.port_address + 'a');
 		console.printLn();
 		return;
 	}
@@ -43,11 +44,11 @@ void __port_control_(uint8_t, uint8_t&, uint8_t&, uint8_t&, uint8_t&) {
 	if (param0 == 's') {
 		
 		if ((param1 >= '1') & (param1 <= '5')) 
-			moduleLoaderPort.slot_address = ((param1 - '0') * 0x10000) + 0x30000;
+			__moduleLoaderPort__.slot_address = ((param1 - '0') * 0x10000) + 0x30000;
 		
 		char msg_string[] = "Slot ";
 		console.print(msg_string, sizeof(msg_string));
-		console.printChar( ((moduleLoaderPort.slot_address - 0x30000) / 0x10000) + '0');
+		console.printChar( ((__moduleLoaderPort__.slot_address - 0x30000) / 0x10000) + '0');
 		console.printLn();
 		return;
 	}
@@ -65,7 +66,7 @@ void __port_control_(uint8_t, uint8_t&, uint8_t&, uint8_t&, uint8_t&) {
 		if (console.keyboard_string[13] == 0x31) byte |= 0b01000000;
 		if (console.keyboard_string[14] == 0x31) byte |= 0b10000000;
 		
-		uint32_t address = (moduleLoaderPort.slot_address + moduleLoaderPort.port_address);
+		uint32_t address = (__moduleLoaderPort__.slot_address + __moduleLoaderPort__.port_address);
 		
 		bus_write_byte(device_bus, address, byte);
 		
@@ -82,7 +83,7 @@ void __port_control_(uint8_t, uint8_t&, uint8_t&, uint8_t&, uint8_t&) {
 		
 		value = string_get_hex_char(string);
 		
-		uint32_t address = (moduleLoaderPort.slot_address + moduleLoaderPort.port_address);
+		uint32_t address = (__moduleLoaderPort__.slot_address + __moduleLoaderPort__.port_address);
 		
 		bus_write_byte(device_bus, address, value);
 		
@@ -106,6 +107,4 @@ void __port_control_(uint8_t, uint8_t&, uint8_t&, uint8_t&, uint8_t&) {
 	
 	return;
 }
-
-#undef __MODULE_NAME_
 

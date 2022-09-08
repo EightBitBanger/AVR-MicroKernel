@@ -3,8 +3,6 @@
 
 void command_type(uint8_t, uint8_t&, uint8_t&, uint8_t&, uint8_t&);
 
-#define __MODULE_NAME_  "type"
-
 struct ModuleLoaderType {
 	
 	uint32_t page_offset;
@@ -15,7 +13,6 @@ struct ModuleLoaderType {
 		page_offset = 0;
 		byte_offset = 0;
 		
-		load_device(__MODULE_NAME_, sizeof(__MODULE_NAME_), (Module)command_type, DEVICE_TYPE_MODULE);
 	}
 }static moduleLoaderType;
 
@@ -31,14 +28,14 @@ void command_type(uint8_t, uint8_t&, uint8_t&, uint8_t&, uint8_t&) {
 	
 	// Get file name from keyboard string
 	for (uint8_t a=0; a < 10; a++) 
-		filename[a] = console.keyboard_string[sizeof(__MODULE_NAME_) + a];
+		filename[a] = console.keyboard_string[sizeof("type") + a];
 	
 	// Set the sector page offset
 	if ((filename[0] == 'p') & (filename[1] == ' ')) {
 		
 		char hex_string[2] = {'0', '0'};
-		uint8_t char_b = console.keyboard_string[sizeof(__MODULE_NAME_) + 2];
-		uint8_t char_a = console.keyboard_string[sizeof(__MODULE_NAME_) + 3];
+		uint8_t char_b = console.keyboard_string[sizeof("type") + 2];
+		uint8_t char_a = console.keyboard_string[sizeof("type") + 3];
 		
 		if ((((char_a >= '0') & (char_a <= '9')) | ((char_a >= 'a') & (char_a <= 'f'))) |
 		(((char_b >= '0') & (char_b <= '9')) | ((char_b >= 'a') & (char_b <= 'f')))) {
@@ -67,8 +64,8 @@ void command_type(uint8_t, uint8_t&, uint8_t&, uint8_t&, uint8_t&) {
 	if ((filename[0] == 'b') & (filename[1] == ' ')) {
 		
 		char hex_string[2] = {'0', '0'};
-		uint8_t char_b = console.keyboard_string[sizeof(__MODULE_NAME_) + 2];
-		uint8_t char_a = console.keyboard_string[sizeof(__MODULE_NAME_) + 3];
+		uint8_t char_b = console.keyboard_string[sizeof("type") + 2];
+		uint8_t char_a = console.keyboard_string[sizeof("type") + 3];
 		
 		if ((((char_a >= '0') & (char_a <= '9')) | ((char_a >= 'a') & (char_a <= 'f'))) |
 		(((char_b >= '0') & (char_b <= '9')) | ((char_b >= 'a') & (char_b <= 'f')))) {
@@ -100,7 +97,7 @@ void command_type(uint8_t, uint8_t&, uint8_t&, uint8_t&, uint8_t&) {
 		
 		for (uint8_t a=0; a < 32; a++) {
 			
-			str_val[a] = console.keyboard_string[sizeof(__MODULE_NAME_) + 2 + a];
+			str_val[a] = console.keyboard_string[sizeof("type") + 2 + a];
 			
 			WrappedPointer pointer;
 			pointer.address = ((moduleLoaderType.page_offset + 1) * 32) + moduleLoaderType.byte_offset + 1;
@@ -126,8 +123,8 @@ void command_type(uint8_t, uint8_t&, uint8_t&, uint8_t&, uint8_t&) {
 	if ((filename[0] == 'h') & (filename[1] == ' ') & (filename[2] != ' ')) {
 		
 		char hex_string[2] = {'0', '0'};
-		uint8_t char_b = console.keyboard_string[sizeof(__MODULE_NAME_) + 2];
-		uint8_t char_a = console.keyboard_string[sizeof(__MODULE_NAME_) + 3];
+		uint8_t char_b = console.keyboard_string[sizeof("type") + 2];
+		uint8_t char_a = console.keyboard_string[sizeof("type") + 3];
 		
 		if ((((char_a >= '0') & (char_a <= '9')) | ((char_a >= 'a') & (char_a <= 'f'))) |
 		(((char_b >= '0') & (char_b <= '9')) | ((char_b >= 'a') & (char_b <= 'f')))) {
@@ -188,14 +185,6 @@ void command_type(uint8_t, uint8_t&, uint8_t&, uint8_t&, uint8_t&) {
 	
 	return;
 }
-
-
-#undef __MODULE_NAME_
-
-
-
-
-
 
 #endif
 

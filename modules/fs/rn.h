@@ -1,17 +1,6 @@
 #ifndef _RN_FUNCTION__
 #define _RN_FUNCTION__
 
-void command_rn(uint8_t, uint8_t&, uint8_t&, uint8_t&, uint8_t&);
-
-#define __MODULE_NAME_  "rn"
-
-struct ModuleLoaderRn {
-	ModuleLoaderRn() {
-		load_device(__MODULE_NAME_, sizeof(__MODULE_NAME_), (Module)command_rn, DEVICE_TYPE_MODULE);
-	}
-}static moduleLoaderRn;
-
-
 void command_rn(uint8_t, uint8_t&, uint8_t&, uint8_t&, uint8_t&) {
 	
 	Device storageDevice;
@@ -31,7 +20,7 @@ void command_rn(uint8_t, uint8_t&, uint8_t&, uint8_t&, uint8_t&) {
 	uint8_t i=0;
 	for (uint8_t a=0; a < 32; a++) {
 		
-		char str_char = console.keyboard_string[sizeof(__MODULE_NAME_) + a];
+		char str_char = console.keyboard_string[sizeof("rn") + a];
 		
 		if ((str_char == 0x20) & (swtch == 0)) {
 			swtch = 1;
@@ -66,9 +55,6 @@ void command_rn(uint8_t, uint8_t&, uint8_t&, uint8_t&, uint8_t&) {
 	
 	return;
 }
-
-
-#undef __MODULE_NAME_
 
 
 #endif

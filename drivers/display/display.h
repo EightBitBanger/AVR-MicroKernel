@@ -1,8 +1,6 @@
 //
 // "Liquid Crystal" display card driver
 
-void DisplayDeviceDriverEntryPoint(uint8_t, uint8_t&, uint8_t&, uint8_t&, uint8_t&);
-
 #define _DISPLAY_LINE_WIDTH  20  // Chars per line
 #define _DISPLAY_LINE_COUNT   4  // Total lines on display
 
@@ -19,15 +17,6 @@ struct DisplayDriver {
 		
 		device_bus.waitstate_read  = 10;
 		device_bus.waitstate_write = 10;
-		
-		load_device(_DISPLAY_CONSOLE__, sizeof(_DISPLAY_CONSOLE__), (Driver)DisplayDeviceDriverEntryPoint, DEVICE_TYPE_DRIVER);
-	}
-	
-	void initiate(void) {
-		
-	}
-	
-	void shutdown(void) {
 		
 	}
 	
@@ -91,8 +80,6 @@ struct DisplayDriver {
 // Driver entry point
 void DisplayDeviceDriverEntryPoint(uint8_t functionCall, uint8_t& paramA, uint8_t& paramB, uint8_t& paramC, uint8_t& paramD) {
 	
-	if (functionCall == DEVICE_CALL_INITIATE) {displayDriver.initiate(); return;}
-	if (functionCall == DEVICE_CALL_SHUTDOWN) {displayDriver.shutdown(); return;}
 	if (functionCall == DEVICE_CALL_ADDRESS) {
 		WrappedPointer pointer; pointer.byte_t[0] = paramA; pointer.byte_t[1] = paramB; pointer.byte_t[2] = paramC; pointer.byte_t[3] = paramD;
 		displayDriver.device_address = pointer.address; return;

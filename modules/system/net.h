@@ -7,10 +7,6 @@
 
 #define _NETWORK_WAITSTATE__  4000
 
-void net_entry_point(uint8_t, uint8_t&, uint8_t&, uint8_t&, uint8_t&);
-
-#define __MODULE_NAME_  "net"
-
 struct ModuleLoaderNet {
 	
 	uint8_t waitstate;
@@ -23,7 +19,6 @@ struct ModuleLoaderNet {
 		baudrate  = 7; // Start at 56k baud
 		byte      = 0;
 	 	
-		load_device(__MODULE_NAME_,  sizeof(__MODULE_NAME_), (void(*)())net_entry_point, DEVICE_TYPE_MODULE);
 	}
 }static netModuleLoader;
 
@@ -48,9 +43,9 @@ void net_entry_point(uint8_t, uint8_t&, uint8_t&, uint8_t&, uint8_t&) {
 	if (networkDevice == 0) return;
 	
 	// Get the parameters from the keyboard string
-	uint8_t param0  = console.keyboard_string[sizeof(__MODULE_NAME_)];
-	uint8_t param1  = console.keyboard_string[sizeof(__MODULE_NAME_) + 2];
-	uint8_t param2  = console.keyboard_string[sizeof(__MODULE_NAME_) + 4];
+	uint8_t param0  = console.keyboard_string[sizeof("net")];
+	uint8_t param1  = console.keyboard_string[sizeof("net") + 2];
+	uint8_t param2  = console.keyboard_string[sizeof("net") + 4];
 	
 	
 	//
@@ -334,8 +329,6 @@ void net_entry_point(uint8_t, uint8_t&, uint8_t&, uint8_t&, uint8_t&) {
 	
 	return;
 }
-
-#undef __MODULE_NAME_
 
 
 uint8_t network_send(Device network_device, uint8_t packet_buffer[]) {

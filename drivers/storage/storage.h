@@ -6,12 +6,9 @@
 
 #define SECTOR_SIZE  32
 
-
-
-
-#define DEVICE_CAPACITY  (SECTOR_SIZE * 256) // 8k bytes
-
-void storageDeviceDriverEntryPoint(uint8_t, uint8_t&, uint8_t&, uint8_t&, uint8_t&);
+#define DEVICE_CAPACITY  (SECTOR_SIZE * 256)  // 8,192 bytes
+//#define DEVICE_CAPACITY  (SECTOR_SIZE * 512)  // 16,384 bytes
+//#define DEVICE_CAPACITY  (SECTOR_SIZE * 1024) // 32,768 bytes
 
 char msg_file_count[] = "files";
 
@@ -43,11 +40,7 @@ struct MassStorageDeviceDriver {
 		file_size    = 0;
 		file_seek    = 0;
 		
-		load_device(_MASS_STORAGE__, sizeof(_MASS_STORAGE__), (Driver)storageDeviceDriverEntryPoint, DEVICE_TYPE_DRIVER);
 	}
-	
-	void initiate(void) {}
-	void shutdown(void) {}
 	
 	void write(uint32_t address, char byte) {bus_write_byte(device_bus, address, byte); return;}
 	void read(uint32_t address, char& byte) {bus_read_byte(device_bus, address, byte); return;}
@@ -514,8 +507,6 @@ struct MassStorageDeviceDriver {
 
 void storageDeviceDriverEntryPoint(uint8_t functionCall, uint8_t& paramA, uint8_t& paramB, uint8_t& paramC, uint8_t& paramD) {
 	
-	if (functionCall == DEVICE_CALL_INITIATE) {fs.initiate(); return;}
-	if (functionCall == DEVICE_CALL_SHUTDOWN) {fs.shutdown(); return;}
 	if (functionCall == DEVICE_CALL_ADDRESS) {
 		WrappedPointer pointer; pointer.byte_t[0] = paramA; pointer.byte_t[1] = paramB; pointer.byte_t[2] = paramC; pointer.byte_t[3] = paramD;
 		fs.device_address = pointer.address;

@@ -19,15 +19,6 @@ struct EEPROMStorage {
 	
 	WrappedPointer pointer;
 	
-	void initiate(void) {
-		
-	}
-	
-	void shutdown(void) {
-		
-	}
-	
-	
 	void write(uint32_t address, char byte) {
 		// Wait for completion of previous write
 		while(EECR & (1<<EEPE));
@@ -62,8 +53,6 @@ struct EEPROMStorage {
 
 void EEPROMDeviceDriverEntryPoint(uint8_t functionCall, uint8_t& paramA, uint8_t& paramB, uint8_t& paramC, uint8_t& paramD) {
 	
-	if (functionCall == DEVICE_CALL_INITIATE) {eepromStorage.initiate(); return;}
-	if (functionCall == DEVICE_CALL_SHUTDOWN) {eepromStorage.shutdown(); return;}
 	if (functionCall == DEVICE_CALL_ADDRESS) {eepromStorage.pointer.byte_t[0] = paramA; eepromStorage.pointer.byte_t[1] = paramB; eepromStorage.pointer.byte_t[2] = paramC; eepromStorage.pointer.byte_t[3] = paramD; return;}
 	
 	if (functionCall == 0x01) {eepromStorage.write(eepromStorage.pointer.address, paramA); return;}

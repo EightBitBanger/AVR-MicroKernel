@@ -1,22 +1,11 @@
 #ifndef _COPY_FUNCTION__
 #define _COPY_FUNCTION__
 
-void command_copy(uint8_t, uint8_t&, uint8_t&, uint8_t&, uint8_t&);
-
-#define __MODULE_NAME_  "copy"
-
 #define MAX_COPY_BUFFER  2048
 
 char msg_file_copied[] = "File copied.";
 char msg_file_cant_copy[] = "File cannot be copied.";
 char msg_file_too_large[] = "File too large.";
-
-struct ModuleLoaderCopy {
-	
-	ModuleLoaderCopy() {
-		load_device(__MODULE_NAME_, sizeof(__MODULE_NAME_), (Module)command_copy, DEVICE_TYPE_MODULE);
-	}
-}static moduleLoaderCopy;
 
 void command_copy(uint8_t, uint8_t&, uint8_t&, uint8_t&, uint8_t&) {
 	
@@ -37,7 +26,7 @@ void command_copy(uint8_t, uint8_t&, uint8_t&, uint8_t&, uint8_t&) {
 	uint8_t i=0;
 	for (uint8_t a=0; a < 32; a++) {
 		
-		char str_char = console.keyboard_string[sizeof(__MODULE_NAME_) + a];
+		char str_char = console.keyboard_string[sizeof("copy") + a];
 		
 		if ((str_char == 0x20) & (swtch == 0)) {
 			swtch = 1;
@@ -165,10 +154,6 @@ void command_copy(uint8_t, uint8_t&, uint8_t&, uint8_t&, uint8_t&) {
 	
 	return;
 }
-
-
-#undef __MODULE_NAME_
-
 
 #endif
 
