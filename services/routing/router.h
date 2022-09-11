@@ -3,18 +3,6 @@
 
 void router_entry_point(uint8_t, uint8_t&, uint8_t&, uint8_t&, uint8_t&);
 
-#define __MODULE_NAME_  "router"
-
-struct ModuleLoaderRouter {
-	ModuleLoaderRouter() {
-		
-		task_create(__MODULE_NAME_, sizeof(__MODULE_NAME_), (void(*)())router_entry_point, 10, TASK_TYPE_SERVICE);
-		
-	}
-}static routerModuleLoader;
-
-
-
 void router_entry_point(uint8_t, uint8_t&, uint8_t&, uint8_t&, uint8_t&) {
 	
 	uint8_t  flag       = 0xff;
@@ -133,5 +121,4 @@ void router_entry_point(uint8_t, uint8_t&, uint8_t&, uint8_t&, uint8_t&) {
 	return;
 }
 
-#undef __MODULE_NAME_
 

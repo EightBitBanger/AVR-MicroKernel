@@ -52,17 +52,6 @@ char msg_kernel_version[]    = "AVR-Kernel 1.0";
 #include "kernel/bus.h"               // System bus interface
 
 
-// Kernel table initiator
-struct __INITIATE_KERNEL_TABLES_ {
-	__INITIATE_KERNEL_TABLES_() {
-		
-		__extern_initiate();
-		
-		__scheduler_init_();
-		
-	}
-} static __initiate_kernel_tables_;
-
 // Hardware information detection
 #include "kernel/hardware_detection.h"
 
@@ -110,10 +99,6 @@ void __kernel_initiate(void) {
 	// Allocate available external memory
 	memory_device = (Device)get_func_address(_EXTENDED_MEMORY__, sizeof(_EXTENDED_MEMORY__));
 	if (memory_device != 0) {
-		
-		// Print zero
-		uint8_t zerochar = '0';
-		call_extern(console_device, 0x00, zerochar);
 		
 		// Begin allocating memory
 		for (total_memory.address=0x00000; total_memory.address < 0x40000; total_memory.address++) {

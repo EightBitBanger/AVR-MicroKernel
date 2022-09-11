@@ -25,6 +25,8 @@ struct __DriverLoader__ {
 	
 	__DriverLoader__() {
 		
+		__extern_initiate();
+		
 #ifdef __ARDUINO_UNO_BOARD_
 		
 		load_device("uno", sizeof("uno"), (Module)arduinoUNODeviceDriverEntryPoint, DEVICE_TYPE_DRIVER);

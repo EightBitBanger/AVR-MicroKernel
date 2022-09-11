@@ -1,8 +1,6 @@
 //
 // Command console system service
 
-#define _SERVICE_NAME__    "console"
-
 void keyboard_event_handler(void);               // Event handler entry point
 void eventKeyboardEnter(void);                   // Enter function
 void eventKeyboardBackspace(void);               // Backspace function
@@ -22,16 +20,14 @@ struct CommandConsoleServiceLauncher {
 		// Link to the keyboard device driver
 		keyboard_device = (Device)get_func_address(_KEYBOARD_INPUT__, sizeof(_KEYBOARD_INPUT__));
 		
-		task_create(_SERVICE_NAME__, sizeof(_SERVICE_NAME__), keyboard_event_handler, TASK_PRIORITY_REALTIME, TASK_TYPE_SERVICE);
-		
-		// Initiate the current key state
+		// Prevent a key from being accepted on system startup
 		call_extern(keyboard_device, 0x02, scanCodeLow, scanCodeHigh);
 		
 		call_extern(keyboard_device, 0x00, console.lastChar);
 		
 	}
 }static commandConsole;
-#undef _SERVICE_NAME__
+
 
 void keyboard_event_handler(void) {
 	
@@ -102,7 +98,7 @@ void eventKeyboardEnter(void) {
 	if (console.cursorLine == 1) console.cursorLine++;
 	if (console.cursorLine == 0) {if (console.promptState == 0) {console.promptState++;} else {console.cursorLine++;}}
 	
-	// Execute the function
+	// Check string length
 	if (console.last_string_length > 0) {console.cursorPos=0;
 		
 		// Function look up
@@ -131,7 +127,23 @@ void eventKeyboardEnter(void) {
 			console_function = (void(*)(uint8_t, uint8_t&, uint8_t&, uint8_t&, uint8_t&))device_table.table[i];
 			console_function(0x00, nullchar, nullchar, nullchar, nullchar);
 			
-			break;
+			console.clearKeyboardString();
+			console.printPrompt();
+			
+			return;
+		}
+		
+		// Function not found. Check if the filename exists
+		if (fs.file_open(console.keyboard_string) == 0) {
+			
+			console.print("File not found.", sizeof("File not found."));
+			console.printLn();
+			
+		} else {
+			
+			console.print("File located!", sizeof("File located!"));
+			console.printLn();
+			
 		}
 		
 	}
