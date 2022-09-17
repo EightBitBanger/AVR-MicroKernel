@@ -8,8 +8,8 @@
 #define __CORE_SCHEDULER_        // Include the task scheduler
 #define __HARDWARE_AUTO_DETECT_  // Use hardware auto detection
 
-//#define __BOOT_SAFEMODE_         // Load only the drivers required to boot
-//#define __BOOT_LIGHTWEIGHT_      // Skip loading the command modules
+#define __BOOT_SAFEMODE_         // Load only the drivers required to boot
+#define __BOOT_LIGHTWEIGHT_      // Skip loading the command modules
 
 //#define __ARDUINO_UNO_BOARD_     // Compile for an Arduino UNO board
 #define __AVR_CUSTOM_BOARD_      // Compile for a custom AVR board
