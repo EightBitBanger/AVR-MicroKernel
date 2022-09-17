@@ -136,13 +136,12 @@ void eventKeyboardEnter(void) {
 		// Function not found. Check if the filename exists
 		if (fs.file_open(console.keyboard_string) == 0) {
 			
-			console.print("File not found.", sizeof("File not found."));
+			console.print("Bad cmd or filename", sizeof("Bad cmd or filename"));
 			console.printLn();
 			
 		} else {
 			
-			console.print("File located!", sizeof("File located!"));
-			console.printLn();
+			// File found
 			
 		}
 		
