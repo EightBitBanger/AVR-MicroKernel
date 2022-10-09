@@ -15,10 +15,11 @@ struct ModuleLoaderNet {
 	
 	ModuleLoaderNet() {
 		
-		waitstate = 0;
+		waitstate = 1; // Initial wait-state
 		baudrate  = 7; // Start at 56k baud
-		byte      = 0;
-	 	
+		
+		byte=0;
+		
 	}
 }static netModuleLoader;
 
@@ -37,9 +38,7 @@ void net_entry_point(uint8_t, uint8_t&, uint8_t&, uint8_t&, uint8_t&) {
 	uint32_t timeout    = 230000;
 	uint32_t counter    = 0;
 	
-	Device networkDevice;
-	
-	networkDevice = (Device)get_func_address(_NETWORK_INTERFACE__, sizeof(_NETWORK_INTERFACE__));
+	Device networkDevice = (Device)get_func_address(_NETWORK_INTERFACE__, sizeof(_NETWORK_INTERFACE__));
 	if (networkDevice == 0) return;
 	
 	// Get the parameters from the keyboard string

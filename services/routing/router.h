@@ -1,9 +1,7 @@
 //
 // Router program
 
-void router_entry_point(uint8_t, uint8_t&, uint8_t&, uint8_t&, uint8_t&);
-
-void router_entry_point(uint8_t, uint8_t&, uint8_t&, uint8_t&, uint8_t&) {
+void router_entry_point(void) {
 	
 	uint8_t  flag       = 0xff;
 	uint8_t  byte       = 0x00;

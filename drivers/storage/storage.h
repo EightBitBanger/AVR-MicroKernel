@@ -6,9 +6,11 @@
 
 #define SECTOR_SIZE  32
 
-#define DEVICE_CAPACITY  (SECTOR_SIZE * 256)  // 8,192 bytes
-//#define DEVICE_CAPACITY  (SECTOR_SIZE * 512)  // 16,384 bytes
-//#define DEVICE_CAPACITY  (SECTOR_SIZE * 1024) // 32,768 bytes
+#define FILE_ATTRIBUTE_EXECUTEABLE  0xf0
+
+#define DEVICE_CAPACITY  (SECTOR_SIZE * 256)    // 8,192 bytes
+//#define DEVICE_CAPACITY  (SECTOR_SIZE * 512)    // 16,384 bytes
+//#define DEVICE_CAPACITY  (SECTOR_SIZE * 1024)   // 32,768 bytes
 
 char msg_file_count[] = "files";
 
@@ -489,16 +491,18 @@ struct MassStorageDeviceDriver {
 		file_address=0;
 	}
 	
-	void file_write_byte(uint32_t address, char byte) {
+	uint8_t file_write_byte(uint32_t address, char byte) {
+		if (file_address == 0) return 0;
 		write(file_address + address, byte);
 		if (write_counter >= 31) {write_counter=0; _delay_ms(5);} else {write_counter++;}
+		return 1;
 	}
 	
 	
-	void file_read_byte(uint32_t address, char& byte) {
-		
+	uint8_t file_read_byte(uint32_t address, char& byte) {
+		if (file_address == 0) return 0;
 		read(file_address + address, byte);
-		
+		return 1;
 	}
 	
 	

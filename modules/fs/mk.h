@@ -13,7 +13,7 @@ struct __ModuleLoaderMk__ {
 	
 	__ModuleLoaderMk__() {
 		
-		file_size = 1;
+		file_size = SECTOR_SIZE;
 		
 	}
 }static __moduleLoaderMk__;
@@ -24,6 +24,12 @@ void command_mk(uint8_t, uint8_t&, uint8_t&, uint8_t&, uint8_t&) {
 	Device storageDevice;
 	storageDevice = (Device)get_func_address(_MASS_STORAGE__, sizeof(_MASS_STORAGE__));
 	if (storageDevice == 0) return;
+	
+	// Clear the storage filename reference
+	for (uint8_t name_length=0; name_length < 10; name_length++) {
+		uint8_t str_char = 0x20;
+		call_extern(storageDevice, name_length, (uint8_t&)str_char);
+	}
 	
 	// Get filename parameter
 	char filename[11] = "          ";

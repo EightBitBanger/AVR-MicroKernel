@@ -8,29 +8,29 @@
 #define __CORE_SCHEDULER_        // Include the task scheduler
 #define __HARDWARE_AUTO_DETECT_  // Use hardware auto detection
 
-#define __BOOT_SAFEMODE_         // Load only the drivers required to boot
-#define __BOOT_LIGHTWEIGHT_      // Skip loading the command modules
+
+//#define __BOOT_SAFEMODE_         // Load only the drivers required to boot
+//#define __BOOT_NETWORK_          // Load only the drivers required to boot
+//#define __BOOT_LIGHTWEIGHT_      // Skip loading the command modules
+
 
 //#define __ARDUINO_UNO_BOARD_     // Compile for an Arduino UNO board
 #define __AVR_CUSTOM_BOARD_      // Compile for a custom AVR board
 
 
-//#define _32_BIT_POINTERS__
-#define _64_BIT_POINTERS__
+#define _32_BIT_POINTERS__
+//#define _64_BIT_POINTERS__
 
 
 //
 // Kernel memory map
 #define _KERNEL_BEGIN__                    0x00000
-#define _KERNEL_END__                      0x007ff
+#define _KERNEL_END__                      0x000ff
 
 #define _KERNEL_STACK_BEGIN__              0x00100
 
-#define _KERNEL_FUNCTION_TABLE_BEGIN__     0x00000
-#define _KERNEL_FUNCTION_TABLE_SIZE__      0x000ff
-
-#define _KERNEL_STACK_COUNTER__            0x00100
-#define _KERNEL_FLAGS__                    0x00104
+#define _KERNEL_STACK_COUNTER__            0x00000
+#define _KERNEL_FLAGS__                    0x00004
 
 
 // Kernel State flags

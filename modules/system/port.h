@@ -1,5 +1,5 @@
 //
-// Port control function
+// GPIO port control function
 
 void command_port(uint8_t, uint8_t&, uint8_t&, uint8_t&, uint8_t&);
 
@@ -94,9 +94,9 @@ void __port_control_(uint8_t, uint8_t&, uint8_t&, uint8_t&, uint8_t&) {
 	// No parameters - help anyone ?
 	if (param0 == 0x20) {
 		
-		char help_line_a[] = "port p n - set port";
-		char help_line_b[] = "port s n - set slot";
-		char help_line_c[] = "port 0x00 - set data";
+		char help_line_a[] = "port s n - set slot";
+		char help_line_b[] = "port p n - set port";
+		char help_line_c[] = "port 0x00 - write GPIO";
 		
 		console.print(help_line_a, sizeof(help_line_a)); console.printLn();
 		console.print(help_line_b, sizeof(help_line_b)); console.printLn();

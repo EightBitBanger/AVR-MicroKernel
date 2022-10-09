@@ -85,7 +85,7 @@ struct CommandConsole {
 	void clearMask(void) {call_extern(displayDriverPtr, 0x05); _delay_ms(40); return;}
 	
 	// Clear the keyboard string
-	void clearKeyboardString(void) {for (uint8_t i=0; i <= 20; i++) {keyboard_string[i] = 0x20;} keyboard_string_length=0;}
+	void clearKeyboardString(void) {for (uint8_t i=0; i < _MAX_KEYBOARD_STRING_LENGTH__; i++) {keyboard_string[i] = 0x20;} keyboard_string_length=0;}
 	
 	void setCursorPosition(uint8_t Line, uint8_t Pos) {
 		cursorLine = Line;

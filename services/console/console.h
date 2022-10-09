@@ -133,17 +133,159 @@ void eventKeyboardEnter(void) {
 			return;
 		}
 		
+		if (console.keyboard_string[0] == 0x20) {
+			console.clearKeyboardString();
+			console.printPrompt();
+			return;
+		}
+		
 		// Function not found. Check if the filename exists
-		if (fs.file_open(console.keyboard_string) == 0) {
+		if ((fs.file_open(console.keyboard_string) != 0) & (console.last_string_length > 1)) {
 			
-			console.print("Bad cmd or filename", sizeof("Bad cmd or filename"));
+			// File found, check executable attribute and execute
+			
+			// Simple instruction set
+			// 
+			// add   0x01 - Add a register to a register
+			// 
+			// mov   0xa0 - Move a byte into a register
+			// movr  0xa1 - Move a register into a register
+			// 
+			// int   0x3d - Run an interrupt routine
+			// 
+			// jmp   0xea - Jump unconditionally to the offset
+			// je           Jump to the offset if register A is equal to B
+			// jg           Jump to the offset if register A is greater than B
+			// jl           Jump to the offset if register A is less than B
+			// 
+			// call  0x9a - Call to a function offset
+			// ret          Return from a function call
+			// 
+			// push  0x06 - Push register A onto the stack
+			// pop   0x07 - Pop data off the stack into register A
+			
+			// General purpose registers
+			char reg[31];
+			
+			for (uint8_t b=0; b < 31; b++) 
+				reg[b] = 0x00;
+			
+			char opcode=0x00;
+			char operandA=0x00;
+			char operandB=0x00;
+			char operandC=0x00;
+			char operandD=0x00;
+			
+			uint32_t file_start = (SECTOR_SIZE + 1);
+			uint32_t file_end   = file_start + fs.file_size;
+			
+			for (uint32_t ip=file_start; ip <= file_end; ip++) {
+				
+				// Get the op-code
+				fs.file_read_byte(ip, opcode);
+				
+				//
+				// ADD - Add a register to a register
+				if (opcode == 0x01) {
+					ip++; fs.file_read_byte(ip, operandA);
+					ip++; fs.file_read_byte(ip, operandB);
+					
+					if ((operandA >= 0x00) & (operandA <= 0x31)) {
+						if ((operandB >= 0x00) & (operandB <= 0x31)) 
+							reg[operandA] += reg[operandB];
+					}
+					
+					continue;
+				}
+				
+				//
+				// MOV - Move byte into a register
+				if (opcode == 0xa0) {
+					ip++; fs.file_read_byte(ip, operandA);
+					ip++; fs.file_read_byte(ip, operandB);
+					
+					if ((operandA >= 0x00) & (operandA <= 0x31)) {
+						if ((operandB >= 0x00) & (operandB <= 0x31))
+							reg[operandA] = operandB;
+					}
+					
+					continue;
+				}
+				
+				//
+				// MOVr - Move register into a register
+				if (opcode == 0xa1) {
+					ip++; fs.file_read_byte(ip, operandA);
+					ip++; fs.file_read_byte(ip, operandB);
+					
+					if ((operandA >= 0x00) & (operandA <= 0x31)) {
+						if ((operandB >= 0x00) & (operandB <= 0x31))
+							reg[operandA] = reg[operandB];
+					}
+					
+					continue;
+				}
+				
+				//
+				// INT - Interrupt routine
+				if ((opcode == 0x3d) | (opcode == 0xcd)) {
+					ip++; fs.file_read_byte(ip, operandA);
+					
+					// INT 10 - Display call
+					if (operandA == 0x10) {console.printChar( reg[0] ); continue;}
+					
+					// INT 20 - Program termination call
+					if (operandA == 0x20) break;
+					
+					continue;
+				}
+				
+				//
+				// JMP - Jump to offset (non-relative)
+				if (opcode == 0xea) {
+					ip++; fs.file_read_byte(ip, operandA);
+					ip++; fs.file_read_byte(ip, operandB);
+					ip++; fs.file_read_byte(ip, operandC);
+					ip++; fs.file_read_byte(ip, operandD);
+					
+					WrappedPointer pointer;
+					pointer.byte[0] = operandA;
+					pointer.byte[1] = operandB;
+					pointer.byte[2] = operandC;
+					pointer.byte[3] = operandD;
+					
+					ip = pointer.address;
+					
+					continue;
+				}
+				
+				//
+				// Push register A onto the stack
+				if (opcode == 0x06) {
+					uint32_t ptr = exMem.stack_push(1);
+					exMem.write(ptr, reg[0]);
+					continue;
+				}
+				
+				//
+				// Pop data off the stack into register A
+				if (opcode == 0x07) {
+					uint32_t ptr = (exMem._STACK_BEGIN__ + exMem.stack_size());
+					exMem.stack_pop(1);
+					exMem.read(ptr, reg[0]);
+					continue;
+				}
+				
+			}
+			
+			console.clearKeyboardString();
 			console.printLn();
 			
 		} else {
-			
-			// File found
-			
-			
+			if (console.last_string_length > 1) {
+				console.print("Bad cmd or filename", sizeof("Bad cmd or filename"));
+				console.printLn();
+			}
 		}
 		
 	}
