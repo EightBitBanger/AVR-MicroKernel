@@ -4,18 +4,19 @@
 #ifndef ____KERNEL_MAIN__
 #define ____KERNEL_MAIN__
 
-#define __CORE_MAIN_             // Include core kernel components
-#define __CORE_SCHEDULER_        // Include the task scheduler
-#define __HARDWARE_AUTO_DETECT_  // Use hardware auto detection
+#define __CORE_MAIN_                // Include core kernel components
+#define __CORE_SCHEDULER_           // Include the task scheduler
+#define __HARDWARE_AUTO_DETECT_     // Use hardware auto detection
 
 
-//#define __BOOT_SAFEMODE_         // Load only the drivers required to boot
-//#define __BOOT_NETWORK_          // Load only the drivers required to boot
-//#define __BOOT_LIGHTWEIGHT_      // Skip loading the command modules
+//#define __BOOT_SAFEMODE_            // Load only the drivers required to boot
+//#define __BOOT_LIGHTWEIGHT_         // Skip loading the command modules
+#define __BOOT_NETWORK_SUPPORT_     // Include network support
+#define __BOOT_FS_SUPPORT_          // Include file system support
 
 
-//#define __ARDUINO_UNO_BOARD_     // Compile for an Arduino UNO board
-#define __AVR_CUSTOM_BOARD_      // Compile for a custom AVR board
+//#define __ARDUINO_UNO_BOARD_        // Compile for an Arduino UNO board
+#define __AVR_CUSTOM_BOARD_         // Compile for a custom AVR board
 
 
 #define _32_BIT_POINTERS__
@@ -100,7 +101,6 @@ void __kernel_initiate(void) {
 	memory_device = (Device)get_func_address(_EXTENDED_MEMORY__, sizeof(_EXTENDED_MEMORY__));
 	if (memory_device != 0) {
 		
-		// Begin allocating memory
 		for (total_memory.address=0x00000; total_memory.address < 0x40000; total_memory.address++) {
 			
 			bus_write_byte(device_bus, total_memory.address, test_byte);
@@ -163,21 +163,19 @@ void __kernel_initiate(void) {
 	// Drop a command prompt
 	call_extern(console_device, 0x02); // Print prompt
 	
+	// Speaker beep code
 	speaker_device = (Device)get_func_address(_INTERNAL_SPEAKER__, sizeof(_INTERNAL_SPEAKER__));
 	if (speaker_device != 0) {
 		
-		// Beep code
 		uint8_t length   = 74;
 		uint8_t tone     = 1;
 		uint8_t beepcode = 1;
 		
-		// Speaker beep code test
 		for (uint8_t i=0; i < beepcode; i++) {
 			call_extern(speaker_device, 0x00, tone, length);
 			_delay_ms(350);
 		}
 		
-		//if (beepcode > 2) while(1) asm("nop");
 	}
 	
 	return;

@@ -57,13 +57,9 @@ void decodeScanCode(uint8_t scancode_low, uint8_t scancode_high, uint8_t& scan_c
 	
 	scan_code = 0x00;
 	
-	if (scancode_low == 0x98) {
-		if (scancode_high == 0xc4) {scan_code = 0x11; return;} // Shift left pressed
-		return;
-	}
-	
 	if (scancode_low == 0xdf) {
 		if (scancode_high == 0x9a) {scan_code = 0x05; return;} // Left arrow
+		if (scancode_high == 0x96) {scan_code = ']'; return;}
 		if (scancode_high == 0x90) {scan_code = 'i'; return;}
 		if (scancode_high == 0xc6) {scan_code = 's'; return;}
 		if (scancode_high == 0x88) {scan_code = 'd'; return;}
@@ -80,6 +76,8 @@ void decodeScanCode(uint8_t scancode_low, uint8_t scancode_high, uint8_t& scan_c
 		if (scancode_high == 0xd6) {scan_code = 0x02; return;} // Enter
 		if (scancode_high == 0xdc) {scan_code = 0x04; return;} // Down arrow
 		if (scancode_high == 0x9d) {scan_code = 0x07; return;} // Escape
+		if (scancode_high == 0x92) {scan_code = '/'; return;}
+		if (scancode_high == 0x94) {scan_code = 0x27; return;} // '
 		if (scancode_high == 0x91) {scan_code = '9'; return;}
 		if (scancode_high == 0x8f) {scan_code = '8'; return;}
 		if (scancode_high == 0xcd) {scan_code = '6'; return;}
@@ -97,10 +95,14 @@ void decodeScanCode(uint8_t scancode_low, uint8_t scancode_high, uint8_t& scan_c
 	}
 	
 	if (scancode_low == 0x5f) {
+		if (scancode_high == 0xd6) {scan_code = 0x12; return;} // Right shift released
 		if (scancode_high == 0x9d) {scan_code = 0x03; return;} // Up arrow
 		if (scancode_high == 0x8a) {scan_code = 0x20; return;} // Space
 		if (scancode_high == 0xc4) {scan_code = 0x09; return;} // Alt
 		if (scancode_high == 0xdc) {scan_code = 0x10; return;} // Delete
+		if (scancode_high == 0xd0) {scan_code = ','; return;}
+		if (scancode_high == 0x92) {scan_code = '.'; return;}
+		if (scancode_high == 0x97) {scan_code = 0x5c; return;} // Backslash
 		if (scancode_high == 0x91) {scan_code = '0'; return;}
 		if (scancode_high == 0x8f) {scan_code = '7'; return;}
 		if (scancode_high == 0x89) {scan_code = '4'; return;}
@@ -117,6 +119,8 @@ void decodeScanCode(uint8_t scancode_low, uint8_t scancode_high, uint8_t& scan_c
 	if (scancode_low == 0x1f) {
 		if (scancode_high == 0xdd) {scan_code = 0x06; return;} // Right arrow
 		if (scancode_high == 0xc5) {scan_code = 0x08; return;} // Control
+		if (scancode_high == 0x93) {scan_code = ';'; return;}
+		if (scancode_high == 0x95) {scan_code = '['; return;}
 		if (scancode_high == 0xc9) {scan_code = 'e'; return;}
 		if (scancode_high == 0x8b) {scan_code = 't'; return;}
 		if (scancode_high == 0xcf) {scan_code = 'u'; return;}
@@ -125,6 +129,19 @@ void decodeScanCode(uint8_t scancode_low, uint8_t scancode_high, uint8_t& scan_c
 		if (scancode_high == 0x8d) {scan_code = 'g'; return;}
 		return;
 	}
+	
+	// Left shift pressed
+	if ( (scancode_low == 0x98)|(scancode_low == 0x99)|(scancode_low == 0x92)|(scancode_low == 0x91)|(scancode_low == 0x90)|(scancode_low == 0x9a)|(scancode_low == 0x9b) ) {
+		if (scancode_high == 0xc4) {scan_code = 0x11; return;}
+		return;
+	}
+	
+	// Right shift pressed
+	if ( (scancode_low == 0x58)|(scancode_low == 0x59)|(scancode_low == 0x52)|(scancode_low == 0x51)|(scancode_low == 0x50)|(scancode_low == 0x5a)|(scancode_low == 0x5b) ) {
+		if (scancode_high == 0xd6) {scan_code = 0x11; return;}
+		return;
+	}
+	
 	return;
 }
 

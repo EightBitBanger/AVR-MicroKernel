@@ -5,8 +5,6 @@ void keyboard_event_handler(void);               // Event handler entry point
 void eventKeyboardEnter(void);                   // Enter function
 void eventKeyboardBackspace(void);               // Backspace function
 void eventKeyboardAcceptChar(uint8_t new_char);  // Accept a character onto the keyboard string of typed characters
-void eventKeyboardShiftPressed(void);            // Shift pressed state
-void eventKeyboardShiftReleased(void);           // Shift released state
 
 struct CommandConsoleServiceLauncher {
 	
@@ -66,8 +64,8 @@ void keyboard_event_handler(void) {
 		
 		case 0x01: {eventKeyboardBackspace(); break;}
 		case 0x02: {eventKeyboardEnter(); break;}
-		case 0x11: {eventKeyboardShiftPressed(); break;}
-		case 0x12: {eventKeyboardShiftReleased(); break;}
+		case 0x11: {console.shiftState = 1; break;}
+		case 0x12: {console.shiftState = 0; break;}
 		
 		default: break;
 	}
@@ -77,8 +75,17 @@ void keyboard_event_handler(void) {
 		
 		// Check shift state
 		if (console.shiftState == 1) {
-			if ((currentChar >= 'a') & (currentChar <= 'z'))
-			currentChar -= 0x20;
+			if ((currentChar >= 'a') & (currentChar <= 'z')) currentChar -= 0x20;
+			
+			if (currentChar == '[') currentChar = '{';
+			if (currentChar == ']') currentChar = '}';
+			if (currentChar == 0x5c) currentChar = '|';
+			if (currentChar == ';') currentChar = ':';
+			if (currentChar == 0x27) currentChar = 0x22;
+			if (currentChar == ',') currentChar = '<';
+			if (currentChar == '.') currentChar = '>';
+			if (currentChar == '/') currentChar = '?';
+			
 		}
 		
 		eventKeyboardAcceptChar(currentChar);
@@ -90,7 +97,7 @@ void keyboard_event_handler(void) {
 
 void eventKeyboardEnter(void) {
 	
-	console.last_string_length = console.keyboard_string_length+1;
+	console.last_string_length = console.keyboard_string_length + 1;
 	console.keyboard_string_length = 0;
 	
 	if (console.cursorLine == 3) {console.shiftUp();}
@@ -139,6 +146,7 @@ void eventKeyboardEnter(void) {
 			return;
 		}
 		
+		
 		// Function not found. Check if the filename exists
 		if ((fs.file_open(console.keyboard_string) != 0) & (console.last_string_length > 1)) {
 			
@@ -146,7 +154,8 @@ void eventKeyboardEnter(void) {
 			
 			// Simple instruction set
 			// 
-			// add   0x01 - Add a register to a register
+			// add   0x01 - Add a register into a register
+			// add   0x02 - Add a byte into a register
 			// 
 			// mov   0xa0 - Move a byte into a register
 			// movr  0xa1 - Move a register into a register
@@ -260,19 +269,19 @@ void eventKeyboardEnter(void) {
 				}
 				
 				//
-				// Push register A onto the stack
+				// Push a register onto the stack
 				if (opcode == 0x06) {
 					uint32_t ptr = exMem.stack_push(1);
-					exMem.write(ptr, reg[0]);
+					exMem.write(ptr, reg[ operandA ]);
 					continue;
 				}
 				
 				//
-				// Pop data off the stack into register A
+				// Pop a byte off the stack into a register
 				if (opcode == 0x07) {
 					uint32_t ptr = (exMem._STACK_BEGIN__ + exMem.stack_size());
 					exMem.stack_pop(1);
-					exMem.read(ptr, reg[0]);
+					exMem.read(ptr, reg[ operandA ]);
 					continue;
 				}
 				
@@ -345,15 +354,4 @@ void eventKeyboardAcceptChar(uint8_t new_char) {
 	
 	return;
 }
-
-void eventKeyboardShiftPressed(void) {
-	console.shiftState = 1;
-	return;
-}
-
-void eventKeyboardShiftReleased(void) {
-	console.shiftState = 0;
-	return;
-}
-
 

@@ -35,8 +35,8 @@ void application_entry_point(uint8_t, uint8_t&, uint8_t&, uint8_t&, uint8_t&) {
 			console.printHex(byteHigh);
 			console.printLn();
 			
-			
 		}
+		
 		
 	}
 	

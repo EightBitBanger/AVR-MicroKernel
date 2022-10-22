@@ -38,11 +38,17 @@ struct __DriverLoader__ {
 		load_device(_COMMAND_CONSOLE__, sizeof(_COMMAND_CONSOLE__), (Driver)ConsoleLibraryEntryPoint, DEVICE_TYPE_LIBRARY);
 		load_device(_DISPLAY_CONSOLE__, sizeof(_DISPLAY_CONSOLE__), (Driver)DisplayDeviceDriverEntryPoint, DEVICE_TYPE_DRIVER);
 		load_device(_KEYBOARD_INPUT__, sizeof(_KEYBOARD_INPUT__), (Driver)keyboardDeviceDriverEntryPoint, DEVICE_TYPE_DRIVER);
+		
+#ifdef __BOOT_FS_SUPPORT_
 		load_device(_MASS_STORAGE__, sizeof(_MASS_STORAGE__), (Driver)storageDeviceDriverEntryPoint, DEVICE_TYPE_DRIVER);
+#endif
 		
 #ifndef __BOOT_SAFEMODE_
 		
+#ifdef __BOOT_NETWORK_SUPPORT_
 		load_device(_NETWORK_INTERFACE__, sizeof(_NETWORK_INTERFACE__), (Driver)NetworkInterfaceDeviceDriverEntryPoint, DEVICE_TYPE_DRIVER);
+#endif
+		
 		load_device(_EXTENDED_MEMORY__, sizeof(_EXTENDED_MEMORY__), (Driver)ExtendedMemoryDeviceDriverEntryPoint, DEVICE_TYPE_DRIVER);
 		load_device(_INTERNAL_SPEAKER__, sizeof(_INTERNAL_SPEAKER__), (Driver)SpeakerDriverDeviceDriverEntryPoint, DEVICE_TYPE_DRIVER);
 		load_device(_GPIO_INTERFACE__, sizeof(_GPIO_INTERFACE__), (Driver)GPIOCardDeviceDriverEntryPoint, DEVICE_TYPE_DRIVER);
