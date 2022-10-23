@@ -13,6 +13,7 @@
 //#define DEVICE_CAPACITY  (SECTOR_SIZE * 1024)   // 32,768 bytes
 
 char msg_file_count[] = "files";
+char msg_file_not_found[] = "File not found.";
 
 struct MassStorageDeviceDriver {
 	
@@ -46,6 +47,7 @@ struct MassStorageDeviceDriver {
 	
 	void write(uint32_t address, char byte) {bus_write_byte(device_bus, address, byte); return;}
 	void read(uint32_t address, char& byte) {bus_read_byte(device_bus, address, byte); return;}
+	
 	
 	void list_directory(uint8_t enable_page_pause) {
 		
@@ -87,6 +89,15 @@ struct MassStorageDeviceDriver {
 			
 			pointer.address = filesize.address;
 			call_extern(consoleDevice, 0x04, pointer.byte_t[0], pointer.byte_t[1], pointer.byte_t[2], pointer.byte_t[3]);
+			call_extern(consoleDevice, 0x03); // Space
+			
+			// Display file attributes
+			uint8_t attribute;
+			for (uint8_t a=0; a < 4; a++) {
+				read(i + a + 15, (char&)attribute);
+				if (attribute < 0x61) attribute = 0x20;
+				call_extern(consoleDevice, 0x00, (uint8_t&)attribute);
+			}
 			
 			page_counter++;
 			call_extern(consoleDevice, 0x01); // New line
@@ -172,7 +183,7 @@ struct MassStorageDeviceDriver {
 			write(i, byte); _delay_ms(5);
 			
 			// Write file name
-			for (uint32_t a=0; a < 10; a++) {
+			for (uint8_t a=0; a < 10; a++) {
 				write(i + a + 1, (uint8_t&)file_name[a]); _delay_ms(5);
 			}
 			
@@ -180,13 +191,21 @@ struct MassStorageDeviceDriver {
 			WrappedPointer file_size_ptr;
 			file_size_ptr.address = file_size;
 			if (file_size_ptr.address == 0) file_size_ptr.address = 1;
-			for (uint32_t a=0; a < 4; a++) {
+			for (uint8_t a=0; a < 4; a++) {
 				write(i + a + 11, (uint8_t&)file_size_ptr.byte_t[a]); _delay_ms(5);
 			}
 			
-			// Write default attributes
-			byte = 0xff;
-			write(i + 15, (uint8_t&)byte); _delay_ms(5);
+			// Clear attributes
+			byte = 0x00;
+			for (uint8_t a=0; a < 4; a++) {
+				write(i + 15 + a, (uint8_t&)byte); _delay_ms(5);
+			}
+			
+			// Default attributes
+			byte = 'r';
+			write(i + 15 + 1, (uint8_t&)byte); _delay_ms(5);
+			byte = 'w';
+			write(i + 15 + 2, (uint8_t&)byte); _delay_ms(5);
 			
 			uint32_t number_of_sectors = (file_size / SECTOR_SIZE) + 2;
 			if (number_of_sectors <= 2) number_of_sectors = 2;
@@ -333,12 +352,11 @@ struct MassStorageDeviceDriver {
 	}
 	
 	
-	uint8_t file_set_attribute(char* filename, uint8_t attribute) {
+	uint8_t file_set_attribute(char* filename, uint8_t attribute, uint8_t position=0) {
 		
 		WrappedPointer pointer;
 		char byte;
 		
-		// List current device contents
 		uint32_t current_device = 0x30000 + (0x10000 * (console.promptString[0] - 'A' + 1));
 		
 		uint32_t device_start   = current_device + SECTOR_SIZE;
@@ -359,20 +377,14 @@ struct MassStorageDeviceDriver {
 				// Get files name
 				char current_file_name[11] = "          ";
 				for (uint32_t a=1; a < 10; a++)
-				read(i + a, (char&)current_file_name[a-1]);
+					read(i + a, (char&)current_file_name[a-1]);
 				
 				// Compare filenames
 				if (strcmp(current_file_name, filename, 10) == 1) {
 					
-					// Get file size
-					WrappedPointer filesize;
-					for (uint32_t a=0; a < 4; a++)
-					read(i + a + 11, (char&)filesize.byte_t[a]);
-					
-					uint32_t number_of_sectors = (filesize.address / SECTOR_SIZE) + 1;
-					
 					// Set file attribute
-					write(i + 15, attribute); _delay_ms(5);
+					if ((position >= 0) & (position < 4))
+						write(i + 15 + position, attribute); _delay_ms(5);
 					
 					return 1;
 				}
@@ -384,7 +396,7 @@ struct MassStorageDeviceDriver {
 	}
 	
 	
-	uint8_t file_get_attribute(char* filename) {
+	uint8_t file_get_attribute(char* filename, uint8_t position) {
 		
 		WrappedPointer pointer;
 		char byte;
@@ -415,17 +427,14 @@ struct MassStorageDeviceDriver {
 				// Compare filenames
 				if (strcmp(current_file_name, filename, 10) == 1) {
 					
-					// Get file size
-					WrappedPointer filesize;
-					for (uint32_t a=0; a < 4; a++)
-					read(i + a + 11, (char&)filesize.byte_t[a]);
+					char attribute=0;
 					
-					uint32_t number_of_sectors = (filesize.address / SECTOR_SIZE) + 1;
-					
-					// Set file attribute
-					uint8_t attribute;
-					write(i + 15, attribute); _delay_ms(5);
-					
+					// Get file attribute
+					if ((position >= 0) & (position < 4)) {
+						read(i + 15 + position, attribute);
+						
+						if (attribute < 0x61) return 0;
+					}
 					return attribute;
 				}
 				
@@ -493,6 +502,7 @@ struct MassStorageDeviceDriver {
 	
 	uint8_t file_write_byte(uint32_t address, char byte) {
 		if (file_address == 0) return 0;
+		address += (address / SECTOR_SIZE) - 1;
 		write(file_address + address, byte);
 		if (write_counter >= 31) {write_counter=0; _delay_ms(5);} else {write_counter++;}
 		return 1;
@@ -501,6 +511,7 @@ struct MassStorageDeviceDriver {
 	
 	uint8_t file_read_byte(uint32_t address, char& byte) {
 		if (file_address == 0) return 0;
+		address += (address / SECTOR_SIZE) - 1;
 		read(file_address + address, byte);
 		return 1;
 	}

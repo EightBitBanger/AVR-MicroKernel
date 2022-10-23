@@ -3,7 +3,6 @@
 
 char msg_file_created[] = "File created.";
 char msg_file_exists[]  = "File already exists.";
-char msg_file_not_found[]  = "File not found.";
 
 void command_mk(uint8_t, uint8_t&, uint8_t&, uint8_t&, uint8_t&);
 

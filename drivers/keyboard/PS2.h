@@ -57,9 +57,17 @@ void decodeScanCode(uint8_t scancode_low, uint8_t scancode_high, uint8_t& scan_c
 	
 	scan_code = 0x00;
 	
+	if ( (scancode_low == 0x98)|(scancode_low == 0x99)|(scancode_low == 0x92)|(scancode_low == 0x91)|(scancode_low == 0x90)|(scancode_low == 0x9a)|(scancode_low == 0x9b) ) {
+		if (scancode_high == 0xc4) {scan_code = 0x11; return;} // Left shift pressed
+	}
+	
+	if ( (scancode_low == 0x58)|(scancode_low == 0x59)|(scancode_low == 0x52)|(scancode_low == 0x51)|(scancode_low == 0x50)|(scancode_low == 0x5a)|(scancode_low == 0x5b) ) {
+		if (scancode_high == 0xd6) {scan_code = 0x11; return;} // Right shift pressed
+	}
+	
 	if (scancode_low == 0xdf) {
 		if (scancode_high == 0x9a) {scan_code = 0x05; return;} // Left arrow
-		if (scancode_high == 0x96) {scan_code = ']'; return;}
+		if (scancode_high == 0x96) {scan_code = ']'; return;}  // Right square bracket
 		if (scancode_high == 0x90) {scan_code = 'i'; return;}
 		if (scancode_high == 0xc6) {scan_code = 's'; return;}
 		if (scancode_high == 0x88) {scan_code = 'd'; return;}
@@ -75,8 +83,10 @@ void decodeScanCode(uint8_t scancode_low, uint8_t scancode_high, uint8_t& scan_c
 		if (scancode_high == 0xd9) {scan_code = 0x01; return;} // Backspace
 		if (scancode_high == 0xd6) {scan_code = 0x02; return;} // Enter
 		if (scancode_high == 0xdc) {scan_code = 0x04; return;} // Down arrow
+		if (scancode_high == 0xd3) {scan_code = '-'; return;}  // Dash
+		if (scancode_high == 0x83) {scan_code = '`'; return;}  // Apostrophe
 		if (scancode_high == 0x9d) {scan_code = 0x07; return;} // Escape
-		if (scancode_high == 0x92) {scan_code = '/'; return;}
+		if (scancode_high == 0x92) {scan_code = '/'; return;}  // Forward slash
 		if (scancode_high == 0x94) {scan_code = 0x27; return;} // '
 		if (scancode_high == 0x91) {scan_code = '9'; return;}
 		if (scancode_high == 0x8f) {scan_code = '8'; return;}
@@ -99,9 +109,10 @@ void decodeScanCode(uint8_t scancode_low, uint8_t scancode_high, uint8_t& scan_c
 		if (scancode_high == 0x9d) {scan_code = 0x03; return;} // Up arrow
 		if (scancode_high == 0x8a) {scan_code = 0x20; return;} // Space
 		if (scancode_high == 0xc4) {scan_code = 0x09; return;} // Alt
+		if (scancode_high == 0xd5) {scan_code = '='; return;}  // Equals
 		if (scancode_high == 0xdc) {scan_code = 0x10; return;} // Delete
-		if (scancode_high == 0xd0) {scan_code = ','; return;}
-		if (scancode_high == 0x92) {scan_code = '.'; return;}
+		if (scancode_high == 0xd0) {scan_code = ','; return;}  // Comma
+		if (scancode_high == 0x92) {scan_code = '.'; return;}  // Period
 		if (scancode_high == 0x97) {scan_code = 0x5c; return;} // Backslash
 		if (scancode_high == 0x91) {scan_code = '0'; return;}
 		if (scancode_high == 0x8f) {scan_code = '7'; return;}
@@ -119,26 +130,14 @@ void decodeScanCode(uint8_t scancode_low, uint8_t scancode_high, uint8_t& scan_c
 	if (scancode_low == 0x1f) {
 		if (scancode_high == 0xdd) {scan_code = 0x06; return;} // Right arrow
 		if (scancode_high == 0xc5) {scan_code = 0x08; return;} // Control
-		if (scancode_high == 0x93) {scan_code = ';'; return;}
-		if (scancode_high == 0x95) {scan_code = '['; return;}
+		if (scancode_high == 0x93) {scan_code = ';'; return;}  // Semi-colon
+		if (scancode_high == 0x95) {scan_code = '['; return;}  // Left square bracket
 		if (scancode_high == 0xc9) {scan_code = 'e'; return;}
 		if (scancode_high == 0x8b) {scan_code = 't'; return;}
 		if (scancode_high == 0xcf) {scan_code = 'u'; return;}
 		if (scancode_high == 0xd1) {scan_code = 'o'; return;}
 		if (scancode_high == 0x87) {scan_code = 'a'; return;}
 		if (scancode_high == 0x8d) {scan_code = 'g'; return;}
-		return;
-	}
-	
-	// Left shift pressed
-	if ( (scancode_low == 0x98)|(scancode_low == 0x99)|(scancode_low == 0x92)|(scancode_low == 0x91)|(scancode_low == 0x90)|(scancode_low == 0x9a)|(scancode_low == 0x9b) ) {
-		if (scancode_high == 0xc4) {scan_code = 0x11; return;}
-		return;
-	}
-	
-	// Right shift pressed
-	if ( (scancode_low == 0x58)|(scancode_low == 0x59)|(scancode_low == 0x52)|(scancode_low == 0x51)|(scancode_low == 0x50)|(scancode_low == 0x5a)|(scancode_low == 0x5b) ) {
-		if (scancode_high == 0xd6) {scan_code = 0x11; return;}
 		return;
 	}
 	

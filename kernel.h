@@ -11,7 +11,7 @@
 
 //#define __BOOT_SAFEMODE_            // Load only the drivers required to boot
 //#define __BOOT_LIGHTWEIGHT_         // Skip loading the command modules
-#define __BOOT_NETWORK_SUPPORT_     // Include network support
+//#define __BOOT_NETWORK_SUPPORT_     // Include network support
 #define __BOOT_FS_SUPPORT_          // Include file system support
 
 

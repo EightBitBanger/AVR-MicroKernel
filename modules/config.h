@@ -8,6 +8,7 @@
 #include "fs/cd.h"              // Change device
 #include "fs/copy.h"            // Copy a file to new file
 #include "fs/format.h"          // Device format
+#include "fs/attr.h"            // File attributes
 
 #include "system/task.h"        // Task management
 #include "system/port.h"        // GPIO port configuration
@@ -38,6 +39,8 @@ struct __ModuleLoader__ {
 		load_device("copy", sizeof("copy"), (Module)command_copy, DEVICE_TYPE_MODULE);
 		load_device("asm", sizeof("asm"), (Module)command_asm, DEVICE_TYPE_MODULE);
 		load_device("format", sizeof("format"), (Module)command_format, DEVICE_TYPE_MODULE);
+		load_device("attr", sizeof("attr"), (Module)command_attrib, DEVICE_TYPE_MODULE);
+		
 #endif
 		
 		load_device("cls", sizeof("cls"), (Module)command_clear_screen, DEVICE_TYPE_MODULE);

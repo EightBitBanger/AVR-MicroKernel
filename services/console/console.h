@@ -75,16 +75,39 @@ void keyboard_event_handler(void) {
 		
 		// Check shift state
 		if (console.shiftState == 1) {
-			if ((currentChar >= 'a') & (currentChar <= 'z')) currentChar -= 0x20;
 			
-			if (currentChar == '[') currentChar = '{';
-			if (currentChar == ']') currentChar = '}';
-			if (currentChar == 0x5c) currentChar = '|';
-			if (currentChar == ';') currentChar = ':';
-			if (currentChar == 0x27) currentChar = 0x22;
-			if (currentChar == ',') currentChar = '<';
-			if (currentChar == '.') currentChar = '>';
-			if (currentChar == '/') currentChar = '?';
+			if ((currentChar >= 'a') & (currentChar <= 'z')) {
+				currentChar -= 0x20;
+			} else {
+				switch (currentChar) {
+					
+					case '0': currentChar = ')'; break;
+					case '1': currentChar = '!'; break;
+					case '2': currentChar = '@'; break;
+					case '3': currentChar = '#'; break;
+					case '4': currentChar = '$'; break;
+					case '5': currentChar = '%'; break;
+					case '6': currentChar = '^'; break;
+					case '7': currentChar = '&'; break;
+					case '8': currentChar = '*'; break;
+					case '9': currentChar = '('; break;
+					
+					case '[': currentChar = '{'; break;
+					case ']': currentChar = '}'; break;
+					case 0x5c: currentChar = '|'; break;
+					case ';': currentChar = ':'; break;
+					case 0x27: currentChar = 0x22; break;
+					case ',': currentChar = '<'; break;
+					case '.': currentChar = '>'; break;
+					case '/': currentChar = '?'; break;
+					case '-': currentChar = '_'; break;
+					case '=': currentChar = '+'; break;
+					case '`': currentChar = '~'; break;
+					
+					default: break;
+				}
+				
+			}
 			
 		}
 		
@@ -107,6 +130,20 @@ void eventKeyboardEnter(void) {
 	
 	// Check string length
 	if (console.last_string_length > 0) {console.cursorPos=0;
+		
+		// Check change device focus
+		if ((console.keyboard_string[1] == ':') & (console.keyboard_string[2] == 0x20)) {
+			
+			uint8_t new_device = console.keyboard_string[0];
+			
+			if ((new_device >= 'a') & (new_device <= 'e'))
+			console.promptString[0] = (new_device - 0x20);
+			
+			console.clearKeyboardString();
+			console.printPrompt();
+			
+			return;
+		}
 		
 		// Function look up
 		for (uint8_t i=0; i<DEVICE_TABLE_SIZE; i++) {
@@ -146,11 +183,10 @@ void eventKeyboardEnter(void) {
 			return;
 		}
 		
-		
 		// Function not found. Check if the filename exists
-		if ((fs.file_open(console.keyboard_string) != 0) & (console.last_string_length > 1)) {
+		if ((fs.file_open(console.keyboard_string) != 0) & (console.last_string_length > 1) & (fs.file_get_attribute(console.keyboard_string, 0) == 'x')) {
 			
-			// File found, check executable attribute and execute
+			// File found with executable attribute
 			
 			// Simple instruction set
 			// 
@@ -194,15 +230,23 @@ void eventKeyboardEnter(void) {
 				fs.file_read_byte(ip, opcode);
 				
 				//
-				// ADD - Add a register to a register
+				// ADD - Add a byte to a register
 				if (opcode == 0x01) {
 					ip++; fs.file_read_byte(ip, operandA);
 					ip++; fs.file_read_byte(ip, operandB);
 					
-					if ((operandA >= 0x00) & (operandA <= 0x31)) {
-						if ((operandB >= 0x00) & (operandB <= 0x31)) 
-							reg[operandA] += reg[operandB];
-					}
+					reg[operandA] += operandB;
+					
+					continue;
+				}
+				
+				//
+				// ADDr - Add a register to a register
+				if (opcode == 0x01) {
+					ip++; fs.file_read_byte(ip, operandA);
+					ip++; fs.file_read_byte(ip, operandB);
+					
+					reg[operandA] += reg[operandB];
 					
 					continue;
 				}
@@ -213,10 +257,7 @@ void eventKeyboardEnter(void) {
 					ip++; fs.file_read_byte(ip, operandA);
 					ip++; fs.file_read_byte(ip, operandB);
 					
-					if ((operandA >= 0x00) & (operandA <= 0x31)) {
-						if ((operandB >= 0x00) & (operandB <= 0x31))
-							reg[operandA] = operandB;
-					}
+					reg[operandA] = operandB;
 					
 					continue;
 				}
@@ -227,10 +268,7 @@ void eventKeyboardEnter(void) {
 					ip++; fs.file_read_byte(ip, operandA);
 					ip++; fs.file_read_byte(ip, operandB);
 					
-					if ((operandA >= 0x00) & (operandA <= 0x31)) {
-						if ((operandB >= 0x00) & (operandB <= 0x31))
-							reg[operandA] = reg[operandB];
-					}
+					reg[operandA] = reg[operandB];
 					
 					continue;
 				}
@@ -250,20 +288,17 @@ void eventKeyboardEnter(void) {
 				}
 				
 				//
-				// JMP - Jump to offset (non-relative)
+				// JMP - Jump to non-relative offset
 				if (opcode == 0xea) {
-					ip++; fs.file_read_byte(ip, operandA);
-					ip++; fs.file_read_byte(ip, operandB);
-					ip++; fs.file_read_byte(ip, operandC);
-					ip++; fs.file_read_byte(ip, operandD);
 					
 					WrappedPointer pointer;
-					pointer.byte[0] = operandA;
-					pointer.byte[1] = operandB;
-					pointer.byte[2] = operandC;
-					pointer.byte[3] = operandD;
 					
-					ip = pointer.address;
+					ip++; fs.file_read_byte(ip, pointer.byte[3]);
+					ip++; fs.file_read_byte(ip, pointer.byte[2]);
+					ip++; fs.file_read_byte(ip, pointer.byte[1]);
+					ip++; fs.file_read_byte(ip, pointer.byte[0]);
+					
+					ip = (file_start + pointer.address) - 1;
 					
 					continue;
 				}
