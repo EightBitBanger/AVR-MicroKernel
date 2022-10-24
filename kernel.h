@@ -11,7 +11,7 @@
 
 //#define __BOOT_SAFEMODE_            // Load only the drivers required to boot
 //#define __BOOT_LIGHTWEIGHT_         // Skip loading the command modules
-//#define __BOOT_NETWORK_SUPPORT_     // Include network support
+#define __BOOT_NETWORK_SUPPORT_     // Include network support
 #define __BOOT_FS_SUPPORT_          // Include file system support
 
 
@@ -155,7 +155,7 @@ void __kernel_initiate(void) {
 	}
 	
 	// Setup the command prompt
-	uint8_t prompt_string[5] = "A>  ";
+	uint8_t prompt_string[5] = "/>  ";
 	uint8_t prompt_length = 0x02;
 	call_extern(console_device, 0x0e, prompt_length);
 	call_extern(console_device, 0x0f, prompt_string[0], prompt_string[1], prompt_string[2], prompt_string[3]);
@@ -177,6 +177,9 @@ void __kernel_initiate(void) {
 		}
 		
 	}
+	
+	// Setup the virtual system
+	intiate_virtual_system();
 	
 	return;
 }

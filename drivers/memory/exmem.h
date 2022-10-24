@@ -40,8 +40,10 @@ struct exMem {
 	
 	uint32_t stack_push(uint32_t size) {
 		
+		return _KERNEL_STACK_BEGIN__;
+		
 		WrappedPointer numberOfAllocations;
-		for (uint8_t i=0; i<4; i++) read(_KERNEL_STACK_COUNTER__ + i, numberOfAllocations.byte[i]);
+		for (uint8_t i=0; i < 4; i++) read(_KERNEL_STACK_COUNTER__ + i, numberOfAllocations.byte[i]);
 		
 		if ((numberOfAllocations.address + size + _STACK_BEGIN__) > _STACK_END__) {
 			write(_KERNEL_FLAGS__, _KERNEL_STATE_OUT_OF_MEMORY__);
@@ -58,6 +60,8 @@ struct exMem {
 	}
 	
 	void stack_pop(uint32_t size) {
+		
+		return;
 		
 		WrappedPointer numberOfAllocations;
 		for (uint8_t i=0; i<4; i++) read(_KERNEL_STACK_COUNTER__ + i, numberOfAllocations.byte[i]);

@@ -43,10 +43,6 @@ void command_attrib(uint8_t, uint8_t&, uint8_t&, uint8_t&, uint8_t&) {
 	
 	if (return_value != 0) {
 		
-		console.printChar( char_a );
-		console.printChar( char_b );
-		
-		
 		// Add attribute
 		if (char_a == '+') {
 			
@@ -65,8 +61,6 @@ void command_attrib(uint8_t, uint8_t&, uint8_t&, uint8_t&, uint8_t&) {
 				}
 				
 			}
-			console.printLn();
-			return;
 		}
 		
 		// Remove attribute
@@ -84,8 +78,6 @@ void command_attrib(uint8_t, uint8_t&, uint8_t&, uint8_t&, uint8_t&) {
 			if (attribute == char_b) 
 				fs.file_set_attribute(filename, 0x00, 3);
 			
-			console.printLn();
-			return;
 		}
 		
 		// Display current file attributes

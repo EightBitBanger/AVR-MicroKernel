@@ -9,7 +9,7 @@
 
 // Normal mode device drivers
 #include "network/network.h"     // Network interface client
-//#include "memory/eeprom.h"     // On-chip EEPROM storage
+//#include "memory/eeprom.h"       // On-chip EEPROM storage
 #include "memory/exmem.h"        // On-board extended memory
 #include "audio/speaker.h"       // External speaker
 #include "gpio/gpio_card.h"      // GPIO card

@@ -1,11 +1,12 @@
 #ifndef _COPY_FUNCTION__
 #define _COPY_FUNCTION__
 
-#define MAX_COPY_BUFFER  2048
+#define MAX_COPY_BUFFER  64
 
-char msg_file_copied[] = "File copied.";
+char msg_file_copied[]    = "File copied.";
 char msg_file_cant_copy[] = "File cannot be copied.";
 char msg_file_too_large[] = "File too large.";
+char msg_file_copied_mem[] = "Copied to memory.";
 
 void command_copy(uint8_t, uint8_t&, uint8_t&, uint8_t&, uint8_t&) {
 	
@@ -109,6 +110,14 @@ void command_copy(uint8_t, uint8_t&, uint8_t&, uint8_t&, uint8_t&) {
 			
 		}
 		
+		
+		// Only copy to memory if no destination name
+		if (file_dest[0] == 0x20) {
+			console.print(msg_file_copied_mem, sizeof(msg_file_copied_mem));
+			console.printLn();
+			return;
+		}
+		
 		// Set file name
 		for (uint8_t a=0; a < 10; a++)
 			call_extern(storageDevice, a, (uint8_t&)file_dest[a]);
@@ -148,7 +157,7 @@ void command_copy(uint8_t, uint8_t&, uint8_t&, uint8_t&, uint8_t&) {
 		console.print(msg_file_copied, sizeof(msg_file_copied));
 		console.printLn();
 		
-		exMem.stack_pop(2048);
+		exMem.stack_pop(MAX_COPY_BUFFER);
 		
 	}
 	

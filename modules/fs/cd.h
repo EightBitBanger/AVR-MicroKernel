@@ -12,6 +12,8 @@ void command_cd(uint8_t, uint8_t&, uint8_t&, uint8_t&, uint8_t&) {
 	if ((param0 >= 'a') & (param0 <= 'e')) 
 		console.promptString[0] = (param0 - 0x20);
 	
+	if (param0 == '/') console.promptString[0] = '/';
+	
 	return;
 }
 

@@ -3,6 +3,7 @@
 
 #ifndef __ARDUINO_BOARD_
 
+#include "virtual_system/vs.h"      // Virtual system
 #include "console/console.h"        // Command console
 //#include "routing/router.h"         // Network packet router
 

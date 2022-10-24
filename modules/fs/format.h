@@ -42,16 +42,27 @@ void command_format(uint8_t, uint8_t&, uint8_t&, uint8_t&, uint8_t&) {
 		return;
 	}
 	
-	if ((param0 < 'a') | (param0 > 'f')) 
-		return;
-	
 	// Format the storage device
 	WrappedPointer pointer;
 	uint8_t byte = 0x20;
 	uint8_t flag = 0x00;
 	uint8_t write_counter = 0;
 	
-	uint32_t base_address = 0x30000 + (0x10000 * (param0 - 'a' + 1));
+	uint32_t base_address=0;
+	
+	// Storage device address
+	if ((param0 > 0x60) & (param0 < 0x7b)) 
+		base_address = 0x30000 + (0x10000 * (param0 - 'a' + 1));
+	
+	// Virtual storage address
+	if (param0 == '/') 
+	    base_address = _VIRTUAL_STORAGE_ADDRESS__;
+	
+	// No device selected
+	if (base_address == 0) {
+		console.print(msg_device_not_found, sizeof(msg_device_not_found));
+		return;
+	}
 	
 	char in_prog_str[] = "Formatting device...";
 	console.print(in_prog_str, sizeof(in_prog_str));

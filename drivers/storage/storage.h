@@ -1,5 +1,5 @@
 //
-// Storage and file system driver
+// File system device driver
 
 #ifndef _DRIVER_MASS_STORAGE__
 #define _DRIVER_MASS_STORAGE__
@@ -12,8 +12,14 @@
 //#define DEVICE_CAPACITY  (SECTOR_SIZE * 512)    // 16,384 bytes
 //#define DEVICE_CAPACITY  (SECTOR_SIZE * 1024)   // 32,768 bytes
 
-char msg_file_count[] = "files";
-char msg_file_not_found[] = "File not found.";
+#define _VIRTUAL_STORAGE_ADDRESS__    0x30000
+#define _VIRTUAL_STORAGE_SIZE__       0x10000
+
+char msg_file_count[]         = "files";
+char msg_file_not_found[]     = "File not found.";
+char msg_device_not_found[]   = "Device not found.";
+
+void eeprom_wait_state(void);
 
 struct MassStorageDeviceDriver {
 	
@@ -51,16 +57,17 @@ struct MassStorageDeviceDriver {
 	
 	void list_directory(uint8_t enable_page_pause) {
 		
-		WrappedPointer pointer;
 		uint8_t page_counter=0;
 		char byte;
 		
 		// Link to the console driver to list the directory
 		Device consoleDevice = (Device)get_func_address(_COMMAND_CONSOLE__, sizeof(_COMMAND_CONSOLE__));
 		
-		
 		// List current device contents
 		uint32_t current_device = 0x30000 + (0x10000 * (console.promptString[0] - 'A' + 1));
+		// Check virtual storage
+		if (console.promptString[0] == '/') current_device = _VIRTUAL_STORAGE_ADDRESS__;
+		
 		uint32_t device_start   = current_device + SECTOR_SIZE;
 		uint32_t device_end     = current_device + DEVICE_CAPACITY;
 		
@@ -85,11 +92,25 @@ struct MassStorageDeviceDriver {
 			for (uint8_t a=0; a < 4; a++) 
 				read(i + a + 11, (char&)filesize.byte_t[a]);
 			
-			call_extern(consoleDevice, 0x03); // Space
+			// Check > thousand bytes
+			if (filesize.address > 1000) {
+				
+				WrappedPointer tsize;
+				tsize.address = (filesize.address / 1000);
+				
+				uint8_t thousand_char = 'k';
+				call_extern(consoleDevice, 0x00, thousand_char); // k Thousand bytes
+				
+				call_extern(consoleDevice, 0x04, tsize.byte_t[0], tsize.byte_t[1], tsize.byte_t[2], tsize.byte_t[3]);
+				call_extern(consoleDevice, 0x03); // Space
+				
+			} else {
+				
+				call_extern(consoleDevice, 0x04, filesize.byte_t[0], filesize.byte_t[1], filesize.byte_t[2], filesize.byte_t[3]);
+				call_extern(consoleDevice, 0x03); // Space
+				
+			}
 			
-			pointer.address = filesize.address;
-			call_extern(consoleDevice, 0x04, pointer.byte_t[0], pointer.byte_t[1], pointer.byte_t[2], pointer.byte_t[3]);
-			call_extern(consoleDevice, 0x03); // Space
 			
 			// Display file attributes
 			uint8_t attribute;
@@ -110,7 +131,9 @@ struct MassStorageDeviceDriver {
 		// Display total file count
 		call_extern(consoleDevice, 0x03); // Space
 		
+		WrappedPointer pointer;
 		pointer.address = file_count;
+		
 		call_extern(consoleDevice, 0x04, pointer.byte_t[0], pointer.byte_t[1], pointer.byte_t[2], pointer.byte_t[3]);
 		
 		call_extern(consoleDevice, 0x03); // Space
@@ -139,6 +162,8 @@ struct MassStorageDeviceDriver {
 		char byte;
 		
 		uint32_t current_device = 0x30000 + (0x10000 * (console.promptString[0] - 'A' + 1));
+		// Check virtual storage
+		if (console.promptString[0] == '/') current_device = _VIRTUAL_STORAGE_ADDRESS__;
 		
 		uint32_t device_start        = current_device;
 		uint32_t device_end          = current_device + DEVICE_CAPACITY;
@@ -180,11 +205,17 @@ struct MassStorageDeviceDriver {
 			// File size is available
 			// Mark first sector as a file header sector
 			byte = 0x55; // File start byte 0x55
-			write(i, byte); _delay_ms(5);
+			write(i, byte); eeprom_wait_state();
+			
+			// Clear file name
+			for (uint8_t a=0; a <= 10; a++) {
+				write(i + a + 1, 0x20); eeprom_wait_state();
+			}
 			
 			// Write file name
 			for (uint8_t a=0; a < 10; a++) {
-				write(i + a + 1, (uint8_t&)file_name[a]); _delay_ms(5);
+				write(i + a + 1, (uint8_t&)file_name[a]); eeprom_wait_state();
+				if (file_name[a] == 0x20) break;
 			}
 			
 			// Write file size
@@ -192,20 +223,20 @@ struct MassStorageDeviceDriver {
 			file_size_ptr.address = file_size;
 			if (file_size_ptr.address == 0) file_size_ptr.address = 1;
 			for (uint8_t a=0; a < 4; a++) {
-				write(i + a + 11, (uint8_t&)file_size_ptr.byte_t[a]); _delay_ms(5);
+				write(i + a + 11, (uint8_t&)file_size_ptr.byte_t[a]); eeprom_wait_state();
 			}
 			
 			// Clear attributes
 			byte = 0x00;
 			for (uint8_t a=0; a < 4; a++) {
-				write(i + 15 + a, (uint8_t&)byte); _delay_ms(5);
+				write(i + 15 + a, (uint8_t&)byte); eeprom_wait_state();
 			}
 			
 			// Default attributes
 			byte = 'r';
-			write(i + 15 + 1, (uint8_t&)byte); _delay_ms(5);
+			write(i + 15 + 1, (uint8_t&)byte); eeprom_wait_state();
 			byte = 'w';
-			write(i + 15 + 2, (uint8_t&)byte); _delay_ms(5);
+			write(i + 15 + 2, (uint8_t&)byte); eeprom_wait_state();
 			
 			uint32_t number_of_sectors = (file_size / SECTOR_SIZE) + 2;
 			if (number_of_sectors <= 2) number_of_sectors = 2;
@@ -218,7 +249,7 @@ struct MassStorageDeviceDriver {
 				if (a == (number_of_sectors-1))
 					byte = 0xaa; // File end sector 0xaa
 				
-				write(i + (a * SECTOR_SIZE), byte); _delay_ms(5);
+				write(i + (a * SECTOR_SIZE), byte); eeprom_wait_state();
 				
 			}
 			
@@ -235,6 +266,9 @@ struct MassStorageDeviceDriver {
 		char byte;
 		
 		uint32_t current_device = 0x30000 + (0x10000 * (console.promptString[0] - 'A' + 1));
+		// Check virtual storage
+		if (console.promptString[0] == '/') current_device = _VIRTUAL_STORAGE_ADDRESS__;
+		
 		uint32_t device_start   = current_device + SECTOR_SIZE;
 		uint32_t device_end     = current_device + DEVICE_CAPACITY;
 		
@@ -270,7 +304,7 @@ struct MassStorageDeviceDriver {
 					byte = 0x00;
 					for (uint32_t a=0; a < number_of_sectors; a++) {
 						write(i + (a * SECTOR_SIZE), byte);
-						_delay_ms(5);
+						eeprom_wait_state();
 					}
 					
 					return 1;
@@ -290,6 +324,9 @@ struct MassStorageDeviceDriver {
 		char byte;
 		
 		uint32_t current_device = 0x30000 + (0x10000 * (console.promptString[0] - 'A' + 1));
+		// Check virtual storage
+		if (console.promptString[0] == '/') current_device = _VIRTUAL_STORAGE_ADDRESS__;
+		
 		uint32_t device_start   = current_device + SECTOR_SIZE;
 		uint32_t device_end     = current_device + DEVICE_CAPACITY;
 		
@@ -298,7 +335,7 @@ struct MassStorageDeviceDriver {
 		if (file_address != 0) {
 			
 			for (uint32_t a=0; a < 10; a++) {
-				write(file_address + a + 1, (uint8_t&)new_file_name[a]); _delay_ms(5);
+				write(file_address + a + 1, (uint8_t&)new_file_name[a]); eeprom_wait_state();
 			}
 			
 		}
@@ -314,6 +351,8 @@ struct MassStorageDeviceDriver {
 		
 		// List current device contents
 		uint32_t current_device = 0x30000 + (0x10000 * (console.promptString[0] - 'A' + 1));
+		// Check virtual storage
+		if (console.promptString[0] == '/') current_device = _VIRTUAL_STORAGE_ADDRESS__;
 		
 		uint32_t device_start   = current_device + SECTOR_SIZE;
 		uint32_t device_end     = current_device + DEVICE_CAPACITY;
@@ -358,6 +397,8 @@ struct MassStorageDeviceDriver {
 		char byte;
 		
 		uint32_t current_device = 0x30000 + (0x10000 * (console.promptString[0] - 'A' + 1));
+		// Check virtual storage
+		if (console.promptString[0] == '/') current_device = _VIRTUAL_STORAGE_ADDRESS__;
 		
 		uint32_t device_start   = current_device + SECTOR_SIZE;
 		uint32_t device_end     = current_device + DEVICE_CAPACITY;
@@ -384,7 +425,7 @@ struct MassStorageDeviceDriver {
 					
 					// Set file attribute
 					if ((position >= 0) & (position < 4))
-						write(i + 15 + position, attribute); _delay_ms(5);
+						write(i + 15 + position, attribute); eeprom_wait_state();
 					
 					return 1;
 				}
@@ -403,6 +444,8 @@ struct MassStorageDeviceDriver {
 		
 		// List current device contents
 		uint32_t current_device = 0x30000 + (0x10000 * (console.promptString[0] - 'A' + 1));
+		// Check virtual storage
+		if (console.promptString[0] == '/') current_device = _VIRTUAL_STORAGE_ADDRESS__;
 		
 		uint32_t device_start   = current_device + SECTOR_SIZE;
 		uint32_t device_end     = current_device + DEVICE_CAPACITY;
@@ -452,6 +495,8 @@ struct MassStorageDeviceDriver {
 		
 		// List current device contents
 		uint32_t current_device = 0x30000 + (0x10000 * (console.promptString[0] - 'A' + 1));
+		// Check virtual storage
+		if (console.promptString[0] == '/') current_device = _VIRTUAL_STORAGE_ADDRESS__;
 		
 		uint32_t device_start   = current_device + SECTOR_SIZE;
 		uint32_t device_end     = current_device + DEVICE_CAPACITY;
@@ -504,7 +549,7 @@ struct MassStorageDeviceDriver {
 		if (file_address == 0) return 0;
 		address += (address / SECTOR_SIZE) - 1;
 		write(file_address + address, byte);
-		if (write_counter >= 31) {write_counter=0; _delay_ms(5);} else {write_counter++;}
+		if (write_counter >= 31) {write_counter=0; eeprom_wait_state();} else {write_counter++;}
 		return 1;
 	}
 	
@@ -518,6 +563,12 @@ struct MassStorageDeviceDriver {
 	
 	
 }static fs;
+
+void eeprom_wait_state(void) {
+	
+	if (console.promptString[0] != '/') _delay_ms(5);
+	
+}
 
 
 void storageDeviceDriverEntryPoint(uint8_t functionCall, uint8_t& paramA, uint8_t& paramB, uint8_t& paramC, uint8_t& paramD) {
@@ -564,6 +615,7 @@ void storageDeviceDriverEntryPoint(uint8_t functionCall, uint8_t& paramA, uint8_
 	
 	return;
 }
+
 
 
 #undef _HARDWARE_WAITSTATE__
