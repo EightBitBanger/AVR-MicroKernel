@@ -24,9 +24,9 @@ void intiate_virtual_system(void) {
 	char filename[] = "config ";
 	fs.file_create(filename, 1);
 	
-	char port_a[] = "porta";
+	char port_a[] = "porta ";
 	fs.file_create(port_a, 1);
-	char port_b[] = "portb";
+	char port_b[] = "portb ";
 	fs.file_create(port_b, 1);
 	
 	// Return the old prompt

@@ -223,6 +223,38 @@ void command_asm(uint8_t, uint8_t&, uint8_t&, uint8_t&, uint8_t&) {
 				
 				file_offset = ((SECTOR_SIZE + 1) + moduleLoaderAsm.page_offset);
 				fs.file_read_byte(file_offset, byte);
+				if (byte == 0x00) console.print("ax", sizeof("  "));
+				if (byte == 0x01) console.print("bx", sizeof("  "));
+				if (byte == 0x02) console.print("cx", sizeof("  "));
+				if (byte == 0x03) console.print("dx", sizeof("  "));
+				console.printSpace();
+				
+				moduleLoaderAsm.page_offset++;
+				
+				console.printLn();
+				asm_counter++;
+			}
+			
+			// ADD  0x02
+			if (byte == 0x02) {
+				
+				console.printHex( moduleLoaderAsm.page_offset - 1 );
+				console.printSpace();
+				
+				console.print("add ", sizeof("add "));
+				
+				file_offset = ((SECTOR_SIZE + 1) + moduleLoaderAsm.page_offset);
+				fs.file_read_byte(file_offset, byte);
+				if (byte == 0x00) console.print("ax", sizeof("  "));
+				if (byte == 0x01) console.print("bx", sizeof("  "));
+				if (byte == 0x02) console.print("cx", sizeof("  "));
+				if (byte == 0x03) console.print("dx", sizeof("  "));
+				console.printSpace();
+				
+				moduleLoaderAsm.page_offset++;
+				
+				file_offset = ((SECTOR_SIZE + 1) + moduleLoaderAsm.page_offset);
+				fs.file_read_byte(file_offset, byte);
 				console.printHex(byte);
 				
 				moduleLoaderAsm.page_offset++;

@@ -230,23 +230,23 @@ void eventKeyboardEnter(void) {
 				fs.file_read_byte(ip, opcode);
 				
 				//
-				// ADD - Add a byte to a register
-				if (opcode == 0x01) {
-					ip++; fs.file_read_byte(ip, operandA);
-					ip++; fs.file_read_byte(ip, operandB);
-					
-					reg[operandA] += operandB;
-					
-					continue;
-				}
-				
-				//
-				// ADDr - Add a register to a register
+				// ADD - Add a register to a register
 				if (opcode == 0x01) {
 					ip++; fs.file_read_byte(ip, operandA);
 					ip++; fs.file_read_byte(ip, operandB);
 					
 					reg[operandA] += reg[operandB];
+					
+					continue;
+				}
+				
+				//
+				// ADD - Add a byte to a register
+				if (opcode == 0x02) {
+					ip++; fs.file_read_byte(ip, operandA);
+					ip++; fs.file_read_byte(ip, operandB);
+					
+					reg[operandA] += operandB;
 					
 					continue;
 				}
@@ -263,7 +263,7 @@ void eventKeyboardEnter(void) {
 				}
 				
 				//
-				// MOVr - Move register into a register
+				// MOV - Move register into a register
 				if (opcode == 0xa1) {
 					ip++; fs.file_read_byte(ip, operandA);
 					ip++; fs.file_read_byte(ip, operandB);
