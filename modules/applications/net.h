@@ -331,7 +331,7 @@ void net_entry_point(uint8_t, uint8_t&, uint8_t&, uint8_t&, uint8_t&) {
 	//
 	// No parameters - help anyone ?
 	if (param0 == 0x20) {
-		char help_line_a[] = "net s b - Send";
+		char help_line_a[] = "net s   - Send string";
 		char help_line_b[] = "net r   - Receive";
 		char help_line_c[] = "net c   - Clear";
 		

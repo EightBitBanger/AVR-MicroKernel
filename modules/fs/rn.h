@@ -18,7 +18,7 @@ void command_rn(uint8_t, uint8_t&, uint8_t&, uint8_t&, uint8_t&) {
 	// Split keyboard string names
 	uint8_t swtch=0;
 	uint8_t i=0;
-	for (uint8_t a=0; a < 32; a++) {
+	for (uint8_t a=0; a < _MAX_KEYBOARD_STRING_LENGTH__ - sizeof("rn"); a++) {
 		
 		char str_char = console.keyboard_string[sizeof("rn") + a];
 		
@@ -28,7 +28,10 @@ void command_rn(uint8_t, uint8_t&, uint8_t&, uint8_t&, uint8_t&) {
 			continue;
 		}
 		
-		if (swtch == 0) {filenameA[i] = str_char; i++;}
+		if (swtch == 0) {
+			filenameA[i] = str_char;
+			i++;
+		}
 		
 		if (swtch == 1) {
 			if (str_char == 0x20) break;
@@ -38,20 +41,45 @@ void command_rn(uint8_t, uint8_t&, uint8_t&, uint8_t&, uint8_t&) {
 		
 	}
 	
-	// Open the file to be renamed
-	for (uint8_t a=0; a < 10; a++)
-		call_extern(storageDevice, a, (uint8_t&)filenameA[a]);
-	uint8_t state;
-	call_extern(storageDevice, 0x0d, state);
 	
-	// Check source file exists
-	if (state == 0) 
-		return;
 	
-	// Rename to the new file name
-	for (uint8_t a=0; a < 10; a++) 
-		call_extern(storageDevice, a, (uint8_t&)filenameB[a]);
-	call_extern(storageDevice, 0x13);
+	uint32_t current_device = 0x30000 + (0x10000 * (console.promptString[0] - 'A' + 1));
+	// Check virtual storage
+	if (console.promptString[0] == '/') current_device = _VIRTUAL_STORAGE_ADDRESS__;
+	
+	uint32_t device_start   = current_device + SECTOR_SIZE;
+	uint32_t device_end     = current_device + DEVICE_CAPACITY;
+	
+	char byte;
+	
+	for (uint32_t i=device_start; i < device_end; i += SECTOR_SIZE) {
+		
+		fs.read(i, byte);
+		
+		if (byte != 0x55) continue; // Only file header sectors
+		
+		// Get current filename
+		char current_file_name[16];
+		for (uint32_t a=0; a < 16; a++)
+			current_file_name[a] = 0x20;
+		
+		for (uint32_t a=0; a < 10; a++)
+			fs.read(i + a + 1, current_file_name[a]);
+		
+		// Compare filenames
+		if (strcmp(current_file_name, filenameA, 10) == 1) {
+			
+			// Write new file name
+			for (uint8_t a=0; a < 10; a++) 
+				fs.write(i + a + 1, (uint8_t&)filenameB[a]); eeprom_wait_state();
+			
+			return;
+		}
+		
+	}
+	
+	console.print(msg_file_not_found, sizeof(msg_file_not_found));
+	console.printLn();
 	
 	return;
 }

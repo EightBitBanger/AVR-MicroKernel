@@ -1,16 +1,14 @@
 #ifndef _ATTRIBUTE_FUNCTION__
 #define _ATTRIBUTE_FUNCTION__
 
-void command_attrib(uint8_t, uint8_t&, uint8_t&, uint8_t&, uint8_t&);
-
 void command_attrib(uint8_t, uint8_t&, uint8_t&, uint8_t&, uint8_t&) {
 	
 	Device storageDevice;
 	storageDevice = (Device)get_func_address(_MASS_STORAGE__, sizeof(_MASS_STORAGE__));
 	if (storageDevice == 0) return;
 	
-	char filename[10];
-	for (uint8_t i=0; i < 10; i++)
+	char filename[32];
+	for (uint8_t i=0; i < 32; i++)
 		filename[i] = 0x20;
 	
 	// Get file name from keyboard string
@@ -18,6 +16,7 @@ void command_attrib(uint8_t, uint8_t&, uint8_t&, uint8_t&, uint8_t&) {
 	for (uint8_t a=0; a < 10; a++) {
 		
 		filename[a] = console.keyboard_string[sizeof("attr") + a];
+		
 		if (filename[a] == 0x20) {
 			name_len = (a + 1);
 			break;
@@ -30,71 +29,80 @@ void command_attrib(uint8_t, uint8_t&, uint8_t&, uint8_t&, uint8_t&) {
 	uint8_t char_b = console.keyboard_string[sizeof("attr") + name_len + 1];
 	
 	
-	// Open file
-	for (uint8_t a=0; a < 10; a++)
-		call_extern(storageDevice, a, (uint8_t&)filename[a]);
+	uint32_t current_device = 0x30000 + (0x10000 * (console.promptString[0] - 'A' + 1));
+	// Check virtual storage
+	if (console.promptString[0] == '/') current_device = _VIRTUAL_STORAGE_ADDRESS__;
 	
-	uint8_t return_value;
-	call_extern(storageDevice, 0x0d, return_value);
+	uint32_t device_start   = current_device + SECTOR_SIZE;
+	uint32_t device_end     = current_device + DEVICE_CAPACITY;
 	
-	uint8_t blank_byte = 0x20;
-	for (uint8_t a=0; a < 10; a++)
-		call_extern(storageDevice, a, blank_byte);
+	uint8_t attribute[4];
+	char byte;
 	
-	if (return_value != 0) {
+	for (uint32_t i=device_start; i < device_end; i += SECTOR_SIZE) {
 		
-		// Add attribute
-		if (char_a == '+') {
+		fs.read(i, byte);
+		
+		if (byte != 0x55) continue; // Only file header sectors
+		
+		// Get current filename
+		char current_file_name[16];
+		for (uint32_t a=0; a < 16; a++)
+			current_file_name[a] = 0x20;
+		
+		for (uint32_t a=0; a < 10; a++)
+			fs.read(i + a + 1, current_file_name[a]);
+		
+		// Compare filenames
+		if (strcmp(current_file_name, filename, 10) == 1) {
 			
-			// Execute | read | write attributes
-			if (char_b == 'x') {fs.file_set_attribute(filename, 'x', 0);}
-			if (char_b == 'r') {fs.file_set_attribute(filename, 'r', 1);}
-			if (char_b == 'w') {fs.file_set_attribute(filename, 'w', 2);}
+			// Read current file attributes
+			for (uint8_t a=0; a < 4; a++) {
+				fs.read(i + a + 15, (char&)attribute[a]);
+				if (attribute[a] < 0x61) attribute[a] = 0x20;
+			}
 			
-			// Extended attribute
-			if ((char_b != 'x') & (char_b != 'r') & (char_b != 'w')) {
-				uint8_t attribute;
-				attribute = fs.file_get_attribute(filename, 3);
+			// Add attribute
+			if (char_a == '+') {
 				
-				if (attribute == 0x00) {
-					fs.file_set_attribute(filename, char_b, 3);
+				// Execute | read | write attributes
+				if (char_b == 'x') {attribute[0] = char_b;}
+				if (char_b == 'r') {attribute[1] = char_b;}
+				if (char_b == 'w') {attribute[2] = char_b;}
+				
+				if ((char_b != 'x') & (char_b != 'r') & (char_b != 'w')) {
+					attribute[3] = char_b;
+				}
+				
+				for (uint8_t a=0; a < 4; a++) {
+					fs.write(i + a + 15, (char&)attribute[a]); eeprom_wait_state();
 				}
 				
 			}
-		}
-		
-		// Remove attribute
-		if (char_a == '-') {
 			
-			// Execute | read | write attributes
-			if (char_b == 'x') {fs.file_set_attribute(filename, 0x00, 0);}
-			if (char_b == 'r') {fs.file_set_attribute(filename, 0x00, 1);}
-			if (char_b == 'w') {fs.file_set_attribute(filename, 0x00, 2);}
-			
-			// Extended attribute
-			uint8_t attribute;
-			attribute = fs.file_get_attribute(filename, 3);
-			
-			if (attribute == char_b) 
-				fs.file_set_attribute(filename, 0x00, 3);
+			// Remove attribute
+			if (char_a == '-') {
+				
+				// Execute | read | write attributes
+				if (char_b == 'x') {attribute[0] = 0x20;}
+				if (char_b == 'r') {attribute[1] = 0x20;}
+				if (char_b == 'w') {attribute[2] = 0x20;}
+				
+				for (uint8_t a=0; a < 4; a++) {
+					fs.write(i + a + 15, (char&)attribute[a]); eeprom_wait_state();
+				}
+				
+			}
 			
 		}
 		
-		// Display current file attributes
-		uint8_t attributes[4];
-		
-		for (uint8_t i=0; i<4; i++) {
-			attributes[i] = fs.file_get_attribute(filename, i);
-			if ((attributes[i] > 0x60) & (attributes[i] < 0x7b)) console.printChar( attributes[i] );
-		}
-		
-		console.printLn();
-		
-	} else {
-		console.print(msg_file_not_found, sizeof(msg_file_not_found));
-		console.printLn();
 	}
 	
+	// Display current attributes
+	for (uint8_t a=0; a < 4; a++)
+		console.printChar( attribute[a] );
+	
+	console.printLn();
 	
 	return;
 }

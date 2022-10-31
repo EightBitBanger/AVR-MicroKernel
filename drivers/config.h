@@ -2,22 +2,25 @@
 // Device driver configuration
 
 // Safe mode device drivers
-#include "display/console.h"     // Command console library
-#include "display/display.h"     // 20x4 display driver
-#include "keyboard/PS2.h"        // On-board PS2 keyboard driver
-#include "storage/storage.h"     // Basic file system and storage
+#include "display/console.h"       // Command console library
+#include "display/display.h"       // 20x4 display driver
+#include "keyboard/PS2.h"          // On-board PS2 keyboard driver
+#include "storage/storage.h"       // File system and storage
 
 // Normal mode device drivers
-#include "network/network.h"     // Network interface client
+#include "network/network.h"       // Network interface client
 //#include "memory/eeprom.h"       // On-chip EEPROM storage
-#include "memory/exmem.h"        // On-board extended memory
-#include "audio/speaker.h"       // External speaker
-#include "gpio/gpio_card.h"      // GPIO card
+#include "memory/exmem.h"          // On-board extended memory
+#include "audio/speaker.h"         // External speaker
+#include "gpio/gpio_card.h"        // GPIO card
+
+// Emulation
+#include "emulation/emulation.h"   // Software emulation
 
 #ifdef __ARDUINO_UNO_BOARD_
 
 // Arduino boards
-#include "arduino/uno.h"         // Arduino UNO device driver
+#include "arduino/uno.h"           // Arduino UNO device driver
 
 #endif
 
@@ -50,8 +53,8 @@ struct __DriverLoader__ {
 #endif
 		
 		load_device(_EXTENDED_MEMORY__, sizeof(_EXTENDED_MEMORY__), (Driver)ExtendedMemoryDeviceDriverEntryPoint, DEVICE_TYPE_DRIVER);
-		load_device(_INTERNAL_SPEAKER__, sizeof(_INTERNAL_SPEAKER__), (Driver)SpeakerDriverDeviceDriverEntryPoint, DEVICE_TYPE_DRIVER);
-		load_device(_GPIO_INTERFACE__, sizeof(_GPIO_INTERFACE__), (Driver)GPIOCardDeviceDriverEntryPoint, DEVICE_TYPE_DRIVER);
+		//load_device(_INTERNAL_SPEAKER__, sizeof(_INTERNAL_SPEAKER__), (Driver)SpeakerDriverDeviceDriverEntryPoint, DEVICE_TYPE_DRIVER);
+		//load_device(_GPIO_INTERFACE__, sizeof(_GPIO_INTERFACE__), (Driver)GPIOCardDeviceDriverEntryPoint, DEVICE_TYPE_DRIVER);
 		
 #endif
 #endif

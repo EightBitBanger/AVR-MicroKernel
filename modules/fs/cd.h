@@ -9,10 +9,17 @@ void command_cd(uint8_t, uint8_t&, uint8_t&, uint8_t&, uint8_t&) {
 	
 	uint8_t param0 = console.keyboard_string[sizeof("cd")];
 	
-	if ((param0 >= 'a') & (param0 <= 'e')) 
-		console.promptString[0] = (param0 - 0x20);
+	// Lower case
+	char string[1];
+	string[0] = console.keyboard_string[sizeof("cd")];
+	string_lower(string, 1);
+	param0 = string[0];
 	
-	if (param0 == '/') console.promptString[0] = '/';
+	if ((string[0] >= 'a') & (string[0] < 'a' + _HARDWARE_SLOT_COUNT__)) 
+		console.promptString[0] = (string[0] - 0x20);
+	
+	if (string[0] == '/') console.promptString[0] = '/';
+	if (string[0] == '-') console.promptString[0] = '-';
 	
 	return;
 }

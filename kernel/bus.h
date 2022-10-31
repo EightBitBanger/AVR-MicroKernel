@@ -141,21 +141,24 @@ void bus_read_byte(Bus& bus, uint32_t address, char& buffer);
 
 
 
-// Initiate and zero the hardware level IO
+// Initiate and zero the control lines
 void bus_zero(void) {
 	_CONTROL_DIR__=0xff;
 	_CONTROL_OUT__=0xff;
 }
 
+// Initiate and zero the address bus
 void address_zero(void) {
+	
 	_BUS_LOWER_DIR__=0xff;
 	_BUS_LOWER_OUT__=0xff;
 	
 	_BUS_MIDDLE_DIR__=0xff;
 	_BUS_MIDDLE_OUT__=0xff;
 	
-	_BUS_UPPER_DIR__=0xff;
-	_BUS_UPPER_OUT__=0xff;
+	_BUS_UPPER_DIR__=0x3f;
+	_BUS_UPPER_OUT__=0x3f;
+	
 }
 
 // Run a read cycle over the bus interface

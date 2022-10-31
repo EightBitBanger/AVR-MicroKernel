@@ -7,7 +7,7 @@
 #include "fs/rn.h"              // Rename a file
 #include "fs/cd.h"              // Change device
 #include "fs/copy.h"            // Copy a file to new file
-#include "fs/format.h"          // Device format
+#include "fs/fdisk.h"           // Device format
 #include "fs/attr.h"            // File attributes
 
 #include "system/task.h"        // Task management
@@ -38,24 +38,24 @@ struct __ModuleLoader__ {
 		load_device("cd", sizeof("cd"), (Module)command_cd, DEVICE_TYPE_MODULE);
 		load_device("copy", sizeof("copy"), (Module)command_copy, DEVICE_TYPE_MODULE);
 		load_device("asm", sizeof("asm"), (Module)command_asm, DEVICE_TYPE_MODULE);
-		load_device("format", sizeof("format"), (Module)command_format, DEVICE_TYPE_MODULE);
+		load_device("fdisk", sizeof("fdisk"), (Module)command_fdisk, DEVICE_TYPE_MODULE);
 		load_device("attr", sizeof("attr"), (Module)command_attrib, DEVICE_TYPE_MODULE);
 		
 #endif
 		
 		load_device("cls", sizeof("cls"), (Module)command_clear_screen, DEVICE_TYPE_MODULE);
-		load_device("device", sizeof("device"), (Module)command_drv, DEVICE_TYPE_MODULE);
+		//load_device("dev", sizeof("dev"), (Module)command_device, DEVICE_TYPE_MODULE);
 		load_device("list", sizeof("list"), (Module)command_list, DEVICE_TYPE_MODULE);
-		load_device("mem",  sizeof("mem"), (Module)command_memory, DEVICE_TYPE_MODULE);
-		load_device("port", sizeof("port"), (Module)__port_control_, DEVICE_TYPE_MODULE);
-		load_device("task", sizeof("task"), (Module)command_task, DEVICE_TYPE_MODULE);
+		//load_device("mem",  sizeof("mem"), (Module)command_memory, DEVICE_TYPE_MODULE);
+		//load_device("port", sizeof("port"), (Module)__port_control_, DEVICE_TYPE_MODULE);
+		//load_device("task", sizeof("task"), (Module)command_task, DEVICE_TYPE_MODULE);
 		
 		
 #ifdef __BOOT_NETWORK_SUPPORT_
 		load_device("net",  sizeof("net"), (Module)net_entry_point, DEVICE_TYPE_MODULE);
 #endif
 		
-		load_device("app",  sizeof("app"), (Module)application_entry_point, DEVICE_TYPE_MODULE);
+		//load_device("app",  sizeof("app"), (Module)application_entry_point, DEVICE_TYPE_MODULE);
 		
 		
 #endif

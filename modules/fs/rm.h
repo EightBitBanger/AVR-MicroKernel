@@ -1,32 +1,25 @@
 #ifndef _RM_FUNCTION__
 #define _RM_FUNCTION__
 
-char msg_file_deleted[] = "File deleted.";
-
 void command_rm(uint8_t, uint8_t&, uint8_t&, uint8_t&, uint8_t&) {
 	
 	Device storageDevice;
 	storageDevice = (Device)get_func_address(_MASS_STORAGE__, sizeof(_MASS_STORAGE__));
 	if (storageDevice == 0) return;
 	
-	for (uint8_t a=0; a < 10; a++) 
-		call_extern(storageDevice, a, (uint8_t&)console.keyboard_string[sizeof("rm") + a]);
+	char filename[32];
 	
-	// Delete the file
-	uint8_t return_byte;
-	call_extern(storageDevice, 0x0b, return_byte);
+	for (uint8_t i=0; i < 32; i++) 
+		filename[i] = 0x20;
 	
-	if (return_byte == 0) {
-		console.print(msg_file_not_found, sizeof(msg_file_not_found));
-		console.printLn();
-	} else {
-		console.print(msg_file_deleted, sizeof(msg_file_deleted));
-		console.printLn();
+	for (uint8_t a=0; a < _MAX_KEYBOARD_STRING_LENGTH__ - sizeof("rm"); a++) {
+		
+		filename[a] = console.keyboard_string[sizeof("rm") + a];
 	}
 	
-	uint8_t char_space=0x20;
-	for (uint8_t a=0; a < 10; a++)
-		call_extern(storageDevice, a, char_space);
+	if (fs.file_delete(filename) == 0) {
+		console.print(msg_file_not_found, sizeof(msg_file_not_found));
+	}
 	
 	return;
 }

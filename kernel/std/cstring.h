@@ -29,7 +29,14 @@ uint8_t strsub(char* string, unsigned int string_size, char sub_character) {
 
 
 uint8_t strcmp(char* string_a, char* string_b, uint8_t string_length) {
-	for (uint8_t i=0; i < string_length-1; i++) {if (string_a[i] != string_b[i]) return 0;}
+	
+	for (uint8_t i=0; i < string_length-1; i++) {
+		
+		if (string_a[i] != string_b[i]) 
+			return 0;
+		
+	}
+	
 	return 1;
 }
 
@@ -107,6 +114,32 @@ uint8_t string_get_hex_char(char* string) {
 	
 	return value_a + (value_b * 16);
 }
+
+
+void string_lower(char* string, uint8_t string_length) {
+	
+	for (uint8_t i=0; i <= string_length; i++) {
+		
+		if ((string[i] > 0x40) & (string[i] < 0x5b))
+			string[i] = (string[i] + 0x20);
+		
+	}
+	
+	
+}
+
+void string_upper(char* string, uint8_t string_length) {
+	
+	for (uint8_t i=0; i <= string_length; i++) {
+		
+		if ((string[i] > 0x60) & (string[i] < 0x7b))
+		string[i] = (string[i] - 0x20);
+		
+	}
+	
+	
+}
+
 
 #endif
 

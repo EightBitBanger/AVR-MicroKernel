@@ -9,7 +9,7 @@ int main(void) {
 	address_zero();
 	bus_zero();
 	
-	// Allow the system time to stabilize
+	// Allow the system some time to stabilize
 	_delay_ms(500);
 	
 	// Initiate device drivers

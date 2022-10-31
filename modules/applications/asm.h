@@ -463,7 +463,7 @@ void command_asm(uint8_t, uint8_t&, uint8_t&, uint8_t&, uint8_t&) {
 		call_extern(storageDevice, a, blank_byte);
 	
 	if (return_value != 0) {
-		console.print("File opened.", sizeof("File opened."));
+		console.print("Loaded.", sizeof("Loaded."));
 		console.printLn();
 	} else {
 		console.print(msg_file_not_found, sizeof(msg_file_not_found));

@@ -6,16 +6,62 @@ char msg_device_disabled[]     = "Device disabled";
 char error_driver_error[]      = "Device driver error";
 char error_device_not_found[]  = "Device not found";
 
-void command_drv(uint8_t, uint8_t&, uint8_t&, uint8_t&, uint8_t&) {
+void command_device(uint8_t, uint8_t&, uint8_t&, uint8_t&, uint8_t&) {
 	
 	Device consoleDriver;
 	consoleDriver = (Device)get_func_address(_COMMAND_CONSOLE__, sizeof(_COMMAND_CONSOLE__));
 	if (consoleDriver == 0) return;
 	
-	uint8_t param0  = console.keyboard_string[sizeof("device")];
-	uint8_t param1  = console.keyboard_string[sizeof("device") + 2];
+	uint8_t param0  = console.keyboard_string[sizeof("dev")];
+	uint8_t param1  = console.keyboard_string[sizeof("dev") + 1];
+	uint8_t param2  = console.keyboard_string[sizeof("dev") + 3];
 	
 	uint8_t page_counter=0;
+	
+	if (param0 == '-') {
+		
+		if (param1 == 'l') {
+			
+			for (uint8_t i=0; i<DEVICE_TABLE_SIZE; i++) {
+				
+				if (device_table.name[i][0] == 0x20) continue;
+				
+				// Print index
+				console.printInt(i);
+				console.printSpace();
+				
+				// Print name
+				for (uint8_t a=0; a < DEVICE_NAME_LENGTH_MAX; a++) {
+					uint8_t nameChar = (uint8_t)device_table.name[i][a];
+					if (nameChar == 0x20) break;
+					call_extern(consoleDriver, 0x00, nameChar); // Write char
+				}
+				
+				page_counter++;
+				call_extern(consoleDriver, 0x01); // New line
+				
+				// Page pause
+				if (page_counter > 2) {page_counter = 0;
+					call_extern(consoleDriver, 0x0d);
+				}
+				
+			}
+		}
+		
+	}
+	
+	return;
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
 	
 	// List devices
 	if (param0 == 'l') {

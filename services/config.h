@@ -3,9 +3,9 @@
 
 #ifndef __ARDUINO_BOARD_
 
-#include "virtual_system/vs.h"      // Virtual system
-#include "console/console.h"        // Command console
-//#include "routing/router.h"         // Network packet router
+#include "virtual_file_system/vfs.h"      // Virtual system abstraction
+#include "console/console.h"              // Command console interface
+//#include "routing/router.h"               // Network packet router
 
 struct ServiceLoader {
 	

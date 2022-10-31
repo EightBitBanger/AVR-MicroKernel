@@ -15,9 +15,11 @@
 #define _VIRTUAL_STORAGE_ADDRESS__    0x30000
 #define _VIRTUAL_STORAGE_SIZE__       0x10000
 
-char msg_file_count[]         = "files";
-char msg_file_not_found[]     = "File not found.";
-char msg_device_not_found[]   = "Device not found.";
+char msg_file_count[]            = "files";
+char msg_file_not_found[]        = "File not found.";
+char msg_device_not_found[]      = "Device not found.";
+char msg_file_already_exists[]   = "File already exists.";
+
 
 void eeprom_wait_state(void);
 
@@ -87,30 +89,43 @@ struct MassStorageDeviceDriver {
 				call_extern(consoleDevice, 0x00, (uint8_t&)byte);
 			}
 			
+			call_extern(consoleDevice, 0x03); // Space
+			
 			// Display file size
 			WrappedPointer filesize;
 			for (uint8_t a=0; a < 4; a++) 
 				read(i + a + 11, (char&)filesize.byte_t[a]);
 			
+			// Scale the file size
+			filesize.address = filesize.address * SECTOR_SIZE;
+			
 			// Check > thousand bytes
-			if (filesize.address > 1000) {
+			if (filesize.address > 999) {
+				
+				if (filesize.address < 9999) 
+					call_extern(consoleDevice, 0x03); // Space
 				
 				WrappedPointer tsize;
 				tsize.address = (filesize.address / 1000);
 				
-				uint8_t thousand_char = 'k';
-				call_extern(consoleDevice, 0x00, thousand_char); // k Thousand bytes
-				
 				call_extern(consoleDevice, 0x04, tsize.byte_t[0], tsize.byte_t[1], tsize.byte_t[2], tsize.byte_t[3]);
+				
+				// k Thousand bytes
+				uint8_t thousand_char = 'k';
+				call_extern(consoleDevice, 0x00, thousand_char);
 				call_extern(consoleDevice, 0x03); // Space
 				
 			} else {
+				
+				if (filesize.address < 100)
+					call_extern(consoleDevice, 0x03); // Space
+				if (filesize.address < 10)
+					call_extern(consoleDevice, 0x03); // Space
 				
 				call_extern(consoleDevice, 0x04, filesize.byte_t[0], filesize.byte_t[1], filesize.byte_t[2], filesize.byte_t[3]);
 				call_extern(consoleDevice, 0x03); // Space
 				
 			}
-			
 			
 			// Display file attributes
 			uint8_t attribute;
@@ -128,6 +143,7 @@ struct MassStorageDeviceDriver {
 			
 		}
 		
+		/*
 		// Display total file count
 		call_extern(consoleDevice, 0x03); // Space
 		
@@ -149,8 +165,10 @@ struct MassStorageDeviceDriver {
 		}
 		call_extern(consoleDevice, 0x01); // New line
 		
+		
 		// Page pause
 		if (enable_page_pause == 1) if (page_counter > 2) {page_counter = 0; call_extern(consoleDevice, 0x0d);}
+		*/
 		
 		return;
 	}
@@ -168,8 +186,6 @@ struct MassStorageDeviceDriver {
 		uint32_t device_start        = current_device;
 		uint32_t device_end          = current_device + DEVICE_CAPACITY;
 		
-		uint32_t total_sectors       = device_end / SECTOR_SIZE;
-		uint32_t file_sector_size    = file_size;
 		uint32_t count_free_sectors  = 0;
 		
 		for (uint32_t i=device_start; i < device_end; i += SECTOR_SIZE) {
@@ -181,11 +197,11 @@ struct MassStorageDeviceDriver {
 			// Check the following sectors for required free space
 			for (uint32_t a=i; a < device_end; a+=SECTOR_SIZE) {
 				
-				read(i, byte);
+				read(a, byte);
 				
 				if (byte == 0x00) {
 					
-					if (count_free_sectors == file_sector_size) 
+					if (count_free_sectors == file_size) 
 						break;
 					
 					count_free_sectors++;
@@ -198,7 +214,7 @@ struct MassStorageDeviceDriver {
 			}
 			
 			// File cannot fit into this empty space, continue seeking free space
-			if (file_sector_size != count_free_sectors) 
+			if (file_size != count_free_sectors) 
 				continue;
 			
 			
@@ -262,9 +278,6 @@ struct MassStorageDeviceDriver {
 	
 	uint8_t file_delete(char* file_name) {
 		
-		WrappedPointer pointer;
-		char byte;
-		
 		uint32_t current_device = 0x30000 + (0x10000 * (console.promptString[0] - 'A' + 1));
 		// Check virtual storage
 		if (console.promptString[0] == '/') current_device = _VIRTUAL_STORAGE_ADDRESS__;
@@ -272,39 +285,49 @@ struct MassStorageDeviceDriver {
 		uint32_t device_start   = current_device + SECTOR_SIZE;
 		uint32_t device_end     = current_device + DEVICE_CAPACITY;
 		
-		uint8_t page_counter=0;
-		
 		for (uint32_t i=device_start; i < device_end; i += SECTOR_SIZE) {
 			
+			char byte;
 			read(i, byte);
 			
 			// Check sector header byte
-			if (byte != 0x00) {
+			if (byte == 0x55) {
 				
-				if (byte == 0xff) continue; // Ignore file data sectors
-				if (byte == 0xaa) continue; // Ignore file end sectors
+				char current_file_name[10];
+				for (uint8_t a=0; a < 10; a++)
+					current_file_name[a] = 0x20;
 				
 				// Get files name
-				char current_file_name[11] = "          ";
-				for (uint32_t a=1; a < 10; a++)
-				read(i + a, (char&)current_file_name[a-1]);
+				for (uint32_t a=0; a < 10; a++) 
+					read(i + a + 1, (char&)current_file_name[a]);
 				
 				// Compare filenames
 				if (strcmp(current_file_name, file_name, 10) == 1) {
 					
-					// Get file size
-					WrappedPointer filesize;
-					for (uint32_t a=0; a < 4; a++)
-					read(i + a + 11, (char&)filesize.byte_t[a]);
-					
-					if (filesize.address < 32) filesize.address = 32;
-					uint32_t number_of_sectors = (filesize.address / SECTOR_SIZE) + 1;
-					
 					// Zero the file sectors
-					byte = 0x00;
-					for (uint32_t a=0; a < number_of_sectors; a++) {
-						write(i + (a * SECTOR_SIZE), byte);
-						eeprom_wait_state();
+					for (uint32_t a=0; a < 100000; a++) {
+						
+						read(i + (a * SECTOR_SIZE), byte);
+						
+						if (byte == 0x55) {
+							byte = 0x00;
+							write(i + (a * SECTOR_SIZE), byte); eeprom_wait_state();
+							continue;
+						}
+						
+						if (byte == 0xff) {
+							byte = 0x00;
+							write(i + (a * SECTOR_SIZE), byte); eeprom_wait_state();
+							continue;
+						}
+						
+						if (byte == 0xaa) {
+							byte = 0x00;
+							write(i + (a * SECTOR_SIZE), byte); eeprom_wait_state();
+							break;
+						}
+						
+						break;
 					}
 					
 					return 1;
@@ -318,10 +341,7 @@ struct MassStorageDeviceDriver {
 	}
 	
 	
-	uint8_t file_rename(char* new_file_name) {
-		
-		WrappedPointer pointer;
-		char byte;
+	uint8_t file_rename(char* filename, char* new_file_name) {
 		
 		uint32_t current_device = 0x30000 + (0x10000 * (console.promptString[0] - 'A' + 1));
 		// Check virtual storage
@@ -330,12 +350,34 @@ struct MassStorageDeviceDriver {
 		uint32_t device_start   = current_device + SECTOR_SIZE;
 		uint32_t device_end     = current_device + DEVICE_CAPACITY;
 		
-		uint8_t page_counter=0;
+		uint8_t attribute[4];
+		char byte;
 		
-		if (file_address != 0) {
+		for (uint32_t i=device_start; i < device_end; i += SECTOR_SIZE) {
 			
-			for (uint32_t a=0; a < 10; a++) {
-				write(file_address + a + 1, (uint8_t&)new_file_name[a]); eeprom_wait_state();
+			read(i, byte);
+			
+			if (byte != 0x55) continue; // Only file header sectors
+			
+			// Get current filename
+			char current_file_name[16];
+			for (uint32_t a=0; a < 16; a++)
+				current_file_name[a] = 0x20;
+			
+			for (uint32_t a=0; a < 10; a++)
+				read(i + a + 1, current_file_name[a]);
+			
+			// Compare filenames
+			if (strcmp(current_file_name, filename, 10) == 1) {
+				
+				// Write new file name
+				for (uint8_t a=0; a < 10; a++) {
+					write(i + a + 1, (uint8_t&)new_file_name[a]); eeprom_wait_state();
+					
+					if (new_file_name[a] == 0x20) break;
+				}
+				
+				return 1;
 			}
 			
 		}
@@ -344,12 +386,10 @@ struct MassStorageDeviceDriver {
 	}
 	
 	
-	uint32_t file_get_size(char* file_name) {
+	
+	
+	uint8_t file_open(char* filename) {
 		
-		WrappedPointer pointer;
-		char byte;
-		
-		// List current device contents
 		uint32_t current_device = 0x30000 + (0x10000 * (console.promptString[0] - 'A' + 1));
 		// Check virtual storage
 		if (console.promptString[0] == '/') current_device = _VIRTUAL_STORAGE_ADDRESS__;
@@ -357,32 +397,82 @@ struct MassStorageDeviceDriver {
 		uint32_t device_start   = current_device + SECTOR_SIZE;
 		uint32_t device_end     = current_device + DEVICE_CAPACITY;
 		
+		char byte;
+		
 		for (uint32_t i=device_start; i < device_end; i += SECTOR_SIZE) {
 			
 			read(i, byte);
 			
-			// Check sector header byte
-			if (byte != 0x00) {
+			if (byte != 0x55) continue; // Only file header sectors
+			
+			// Get current filename
+			char current_file_name[16];
+			for (uint32_t a=0; a < 16; a++)
+				current_file_name[a] = 0x20;
+			
+			for (uint32_t a=0; a < 10; a++)
+				read(i + a + 1, current_file_name[a]);
+			
+			// Compare filenames
+			if (strcmp(current_file_name, filename, 10) == 1) {
 				
-				if (byte == 0xff) continue; // Ignore file data sectors
-				if (byte == 0xaa) continue; // Ignore file end sectors
-				
-				// Get file name
-				char current_file_name[11] = "          ";
-				for (uint32_t a=1; a < 10; a++)
-				read(i + a, (char&)current_file_name[a-1]);
-				
-				// Compare filenames
-				if (strcmp(current_file_name, file_name, 10) == 1) {
-					
-					// Get file size
-					WrappedPointer filesize;
-					for (uint32_t a=0; a < 4; a++)
+				// Get file size
+				WrappedPointer filesize;
+				for (uint32_t a=0; a < 4; a++)
 					read(i + a + 11, (char&)filesize.byte_t[a]);
-					
-					return filesize.address;
-				}
 				
+				// Open the file
+				file_address = i;
+				file_size    = filesize.address * SECTOR_SIZE;
+				
+				return 1;
+			}
+			
+		}
+		return 0;
+	}
+	
+	
+	uint8_t file_close(void) {
+		file_address=0;
+	}
+	
+	
+	uint32_t file_get_size(char* filename) {
+		
+		uint32_t current_device = 0x30000 + (0x10000 * (console.promptString[0] - 'A' + 1));
+		// Check virtual storage
+		if (console.promptString[0] == '/') current_device = _VIRTUAL_STORAGE_ADDRESS__;
+		
+		uint32_t device_start   = current_device + SECTOR_SIZE;
+		uint32_t device_end     = current_device + DEVICE_CAPACITY;
+		
+		uint8_t attribute[4];
+		char byte;
+		
+		for (uint32_t i=device_start; i < device_end; i += SECTOR_SIZE) {
+			
+			read(i, byte);
+			
+			if (byte != 0x55) continue; // Only file header sectors
+			
+			// Get current filename
+			char current_file_name[16];
+			for (uint32_t a=0; a < 16; a++)
+				current_file_name[a] = 0x20;
+			
+			for (uint32_t a=0; a < 10; a++)
+				read(i + a + 1, current_file_name[a]);
+			
+			// Compare filenames
+			if (strcmp(current_file_name, filename, 10) == 1) {
+				
+				// Get file size
+				WrappedPointer filesize;
+				for (uint32_t a=0; a < 4; a++)
+					read(i + a + 11, (char&)filesize.byte_t[a]);
+				
+				return (filesize.address * SECTOR_SIZE);
 			}
 			
 		}
@@ -393,9 +483,7 @@ struct MassStorageDeviceDriver {
 	
 	uint8_t file_set_attribute(char* filename, uint8_t attribute, uint8_t position=0) {
 		
-		WrappedPointer pointer;
-		char byte;
-		
+		// List current device contents
 		uint32_t current_device = 0x30000 + (0x10000 * (console.promptString[0] - 'A' + 1));
 		// Check virtual storage
 		if (console.promptString[0] == '/') current_device = _VIRTUAL_STORAGE_ADDRESS__;
@@ -403,45 +491,48 @@ struct MassStorageDeviceDriver {
 		uint32_t device_start   = current_device + SECTOR_SIZE;
 		uint32_t device_end     = current_device + DEVICE_CAPACITY;
 		
-		uint8_t page_counter=0;
+		uint8_t attributes[4];
+		char byte;
 		
 		for (uint32_t i=device_start; i < device_end; i += SECTOR_SIZE) {
 			
 			read(i, byte);
 			
-			// Check sector header byte
-			if (byte != 0x00) {
+			if (byte != 0x55) continue; // Only file header sectors
+			
+			// Get current filename
+			char current_file_name[16];
+			for (uint32_t a=0; a < 16; a++)
+			current_file_name[a] = 0x20;
+			
+			for (uint32_t a=0; a < 10; a++)
+			read(i + a + 1, current_file_name[a]);
+			
+			// Compare filenames
+			if (strcmp(current_file_name, filename, 10) == 1) {
 				
-				if (byte == 0xff) continue; // Ignore file data sectors
-				if (byte == 0xaa) continue; // Ignore file end sectors
+				// Read current file attributes
+				for (uint8_t a=0; a < 4; a++) 
+					read(i + a + 15, (char&)attributes[a]);
 				
-				// Get files name
-				char current_file_name[11] = "          ";
-				for (uint32_t a=1; a < 10; a++)
-					read(i + a, (char&)current_file_name[a-1]);
+				attributes[position] = attribute;
 				
-				// Compare filenames
-				if (strcmp(current_file_name, filename, 10) == 1) {
-					
-					// Set file attribute
-					if ((position >= 0) & (position < 4))
-						write(i + 15 + position, attribute); eeprom_wait_state();
-					
-					return 1;
-				}
+				// Write back file attributes
+				for (uint8_t a=0; a < 4; a++) 
+					write(i + a + 15, (char&)attributes[a]); eeprom_wait_state();
 				
+				
+				return 1;
 			}
 			
 		}
+		
 		return 0;
 	}
 	
 	
 	uint8_t file_get_attribute(char* filename, uint8_t position) {
 		
-		WrappedPointer pointer;
-		char byte;
-		
 		// List current device contents
 		uint32_t current_device = 0x30000 + (0x10000 * (console.promptString[0] - 'A' + 1));
 		// Check virtual storage
@@ -450,100 +541,40 @@ struct MassStorageDeviceDriver {
 		uint32_t device_start   = current_device + SECTOR_SIZE;
 		uint32_t device_end     = current_device + DEVICE_CAPACITY;
 		
-		uint8_t page_counter=0;
-		
-		for (uint32_t i=device_start; i < device_end; i += SECTOR_SIZE) {
-			
-			read(i, byte);
-			
-			// Check sector header byte
-			if (byte != 0x00) {
-				
-				if (byte == 0xff) continue; // Ignore file data sectors
-				if (byte == 0xaa) continue; // Ignore file end sectors
-				
-				// Get files name
-				char current_file_name[11] = "          ";
-				for (uint32_t a=1; a < 10; a++)
-				read(i + a, (char&)current_file_name[a-1]);
-				
-				// Compare filenames
-				if (strcmp(current_file_name, filename, 10) == 1) {
-					
-					char attribute=0;
-					
-					// Get file attribute
-					if ((position >= 0) & (position < 4)) {
-						read(i + 15 + position, attribute);
-						
-						if (attribute < 0x61) return 0;
-					}
-					return attribute;
-				}
-				
-			}
-			
-		}
-		return 0;
-	}
-	
-	
-	uint8_t file_open(char* filename) {
-		
-		WrappedPointer pointer;
+		uint8_t attributes[4];
 		char byte;
 		
-		// List current device contents
-		uint32_t current_device = 0x30000 + (0x10000 * (console.promptString[0] - 'A' + 1));
-		// Check virtual storage
-		if (console.promptString[0] == '/') current_device = _VIRTUAL_STORAGE_ADDRESS__;
-		
-		uint32_t device_start   = current_device + SECTOR_SIZE;
-		uint32_t device_end     = current_device + DEVICE_CAPACITY;
-		
-		uint8_t page_counter=0;
-		
 		for (uint32_t i=device_start; i < device_end; i += SECTOR_SIZE) {
 			
 			read(i, byte);
 			
-			// Check sector header byte
-			if (byte != 0x00) {
+			if (byte != 0x55) continue; // Only file header sectors
+			
+			// Get current filename
+			char current_file_name[16];
+			for (uint32_t a=0; a < 16; a++)
+			current_file_name[a] = 0x20;
+			
+			for (uint32_t a=0; a < 10; a++)
+			read(i + a + 1, current_file_name[a]);
+			
+			// Compare filenames
+			if (strcmp(current_file_name, filename, 10) == 1) {
 				
-				if (byte == 0xff) continue; // Ignore file data sectors
-				if (byte == 0xaa) continue; // Ignore file end sectors
-				
-				// Get files name
-				char current_file_name[11] = "          ";
-				for (uint32_t a=1; a < 10; a++)
-				read(i + a, (char&)current_file_name[a-1]);
-				
-				// Compare filenames
-				if (strcmp(current_file_name, filename, 10) == 1) {
-					
-					// Get file size
-					WrappedPointer filesize;
-					for (uint32_t a=0; a < 4; a++)
-					read(i + a + 11, (char&)filesize.byte_t[a]);
-					
-					uint32_t number_of_sectors = (filesize.address / SECTOR_SIZE) + 1;
-					
-					// Open the file
-					file_address = i;
-					file_size    = filesize.address;
-					
-					return 1;
+				// Read current file attributes
+				for (uint8_t a=0; a < 4; a++) {
+					read(i + a + 15, (char&)attributes[a]);
+					if (attributes[a] < 0x61) attributes[a] = 0x20;
 				}
 				
+				return attributes[position];
 			}
 			
 		}
+		
 		return 0;
 	}
 	
-	uint8_t file_close(void) {
-		file_address=0;
-	}
 	
 	uint8_t file_write_byte(uint32_t address, char byte) {
 		if (file_address == 0) return 0;
@@ -565,9 +596,8 @@ struct MassStorageDeviceDriver {
 }static fs;
 
 void eeprom_wait_state(void) {
-	
-	if (console.promptString[0] != '/') _delay_ms(5);
-	
+	if (console.promptString[0] != '/') 
+		_delay_ms(5);
 }
 
 
@@ -604,7 +634,7 @@ void storageDeviceDriverEntryPoint(uint8_t functionCall, uint8_t& paramA, uint8_
 	
 	if (functionCall == 0x0d) {paramA = fs.file_open(fs.file_name); return;}
 	if (functionCall == 0x0e) {paramA = fs.file_close(); return;}
-	if (functionCall == 0x13) {paramA = fs.file_rename(fs.file_name); return;}
+	//if (functionCall == 0x13) {paramA = fs.file_rename(fs.file_name); return;}
 	if (functionCall == 0x0f) {fs.file_read_byte(fs.device_address, (char&)paramA); return;}
 	if (functionCall == 0x10) {fs.file_write_byte(fs.device_address, (char&)paramA); return;}
 	
