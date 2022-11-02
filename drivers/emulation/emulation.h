@@ -1,17 +1,17 @@
 //
-// Simple x86 emulator
+// Simple emulator
 
 void emulation_test_scrpt(void) {
 	
 	// Function not found. Check if the filename exists
 	if ((fs.file_open(console.keyboard_string) != 0) & (console.last_string_length > 1) & (fs.file_get_attribute(console.keyboard_string, 0) == 'x')) {
 		
-		// File found with executable attribute
-		
-		// Simple instruction set
-		// 
 		// add   0x01 - Add a register into a register
 		// add   0x02 - Add a byte into a register
+		// 
+		// sub   0x28 - Subtract a byte from a register
+		// 
+		// mul   0xF6 - Multiply a register by another register into register C
 		// 
 		// mov   0xa0 - Move a byte into a register
 		// movr  0xa1 - Move a register into a register
@@ -29,11 +29,14 @@ void emulation_test_scrpt(void) {
 		// push  0x06 - Push register A onto the stack
 		// pop   0x07 - Pop data off the stack into register A
 		
-		// General purpose registers
-		char reg[31];
+		// Registers
+		char reg[31];   // General purpose
+		char flags[31]; // Flags
 		
-		for (uint8_t b=0; b < 31; b++) 
+		for (uint8_t b=0; b < 31; b++) {
 			reg[b] = 0x00;
+			flags[b] = 0x00;
+		}
 		
 		char opcode=0x00;
 		char operandA=0x00;

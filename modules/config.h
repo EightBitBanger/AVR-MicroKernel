@@ -10,10 +10,10 @@
 #include "fs/fdisk.h"           // Device format
 #include "fs/attr.h"            // File attributes
 
+#include "system/cls.h"         // Clear the screen
+#include "system/list.h"        // List raw bytes
 #include "system/task.h"        // Task management
 #include "system/port.h"        // GPIO port configuration
-#include "system/list.h"        // List raw bytes
-#include "system/cls.h"         // Clear the display
 #include "system/device.h"      // Device table configuration
 #include "system/mem.h"         // Memory check
 
@@ -44,16 +44,19 @@ struct __ModuleLoader__ {
 #endif
 		
 		load_device("cls", sizeof("cls"), (Module)command_clear_screen, DEVICE_TYPE_MODULE);
-		//load_device("dev", sizeof("dev"), (Module)command_device, DEVICE_TYPE_MODULE);
 		load_device("list", sizeof("list"), (Module)command_list, DEVICE_TYPE_MODULE);
-		//load_device("mem",  sizeof("mem"), (Module)command_memory, DEVICE_TYPE_MODULE);
+		load_device("task", sizeof("task"), (Module)command_task, DEVICE_TYPE_MODULE);
+		load_device("mem",  sizeof("mem"), (Module)command_memory, DEVICE_TYPE_MODULE);
+		
+		//load_device("dev", sizeof("dev"), (Module)command_device, DEVICE_TYPE_MODULE);
 		//load_device("port", sizeof("port"), (Module)__port_control_, DEVICE_TYPE_MODULE);
-		//load_device("task", sizeof("task"), (Module)command_task, DEVICE_TYPE_MODULE);
 		
 		
 #ifdef __BOOT_NETWORK_SUPPORT_
 		load_device("net",  sizeof("net"), (Module)net_entry_point, DEVICE_TYPE_MODULE);
 #endif
+		
+		// Misc programs
 		
 		//load_device("app",  sizeof("app"), (Module)application_entry_point, DEVICE_TYPE_MODULE);
 		

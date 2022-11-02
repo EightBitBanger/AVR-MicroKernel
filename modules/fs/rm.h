@@ -19,6 +19,7 @@ void command_rm(uint8_t, uint8_t&, uint8_t&, uint8_t&, uint8_t&) {
 	
 	if (fs.file_delete(filename) == 0) {
 		console.print(msg_file_not_found, sizeof(msg_file_not_found));
+		console.printLn();
 	}
 	
 	return;
