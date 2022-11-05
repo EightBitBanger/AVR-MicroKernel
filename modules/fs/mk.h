@@ -86,7 +86,9 @@ void command_mk(uint8_t, uint8_t&, uint8_t&, uint8_t&, uint8_t&) {
 	// Set the file size
 	uint32_t sector_address = __moduleLoaderMk__.file_size * SECTOR_SIZE;
 	
-	fs.file_create(filename, __moduleLoaderMk__.file_size);
+	uint8_t attributes[] = " rw ";
+	
+	file_create(filename, __moduleLoaderMk__.file_size, attributes);
 	
 	return;
 }

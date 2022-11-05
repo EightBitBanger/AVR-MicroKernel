@@ -28,7 +28,6 @@ void command_attrib(uint8_t, uint8_t&, uint8_t&, uint8_t&, uint8_t&) {
 	uint8_t char_a = console.keyboard_string[sizeof("attr") + name_len];
 	uint8_t char_b = console.keyboard_string[sizeof("attr") + name_len + 1];
 	
-	
 	uint32_t current_device = 0x30000 + (0x10000 * (console.promptString[0] - 'A' + 1));
 	// Check virtual storage
 	if (console.promptString[0] == '/') current_device = _VIRTUAL_STORAGE_ADDRESS__;

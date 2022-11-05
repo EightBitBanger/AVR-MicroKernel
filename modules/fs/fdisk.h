@@ -47,20 +47,18 @@ void command_fdisk(uint8_t, uint8_t&, uint8_t&, uint8_t&, uint8_t&) {
 		return;
 	}
 	
-	// Set the format size
+	// Format a target device
 	if ((param0 == '-') & (param1 == 'f')) {
 		
 		// Format the storage device
 		WrappedPointer pointer;
-		uint8_t byte = 0x20;
-		uint8_t flag = 0x00;
 		uint8_t write_counter = 0;
 		
 		uint32_t base_address=0;
 		
 		// Storage device address
 		if ((param2 > 0x60) & (param2 < 0x7b))
-			base_address = (0x30000 + (0x10000 * (param2 - 'a') + 1));
+			base_address = (0x30000 + (0x10000 * (param2 - 0x60)));
 		
 		// Virtual storage address
 		if (param2 == '/') base_address = _VIRTUAL_STORAGE_ADDRESS__;
@@ -76,13 +74,13 @@ void command_fdisk(uint8_t, uint8_t&, uint8_t&, uint8_t&, uint8_t&) {
 		
 		for (uint32_t i=base_address; i < base_address + (moduleLoaderFormat.format_size * _FORMAT_MULTIPLIER__); i++) {
 			
-			pointer.address = i;
-			call_extern(storageDevice, DEVICE_CALL_ADDRESS, pointer.byte_t[0], pointer.byte_t[1], pointer.byte_t[2], pointer.byte_t[3]);
+			uint8_t byte = 0x20; // Sector state flag
+			uint8_t flag = 0x00; // Sector data byte
 			
 			if (write_counter == 0) {
-				call_extern(storageDevice, 0x12, (uint8_t&)flag); // Sector state flag
-				} else {
-				call_extern(storageDevice, 0x12, (uint8_t&)byte); // Sector data byte
+				fs.write(i, flag);
+			} else {
+				fs.write(i, byte);
 			}
 			
 			// 32 byte page counter
@@ -95,9 +93,8 @@ void command_fdisk(uint8_t, uint8_t&, uint8_t&, uint8_t&, uint8_t&) {
 		write_counter=0;
 		
 		for (uint8_t i=0; i < sizeof(header); i++) {
-			pointer.address = i + base_address;
-			call_extern(storageDevice, DEVICE_CALL_ADDRESS, pointer.byte_t[0], pointer.byte_t[1], pointer.byte_t[2], pointer.byte_t[3]);
-			call_extern(storageDevice, 0x12, (uint8_t&)header[i]);
+			
+			fs.write(i + base_address, header[i]);
 			
 			// 32 byte page counter
 			if (write_counter >= 31) {write_counter=0; _delay_ms(5);} else {write_counter++;}

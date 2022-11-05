@@ -47,7 +47,7 @@ void command_copy(uint8_t, uint8_t&, uint8_t&, uint8_t&, uint8_t&) {
 	}
 	
 	// Check if the destination file already exists
-	uint32_t destination_file_size = fs.file_get_size(file_dest);
+	uint32_t destination_file_size = file_get_size(file_dest);
 	
 	if (destination_file_size != 0) {
 		console.print(msg_file_already_exists, sizeof(msg_file_already_exists));
@@ -56,12 +56,12 @@ void command_copy(uint8_t, uint8_t&, uint8_t&, uint8_t&, uint8_t&) {
 	}
 	
 	// Get source file size
-	uint32_t file_size = fs.file_get_size(file_source);
+	uint32_t file_size = file_get_size(file_source);
 	
 	// Get source file attributes
 	uint8_t attribute[4];
 	for (uint8_t i=0; i < 4; i++) 
-		attribute[i] = fs.file_get_attribute(file_source, i);
+		attribute[i] = file_get_attribute(file_source, i);
 	
 	// Check if the source file does not exist
 	if (file_size == 0) {
@@ -78,29 +78,17 @@ void command_copy(uint8_t, uint8_t&, uint8_t&, uint8_t&, uint8_t&) {
 			return;
 		}
 		
-		// Copy buffer
+		// Allocate a copy buffer on the stack
 		uint32_t buffer_ptr;
 		buffer_ptr = exMem.stack_push(MAX_COPY_BUFFER);
 		
-		// Set file name
-		for (uint8_t a=0; a < 10; a++)
-			call_extern(storageDevice, a, (uint8_t&)file_source[a]);
-		
-		// Open the source file
-		uint8_t return_value;
-		call_extern(storageDevice, 0x0d, return_value);
-		
-		if (return_value != 0) {
+		// Open the source file and copy data to the buffer
+		if (file_open(file_source) != 0) {
 			
-			// Copy data to the buffer
 			for (uint32_t i=0; i < file_size; i++) {
 				
-				WrappedPointer pointer;
-				pointer.address = i + 32;
-				call_extern(storageDevice, DEVICE_CALL_ADDRESS, pointer.byte_t[0], pointer.byte_t[1], pointer.byte_t[2], pointer.byte_t[3]);
-				
-				uint8_t buffer_byte;
-				call_extern(storageDevice, 0x0f, buffer_byte);
+				char buffer_byte;
+				file_read_byte(i, buffer_byte);
 				
 				exMem.write(buffer_ptr + i, buffer_byte);
 				
@@ -108,45 +96,37 @@ void command_copy(uint8_t, uint8_t&, uint8_t&, uint8_t&, uint8_t&) {
 			
 		}
 		
-		// Set file name
-		for (uint8_t a=0; a < 10; a++)
-			call_extern(storageDevice, a, (uint8_t&)file_dest[a]);
-		
 		// Set file size
 		WrappedPointer pointer;
-		pointer.address = file_size / SECTOR_SIZE;
+		pointer.address = file_size;
 		call_extern(storageDevice, DEVICE_CALL_ADDRESS, pointer.byte_t[0], pointer.byte_t[1], pointer.byte_t[2], pointer.byte_t[3]);
 		
 		uint8_t old_prompt_char;
+		uint8_t return_value=0;
+		
+		// Check destination device scope
 		if (file_dest[1] == ':') {
-			
-			// Set destination file name as the source
-			for (uint8_t a=0; a < 10; a++)
-				call_extern(storageDevice, a, (uint8_t&)file_source[a]);
-			
 			old_prompt_char = console.promptString[0];
 			console.promptString[0] = file_dest[0];
 			
+			file_create(file_source, pointer.address, attribute);
+			return_value = file_open(file_source);
+		} else {
+			file_create(file_dest, pointer.address, attribute);
+			return_value = file_open(file_dest);
 		}
-		
-		
-		// Create the new file
-		call_extern(storageDevice, 0x0a);
-		
-		// Open the destination file
-		call_extern(storageDevice, 0x0d, return_value);
 		
 		if (return_value != 0) {
 			
 			// Set the file attributes
 			for (uint8_t i=0; i < 4; i++)
-				fs.file_set_attribute(file_source, attribute[i], i);
+				file_set_attribute(file_source, attribute[i], i);
 			
 			// Paste the buffer data to the new file
 			for (uint32_t i=0; i < file_size; i++) {
 				
 				WrappedPointer pointer;
-				pointer.address = i + 32;
+				pointer.address = i;
 				call_extern(storageDevice, DEVICE_CALL_ADDRESS, pointer.byte_t[0], pointer.byte_t[1], pointer.byte_t[2], pointer.byte_t[3]);
 				
 				char buffer_byte;

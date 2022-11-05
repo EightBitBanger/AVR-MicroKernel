@@ -4,7 +4,7 @@
 void emulation_test_scrpt(void) {
 	
 	// Function not found. Check if the filename exists
-	if ((fs.file_open(console.keyboard_string) != 0) & (console.last_string_length > 1) & (fs.file_get_attribute(console.keyboard_string, 0) == 'x')) {
+	if ((file_open(console.keyboard_string) != 0) & (console.last_string_length > 1) & (file_get_attribute(console.keyboard_string, 0) == 'x')) {
 		
 		// add   0x01 - Add a register into a register
 		// add   0x02 - Add a byte into a register
@@ -44,19 +44,19 @@ void emulation_test_scrpt(void) {
 		char operandC=0x00;
 		char operandD=0x00;
 		
-		uint32_t file_start = (SECTOR_SIZE + 1);
-		uint32_t file_end   = file_start + fs.file_size;
+		uint32_t file_start = 0;
+		uint32_t file_end   = file_start + fs.file_size * 32;
 		
 		for (uint32_t ip=file_start; ip <= file_end; ip++) {
 			
 			// Get the op-code
-			fs.file_read_byte(ip, opcode);
+			file_read_byte(ip, opcode);
 			
 			//
 			// ADD - Add a register to a register
 			if (opcode == 0x01) {
-				ip++; fs.file_read_byte(ip, operandA);
-				ip++; fs.file_read_byte(ip, operandB);
+				ip++; file_read_byte(ip, operandA);
+				ip++; file_read_byte(ip, operandB);
 				
 				reg[operandA] += reg[operandB];
 				
@@ -66,8 +66,8 @@ void emulation_test_scrpt(void) {
 			//
 			// ADD - Add a byte to a register
 			if (opcode == 0x02) {
-				ip++; fs.file_read_byte(ip, operandA);
-				ip++; fs.file_read_byte(ip, operandB);
+				ip++; file_read_byte(ip, operandA);
+				ip++; file_read_byte(ip, operandB);
 				
 				reg[operandA] += operandB;
 				
@@ -77,8 +77,8 @@ void emulation_test_scrpt(void) {
 			//
 			// MOV - Move byte into a register
 			if (opcode == 0xa0) {
-				ip++; fs.file_read_byte(ip, operandA);
-				ip++; fs.file_read_byte(ip, operandB);
+				ip++; file_read_byte(ip, operandA);
+				ip++; file_read_byte(ip, operandB);
 				
 				reg[operandA] = operandB;
 				
@@ -88,8 +88,8 @@ void emulation_test_scrpt(void) {
 			//
 			// MOV - Move register into a register
 			if (opcode == 0xa1) {
-				ip++; fs.file_read_byte(ip, operandA);
-				ip++; fs.file_read_byte(ip, operandB);
+				ip++; file_read_byte(ip, operandA);
+				ip++; file_read_byte(ip, operandB);
 				
 				reg[operandA] = reg[operandB];
 				
@@ -99,7 +99,7 @@ void emulation_test_scrpt(void) {
 			//
 			// INT - Interrupt routine
 			if ((opcode == 0x3d) | (opcode == 0xcd)) {
-				ip++; fs.file_read_byte(ip, operandA);
+				ip++; file_read_byte(ip, operandA);
 				
 				// INT 10 - Display call
 				if (operandA == 0x10) {console.printChar( reg[0] ); continue;}
@@ -116,10 +116,10 @@ void emulation_test_scrpt(void) {
 				
 				WrappedPointer pointer;
 				
-				ip++; fs.file_read_byte(ip, pointer.byte[3]);
-				ip++; fs.file_read_byte(ip, pointer.byte[2]);
-				ip++; fs.file_read_byte(ip, pointer.byte[1]);
-				ip++; fs.file_read_byte(ip, pointer.byte[0]);
+				ip++; file_read_byte(ip, pointer.byte[3]);
+				ip++; file_read_byte(ip, pointer.byte[2]);
+				ip++; file_read_byte(ip, pointer.byte[1]);
+				ip++; file_read_byte(ip, pointer.byte[0]);
 				
 				ip = (file_start + pointer.address) - 1;
 				

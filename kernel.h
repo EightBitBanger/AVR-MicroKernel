@@ -34,13 +34,13 @@
 #define _KERNEL_FLAGS__                    0x00004
 
 
-// Kernel State flags
+// Kernel States
 #define _KERNEL_STATE_NORMAL__          0x00
 #define _KERNEL_STATE_OUT_OF_MEMORY__   0xa0
 #define _KERNEL_STATE_SEG_FAULT__       0xff
 
 
-char msg_kernel_version[]    = "AVR-Kernel 1.0";
+char msg_kernel_version[]    = "AVR-Kernel";
 
 
 // Standard includes
@@ -52,7 +52,6 @@ char msg_kernel_version[]    = "AVR-Kernel 1.0";
 #include "kernel/scheduler.h"         // Task scheduler
 #include "kernel/bus.h"               // System bus interface
 
-
 // Hardware information detection
 #include "kernel/hardware_detection.h"
 
@@ -60,8 +59,6 @@ char msg_kernel_version[]    = "AVR-Kernel 1.0";
 #include "drivers/config.h"
 #include "modules/config.h"
 #include "services/config.h"
-
-
 
 
 void __kernel_initiate(void) {

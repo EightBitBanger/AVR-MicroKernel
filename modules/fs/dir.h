@@ -7,7 +7,7 @@ void command_dir(uint8_t, uint8_t&, uint8_t&, uint8_t&, uint8_t&) {
 	if (storageDevice == 0) return;
 	
 	uint8_t param0 = console.keyboard_string[sizeof("dir")];
-	uint8_t param1 = console.keyboard_string[sizeof("dir")] + 1;
+	uint8_t param1 = console.keyboard_string[sizeof("dir") + 1];
 	
 	uint8_t pageflag = 0;
 	if ((param0 == '-') & (param1 == 'p')) 

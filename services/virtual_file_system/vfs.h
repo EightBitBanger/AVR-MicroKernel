@@ -1,3 +1,5 @@
+//
+// 
 
 void intiate_virtual_system(void) {
 	
@@ -5,7 +7,7 @@ void intiate_virtual_system(void) {
 	memorybus.waitstate_read  = 2;
 	memorybus.waitstate_write = 0;
 	
-	// Zero the memory and format
+	// Zero the memory and format the virtual disk
 	for (uint32_t i=_VIRTUAL_STORAGE_ADDRESS__; i < (_VIRTUAL_STORAGE_ADDRESS__ + _VIRTUAL_STORAGE_SIZE__); i++) 
 		bus_write_byte(memorybus, i, 0x20);
 	for (uint32_t i=_VIRTUAL_STORAGE_ADDRESS__; i < (_VIRTUAL_STORAGE_ADDRESS__ + _VIRTUAL_STORAGE_SIZE__); i += SECTOR_SIZE) 
@@ -24,16 +26,34 @@ void intiate_virtual_system(void) {
 	uint8_t current_prompt = console.promptString[0];
 	console.promptString[0] = '/';
 	
-	char port_a[] = "porta ";
-	fs.file_create(port_a, 1);
-	char port_b[] = "portb ";
-	fs.file_create(port_b, 1);
+	// Default attributes
+	uint8_t attr_normal[]     = " rw ";
+	uint8_t attr_executable[] = "xrw ";
 	
-	char serial[] = "ps2 ";
-	fs.file_create(serial, 1);
+	char port_a[] = "file_a ";
+	file_create(port_a, 64, attr_normal);
 	
-	char filename[] = "config ";
-	fs.file_create(filename, 4);
+	char asm_program[] = {
+		
+		0xa0, 0x00, 'W', 0xcd, 0x10,
+		0xa0, 0x00, 'T', 0xcd, 0x10,
+		0xa0, 0x00, 'F', 0xcd, 0x10,
+		
+		0xcd, 0x20,
+		
+	};
+	
+	char sys_program[] = "sys ";
+	file_create(sys_program, sizeof(asm_program), attr_executable);
+	
+	if (file_open(sys_program) == 1) {
+		
+		for (uint8_t a=0; a < sizeof(asm_program); a++) 
+			file_write_byte(a, asm_program[a]);
+		
+		file_close();
+		
+	}
 	
 	// Return the old prompt
 	console.promptString[0] = current_prompt;
