@@ -1,6 +1,9 @@
 //
 // On-board PS/2 keyboard device driver
 
+#ifndef _KEYBOARD_HANDLER__
+#define _KEYBOARD_HANDLER__
+
 void decodeScanCode(uint8_t scancode_low, uint8_t scancode_high, uint8_t& scan_code);
 
 #define  _KEYBOARD_REGISTER_LO__   0x90000 // Lower keyboard register address
@@ -144,4 +147,6 @@ void decodeScanCode(uint8_t scancode_low, uint8_t scancode_high, uint8_t& scan_c
 	return;
 }
 
+
+#endif
 

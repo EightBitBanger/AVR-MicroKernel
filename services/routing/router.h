@@ -14,15 +14,54 @@ void router_entry_point(void) {
 	uint8_t  data       = 0x00;
 	uint8_t  count      = 0x00;
 	
-	uint8_t start_byte;
-	uint8_t type_byte;
-	uint8_t data_byte;
-	uint8_t end_byte;
+	uint8_t start_byte = 0;
+	uint8_t type_byte  = 0;
+	uint8_t data_byte  = 0;
+	uint8_t end_byte   = 0;
 	
 	console.setCursorPosition(0, 0);
 	console.clearBuffer();
 	
 	Device networkDevice;
+	
+	// Check available network devices
+	uint8_t active_network_cards[5];
+	for (uint8_t i=0; i < 5; i++) 
+		active_network_cards[i] = 0;
+	
+	HardwareInformation hInfo;
+	
+	Bus bus;
+	bus.waitstate_read  = 20;
+	bus.waitstate_write = 20;
+	
+	
+	uint32_t device_address = 0x40000;
+	for (uint8_t i=0; i < 5; i++) {
+		
+		get_hardware_info(device_address, bus, hInfo);
+		
+		if (hInfo.device_id == 0x14) {
+			
+			active_network_cards[i] = 0xff;
+			
+			console.printInt(i);
+			console.printSpace();
+			console.printHex(hInfo.device_id);
+			console.printSpace();
+			console.print(hInfo.device_name, 10);
+			console.printLn();
+			
+			_delay_ms(350);
+		}
+		
+		device_address += 0x10000;
+	}
+	
+	_delay_ms(3000);
+	
+	console.clearBuffer();
+	console.setCursorPosition(0, 0);
 	
 	networkDevice = (Device)get_func_address(_NETWORK_INTERFACE__, sizeof(_NETWORK_INTERFACE__));
 	if (networkDevice == 0) 
@@ -32,7 +71,15 @@ void router_entry_point(void) {
 	flag = 0;
 	call_extern(networkDevice, 0x02, flag);
 	
+	uint32_t current_network_card = 0;
+	
 	while (1) {
+		
+		current_network_card++;
+		if (current_network_card > 4) current_network_card = 0;
+		
+		if (active_network_cards[current_network_card] == 0x00) continue;
+		networkInterfaceDriver.device_address = 0x30000 + (0x10000 * (current_network_card + 1));
 		
 		// Check the receive flag
 		call_extern(networkDevice, 0x03, count);
@@ -65,19 +112,19 @@ void router_entry_point(void) {
 						// Check packet type
 						switch (type_byte) {
 							
-							// Data packet
+							// Print character
 							case 0x00: {
-								// Print the received data
+								
 								console.printChar(data_byte);
 								console.updateCursorPosition();
 								
 								// Clear packet
-								data = 0x00;
-								for (uint8_t a=i; a <= (i + 3); a++)
-									call_extern(networkDevice, 0x09, a, data);
+								uint8_t data = 0x00;
+								for (uint8_t a=address; a <= (address + 3); a++)
+								call_extern(networkDevice, 0x09, a, data);
 								
 								// Zero the RX flag
-								flag = 0;
+								uint8_t flag = 0;
 								call_extern(networkDevice, 0x02, flag);
 								
 								break;
@@ -91,12 +138,12 @@ void router_entry_point(void) {
 								network_send(networkDevice, ping_packet);
 								
 								// Clear packet
-								data = 0x00;
-								for (uint8_t a=i; a <= (i + 3); a++)
-									call_extern(networkDevice, 0x09, a, data);
+								uint8_t data = 0x00;
+								for (uint8_t a=address; a <= (address + 3); a++)
+								call_extern(networkDevice, 0x09, a, data);
 								
 								// Zero the RX flag
-								flag = 0;
+								uint8_t flag = 0;
 								call_extern(networkDevice, 0x02, flag);
 								
 								break;

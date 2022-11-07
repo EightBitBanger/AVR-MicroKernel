@@ -48,8 +48,8 @@ struct __ModuleLoader__ {
 		load_device("task", sizeof("task"), (Module)command_task, DEVICE_TYPE_MODULE);
 		load_device("mem",  sizeof("mem"), (Module)command_memory, DEVICE_TYPE_MODULE);
 		
-		//load_device("dev", sizeof("dev"), (Module)command_device, DEVICE_TYPE_MODULE);
-		//load_device("port", sizeof("port"), (Module)__port_control_, DEVICE_TYPE_MODULE);
+		load_device("dev", sizeof("dev"), (Module)command_device, DEVICE_TYPE_MODULE);
+		load_device("port", sizeof("port"), (Module)__port_control_, DEVICE_TYPE_MODULE);
 		
 		
 #ifdef __BOOT_NETWORK_SUPPORT_

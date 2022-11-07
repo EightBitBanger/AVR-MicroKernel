@@ -15,10 +15,12 @@
 #define _VIRTUAL_STORAGE_ADDRESS__    0x30000
 #define _VIRTUAL_STORAGE_SIZE__       0x10000
 
-char msg_file_count[]            = "files";
-char msg_file_not_found[]        = "File not found.";
-char msg_device_not_found[]      = "Device not found.";
-char msg_file_already_exists[]   = "File already exists.";
+const char msg_file_count[]            = "files";
+const char msg_file_not_found[]        = "File not found.";
+const char msg_device_not_found[]      = "Device not found.";
+const char msg_file_already_exists[]   = "File already exists.";
+const char msg_file_write_protected[]  = "File write protected.";
+const char msg_device_not_ready[]      = "Device not ready...";
 
 // Creates a new file on the file system
 uint8_t file_create(char* filename, uint32_t file_size, uint8_t* attributes);
@@ -63,8 +65,6 @@ struct MassStorageDeviceDriver {
 	uint32_t file_address;
 	uint32_t file_size;
 	
-	uint8_t  write_counter; // EEPROM page write counter
-	
 	MassStorageDeviceDriver() {
 		
 		device_address = 0x00000;
@@ -83,6 +83,21 @@ struct MassStorageDeviceDriver {
 	void write(uint32_t address, char byte) {bus_write_byte(device_bus, address, byte); return;}
 	void read(uint32_t address, char& byte) {bus_read_byte(device_bus, address, byte); return;}
 	
+	// Check a storage device header
+	uint8_t device_check_header(uint32_t current_device) {
+		
+		HardwareInformation hInfo;
+		get_hardware_info(current_device, device_bus, hInfo);
+		
+		if (hInfo.device_id == 0x13) {
+			
+			if (strcmp(hInfo.device_name, _MASS_STORAGE__, sizeof(_MASS_STORAGE__)) == 1) {
+				return 1;
+			}
+			
+		}
+		return 0;
+	}
 	
 }static fs;
 
@@ -96,8 +111,13 @@ void list_directory(uint8_t enable_page_pause) {
 	// Link to the console driver to list the directory
 	Device consoleDevice = (Device)get_func_address(_COMMAND_CONSOLE__, sizeof(_COMMAND_CONSOLE__));
 	
-	// Check storage device
 	uint32_t current_device = set_device_scope();
+	
+	if (fs.device_check_header(current_device - SECTOR_SIZE) == 0) {
+		console.print(msg_device_not_ready, sizeof(msg_device_not_ready));
+		console.printLn();
+		return;
+	}
 	
 	uint32_t device_start   = current_device;
 	uint32_t device_end     = current_device + DEVICE_CAPACITY;
@@ -123,7 +143,7 @@ void list_directory(uint8_t enable_page_pause) {
 		// Display file size
 		WrappedPointer filesize;
 		for (uint8_t a=0; a < 4; a++)
-		fs.read(i + a + 11, (char&)filesize.byte_t[a]);
+			fs.read(i + a + 11, (char&)filesize.byte_t[a]);
 		
 		// Scale the file size
 		filesize.address = filesize.address * SECTOR_SIZE;
@@ -132,7 +152,7 @@ void list_directory(uint8_t enable_page_pause) {
 		if (filesize.address > 999) {
 			
 			if (filesize.address < 9999)
-			call_extern(consoleDevice, 0x03); // Space
+				call_extern(consoleDevice, 0x03); // Space
 			
 			WrappedPointer tsize;
 			tsize.address = (filesize.address / 1000);
@@ -144,12 +164,12 @@ void list_directory(uint8_t enable_page_pause) {
 			call_extern(consoleDevice, 0x00, thousand_char);
 			call_extern(consoleDevice, 0x03); // Space
 			
-			} else {
+		} else {
 			
 			if (filesize.address < 100)
-			call_extern(consoleDevice, 0x03); // Space
+				call_extern(consoleDevice, 0x03); // Space
 			if (filesize.address < 10)
-			call_extern(consoleDevice, 0x03); // Space
+				call_extern(consoleDevice, 0x03); // Space
 			
 			call_extern(consoleDevice, 0x04, filesize.byte_t[0], filesize.byte_t[1], filesize.byte_t[2], filesize.byte_t[3]);
 			call_extern(consoleDevice, 0x03); // Space
@@ -159,9 +179,11 @@ void list_directory(uint8_t enable_page_pause) {
 		// Display file attributes
 		uint8_t attribute;
 		for (uint8_t a=0; a < 4; a++) {
+			
 			fs.read(i + a + 15, (char&)attribute);
+			
 			if (attribute < 0x61) attribute = 0x20;
-			call_extern(consoleDevice, 0x00, (uint8_t&)attribute);
+				call_extern(consoleDevice, 0x00, (uint8_t&)attribute);
 		}
 		
 		page_counter++;
@@ -191,7 +213,7 @@ uint8_t file_create(char* filename, uint32_t file_size, uint8_t* attributes) {
 	// Clean up the filename
 	char file_name[10];
 	for (uint8_t a=0; a < 10; a++)
-	file_name[a] = 0x20;
+		file_name[a] = 0x20;
 	
 	for (uint8_t a=0; a < 10; a++) {
 		if (filename[a] == ' ') break;
@@ -300,7 +322,7 @@ uint8_t file_delete(char* filename) {
 	// Clean up the filename
 	char file_name[10];
 	for (uint8_t a=0; a < 10; a++)
-	file_name[a] = 0x20;
+		file_name[a] = 0x20;
 	
 	for (uint8_t a=0; a < 10; a++) {
 		if (filename[a] == ' ') break;
@@ -316,17 +338,17 @@ uint8_t file_delete(char* filename) {
 			
 			char current_file_name[10];
 			for (uint8_t a=0; a < 10; a++)
-			current_file_name[a] = 0x20;
+				current_file_name[a] = 0x20;
 			
 			// Get files name
-			for (uint32_t a=0; a < 10; a++)
-			fs.read(i + a + 1, (char&)current_file_name[a]);
+			for (uint8_t a=0; a < 10; a++)
+				fs.read(i + a + 1, (char&)current_file_name[a]);
 			
 			// Compare filenames
 			if (strcmp(current_file_name, file_name, 10) == 1) {
 				
 				// Zero the file sectors
-				for (uint32_t a=0; a < 100000; a++) {
+				for (uint16_t a=0; a < 100000; a++) {
 					
 					fs.read(i + (a * SECTOR_SIZE), byte);
 					
@@ -376,7 +398,7 @@ uint8_t file_rename(char* filename, char* new_file_name) {
 	// Clean up the filename
 	char file_name[10];
 	for (uint8_t a=0; a < 10; a++)
-	file_name[a] = 0x20;
+		file_name[a] = 0x20;
 	
 	for (uint8_t a=0; a < 10; a++) {
 		if (filename[a] == ' ') break;
@@ -391,11 +413,11 @@ uint8_t file_rename(char* filename, char* new_file_name) {
 		
 		// Get current filename
 		char current_file_name[16];
-		for (uint32_t a=0; a < 16; a++)
-		current_file_name[a] = 0x20;
+		for (uint8_t a=0; a < 16; a++)
+			current_file_name[a] = 0x20;
 		
-		for (uint32_t a=0; a < 10; a++)
-		fs.read(i + a + 1, current_file_name[a]);
+		for (uint8_t a=0; a < 10; a++)
+			fs.read(i + a + 1, current_file_name[a]);
 		
 		// Compare filenames
 		if (strcmp(current_file_name, file_name, 10) == 1) {
@@ -445,10 +467,10 @@ uint8_t file_open(char* filename) {
 		
 		// Get current filename
 		char current_file_name[16];
-		for (uint32_t a=0; a < 16; a++)
+		for (uint8_t a=0; a < 16; a++)
 			current_file_name[a] = 0x20;
 		
-		for (uint32_t a=0; a < 10; a++)
+		for (uint8_t a=0; a < 10; a++)
 			fs.read(i + a + 1, current_file_name[a]);
 		
 		// Compare filenames
@@ -456,7 +478,7 @@ uint8_t file_open(char* filename) {
 			
 			// Get file size
 			WrappedPointer filesize;
-			for (uint32_t a=0; a < 4; a++)
+			for (uint8_t a=0; a < 4; a++)
 				fs.read(i + a + 11, (char&)filesize.byte_t[a]);
 			
 			// Open the file
@@ -496,18 +518,18 @@ uint32_t file_get_size(char* filename) {
 		
 		// Get current filename
 		char current_file_name[16];
-		for (uint32_t a=0; a < 16; a++)
-		current_file_name[a] = 0x20;
+		for (uint8_t a=0; a < 16; a++)
+			current_file_name[a] = 0x20;
 		
-		for (uint32_t a=0; a < 10; a++)
-		fs.read(i + a + 1, current_file_name[a]);
+		for (uint8_t a=0; a < 10; a++)
+			fs.read(i + a + 1, current_file_name[a]);
 		
 		// Compare filenames
 		if (strcmp(current_file_name, filename, 10) == 1) {
 			
 			// Get file size
 			WrappedPointer filesize;
-			for (uint32_t a=0; a < 4; a++)
+			for (uint8_t a=0; a < 4; a++)
 				fs.read(i + a + 11, (char&)filesize.byte_t[a]);
 			
 			return (filesize.address * SECTOR_SIZE);
@@ -539,25 +561,25 @@ uint8_t file_set_attribute(char* filename, uint8_t attribute, uint8_t position) 
 		
 		// Get current filename
 		char current_file_name[16];
-		for (uint32_t a=0; a < 16; a++)
-		current_file_name[a] = 0x20;
+		for (uint8_t a=0; a < 16; a++)
+			current_file_name[a] = 0x20;
 		
-		for (uint32_t a=0; a < 10; a++)
-		fs.read(i + a + 1, current_file_name[a]);
+		for (uint8_t a=0; a < 10; a++)
+			fs.read(i + a + 1, current_file_name[a]);
 		
 		// Compare filenames
 		if (strcmp(current_file_name, filename, 10) == 1) {
 			
 			// Read current file attributes
 			for (uint8_t a=0; a < 4; a++)
-			fs.read(i + a + 15, (char&)attributes[a]);
+				fs.read(i + a + 15, (char&)attributes[a]);
 			
 			attributes[position] = attribute;
 			
 			// Write back file attributes
-			for (uint8_t a=0; a < 4; a++)
-			fs.write(i + a + 15, (char&)attributes[a]); eeprom_wait_state();
-			
+			for (uint8_t a=0; a < 4; a++) {
+				fs.write(i + a + 15, (char&)attributes[a]); eeprom_wait_state();
+			}
 			
 			return 1;
 		}
@@ -587,11 +609,11 @@ uint8_t file_get_attribute(char* filename, uint8_t position) {
 		
 		// Get current filename
 		char current_file_name[16];
-		for (uint32_t a=0; a < 16; a++)
-		current_file_name[a] = 0x20;
+		for (uint8_t a=0; a < 16; a++)
+			current_file_name[a] = 0x20;
 		
-		for (uint32_t a=0; a < 10; a++)
-		fs.read(i + a + 1, current_file_name[a]);
+		for (uint8_t a=0; a < 10; a++)
+			fs.read(i + a + 1, current_file_name[a]);
 		
 		// Compare filenames
 		if (strcmp(current_file_name, filename, 10) == 1) {
@@ -615,8 +637,7 @@ uint8_t file_write_byte(uint32_t address, char byte) {
 	if (fs.file_address == 0) return 0;
 	address += ((address / (SECTOR_SIZE - 1)) + 1) + SECTOR_SIZE;
 	if ((fs.file_address + address) > (fs.file_address + (fs.file_size * SECTOR_SIZE))) return 0;
-	fs.write(fs.file_address + address, byte);
-	if (fs.write_counter >= 31) {fs.write_counter=0; eeprom_wait_state();} else {fs.write_counter++;}
+	fs.write(fs.file_address + address, byte); eeprom_wait_state();
 	return 1;
 }
 
@@ -645,6 +666,8 @@ uint32_t set_device_scope(void) {
 	
 	return (current_device + SECTOR_SIZE);
 }
+
+
 
 
 void storageDeviceDriverEntryPoint(uint8_t functionCall, uint8_t& paramA, uint8_t& paramB, uint8_t& paramC, uint8_t& paramD) {

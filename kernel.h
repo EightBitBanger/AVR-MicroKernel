@@ -11,11 +11,12 @@
 
 //#define __BOOT_SAFEMODE_            // Load only the drivers required to boot
 //#define __BOOT_LIGHTWEIGHT_         // Skip loading the command modules
-#define __BOOT_NETWORK_SUPPORT_     // Include network support
 #define __BOOT_FS_SUPPORT_          // Include file system support
+#define __BOOT_NETWORK_SUPPORT_     // Include network support
+//#define __BOOT_NETWORK_ROUTER_      // Run packet server/router program
 
 
-//#define __ARDUINO_UNO_BOARD_        // Compile for an Arduino UNO board
+//#define __ARDUINO_BOARD_            // Compile for an Arduino UNO board
 #define __AVR_CUSTOM_BOARD_         // Compile for a custom AVR board
 
 
@@ -40,8 +41,8 @@
 #define _KERNEL_STATE_SEG_FAULT__       0xff
 
 
-char msg_kernel_version[]    = "AVR-Kernel";
-
+char msg_kernel_boot[]      = "AVR-Kernel";
+char msg_kernel_version[]   = "1.0";
 
 // Standard includes
 #include "kernel/std/pointers.h"      // Pointer types
@@ -61,7 +62,11 @@ char msg_kernel_version[]    = "AVR-Kernel";
 #include "services/config.h"
 
 
-void __kernel_initiate(void) {
+void __kernel_initiate(void) {	
+#ifndef __ARDUINO_BOARD_
+	
+	// Initiate the scheduler
+	__scheduler_init_();
 	
 	char skip=0;
 	char byte=0;
@@ -70,33 +75,37 @@ void __kernel_initiate(void) {
 	Device speaker_device;
 	Device console_device;
 	
-	WrappedPointer total_memory;
+	// External device bus wait state
 	Bus device_bus;
-	uint8_t test_byte=0x55;
-	
-	// External bus wait state
 	device_bus.waitstate_write = 0;
 	device_bus.waitstate_read  = 2;
 	
+	// Initiate the console
 	console_device = (Device)get_func_address(_COMMAND_CONSOLE__, sizeof(_COMMAND_CONSOLE__));
 	if (console_device == 0) return;
 	
-	// Initiate the console
 	call_extern(console_device, DEVICE_CALL_INITIATE);
-	
 	
 	// Print kernel version information
 	uint8_t pos=0;
 	uint8_t line=0;
 	call_extern(console_device, 0x0a, line, pos);
 	
+	for (uint8_t i=0; i < sizeof(msg_kernel_boot)-1; i++)
+		call_extern(console_device, 0x00, (uint8_t&)msg_kernel_boot[i]);
+	call_extern(console_device, 0x03); // Space
+	
 	for (uint8_t i=0; i < sizeof(msg_kernel_version)-1; i++)
 		call_extern(console_device, 0x00, (uint8_t&)msg_kernel_version[i]);
 	call_extern(console_device, 0x01); // New line
 	
+	//
 	// Allocate available external memory
 	memory_device = (Device)get_func_address(_EXTENDED_MEMORY__, sizeof(_EXTENDED_MEMORY__));
 	if (memory_device != 0) {
+		
+		WrappedPointer total_memory;
+		uint8_t test_byte = 0x55;
 		
 		for (total_memory.address=0x00000; total_memory.address < 0x40000; total_memory.address++) {
 			
@@ -174,10 +183,24 @@ void __kernel_initiate(void) {
 		}
 		
 	}
+
+#ifndef __BOOT_NETWORK_ROUTER_
 	
 	// Setup the virtual system
 	intiate_virtual_system();
 	
+	// Launch the command console
+	task_create("console", sizeof("console"), keyboard_event_handler, TASK_PRIORITY_REALTIME, TASK_TYPE_SERVICE);
+	
+#else
+	
+	// Loop the network packet re-routing program
+	while(1) 
+		router_entry_point();
+	
+#endif
+	
+#endif
 	return;
 }
 

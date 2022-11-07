@@ -7,6 +7,14 @@ void command_rn(uint8_t, uint8_t&, uint8_t&, uint8_t&, uint8_t&) {
 	storageDevice = (Device)get_func_address(_MASS_STORAGE__, sizeof(_MASS_STORAGE__));
 	if (storageDevice == 0) return;
 	
+	uint32_t current_device = set_device_scope();
+	
+	if (fs.device_check_header(current_device - SECTOR_SIZE) == 0) {
+		console.print(msg_device_not_ready, sizeof(msg_device_not_ready));
+		console.printLn();
+		return;
+	}
+	
 	char filenameA[32]; // Source name
 	char filenameB[32]; // New name
 	
@@ -42,12 +50,7 @@ void command_rn(uint8_t, uint8_t&, uint8_t&, uint8_t&, uint8_t&) {
 	}
 	
 	
-	
-	uint32_t current_device = 0x30000 + (0x10000 * (console.promptString[0] - 'A' + 1));
-	// Check virtual storage
-	if (console.promptString[0] == '/') current_device = _VIRTUAL_STORAGE_ADDRESS__;
-	
-	uint32_t device_start   = current_device + SECTOR_SIZE;
+	uint32_t device_start   = current_device;
 	uint32_t device_end     = current_device + DEVICE_CAPACITY;
 	
 	char byte;
@@ -59,19 +62,27 @@ void command_rn(uint8_t, uint8_t&, uint8_t&, uint8_t&, uint8_t&) {
 		if (byte != 0x55) continue; // Only file header sectors
 		
 		// Get current filename
-		char current_file_name[16];
-		for (uint32_t a=0; a < 16; a++)
+		char current_file_name[10];
+		for (uint8_t a=0; a < 10; a++)
 			current_file_name[a] = 0x20;
 		
-		for (uint32_t a=0; a < 10; a++)
+		for (uint8_t a=0; a < 10; a++)
 			fs.read(i + a + 1, current_file_name[a]);
 		
 		// Compare filenames
 		if (strcmp(current_file_name, filenameA, 10) == 1) {
 			
+			// Check if we can write to this file
+			if (file_get_attribute(filenameA, 2) != 'w') {
+				console.print(msg_file_write_protected, sizeof(msg_file_write_protected));
+				console.printLn();
+				return;
+			}
+			
 			// Write new file name
-			for (uint8_t a=0; a < 10; a++) 
+			for (uint8_t a=0; a < 10; a++) {
 				fs.write(i + a + 1, (uint8_t&)filenameB[a]); eeprom_wait_state();
+			}
 			
 			return;
 		}

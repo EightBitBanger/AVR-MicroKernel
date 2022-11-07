@@ -12,6 +12,15 @@ void command_copy(uint8_t, uint8_t&, uint8_t&, uint8_t&, uint8_t&) {
 	storageDevice = (Device)get_func_address(_MASS_STORAGE__, sizeof(_MASS_STORAGE__));
 	if (storageDevice == 0) return;
 	
+	// Check the volume header of the current device
+	uint32_t current_device = set_device_scope();
+	
+	if (fs.device_check_header(current_device - SECTOR_SIZE) == 0) {
+		console.print(msg_device_not_ready, sizeof(msg_device_not_ready));
+		console.printLn();
+		return;
+	}
+	
 	char file_source[32]; // Source name
 	char file_dest[32]; // New name
 	
@@ -82,14 +91,15 @@ void command_copy(uint8_t, uint8_t&, uint8_t&, uint8_t&, uint8_t&) {
 		uint32_t buffer_ptr;
 		buffer_ptr = exMem.stack_push(MAX_COPY_BUFFER);
 		
-		// Open the source file and copy data to the buffer
+		// Open the source file
 		if (file_open(file_source) != 0) {
 			
-			for (uint32_t i=0; i < file_size; i++) {
+			for (uint32_t i=0; i <= (file_size + (SECTOR_SIZE - 1)); i++) {
 				
 				char buffer_byte;
 				file_read_byte(i, buffer_byte);
 				
+				// Copy data to the buffer
 				exMem.write(buffer_ptr + i, buffer_byte);
 				
 			}
@@ -99,7 +109,6 @@ void command_copy(uint8_t, uint8_t&, uint8_t&, uint8_t&, uint8_t&) {
 		// Set file size
 		WrappedPointer pointer;
 		pointer.address = file_size;
-		call_extern(storageDevice, DEVICE_CALL_ADDRESS, pointer.byte_t[0], pointer.byte_t[1], pointer.byte_t[2], pointer.byte_t[3]);
 		
 		uint8_t old_prompt_char;
 		uint8_t return_value=0;
@@ -123,16 +132,12 @@ void command_copy(uint8_t, uint8_t&, uint8_t&, uint8_t&, uint8_t&) {
 				file_set_attribute(file_source, attribute[i], i);
 			
 			// Paste the buffer data to the new file
-			for (uint32_t i=0; i < file_size; i++) {
-				
-				WrappedPointer pointer;
-				pointer.address = i;
-				call_extern(storageDevice, DEVICE_CALL_ADDRESS, pointer.byte_t[0], pointer.byte_t[1], pointer.byte_t[2], pointer.byte_t[3]);
+			for (uint32_t i=0; i <= (file_size + (SECTOR_SIZE - 1)); i++) {
 				
 				char buffer_byte;
 				exMem.read(buffer_ptr + i, buffer_byte);
 				
-				call_extern(storageDevice, 0x10, (uint8_t&)buffer_byte);
+				file_write_byte(i, buffer_byte);
 				
 			}
 		}

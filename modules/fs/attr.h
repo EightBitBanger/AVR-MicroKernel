@@ -28,11 +28,16 @@ void command_attrib(uint8_t, uint8_t&, uint8_t&, uint8_t&, uint8_t&) {
 	uint8_t char_a = console.keyboard_string[sizeof("attr") + name_len];
 	uint8_t char_b = console.keyboard_string[sizeof("attr") + name_len + 1];
 	
-	uint32_t current_device = 0x30000 + (0x10000 * (console.promptString[0] - 'A' + 1));
-	// Check virtual storage
-	if (console.promptString[0] == '/') current_device = _VIRTUAL_STORAGE_ADDRESS__;
+	// Check the volume header of the current device
+	uint32_t current_device = set_device_scope();
 	
-	uint32_t device_start   = current_device + SECTOR_SIZE;
+	if (fs.device_check_header(current_device - SECTOR_SIZE) == 0) {
+		console.print(msg_device_not_ready, sizeof(msg_device_not_ready));
+		console.printLn();
+		return;
+	}
+	
+	uint32_t device_start   = current_device;
 	uint32_t device_end     = current_device + DEVICE_CAPACITY;
 	
 	uint8_t attribute[4];

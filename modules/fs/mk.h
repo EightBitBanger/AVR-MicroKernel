@@ -21,6 +21,15 @@ void command_mk(uint8_t, uint8_t&, uint8_t&, uint8_t&, uint8_t&) {
 	storageDevice = (Device)get_func_address(_MASS_STORAGE__, sizeof(_MASS_STORAGE__));
 	if (storageDevice == 0) return;
 	
+	// Check the volume header of the current device
+	uint32_t current_device = set_device_scope();
+	
+	if (fs.device_check_header(current_device - SECTOR_SIZE) == 0) {
+		console.print(msg_device_not_ready, sizeof(msg_device_not_ready));
+		console.printLn();
+		return;
+	}
+	
 	WrappedPointer pointer;
 	
 	// Clear the storage filename reference
