@@ -1,8 +1,6 @@
 //
 // Storage format function
 
-#define _FORMAT_MULTIPLIER__   1024
-
 char in_prog_str[] = "Formatting device...";
 
 void command_fdisk(uint8_t, uint8_t&, uint8_t&, uint8_t&, uint8_t&);
@@ -29,12 +27,6 @@ void command_fdisk(uint8_t, uint8_t&, uint8_t&, uint8_t&, uint8_t&) {
 	// Check the volume header of the current device
 	uint32_t current_device = set_device_scope();
 	
-	if (fs.device_check_header(current_device - SECTOR_SIZE) == 0) {
-		console.print(msg_device_not_ready, sizeof(msg_device_not_ready));
-		console.printLn();
-		return;
-	}
-	
 	uint8_t param0 = console.keyboard_string[sizeof("fdisk")];
 	uint8_t param1 = console.keyboard_string[sizeof("fdisk") + 1];
 	
@@ -50,7 +42,7 @@ void command_fdisk(uint8_t, uint8_t&, uint8_t&, uint8_t&, uint8_t&) {
 		
 		char in_prog_str[] = "Capacity ";
 		console.print(in_prog_str, sizeof(in_prog_str));
-		console.printInt(moduleLoaderFormat.format_size * _FORMAT_MULTIPLIER__);
+		console.printInt(moduleLoaderFormat.format_size * 1024);
 		console.printLn();
 		
 		return;
@@ -59,29 +51,27 @@ void command_fdisk(uint8_t, uint8_t&, uint8_t&, uint8_t&, uint8_t&) {
 	// Format a target device
 	if ((param0 == '-') & (param1 == 'f')) {
 		
-		// Format the storage device
 		WrappedPointer pointer;
 		uint8_t write_counter = 0;
 		
-		uint32_t base_address=0;
+		write_counter=0;
 		
-		// Storage device address
-		if ((param2 > 0x60) & (param2 < 0x7b))
-			base_address = (0x30000 + (0x10000 * (param2 - 0x60)));
-		
-		// Virtual storage address
-		if (param2 == '/') base_address = _VIRTUAL_STORAGE_ADDRESS__;
-		
-		// No device selected
-		if (base_address == 0) {
-			console.print(msg_device_not_found, sizeof(msg_device_not_found));
+		if (((param2 < 'a') | (param2 > 'e')) & param2 != '/') {
+			console.print(msg_device_not_ready, sizeof(msg_device_not_ready));
+			console.printLn();
 			return;
 		}
 		
 		console.print(in_prog_str, sizeof(in_prog_str));
 		console.printLn();
 		
-		for (uint32_t i=base_address; i < base_address + (moduleLoaderFormat.format_size * _FORMAT_MULTIPLIER__); i++) {
+		if (param2 == '/') {
+			current_device = _VIRTUAL_STORAGE_ADDRESS__;
+		} else {
+			current_device = 0x40000 + (0x10000 * (param2 - 'a'));
+		}
+		
+		for (uint32_t i=current_device; i < current_device + (moduleLoaderFormat.format_size * 1024); i++) {
 			
 			uint8_t byte = 0x20; // Sector state flag
 			uint8_t flag = 0x00; // Sector data byte
@@ -103,10 +93,7 @@ void command_fdisk(uint8_t, uint8_t&, uint8_t&, uint8_t&, uint8_t&) {
 		
 		for (uint8_t i=0; i < sizeof(header); i++) {
 			
-			fs.write(i + base_address, header[i]);
-			
-			// 32 byte page counter
-			if (write_counter >= 31) {write_counter=0; _delay_ms(5);} else {write_counter++;}
+			fs.write(i + current_device, header[i]); eeprom_wait_state();
 			
 		}
 		

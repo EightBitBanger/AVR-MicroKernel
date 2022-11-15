@@ -15,7 +15,7 @@ void command_cd(uint8_t, uint8_t&, uint8_t&, uint8_t&, uint8_t&) {
 	string_lower(string, 1);
 	param0 = string[0];
 	
-	if ((string[0] >= 'a') & (string[0] < 'a' + _HARDWARE_SLOT_COUNT__)) 
+	if ((string[0] >= 'a') & (string[0] < ('a' + _HARDWARE_SLOT_COUNT__))) 
 		console.promptString[0] = (string[0] - 0x20);
 	
 	if (string[0] == '/') console.promptString[0] = '/';

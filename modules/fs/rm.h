@@ -9,7 +9,7 @@ void command_rm(uint8_t, uint8_t&, uint8_t&, uint8_t&, uint8_t&) {
 	
 	uint32_t current_device = set_device_scope();
 	
-	if (fs.device_check_header(current_device - SECTOR_SIZE) == 0) {
+	if (device_check_header(_MASS_STORAGE__, current_device) == 0) {
 		console.print(msg_device_not_ready, sizeof(msg_device_not_ready));
 		console.printLn();
 		return;
@@ -23,12 +23,6 @@ void command_rm(uint8_t, uint8_t&, uint8_t&, uint8_t&, uint8_t&) {
 	for (uint8_t a=0; a < _MAX_KEYBOARD_STRING_LENGTH__ - sizeof("rm"); a++) {
 		
 		filename[a] = console.keyboard_string[sizeof("rm") + a];
-	}
-	
-	if (file_get_attribute(filename, 2) != 'w') {
-		console.print(msg_file_write_protected, sizeof(msg_file_write_protected));
-		console.printLn();
-		return;
 	}
 	
 	if (file_delete(filename) == 0) {

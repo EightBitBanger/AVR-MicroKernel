@@ -1,9 +1,9 @@
 #ifndef __HARDWARE_DETECTION_
 #define __HARDWARE_DETECTION_
 
-#define  _HARDWARE_ADDRESS_BEGIN__    0x40000    // Starting address slot
-#define  _HARDWARE_ADDRESS_STRIDE__   0x10000    // Address width per slot
-#define  _HARDWARE_SLOT_COUNT__       5          // Number of on board slots
+#define  _HARDWARE_ADDRESS_BEGIN__    0x40000    // Starting address of the first peripheral
+#define  _HARDWARE_ADDRESS_STRIDE__   0x10000    // Address width per peripheral slot
+#define  _HARDWARE_SLOT_COUNT__       5          // Number of peripheral slots
 
 
 // Recognized device categories

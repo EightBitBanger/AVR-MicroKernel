@@ -134,20 +134,15 @@ void eventKeyboardEnter(void) {
 		// Check change device focus
 		if ((console.keyboard_string[1] == ':') & (console.keyboard_string[2] == 0x20)) {
 			
-			uint8_t new_device = console.keyboard_string[0];
-			
 			// Lower case
-			char string[1];
-			string[0] = new_device;
-			string_lower(string, 1);
-			new_device = string[0];
+			string_lower(console.keyboard_string, 1);
 			
 			// Device letter
-			if ((new_device >= 'a') & (new_device <= 'e'))
-				console.promptString[0] = (new_device - 0x20);
+			if ((console.keyboard_string[0] >= 'a') & (console.keyboard_string[0] < ('a' + _HARDWARE_SLOT_COUNT__)))
+				console.promptString[0] = (console.keyboard_string[0] - 0x20);
 			
 			// Special device
-			if (new_device == '/') 
+			if (console.keyboard_string[0] == '/') 
 				console.promptString[0] = '/';
 			
 			console.clearKeyboardString();
@@ -188,12 +183,14 @@ void eventKeyboardEnter(void) {
 			return;
 		}
 		
+		// Dont run file if name starts with space
 		if (console.keyboard_string[0] == 0x20) {
 			console.clearKeyboardString();
 			console.printPrompt();
 			return;
 		}
 		
+		// Run the program
 		emulation_test_scrpt();
 		
 	}
@@ -253,4 +250,3 @@ void eventKeyboardAcceptChar(uint8_t new_char) {
 	
 	return;
 }
-

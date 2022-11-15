@@ -15,7 +15,7 @@ void command_copy(uint8_t, uint8_t&, uint8_t&, uint8_t&, uint8_t&) {
 	// Check the volume header of the current device
 	uint32_t current_device = set_device_scope();
 	
-	if (fs.device_check_header(current_device - SECTOR_SIZE) == 0) {
+	if (device_check_header(_MASS_STORAGE__, current_device) == 0) {
 		console.print(msg_device_not_ready, sizeof(msg_device_not_ready));
 		console.printLn();
 		return;
@@ -55,107 +55,66 @@ void command_copy(uint8_t, uint8_t&, uint8_t&, uint8_t&, uint8_t&) {
 		
 	}
 	
-	// Check if the destination file already exists
-	uint32_t destination_file_size = file_get_size(file_dest);
+	uint8_t old_prompt_string = console.promptString[0];
 	
-	if (destination_file_size != 0) {
-		console.print(msg_file_already_exists, sizeof(msg_file_already_exists));
+	// Check if the source file exists
+	if (file_open(file_source) == 0) {
+		console.print(msg_file_not_found, sizeof(msg_file_not_found));
 		console.printLn();
 		return;
 	}
 	
-	// Get source file size
-	uint32_t file_size = file_get_size(file_source);
+	uint32_t src_address = fs.file_address;
+	uint32_t src_size = fs.file_size;
 	
 	// Get source file attributes
-	uint8_t attribute[4];
-	for (uint8_t i=0; i < 4; i++) 
-		attribute[i] = file_get_attribute(file_source, i);
+	uint8_t attributes[4];
+	for (uint8_t i=0; i < 4; i++)
+		fs.read(fs.file_address + 15 + i, (char&)attributes[i]);
 	
-	// Check if the source file does not exist
-	if (file_size == 0) {
-		
-		console.print(msg_file_not_found, sizeof(msg_file_not_found));
-		console.printLn();
-		
+	// Check destination device
+	uint8_t file_state=0;
+	if (file_dest[1] == ':') {
+		console.promptString[0] = file_dest[0];
+		file_state = file_open(file_source);
+		if (file_state == 0) file_create(file_source, src_size, attributes);
 	} else {
-		
-		// Check memory buffer size
-		if (file_size > MAX_COPY_BUFFER) {
-			console.print(msg_file_too_large, sizeof(msg_file_too_large));
-			console.printLn();
-			return;
-		}
-		
-		// Allocate a copy buffer on the stack
-		uint32_t buffer_ptr;
-		buffer_ptr = exMem.stack_push(MAX_COPY_BUFFER);
-		
-		// Open the source file
-		if (file_open(file_source) != 0) {
-			
-			for (uint32_t i=0; i <= (file_size + (SECTOR_SIZE - 1)); i++) {
-				
-				char buffer_byte;
-				file_read_byte(i, buffer_byte);
-				
-				// Copy data to the buffer
-				exMem.write(buffer_ptr + i, buffer_byte);
-				
-			}
-			
-		}
-		
-		// Set file size
-		WrappedPointer pointer;
-		pointer.address = file_size;
-		
-		uint8_t old_prompt_char;
-		uint8_t return_value=0;
-		
-		// Check destination device scope
-		if (file_dest[1] == ':') {
-			old_prompt_char = console.promptString[0];
-			console.promptString[0] = file_dest[0];
-			
-			file_create(file_source, pointer.address, attribute);
-			return_value = file_open(file_source);
-		} else {
-			file_create(file_dest, pointer.address, attribute);
-			return_value = file_open(file_dest);
-		}
-		
-		if (return_value != 0) {
-			
-			// Set the file attributes
-			for (uint8_t i=0; i < 4; i++)
-				file_set_attribute(file_source, attribute[i], i);
-			
-			// Paste the buffer data to the new file
-			for (uint32_t i=0; i <= (file_size + (SECTOR_SIZE - 1)); i++) {
-				
-				char buffer_byte;
-				exMem.read(buffer_ptr + i, buffer_byte);
-				
-				file_write_byte(i, buffer_byte);
-				
-			}
-		}
-		
-		// Reset current directory
-		if (file_dest[1] == ':') {console.promptString[0] = old_prompt_char;}
-		
-		uint8_t blank_byte = 0x20;
-		for (uint8_t a=0; a < 10; a++)
-			call_extern(storageDevice, a, blank_byte);
-		
-		exMem.stack_pop(MAX_COPY_BUFFER);
-		
+		file_state = file_open(file_dest);
+		if (file_state == 0) file_create(file_dest, src_size, attributes);
 	}
 	
+	// Check if the destination file exists
+	if (file_state == 1) {
+		console.promptString[0] = old_prompt_string;
+		console.print(msg_file_already_exists, sizeof(msg_file_already_exists));
+		console.printLn();
+		return;
+	}
+	uint32_t dest_address = fs.file_address;
 	
+	// Allocate copy buffer
+	char buffer[src_size];
+	
+	// Copy source file data
+	console.promptString[0] = old_prompt_string;
+	file_open(file_source);
+	for (uint32_t i=0; i < src_size; i++) 
+		file_read_byte(i, buffer[i]);
+	
+	if (file_dest[1] == ':') {
+		console.promptString[0] = file_dest[0];
+		file_open(file_source);
+	} else {
+		console.promptString[0] = old_prompt_string;
+		file_open(file_dest);
+	}
+	
+	// Write data to the destination
+	for (uint32_t i=0; i < src_size; i++) 
+	    file_write_byte(i, buffer[i]);
+	
+	console.promptString[0] = old_prompt_string;
 	return;
 }
 
 #endif
-

@@ -25,7 +25,7 @@
 #define _CONTROL_READ_LATCH__       0b00110100
 #define _CONTROL_WRITE_LATCH__      0b00110101
 #define _CONTROL_OPEN_LATCH__       0b00111111
-
+#define _CONTROL_CLOSED_LATCH__     0b00111101
 
 
 
@@ -167,9 +167,9 @@ void bus_read_byte(Bus& bus, uint32_t address, char& buffer) {
 	// Address the device
 	_BUS_LOWER_DIR__ = 0xff;
 	
-	_BUS_LOWER_OUT__  = (address & 0xff);
-	_BUS_MIDDLE_OUT__ = (address >> 8);
 	_BUS_UPPER_OUT__  = (address >> 16);
+	_BUS_MIDDLE_OUT__ = (address >> 8);
+	_BUS_LOWER_OUT__  = (address & 0xff);
 	
 	_CONTROL_OUT__ = _CONTROL_OPEN_LATCH__;
 	_CONTROL_OUT__ = _CONTROL_READ_LATCH__;
@@ -187,10 +187,12 @@ void bus_read_byte(Bus& bus, uint32_t address, char& buffer) {
 	// Read the data byte
 	buffer = _BUS_LOWER_IN__;
 	
-	// End read cycle
-	_BUS_UPPER_OUT__ = 0xff;
+	// End cycle
 	_CONTROL_OUT__ = _CONTROL_OPEN_LATCH__;
-	_CONTROL_OUT__ = _CONTROL_WRITE_LATCH__;
+	_BUS_UPPER_OUT__  = 0xc0;
+	_BUS_MIDDLE_OUT__ = 0x00;
+	_BUS_LOWER_OUT__  = 0x00;
+	_CONTROL_OUT__ = _CONTROL_CLOSED_LATCH__;
 	
 	return;
 }
@@ -201,9 +203,9 @@ void bus_write_byte(Bus& bus, uint32_t address, char byte) {
 	// Address the device
 	_BUS_LOWER_DIR__ = 0xff;
 	
-	_BUS_LOWER_OUT__  = (address & 0xff);
-	_BUS_MIDDLE_OUT__ = (address >> 8);
 	_BUS_UPPER_OUT__  = (address >> 16);
+	_BUS_MIDDLE_OUT__ = (address >> 8);
+	_BUS_LOWER_OUT__  = (address & 0xff);
 	
 	_CONTROL_OUT__ = _CONTROL_OPEN_LATCH__;
 	_CONTROL_OUT__ = _CONTROL_WRITE_LATCH__;
@@ -217,10 +219,12 @@ void bus_write_byte(Bus& bus, uint32_t address, char byte) {
 	for (uint16_t i=0; i<bus.waitstate_write; i++) 
 		asm("nop");
 	
-	// End write cycle
-	_BUS_UPPER_OUT__ = 0xff;
+	// End cycle
 	_CONTROL_OUT__ = _CONTROL_OPEN_LATCH__;
-	_CONTROL_OUT__ = _CONTROL_WRITE_LATCH__;
+	_BUS_UPPER_OUT__  = 0xc0;
+	_BUS_MIDDLE_OUT__ = 0x00;
+	_BUS_LOWER_OUT__  = 0x00;
+	_CONTROL_OUT__ = _CONTROL_CLOSED_LATCH__;
 	
 	return;
 }

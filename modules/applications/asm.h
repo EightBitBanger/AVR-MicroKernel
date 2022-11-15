@@ -128,6 +128,7 @@ void command_asm(uint8_t, uint8_t&, uint8_t&, uint8_t&, uint8_t&) {
 			hex_value = string_get_hex_char(hex_string);
 			
 			moduleLoaderAsm.page_offset = hex_value;
+			moduleLoaderAsm.write_offset = hex_value;
 			
 		}
 		
@@ -151,6 +152,8 @@ void command_asm(uint8_t, uint8_t&, uint8_t&, uint8_t&, uint8_t&) {
 			//console.printLn();
 			
 			moduleLoaderAsm.page_offset += 8;
+			moduleLoaderAsm.write_offset += 8;
+			
 		}
 		
 		return;

@@ -6,8 +6,14 @@
 
 void decodeScanCode(uint8_t scancode_low, uint8_t scancode_high, uint8_t& scan_code);
 
-#define  _KEYBOARD_REGISTER_LO__   0x90000 // Lower keyboard register address
-#define  _KEYBOARD_REGISTER_HI__   0xa0000 // Upper keyboard register address
+
+#ifdef _REV_1_ADDRESS_MAP__
+ #define  _KEYBOARD_REGISTER_LO__   0x90000
+ #define  _KEYBOARD_REGISTER_HI__   0xa0000
+#else
+ #define  _KEYBOARD_REGISTER_LO__   0x90000
+ #define  _KEYBOARD_REGISTER_HI__   0x90001
+#endif
 
 
 struct KeyboardDriver {

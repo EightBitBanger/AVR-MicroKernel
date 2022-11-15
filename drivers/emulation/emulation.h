@@ -1,12 +1,34 @@
 //
 // Simple emulator
 
+// add   0x01 - Add a byte into a register
+// add   0x02 - Add a register into a register
+// sub   0x28 - Subtract a byte from a register
+// sub   0x29 - Subtract a register from a register
+// mul   0xF6 - Multiply a register by a register into a register
+//
+// mov   0xa0 - Move a byte into a register
+// mov   0xa1 - Move a register into a register
+//
+// int   0xcd - Call a software interrupt routine
+//
+// jmp   0xea - Jump unconditionally to the offset
+// je    0xeb - Jump to the offset if AX is equal to BX
+// jl    0xec - Jump to the offset if AX is less than BX
+// jg    0xed - Jump to the offset if AX is greater than BX
+//
+// call  0x9a - Call to a function offset
+// ret   0xc3 - Return from a function call
+//
+// push  0x06 - Push register A onto the stack
+// pop   0x07 - Pop data off the stack into register A
 
 
 #define  rAX  0x00
 #define  rBX  0x01
 #define  rCX  0x02
 #define  rDX  0x03
+#define  rEX  0x04
 
 
 
@@ -38,40 +60,23 @@ void emulation_test_scrpt(void) {
 		flags[b] = 0x00;
 	}
 	
-	// Function not found. Check if the filename exists
-	if ((file_open(console.keyboard_string) != 0) & (console.last_string_length > 1) & (file_get_attribute(console.keyboard_string, 0) == 'x')) {
+	// Open file and check EXECUTABLE attribute
+	char attr = file_get_attribute(console.keyboard_string, 0);
+	uint8_t file_state;
+	
+	file_state = file_open(console.keyboard_string);
+	
+	if ((file_state != 0) & (attr == 'x')) {
 		
-		// add   0x01 - Add a byte into a register
-		// add   0x02 - Add a register into a register
-		// sub   0x28 - Subtract a byte from a register
-		// sub   0x29 - Subtract a register from a register
-		// mul   0xF6 - Multiply a register by a register into a register
-		// 
-		// mov   0xa0 - Move a byte into a register
-		// mov   0xa1 - Move a register into a register
-		// 
-		// int   0xcd - Call a software interrupt routine
-		// 
-		// jmp   0xea - Jump unconditionally to the offset
-		// je    0xeb - Jump to the offset if AX is equal to BX
-		// jl    0xec - Jump to the offset if AX is less than BX
-		// jg    0xed - Jump to the offset if AX is greater than BX
-		// 
-		// call  0x9a - Call to a function offset
-		// ret   0xc3 - Return from a function call
-		// 
-		// push  0x06 - Push register A onto the stack
-		// pop   0x07 - Pop data off the stack into register A
+		char data_byte=0;
 		
 		uint32_t file_start = 0;
-		uint32_t file_end   = file_start + fs.file_size * 32;
+		uint32_t file_end   = file_start + fs.file_size + (SECTOR_SIZE - 1);
 		
-		for (uint32_t ip=file_start; ip <= file_end; ip++) {
+		for (uint32_t ip=file_start; ip <= file_end;) {
 			
-			// Get the op-code
+			// Read the opcode
 			file_read_byte(ip, opcode);
-			
-			
 			
 			// ADD - Add a byte to a register
 			if (opcode == 0x01) {
@@ -102,7 +107,7 @@ void emulation_test_scrpt(void) {
 				continue;
 			}
 			// MUL - Multiply a register by a register into a register
-			if (opcode == 0xF6) {
+			if (opcode == 0xf6) {
 				ip++; file_read_byte(ip, opndA);
 				ip++; file_read_byte(ip, opndB);
 				ip++; file_read_byte(ip, opndC);
@@ -132,7 +137,11 @@ void emulation_test_scrpt(void) {
 			// INT - Interrupt routine
 			if (opcode == 0xcd) {
 				ip++; file_read_byte(ip, opndA);
-				if (software_interrupt_handler( opndA ) == 1) return;
+				if (software_interrupt_handler( opndA ) == 1) {
+					console.clearKeyboardString();
+					console.printLn();
+					return;
+				}
 				continue;
 			}
 			
@@ -218,25 +227,27 @@ void emulation_test_scrpt(void) {
 				continue;
 			}
 			
-			
-			
+			// No opcode shift down
+			ip++;
 		}
 		
 		console.clearKeyboardString();
 		console.printLn();
 		
 	} else {
+		
 		if (console.last_string_length > 1) {
 			console.print("Bad cmd or filename", sizeof("Bad cmd or filename"));
 			console.printLn();
 		}
+		
 	}
 	
 	
 	
 	
 	
-	
+	return;
 }
 
 
@@ -247,46 +258,29 @@ uint8_t software_interrupt_handler(uint8_t interrupt_id) {
 	// INT 20 - Return control
 	if (opndA == 0x20) return 1;
 	
-	
-	
 	// INT 10 - Display
-	if (opndA == 0x10) {
 #ifdef _CONSOLE_DRIVER__
+	if (opndA == 0x10) {
 		call_extern((Device)ConsoleLibraryEntryPoint, reg[rAX], (uint8_t&)reg[rDX]);
-#endif
 		return 0;
 	}
-	
+#endif
 	
 	// INT 16 - Keyboard
-	if (opndA == 0x16) {
 #ifdef _KEYBOARD_HANDLER__
+	if (opndA == 0x16) {
 		call_extern((Device)keyboardDeviceDriverEntryPoint, reg[rAX], (uint8_t&)reg[rBX]);
-#endif
 		return 0;
 	}
-	
+#endif
 	
 	// INT 14 - Network
-	if (opndA == 0x14) {
-		uint8_t network_packet[] = {reg[rAX], reg[rBX], reg[rCX], reg[rDX]};
-		
-		// Send packet
-		uint8_t flag = 0;
-		for (uint8_t i=0; i < sizeof(network_packet);) {	
 #ifdef __NETWORK_INTERFACE_CARD__
-			call_extern((Device)NetworkInterfaceDeviceDriverEntryPoint, 0x01, flag);
-			if (flag == 0) {
-				flag = 0xff;
-				// Write data to the TX frame buffer
-				call_extern((Device)NetworkInterfaceDeviceDriverEntryPoint, 0x04, network_packet[i]);
-				call_extern((Device)NetworkInterfaceDeviceDriverEntryPoint, 0x00, flag);
-				i++;
-			}
-#endif
-		}
-		return 0;
+	if (opndA == 0x14) {
+		call_extern((Device)NetworkInterfaceDeviceDriverEntryPoint, reg[rAX], (uint8_t&)reg[rDX]);// Read the network state flag
 	}
+	
+#endif
 	
 	
 	

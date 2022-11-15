@@ -9,16 +9,16 @@ void command_rn(uint8_t, uint8_t&, uint8_t&, uint8_t&, uint8_t&) {
 	
 	uint32_t current_device = set_device_scope();
 	
-	if (fs.device_check_header(current_device - SECTOR_SIZE) == 0) {
+	if (device_check_header(_MASS_STORAGE__, current_device) == 0) {
 		console.print(msg_device_not_ready, sizeof(msg_device_not_ready));
 		console.printLn();
 		return;
 	}
 	
-	char filenameA[32]; // Source name
-	char filenameB[32]; // New name
+	char filenameA[_MAX_KEYBOARD_STRING_LENGTH__]; // Source name
+	char filenameB[_MAX_KEYBOARD_STRING_LENGTH__]; // New name
 	
-	for (uint8_t i=0; i < 32; i++) {
+	for (uint8_t i=0; i < _MAX_KEYBOARD_STRING_LENGTH__; i++) {
 		filenameA[i] = 0x20;
 		filenameB[i] = 0x20;
 	}
@@ -49,48 +49,10 @@ void command_rn(uint8_t, uint8_t&, uint8_t&, uint8_t&, uint8_t&) {
 		
 	}
 	
-	
-	uint32_t device_start   = current_device;
-	uint32_t device_end     = current_device + DEVICE_CAPACITY;
-	
-	char byte;
-	
-	for (uint32_t i=device_start; i < device_end; i += SECTOR_SIZE) {
-		
-		fs.read(i, byte);
-		
-		if (byte != 0x55) continue; // Only file header sectors
-		
-		// Get current filename
-		char current_file_name[10];
-		for (uint8_t a=0; a < 10; a++)
-			current_file_name[a] = 0x20;
-		
-		for (uint8_t a=0; a < 10; a++)
-			fs.read(i + a + 1, current_file_name[a]);
-		
-		// Compare filenames
-		if (strcmp(current_file_name, filenameA, 10) == 1) {
-			
-			// Check if we can write to this file
-			if (file_get_attribute(filenameA, 2) != 'w') {
-				console.print(msg_file_write_protected, sizeof(msg_file_write_protected));
-				console.printLn();
-				return;
-			}
-			
-			// Write new file name
-			for (uint8_t a=0; a < 10; a++) {
-				fs.write(i + a + 1, (uint8_t&)filenameB[a]); eeprom_wait_state();
-			}
-			
-			return;
-		}
-		
+	if (file_rename(filenameA, filenameB) == 0) {
+		console.print(msg_file_not_found, sizeof(msg_file_not_found));
+		console.printLn();
 	}
-	
-	console.print(msg_file_not_found, sizeof(msg_file_not_found));
-	console.printLn();
 	
 	return;
 }

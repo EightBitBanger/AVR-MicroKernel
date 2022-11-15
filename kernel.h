@@ -1,4 +1,4 @@
-//
+
 // AVR kernel core configuration
 
 #ifndef ____KERNEL_MAIN__
@@ -8,23 +8,27 @@
 #define __CORE_SCHEDULER_           // Include the task scheduler
 #define __HARDWARE_AUTO_DETECT_     // Use hardware auto detection
 
+//#define __BOOT_SAFEMODE_            // Load only the minimal drivers required to boot
+//#define __BOOT_LIGHTWEIGHT_         // Dont load the command modules
+#define __BOOT_FS_SUPPORT_          // Include file system support console functions
+#define __BOOT_NETWORK_SUPPORT_     // Include network support console functions
+#define __BOOT_SYSTEM_FUNCTIONS_    // Include system support console functions
+//#define __BOOT_ROUTER_PROGRAM_      // Run the system as a packet router
 
-//#define __BOOT_SAFEMODE_            // Load only the drivers required to boot
-//#define __BOOT_LIGHTWEIGHT_         // Skip loading the command modules
-#define __BOOT_FS_SUPPORT_          // Include file system support
-#define __BOOT_NETWORK_SUPPORT_     // Include network support
-//#define __BOOT_NETWORK_ROUTER_      // Run packet server/router program
+#define _USE_VIRTUAL_STORAGE__
+#define _VIRTUAL_STORAGE_ADDRESS__  0x10000
+#define _VIRTUAL_STORAGE_SIZE__     0x10000
 
 
 //#define __ARDUINO_BOARD_            // Compile for an Arduino UNO board
 #define __AVR_CUSTOM_BOARD_         // Compile for a custom AVR board
+//#define _REV_1_ADDRESS_MAP__
 
 
 #define _32_BIT_POINTERS__
 //#define _64_BIT_POINTERS__
 
 
-//
 // Kernel memory map
 #define _KERNEL_BEGIN__                    0x00000
 #define _KERNEL_END__                      0x000ff
@@ -63,7 +67,7 @@ char msg_kernel_version[]   = "1.0";
 
 
 void __kernel_initiate(void) {	
-#ifndef __ARDUINO_BOARD_
+#ifdef __AVR_CUSTOM_BOARD_
 	
 	// Initiate the scheduler
 	__scheduler_init_();
@@ -99,6 +103,12 @@ void __kernel_initiate(void) {
 		call_extern(console_device, 0x00, (uint8_t&)msg_kernel_version[i]);
 	call_extern(console_device, 0x01); // New line
 	
+	// Setup the command prompt
+	uint8_t prompt_string[5] = "C>  ";
+	uint8_t prompt_length = 0x02;
+	call_extern(console_device, 0x0e, prompt_length);
+	call_extern(console_device, 0x0f, prompt_string[0], prompt_string[1], prompt_string[2], prompt_string[3]);
+	
 	//
 	// Allocate available external memory
 	memory_device = (Device)get_func_address(_EXTENDED_MEMORY__, sizeof(_EXTENDED_MEMORY__));
@@ -107,7 +117,7 @@ void __kernel_initiate(void) {
 		WrappedPointer total_memory;
 		uint8_t test_byte = 0x55;
 		
-		for (total_memory.address=0x00000; total_memory.address < 0x40000; total_memory.address++) {
+		for (total_memory.address=0x00000; total_memory.address <= 0x3ffff; total_memory.address++) {
 			
 			bus_write_byte(device_bus, total_memory.address, test_byte);
 			bus_read_byte(device_bus, total_memory.address, byte);
@@ -160,47 +170,22 @@ void __kernel_initiate(void) {
 		
 	}
 	
-	// Setup the command prompt
-	uint8_t prompt_string[5] = "/>  ";
-	uint8_t prompt_length = 0x02;
-	call_extern(console_device, 0x0e, prompt_length);
-	call_extern(console_device, 0x0f, prompt_string[0], prompt_string[1], prompt_string[2], prompt_string[3]);
+#ifdef __BOOT_ROUTER_PROGRAM_
+	router_entry_point();
+#endif
 	
-	// Drop a command prompt
-	call_extern(console_device, 0x02); // Print prompt
-	
-	// Speaker beep code
-	speaker_device = (Device)get_func_address(_INTERNAL_SPEAKER__, sizeof(_INTERNAL_SPEAKER__));
-	if (speaker_device != 0) {
-		
-		uint8_t length   = 74;
-		uint8_t tone     = 1;
-		uint8_t beepcode = 1;
-		
-		for (uint8_t i=0; i < beepcode; i++) {
-			call_extern(speaker_device, 0x00, tone, length);
-			_delay_ms(350);
-		}
-		
-	}
-
-#ifndef __BOOT_NETWORK_ROUTER_
-	
-	// Setup the virtual system
+#ifdef _USE_VIRTUAL_STORAGE__
 	intiate_virtual_system();
+#endif
 	
 	// Launch the command console
 	task_create("console", sizeof("console"), keyboard_event_handler, TASK_PRIORITY_REALTIME, TASK_TYPE_SERVICE);
 	
-#else
-	
-	// Loop the network packet re-routing program
-	while(1) 
-		router_entry_point();
-	
 #endif
 	
-#endif
+	// Drop a command prompt
+	call_extern(console_device, 0x02); // Print prompt
+	
 	return;
 }
 

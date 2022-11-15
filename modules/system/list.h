@@ -18,7 +18,6 @@ struct ModuleLoaderList {
 void command_list(uint8_t, uint8_t&, uint8_t&, uint8_t&, uint8_t&) {
 	
 	volatile uint32_t offset_device;
-	volatile uint32_t target_device;
 	
 	uint8_t param0 = console.keyboard_string[sizeof("list")];
 	uint8_t param1 = console.keyboard_string[sizeof("list") + 2];
@@ -57,21 +56,16 @@ void command_list(uint8_t, uint8_t&, uint8_t&, uint8_t&, uint8_t&) {
 	if (param0 == 'r') {
 		if (moduleLoaderList.page_counter > 1)
 		moduleLoaderList.page_counter--;
-		} else {
+	} else {
 		if (moduleLoaderList.page_counter < 0xffff)
 		moduleLoaderList.page_counter++;
 	}
 	
 	// Set target device address
-	if ((console.promptString[0] >= 'A') & (console.promptString[0] < 'F'))
-		target_device = 0x30000 + (0x10000 * (console.promptString[0] - 0x40));
-	
-	if (console.promptString[0] == '/')
-		target_device = _VIRTUAL_STORAGE_ADDRESS__;
-	
-	char byte;
+	uint32_t target_device = set_device_scope();
 	
 	// List data
+	char byte;
 	for (uint8_t i=0; i < 60; i++) {
 		
 		offset_device = target_device + ((moduleLoaderList.page_counter * 60) + (i - 60));
