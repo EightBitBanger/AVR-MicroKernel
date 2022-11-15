@@ -1,16 +1,10 @@
 //
 // Command console system service
 
-#define _SERVICE_NAME__    "console"
-
-
-
 void keyboard_event_handler(void);               // Event handler entry point
 void eventKeyboardEnter(void);                   // Enter function
 void eventKeyboardBackspace(void);               // Backspace function
 void eventKeyboardAcceptChar(uint8_t new_char);  // Accept a character onto the keyboard string of typed characters
-void eventKeyboardShiftPressed(void);            // Shift pressed state
-void eventKeyboardShiftReleased(void);           // Shift pressed state
 
 struct CommandConsoleServiceLauncher {
 	
@@ -24,16 +18,14 @@ struct CommandConsoleServiceLauncher {
 		// Link to the keyboard device driver
 		keyboard_device = (Device)get_func_address(_KEYBOARD_INPUT__, sizeof(_KEYBOARD_INPUT__));
 		
-		task_create(_SERVICE_NAME__, sizeof(_SERVICE_NAME__), keyboard_event_handler, TASK_PRIORITY_REALTIME, TASK_TYPE_SERVICE);
-		
-		// Initiate the current key state
+		// Prevent a key from being accepted on system startup
 		call_extern(keyboard_device, 0x02, scanCodeLow, scanCodeHigh);
 		
 		call_extern(keyboard_device, 0x00, console.lastChar);
 		
 	}
 }static commandConsole;
-#undef _SERVICE_NAME__
+
 
 void keyboard_event_handler(void) {
 	
@@ -72,8 +64,8 @@ void keyboard_event_handler(void) {
 		
 		case 0x01: {eventKeyboardBackspace(); break;}
 		case 0x02: {eventKeyboardEnter(); break;}
-		case 0x11: {eventKeyboardShiftPressed(); break;}
-		case 0x12: {eventKeyboardShiftReleased(); break;}
+		case 0x11: {console.shiftState = 1; break;}
+		case 0x12: {console.shiftState = 0; break;}
 		
 		default: break;
 	}
@@ -83,8 +75,40 @@ void keyboard_event_handler(void) {
 		
 		// Check shift state
 		if (console.shiftState == 1) {
-			if ((currentChar >= 'a') & (currentChar <= 'z'))
-			currentChar -= 0x20;
+			
+			if ((currentChar >= 'a') & (currentChar <= 'z')) {
+				currentChar -= 0x20;
+			} else {
+				switch (currentChar) {
+					
+					case '0': currentChar = ')'; break;
+					case '1': currentChar = '!'; break;
+					case '2': currentChar = '@'; break;
+					case '3': currentChar = '#'; break;
+					case '4': currentChar = '$'; break;
+					case '5': currentChar = '%'; break;
+					case '6': currentChar = '^'; break;
+					case '7': currentChar = '&'; break;
+					case '8': currentChar = '*'; break;
+					case '9': currentChar = '('; break;
+					
+					case '[': currentChar = '{'; break;
+					case ']': currentChar = '}'; break;
+					case 0x5c: currentChar = '|'; break;
+					case ';': currentChar = ':'; break;
+					case 0x27: currentChar = 0x22; break;
+					case ',': currentChar = '<'; break;
+					case '.': currentChar = '>'; break;
+					case '/': currentChar = '?'; break;
+					case '-': currentChar = '_'; break;
+					case '=': currentChar = '+'; break;
+					case '`': currentChar = '~'; break;
+					
+					default: break;
+				}
+				
+			}
+			
 		}
 		
 		eventKeyboardAcceptChar(currentChar);
@@ -96,7 +120,7 @@ void keyboard_event_handler(void) {
 
 void eventKeyboardEnter(void) {
 	
-	console.last_string_length = console.keyboard_string_length+1;
+	console.last_string_length = console.keyboard_string_length + 1;
 	console.keyboard_string_length = 0;
 	
 	if (console.cursorLine == 3) {console.shiftUp();}
@@ -104,8 +128,28 @@ void eventKeyboardEnter(void) {
 	if (console.cursorLine == 1) console.cursorLine++;
 	if (console.cursorLine == 0) {if (console.promptState == 0) {console.promptState++;} else {console.cursorLine++;}}
 	
-	// Execute the function
+	// Check string length
 	if (console.last_string_length > 0) {console.cursorPos=0;
+		
+		// Check change device focus
+		if ((console.keyboard_string[1] == ':') & (console.keyboard_string[2] == 0x20)) {
+			
+			// Lower case
+			string_lower(console.keyboard_string, 1);
+			
+			// Device letter
+			if ((console.keyboard_string[0] >= 'a') & (console.keyboard_string[0] < ('a' + _HARDWARE_SLOT_COUNT__)))
+				console.promptString[0] = (console.keyboard_string[0] - 0x20);
+			
+			// Special device
+			if (console.keyboard_string[0] == '/') 
+				console.promptString[0] = '/';
+			
+			console.clearKeyboardString();
+			console.printPrompt();
+			
+			return;
+		}
 		
 		// Function look up
 		for (uint8_t i=0; i<DEVICE_TABLE_SIZE; i++) {
@@ -133,8 +177,21 @@ void eventKeyboardEnter(void) {
 			console_function = (void(*)(uint8_t, uint8_t&, uint8_t&, uint8_t&, uint8_t&))device_table.table[i];
 			console_function(0x00, nullchar, nullchar, nullchar, nullchar);
 			
-			break;
+			console.clearKeyboardString();
+			console.printPrompt();
+			
+			return;
 		}
+		
+		// Dont run file if name starts with space
+		if (console.keyboard_string[0] == 0x20) {
+			console.clearKeyboardString();
+			console.printPrompt();
+			return;
+		}
+		
+		// Run the program
+		emulation_test_scrpt();
 		
 	}
 	
@@ -193,15 +250,3 @@ void eventKeyboardAcceptChar(uint8_t new_char) {
 	
 	return;
 }
-
-void eventKeyboardShiftPressed(void) {
-	console.shiftState = 1;
-	return;
-}
-
-void eventKeyboardShiftReleased(void) {
-	console.shiftState = 0;
-	return;
-}
-
-

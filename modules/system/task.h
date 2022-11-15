@@ -1,19 +1,8 @@
 //
 // Task command -List running tasks
 
-void command_task(uint8_t, uint8_t&, uint8_t&, uint8_t&, uint8_t&);
-
-#define __MODULE_NAME_  "task"
-
 char msg_task_stopped[]    = "Task stopped";
 char msg_task_not_found[]  = "Task not found";
-
-struct ModuleLoaderTask {
-	ModuleLoaderTask() {
-		load_device(__MODULE_NAME_, sizeof(__MODULE_NAME_), (void(*)())command_task, DEVICE_TYPE_MODULE);
-	}
-}static loadModuleTask;
-
 
 void command_task(uint8_t, uint8_t&, uint8_t&, uint8_t&, uint8_t&) {
 	
@@ -24,8 +13,8 @@ void command_task(uint8_t, uint8_t&, uint8_t&, uint8_t&, uint8_t&) {
 	uint8_t page_counter=0;
 	
 	// Get the parameter from the keyboard string
-	uint8_t param0  = console.keyboard_string[sizeof(__MODULE_NAME_)];
-	uint8_t param1  = console.keyboard_string[sizeof(__MODULE_NAME_) + 2];
+	uint8_t param0  = console.keyboard_string[sizeof("task")];
+	uint8_t param1  = console.keyboard_string[sizeof("task") + 2];
 	
 	// List running processes/services
 	if (param0 == 'l') {
@@ -104,4 +93,3 @@ void command_task(uint8_t, uint8_t&, uint8_t&, uint8_t&, uint8_t&) {
 	return;
 }
 
-#undef __MODULE_NAME_

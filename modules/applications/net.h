@@ -1,15 +1,22 @@
 //
 // Network diagnostic tool
 
+struct Packet {
+	
+	uint8_t start;
+	uint8_t type;
+	uint8_t data;
+	uint8_t stop;
+	
+};
+
 #define _PACKET_START_BYTE__   0x55
 #define _PACKET_TYPE_DATA__    0x00
 #define _PACKET_STOP_BYTE__    0xaa
 
+#define _PACKET_SIZE__        sizeof(Packet)
+
 #define _NETWORK_WAITSTATE__  4000
-
-void net_entry_point(uint8_t, uint8_t&, uint8_t&, uint8_t&, uint8_t&);
-
-#define __MODULE_NAME_  "net"
 
 struct ModuleLoaderNet {
 	
@@ -19,11 +26,11 @@ struct ModuleLoaderNet {
 	
 	ModuleLoaderNet() {
 		
-		waitstate = 0;
+		waitstate = 1; // Initial wait-state
 		baudrate  = 7; // Start at 56k baud
-		byte      = 0;
-	 	
-		load_device(__MODULE_NAME_,  sizeof(__MODULE_NAME_), (void(*)())net_entry_point, DEVICE_TYPE_MODULE);
+		
+		byte=0;
+		
 	}
 }static netModuleLoader;
 
@@ -42,15 +49,13 @@ void net_entry_point(uint8_t, uint8_t&, uint8_t&, uint8_t&, uint8_t&) {
 	uint32_t timeout    = 230000;
 	uint32_t counter    = 0;
 	
-	Device networkDevice;
-	
-	networkDevice = (Device)get_func_address(_NETWORK_INTERFACE__, sizeof(_NETWORK_INTERFACE__));
+	Device networkDevice = (Device)get_func_address(_NETWORK_INTERFACE__, sizeof(_NETWORK_INTERFACE__));
 	if (networkDevice == 0) return;
 	
 	// Get the parameters from the keyboard string
-	uint8_t param0  = console.keyboard_string[sizeof(__MODULE_NAME_)];
-	uint8_t param1  = console.keyboard_string[sizeof(__MODULE_NAME_) + 2];
-	uint8_t param2  = console.keyboard_string[sizeof(__MODULE_NAME_) + 4];
+	uint8_t param0  = console.keyboard_string[sizeof("net")];
+	uint8_t param1  = console.keyboard_string[sizeof("net") + 2];
+	uint8_t param2  = console.keyboard_string[sizeof("net") + 4];
 	
 	
 	//
@@ -103,7 +108,18 @@ void net_entry_point(uint8_t, uint8_t&, uint8_t&, uint8_t&, uint8_t&) {
 		
 		uint8_t packet[] = {_PACKET_START_BYTE__, _PACKET_TYPE_DATA__, param1, _PACKET_STOP_BYTE__};
 		
-		network_send(networkDevice, packet);
+		console.keyboard_string[ console.last_string_length - 1 ] = 0x00;
+		
+		for (uint8_t i=0; i < _MAX_KEYBOARD_STRING_LENGTH__; i++) {
+			
+			packet[2] = console.keyboard_string[sizeof("net") + 2 + i];
+			
+			if (packet[2] == 0x00) break;
+			
+			network_send(networkDevice, packet);
+			
+		}
+		
 		
 		return;
 	}
@@ -118,9 +134,6 @@ void net_entry_point(uint8_t, uint8_t&, uint8_t&, uint8_t&, uint8_t&) {
 			
 			console.clearBuffer();
 			console.setCursorPosition(0, 0);
-			console.cursorLine = 0;
-			console.cursorPos = 0;
-			
 			
 			while(1) {
 				
@@ -318,7 +331,7 @@ void net_entry_point(uint8_t, uint8_t&, uint8_t&, uint8_t&, uint8_t&) {
 	//
 	// No parameters - help anyone ?
 	if (param0 == 0x20) {
-		char help_line_a[] = "net s b - Send";
+		char help_line_a[] = "net s   - Send string";
 		char help_line_b[] = "net r   - Receive";
 		char help_line_c[] = "net c   - Clear";
 		
@@ -335,15 +348,13 @@ void net_entry_point(uint8_t, uint8_t&, uint8_t&, uint8_t&, uint8_t&) {
 	return;
 }
 
-#undef __MODULE_NAME_
-
 
 uint8_t network_send(Device network_device, uint8_t packet_buffer[]) {
 	
 	uint8_t flag = 0;
 	uint8_t byte = 0;
 	
-	for (uint8_t i=0; i <= 3;) {
+	for (uint8_t i=0; i <= _PACKET_SIZE__;) {
 		
 		call_extern(network_device, 0x01, flag);
 		if (flag == 0) {
@@ -369,7 +380,7 @@ uint8_t network_send(Device network_device, uint8_t packet_buffer[]) {
 }
 
 
-uint8_t network_receive(Device network_device, uint8_t packet_buffer[]) {
+uint8_t network_receive(Device network_device, Packet& buffer) {
 	
 	uint8_t flag=0;
 	uint8_t byte=0;
@@ -378,7 +389,7 @@ uint8_t network_receive(Device network_device, uint8_t packet_buffer[]) {
 	uint8_t start_byte=0;
 	uint8_t type_byte=0;
 	uint8_t data_byte=0;
-	uint8_t end_byte=0;
+	uint8_t stop_byte=0;
 	
 	uint8_t address=0;
 	
@@ -390,43 +401,39 @@ uint8_t network_receive(Device network_device, uint8_t packet_buffer[]) {
 			// Extract and check the start byte
 			call_extern(network_device, 0x0a, i, start_byte);
 			
-			if (start_byte == 0x55) {
+			// Extract and check the stop byte
+			address = i + _PACKET_SIZE__;
+			call_extern(network_device, 0x0a, address, stop_byte);
+			
+			if ((start_byte == _PACKET_START_BYTE__) & (stop_byte == _PACKET_STOP_BYTE__)) {
 				
-				// Extract and check the end byte
-				address = i + 3;
-				call_extern(network_device, 0x0a, address, end_byte);
+				// Extract packet type
+				address = i + 1;
+				call_extern(network_device, 0x0a, address, type_byte);
 				
-				if (end_byte == 0xaa) {
-					
-					// Extract the packet type
-					address = i + 1;
-					call_extern(network_device, 0x0a, address, type_byte);
-					
-					// Extract the packet data
-					address = i + 2;
-					call_extern(network_device, 0x0a, address, data_byte);
-					
-					// Reassemble the packet
-					packet_buffer[0] = start_byte;
-					packet_buffer[1] = type_byte;
-					packet_buffer[2] = data_byte;
-					packet_buffer[3] = end_byte;
-					
-					// Clear the packet
-					byte = 0x00;
-					for (uint8_t a=i; a <= (i + 3); a++)
-						call_extern(network_device, 0x09, a, byte);
-					
-					// Zero the RX flag
-					call_extern(network_device, 0x03, flag);
-					if (flag >= 200) {
-						flag = 0;
-						call_extern(network_device, 0x02, flag);
-					}
-					
-					return 1;
+				// Extract packet data
+				address = i + 2;
+				call_extern(network_device, 0x0a, address, data_byte);
+				
+				// Reassemble the packet
+				buffer.start = start_byte;
+				buffer.type  = type_byte;
+				buffer.data  = data_byte;
+				buffer.stop  = stop_byte;
+				
+				// Clear the old packet
+				byte = 0x00;
+				for (uint8_t a=i; a <= (i + _PACKET_SIZE__); a++)
+					call_extern(network_device, 0x09, a, byte);
+				
+				// Zero the RX flag
+				call_extern(network_device, 0x03, flag);
+				if (flag > 200) {
+					flag = 0;
+					call_extern(network_device, 0x02, flag);
 				}
 				
+				return 1;
 			}
 			
 		}

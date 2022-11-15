@@ -4,9 +4,6 @@
 #ifndef __INTERNAL__SPEAKER__
 #define __INTERNAL__SPEAKER__
 
-void SpeakerDriverDeviceDriverEntryPoint(uint8_t, uint8_t&, uint8_t&, uint8_t&, uint8_t&);
-
-
 struct SpeakerDriver {
 	
 	Bus device_bus;
@@ -18,18 +15,14 @@ struct SpeakerDriver {
 		
 		portAddress = 0xd0000;
 		
+		device_bus.waitstate_read  = 0;
+		device_bus.waitstate_write = 0;
+		
 		baseFreq    = 1000;
 		
-		// Load the device driver
-		load_device(_INTERNAL_SPEAKER__, sizeof(_INTERNAL_SPEAKER__), (Driver)SpeakerDriverDeviceDriverEntryPoint, DEVICE_TYPE_DRIVER);
 	}
 	
 	void initiate(void) {
-		
-		char byte;
-		
-		device_bus.waitstate_read  = 0;
-		device_bus.waitstate_write = 0;
 		
 	}
 	

@@ -1,65 +1,61 @@
-//
+
 // AVR kernel core configuration
 
 #ifndef ____KERNEL_MAIN__
 #define ____KERNEL_MAIN__
 
-#define __CORE_MAIN_             // Include core kernel components
-#define __CORE_SCHEDULER_        // Include the task scheduler
-#define __HARDWARE_AUTO_DETECT_  // Use hardware auto detection
+#define __CORE_MAIN_                // Include core kernel components
+#define __CORE_SCHEDULER_           // Include the task scheduler
+#define __HARDWARE_AUTO_DETECT_     // Use hardware auto detection
 
-//#define __BOOT_SAFEMODE_         // Load only the device drivers required to boot
-//#define __BOOT_LIGHTWEIGHT_      // Load minimal device modules
+//#define __BOOT_SAFEMODE_            // Load only the minimal drivers required to boot
+//#define __BOOT_LIGHTWEIGHT_         // Dont load the command modules
+#define __BOOT_FS_SUPPORT_          // Include file system support console functions
+#define __BOOT_NETWORK_SUPPORT_     // Include network support console functions
+#define __BOOT_SYSTEM_FUNCTIONS_    // Include system support console functions
+//#define __BOOT_ROUTER_PROGRAM_      // Run the system as a packet router
 
-//#define __ARDUINO_BOARD_         // Compile for an Arduino
+#define _USE_VIRTUAL_STORAGE__
+#define _VIRTUAL_STORAGE_ADDRESS__  0x10000
+#define _VIRTUAL_STORAGE_SIZE__     0x10000
+
+
+//#define __ARDUINO_BOARD_            // Compile for an Arduino UNO board
+#define __AVR_CUSTOM_BOARD_         // Compile for a custom AVR board
+//#define _REV_1_ADDRESS_MAP__
+
 
 #define _32_BIT_POINTERS__
 //#define _64_BIT_POINTERS__
 
 
-//
 // Kernel memory map
 #define _KERNEL_BEGIN__                    0x00000
-#define _KERNEL_END__                      0x007ff
+#define _KERNEL_END__                      0x000ff
 
 #define _KERNEL_STACK_BEGIN__              0x00100
 
-#define _KERNEL_FUNCTION_TABLE_BEGIN__     0x00000
-#define _KERNEL_FUNCTION_TABLE_SIZE__      0x000ff
-
-#define _KERNEL_STACK_COUNTER__            0x00100
-#define _KERNEL_FLAGS__                    0x00104
+#define _KERNEL_STACK_COUNTER__            0x00000
+#define _KERNEL_FLAGS__                    0x00004
 
 
-// Kernel State flags
+// Kernel States
 #define _KERNEL_STATE_NORMAL__          0x00
 #define _KERNEL_STATE_OUT_OF_MEMORY__   0xa0
 #define _KERNEL_STATE_SEG_FAULT__       0xff
 
-// Message constants
-char msg_kernel_version[]    = "AVR-Kernel 1.0";
 
+char msg_kernel_boot[]      = "AVR-Kernel";
+char msg_kernel_version[]   = "1.0";
 
 // Standard includes
 #include "kernel/std/pointers.h"      // Pointer types
 #include "kernel/std/cstring.h"       // C string functions
 
 // Kernel systems
-#include "kernel/device.h"            // Device resource manager
+#include "kernel/device_table.h"      // Device resource manager
 #include "kernel/scheduler.h"         // Task scheduler
 #include "kernel/bus.h"               // System bus interface
-
-
-// Kernel table initiator
-struct __INITIATE_KERNEL_TABLES_ {
-	__INITIATE_KERNEL_TABLES_() {
-		
-		__extern_initiate();
-		
-		__scheduler_init_();
-		
-	}
-} static __initiate_kernel_tables_;
 
 // Hardware information detection
 #include "kernel/hardware_detection.h"
@@ -70,9 +66,11 @@ struct __INITIATE_KERNEL_TABLES_ {
 #include "services/config.h"
 
 
-
-
-void __kernel_initiate(void) {
+void __kernel_initiate(void) {	
+#ifdef __AVR_CUSTOM_BOARD_
+	
+	// Initiate the scheduler
+	__scheduler_init_();
 	
 	char skip=0;
 	char byte=0;
@@ -81,40 +79,45 @@ void __kernel_initiate(void) {
 	Device speaker_device;
 	Device console_device;
 	
-	WrappedPointer total_memory;
+	// External device bus wait state
 	Bus device_bus;
-	uint8_t test_byte=0x55;
-	
-	// External bus wait state
 	device_bus.waitstate_write = 0;
 	device_bus.waitstate_read  = 2;
 	
+	// Initiate the console
 	console_device = (Device)get_func_address(_COMMAND_CONSOLE__, sizeof(_COMMAND_CONSOLE__));
 	if (console_device == 0) return;
 	
-	// Initiate the console
 	call_extern(console_device, DEVICE_CALL_INITIATE);
-	
 	
 	// Print kernel version information
 	uint8_t pos=0;
 	uint8_t line=0;
 	call_extern(console_device, 0x0a, line, pos);
 	
+	for (uint8_t i=0; i < sizeof(msg_kernel_boot)-1; i++)
+		call_extern(console_device, 0x00, (uint8_t&)msg_kernel_boot[i]);
+	call_extern(console_device, 0x03); // Space
+	
 	for (uint8_t i=0; i < sizeof(msg_kernel_version)-1; i++)
 		call_extern(console_device, 0x00, (uint8_t&)msg_kernel_version[i]);
 	call_extern(console_device, 0x01); // New line
 	
+	// Setup the command prompt
+	uint8_t prompt_string[5] = "C>  ";
+	uint8_t prompt_length = 0x02;
+	call_extern(console_device, 0x0e, prompt_length);
+	call_extern(console_device, 0x0f, prompt_string[0], prompt_string[1], prompt_string[2], prompt_string[3]);
+	
+	//
 	// Allocate available external memory
 	memory_device = (Device)get_func_address(_EXTENDED_MEMORY__, sizeof(_EXTENDED_MEMORY__));
 	if (memory_device != 0) {
 		
-		// Print zero
-		uint8_t zerochar = '0';
-		call_extern(console_device, 0x00, zerochar);
+		WrappedPointer total_memory;
+		uint8_t test_byte = 0x55;
 		
-		// Begin allocating memory
-		for (total_memory.address=0x00000; total_memory.address < 0x40000; total_memory.address++) {
+		for (total_memory.address=0x00000; total_memory.address <= 0x3ffff; total_memory.address++) {
 			
 			bus_write_byte(device_bus, total_memory.address, test_byte);
 			bus_read_byte(device_bus, total_memory.address, byte);
@@ -167,31 +170,21 @@ void __kernel_initiate(void) {
 		
 	}
 	
-	// Setup the command prompt
-	uint8_t prompt_string[5] = "A>  ";
-	uint8_t prompt_length = 0x02;
-	call_extern(console_device, 0x0e, prompt_length);
-	call_extern(console_device, 0x0f, prompt_string[0], prompt_string[1], prompt_string[2], prompt_string[3]);
+#ifdef __BOOT_ROUTER_PROGRAM_
+	router_entry_point();
+#endif
+	
+#ifdef _USE_VIRTUAL_STORAGE__
+	intiate_virtual_system();
+#endif
+	
+	// Launch the command console
+	task_create("console", sizeof("console"), keyboard_event_handler, TASK_PRIORITY_REALTIME, TASK_TYPE_SERVICE);
+	
+#endif
 	
 	// Drop a command prompt
 	call_extern(console_device, 0x02); // Print prompt
-	
-	speaker_device = (Device)get_func_address(_INTERNAL_SPEAKER__, sizeof(_INTERNAL_SPEAKER__));
-	if (speaker_device != 0) {
-		
-		// Beep code
-		uint8_t length   = 74;
-		uint8_t tone     = 1;
-		uint8_t beepcode = 1;
-		
-		// Speaker beep code test
-		for (uint8_t i=0; i < beepcode; i++) {
-			call_extern(speaker_device, 0x00, tone, length);
-			_delay_ms(350);
-		}
-		
-		//if (beepcode > 2) while(1) asm("nop");
-	}
 	
 	return;
 }

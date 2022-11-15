@@ -1,22 +1,10 @@
 #ifndef _COPY_FUNCTION__
 #define _COPY_FUNCTION__
 
-void command_copy(uint8_t, uint8_t&, uint8_t&, uint8_t&, uint8_t&);
+#define MAX_COPY_BUFFER  1024
 
-#define __MODULE_NAME_  "copy"
-
-#define MAX_COPY_BUFFER  512
-
-char msg_file_copied[] = "File copied.";
 char msg_file_cant_copy[] = "File cannot be copied.";
 char msg_file_too_large[] = "File too large.";
-
-struct ModuleLoaderCopy {
-	
-	ModuleLoaderCopy() {
-		load_device(__MODULE_NAME_, sizeof(__MODULE_NAME_), (Module)command_copy, DEVICE_TYPE_MODULE);
-	}
-}static moduleLoaderCopy;
 
 void command_copy(uint8_t, uint8_t&, uint8_t&, uint8_t&, uint8_t&) {
 	
@@ -24,20 +12,29 @@ void command_copy(uint8_t, uint8_t&, uint8_t&, uint8_t&, uint8_t&) {
 	storageDevice = (Device)get_func_address(_MASS_STORAGE__, sizeof(_MASS_STORAGE__));
 	if (storageDevice == 0) return;
 	
-	char filenameA[32]; // Source
-	char filenameB[32]; // Destination
+	// Check the volume header of the current device
+	uint32_t current_device = set_device_scope();
+	
+	if (device_check_header(_MASS_STORAGE__, current_device) == 0) {
+		console.print(msg_device_not_ready, sizeof(msg_device_not_ready));
+		console.printLn();
+		return;
+	}
+	
+	char file_source[32]; // Source name
+	char file_dest[32]; // New name
 	
 	for (uint8_t i=0; i < 32; i++) {
-		filenameA[i] = 0x20;
-		filenameB[i] = 0x20;
+		file_source[i] = 0x20;
+		file_dest[i] = 0x20;
 	}
 	
 	// Split keyboard string names
 	uint8_t swtch=0;
 	uint8_t i=0;
-	for (uint8_t a=0; a < 32; a++) {
+	for (uint8_t a=0; a < _MAX_KEYBOARD_STRING_LENGTH__ - sizeof("copy"); a++) {
 		
-		char str_char = console.keyboard_string[sizeof(__MODULE_NAME_) + a];
+		char str_char = console.keyboard_string[sizeof("copy") + a];
 		
 		if ((str_char == 0x20) & (swtch == 0)) {
 			swtch = 1;
@@ -45,120 +42,79 @@ void command_copy(uint8_t, uint8_t&, uint8_t&, uint8_t&, uint8_t&) {
 			continue;
 		}
 		
-		if (swtch == 0) {filenameA[i] = str_char; i++;}
+		if (swtch == 0) {
+			file_source[i] = str_char;
+			i++;
+		}
 		
 		if (swtch == 1) {
 			if (str_char == 0x20) break;
-			filenameB[i] = str_char;
+			file_dest[i] = str_char;
 			i++;
 		}
 		
 	}
 	
+	uint8_t old_prompt_string = console.promptString[0];
 	
-	// Get destination file size
-	WrappedPointer size_pointer;
-	for (uint8_t a=0; a < 10; a++)
-		call_extern(storageDevice, a, (uint8_t&)filenameB[a]);
-	call_extern(storageDevice, 0x0c, size_pointer.byte_t[0], size_pointer.byte_t[1], size_pointer.byte_t[2], size_pointer.byte_t[3]);
-	uint32_t destination_file_size = size_pointer.address;
-	
-	// Check if the file already exists
-	if (destination_file_size != 0) {
-		console.print(msg_file_exists, sizeof(msg_file_exists));
+	// Check if the source file exists
+	if (file_open(file_source) == 0) {
+		console.print(msg_file_not_found, sizeof(msg_file_not_found));
 		console.printLn();
 		return;
 	}
 	
-	// Get source file size
-	for (uint8_t a=0; a < 10; a++)
-		call_extern(storageDevice, a, (uint8_t&)filenameA[a]);
-	call_extern(storageDevice, 0x0c, size_pointer.byte_t[0], size_pointer.byte_t[1], size_pointer.byte_t[2], size_pointer.byte_t[3]);
-	uint32_t file_size = size_pointer.address;
+	uint32_t src_address = fs.file_address;
+	uint32_t src_size = fs.file_size;
 	
-	// Check if the source file does not exist
-	if (file_size == 0) {
-		console.print(msg_file_not_found, sizeof(msg_file_not_found));
-		console.printLn();
-		
+	// Get source file attributes
+	uint8_t attributes[4];
+	for (uint8_t i=0; i < 4; i++)
+		fs.read(fs.file_address + 15 + i, (char&)attributes[i]);
+	
+	// Check destination device
+	uint8_t file_state=0;
+	if (file_dest[1] == ':') {
+		console.promptString[0] = file_dest[0];
+		file_state = file_open(file_source);
+		if (file_state == 0) file_create(file_source, src_size, attributes);
 	} else {
-		
-		// Check memory buffer size
-		if (file_size > MAX_COPY_BUFFER) {
-			console.print(msg_file_too_large, sizeof(msg_file_too_large));
-			console.printLn();
-			return;
-		}
-		
-		// Copy buffer
-		char buffer[MAX_COPY_BUFFER];
-		
-		// Set file name
-		for (uint8_t a=0; a < 10; a++)
-			call_extern(storageDevice, a, (uint8_t&)filenameA[a]);
-		
-		// Open the source file
-		uint8_t return_value;
-		call_extern(storageDevice, 0x0d, return_value);
-		
-		if (return_value != 0) {
-			
-			// Copy data to the buffer
-			for (uint32_t i=0; i < file_size; i++) {
-				
-				WrappedPointer pointer;
-				pointer.address = i + 32;
-				call_extern(storageDevice, DEVICE_CALL_ADDRESS, pointer.byte_t[0], pointer.byte_t[1], pointer.byte_t[2], pointer.byte_t[3]);
-				
-				call_extern(storageDevice, 0x0f, (uint8_t&)buffer[i]);
-				
-			}
-			
-		}
-		
-		// Set file name
-		for (uint8_t a=0; a < 10; a++)
-			call_extern(storageDevice, a, (uint8_t&)filenameB[a]);
-		
-		// Set file size
-		WrappedPointer pointer;
-		pointer.address = file_size;
-		call_extern(storageDevice, DEVICE_CALL_ADDRESS, pointer.byte_t[0], pointer.byte_t[1], pointer.byte_t[2], pointer.byte_t[3]);
-		
-		// Create the new file
-		call_extern(storageDevice, 0x0a);
-		
-		// Open the destination file
-		call_extern(storageDevice, 0x0d, return_value);
-		
-		if (return_value != 0) {
-			
-			// Paste the buffer data
-			for (uint32_t i=0; i < file_size; i++) {
-				
-				WrappedPointer pointer;
-				pointer.address = i + 32;
-				call_extern(storageDevice, DEVICE_CALL_ADDRESS, pointer.byte_t[0], pointer.byte_t[1], pointer.byte_t[2], pointer.byte_t[3]);
-				
-				call_extern(storageDevice, 0x10, (uint8_t&)buffer[i]);
-				
-			}
-		}
-		
-		uint8_t blank_byte = 0x20;
-		for (uint8_t a=0; a < 10; a++)
-			call_extern(storageDevice, a, blank_byte);
-		
-		console.print(msg_file_copied, sizeof(msg_file_copied));
-		console.printLn();
+		file_state = file_open(file_dest);
+		if (file_state == 0) file_create(file_dest, src_size, attributes);
 	}
 	
+	// Check if the destination file exists
+	if (file_state == 1) {
+		console.promptString[0] = old_prompt_string;
+		console.print(msg_file_already_exists, sizeof(msg_file_already_exists));
+		console.printLn();
+		return;
+	}
+	uint32_t dest_address = fs.file_address;
+	
+	// Allocate copy buffer
+	char buffer[src_size];
+	
+	// Copy source file data
+	console.promptString[0] = old_prompt_string;
+	file_open(file_source);
+	for (uint32_t i=0; i < src_size; i++) 
+		file_read_byte(i, buffer[i]);
+	
+	if (file_dest[1] == ':') {
+		console.promptString[0] = file_dest[0];
+		file_open(file_source);
+	} else {
+		console.promptString[0] = old_prompt_string;
+		file_open(file_dest);
+	}
+	
+	// Write data to the destination
+	for (uint32_t i=0; i < src_size; i++) 
+	    file_write_byte(i, buffer[i]);
+	
+	console.promptString[0] = old_prompt_string;
 	return;
 }
 
-
-#undef __MODULE_NAME_
-
-
 #endif
-

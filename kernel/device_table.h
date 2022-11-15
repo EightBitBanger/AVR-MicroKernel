@@ -5,14 +5,14 @@
 // Device table characteristics
 #define DEVICE_TABLE_SIZE           30  // Device table size
 #define DEVICE_NAME_LENGTH_MAX       8  // Device name length
-// Function calls
-#define DEVICE_CALL_INITIATE      0xff
-#define DEVICE_CALL_SHUTDOWN      0xfe
-#define DEVICE_CALL_ADDRESS       0xfd
-// Types
-#define DEVICE_TYPE_DRIVER        0xfc
-#define DEVICE_TYPE_LIBRARY       0xfb
-#define DEVICE_TYPE_MODULE        0xfa
+// Device function calls
+#define DEVICE_CALL_INITIATE      0xff  // Called when the kernel is started
+#define DEVICE_CALL_SHUTDOWN      0xfe  // Called when the kernel is shutdown
+#define DEVICE_CALL_ADDRESS       0xfd  // Hardware address for the device on the bus
+// Device types
+#define DEVICE_TYPE_DRIVER        0xfc  // Hardware level IO device
+#define DEVICE_TYPE_LIBRARY       0xfb  // Function library
+#define DEVICE_TYPE_MODULE        0xfa  // Command line module
 
 
 typedef void(*Module)();

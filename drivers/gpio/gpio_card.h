@@ -4,9 +4,6 @@
 #ifndef __GPIO_CARD__
 #define __GPIO_CARD__
 
-void GPIOCardDeviceDriverEntryPoint(uint8_t, uint8_t&, uint8_t&, uint8_t&, uint8_t&);
-
-
 struct GPIOCardDriver {
 	
 	Bus device_bus;
@@ -19,16 +16,6 @@ struct GPIOCardDriver {
 		
 		device_bus.waitstate_read  = 8;
 		device_bus.waitstate_write = 8;
-		
-		load_device("GPIO", sizeof("GPIO"), (void(*)())GPIOCardDeviceDriverEntryPoint, DEVICE_TYPE_DRIVER);
-		
-	}
-	
-	void initiate(void) {
-		
-	}
-	
-	void shutdown(void) {
 		
 	}
 	
@@ -45,8 +32,6 @@ void GPIOCardDeviceDriverEntryPoint(uint8_t functionCall, uint8_t& paramA, uint8
 	
 	WrappedPointer pointer;
 	
-	if (functionCall == DEVICE_CALL_INITIATE) {GPIOCardDriver.initiate(); return;}
-	if (functionCall == DEVICE_CALL_SHUTDOWN) {GPIOCardDriver.shutdown(); return;}
 	if (functionCall == 0x00) {GPIOCardDriver.write(GPIOCardDriver.portAddress + paramA, paramB); return;}
 	
 	return;

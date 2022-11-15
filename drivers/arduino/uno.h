@@ -4,25 +4,16 @@
 #ifndef _ARDUINO_UNO_DRIVER__
 #define _ARDUINO_UNO_DRIVER__
 
-#define _DEVICE_DRIVER_NAME__    "uno"
-
 void arduinoUNODeviceDriverEntryPoint(uint8_t, uint8_t&, uint8_t&, uint8_t&, uint8_t&);
 
 struct TemplateDeviceDriver {
 	
 	TemplateDeviceDriver() {
 		
-		load_device(_DEVICE_DRIVER_NAME__, sizeof(_DEVICE_DRIVER_NAME__), (Device)arduinoUNODeviceDriverEntryPoint, DEVICE_TYPE_DRIVER);
-		
 	}
 	
-	void initiate(void) {
-		
-	}
-	
-	void shutdown(void) {
-		
-	}
+	void initiate(void) {}
+	void shutdown(void) {}
 	
 }static arduinoUNODeviceDriver;
 

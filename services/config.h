@@ -1,10 +1,6 @@
 //
 // System service configuration
 
-#ifndef __ARDUINO_BOARD_
-
-#include "console/console.h"        // Command console
-//#include "routing/router.h"
-
-#endif
+#include "virtual_file_system/vfs.h"      // Virtual system abstraction
+#include "console/console.h"              // Command console interface
 
