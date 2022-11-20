@@ -11,10 +11,8 @@ void host_service_call(uint8_t* packet_data);
 void server_host_entry_point(void) {
 	
 	Device networkDevice = (Device)get_func_address(_NETWORK_INTERFACE__, sizeof(_NETWORK_INTERFACE__));
-	if (networkDevice == 0) {
-		console.print(error_driver_error, sizeof(error_driver_error));
+	if (networkDevice == 0) 
 		return;
-	}
 	
 	// Get the parameters from the keyboard string
 	uint8_t param0  = console.keyboard_string[sizeof("server")];
@@ -51,7 +49,23 @@ void server_host_entry_point(void) {
 		
 	}
 	
+	// Check zero address
+	if ((addr_destination[0] == 0x00) & (addr_destination[1] == 0x00)) {
+		char msg_address_invalid[] = "Invalid address";
+		console.print(msg_address_invalid, sizeof(msg_address_invalid));
+		console.printLn();
+		return;
+	}
+	
 	console.print(msg_connecting, sizeof(msg_connecting));
+	console.printLn();
+	console.printSpace();
+	console.printSpace();
+	
+	console.printHex(addr_destination[0]);
+	console.printChar(':');
+	console.printHex(addr_destination[1]);
+	
 	console.printLn();
 	
 	// Handshake as a server device

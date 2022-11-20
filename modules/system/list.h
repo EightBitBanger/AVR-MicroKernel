@@ -62,7 +62,7 @@ void command_list(uint8_t, uint8_t&, uint8_t&, uint8_t&, uint8_t&) {
 	}
 	
 	// Set target device address
-	uint32_t target_device = set_device_scope();
+	uint32_t target_device = fs_set_device_scope();
 	
 	// List data
 	char byte;

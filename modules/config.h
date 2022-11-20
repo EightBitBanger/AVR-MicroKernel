@@ -7,22 +7,21 @@
 #include "fs/rn.h"                 // Rename a file
 #include "fs/cd.h"                 // Change device
 #include "fs/copy.h"               // Copy a file to new file
-#include "fs/fdisk.h"              // Device format
+#include "fs/mkfs.h"               // Create a file system on a device
 #include "fs/attr.h"               // File attributes
 
 #include "system/cls.h"            // Clear the screen
 #include "system/list.h"           // List raw bytes
 #include "system/task.h"           // Task management
 #include "system/port.h"           // GPIO port configuration
-#include "system/device.h"         // Device table configuration
 #include "system/mem.h"            // Memory check
 
 #include "applications/app.h"      // Application test bed
 #include "applications/asm.h"      // Assembly tool
 
-#include "network/net.h"      // Network testing and configuration
-#include "network/server.h"   // Network server host
-#include "network/router.h"   // Network packet router
+#include "network/net.h"           // Network client application
+#include "network/server.h"        // Network server application
+#include "network/router.h"        // Network packet router
 
 
 struct __ModuleLoader__ {
@@ -40,8 +39,9 @@ struct __ModuleLoader__ {
 		load_device("cd", sizeof("cd"), (Module)command_cd, DEVICE_TYPE_MODULE);
 		load_device("copy", sizeof("copy"), (Module)command_copy, DEVICE_TYPE_MODULE);
 		load_device("asm", sizeof("asm"), (Module)command_asm, DEVICE_TYPE_MODULE);
-		load_device("fdisk", sizeof("fdisk"), (Module)command_fdisk, DEVICE_TYPE_MODULE);
 		load_device("attr", sizeof("attr"), (Module)command_attrib, DEVICE_TYPE_MODULE);
+		
+		load_device("mkfs", sizeof("mkfs"), (Module)command_make_fs, DEVICE_TYPE_MODULE);
 		
 #endif
 		
@@ -59,7 +59,6 @@ struct __ModuleLoader__ {
 		load_device("list", sizeof("list"), (Module)command_list, DEVICE_TYPE_MODULE);
 		load_device("task", sizeof("task"), (Module)command_task, DEVICE_TYPE_MODULE);
 		load_device("mem",  sizeof("mem"), (Module)command_memory, DEVICE_TYPE_MODULE);
-		
 		load_device("port", sizeof("port"), (Module)__port_control_, DEVICE_TYPE_MODULE);
 		
 #endif

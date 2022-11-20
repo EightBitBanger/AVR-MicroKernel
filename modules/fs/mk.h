@@ -22,7 +22,7 @@ void command_mk(uint8_t, uint8_t&, uint8_t&, uint8_t&, uint8_t&) {
 	if (storageDevice == 0) return;
 	
 	// Check the volume header of the current device
-	uint32_t current_device = set_device_scope();
+	uint32_t current_device = fs_set_device_scope();
 	
 	if (device_check_header(_MASS_STORAGE__, current_device) == 0) {
 		console.print(msg_device_not_ready, sizeof(msg_device_not_ready));
@@ -51,13 +51,17 @@ void command_mk(uint8_t, uint8_t&, uint8_t&, uint8_t&, uint8_t&) {
 		filename[name_length] = str_char;
 	}
 	
+	
 	if ((filename[0] == '-') & (filename[1] == 's')) {
-		
-		char msg_file_size[] = "Size 0x";
 		
 		char hex_string[2] = {'0', '0'};
 		uint8_t char_b = console.keyboard_string[sizeof("mk") + 3];
 		uint8_t char_a = console.keyboard_string[sizeof("mk") + 4];
+		
+		if ((char_a == ' ') & (char_b != ' ')) {
+			char_a = char_b;
+			char_b = '0';
+		}
 		
 		if ((((char_a >= '0') & (char_a <= '9')) | ((char_a >= 'a') & (char_a <= 'f'))) |
 		(((char_b >= '0') & (char_b <= '9')) | ((char_b >= 'a') & (char_b <= 'f')))) {
@@ -65,18 +69,15 @@ void command_mk(uint8_t, uint8_t&, uint8_t&, uint8_t&, uint8_t&) {
 			hex_string[0] = char_a;
 			hex_string[1] = char_b;
 			
-			if ((char_a != 0) | (char_b != 0)) 
-				__moduleLoaderMk__.file_size = string_get_hex_char(hex_string) * SECTOR_SIZE;
+			__moduleLoaderMk__.file_size = string_get_hex_char(hex_string) * SECTOR_SIZE;
 			
 		}
 		
-		pointer.address = __moduleLoaderMk__.file_size * SECTOR_SIZE;
+		pointer.address = __moduleLoaderMk__.file_size;
 		
+		char msg_file_size[] = "Size ";
 		console.print(msg_file_size, sizeof(msg_file_size));
-		console.printHex(pointer.byte[3]);
-		console.printHex(pointer.byte[2]);
-		console.printHex(pointer.byte[1]);
-		console.printHex(pointer.byte[0]);
+		console.printInt(pointer.address);
 		console.printLn();
 		
 		return;

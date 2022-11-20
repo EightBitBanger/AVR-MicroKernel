@@ -1,7 +1,6 @@
 #ifndef ____DEVICE_RESOURCE_SYSTEM__
 #define ____DEVICE_RESOURCE_SYSTEM__
 
-
 // Device table characteristics
 #define DEVICE_TABLE_SIZE           30  // Device table size
 #define DEVICE_NAME_LENGTH_MAX       8  // Device name length
@@ -20,11 +19,11 @@ typedef void(*Driver)();
 typedef void(*Device)(uint8_t, uint8_t&, uint8_t&, uint8_t&, uint8_t&);
 
 // Load a device onto the device table
-uint8_t load_device(const char* name, uint8_t name_length, void(*device_pointer)(), uint8_t type);
+uint8_t load_device(const char* name, uint8_t name_length, void(*device_pointer)(), uint8_t device_type);
 // Unload a device from the table
 uint8_t free_device(const char* name, uint8_t name_length);
 // Get a device entry pointer by its name (Note: slow)
-Module get_func_address(const char* device_name, uint8_t name_length);
+void* get_func_address(const char* device_name, uint8_t name_length);
 // Call a device function pointer with the given parameter(s)
 void call_extern(Device device_pointer, uint8_t function_call, uint8_t& paramA, uint8_t& paramB, uint8_t& paramC, uint8_t& paramD);
 
@@ -47,7 +46,7 @@ struct DeviceTable {
 }volatile static device_table;
 
 
-uint8_t load_device(const char* name, uint8_t name_length, void(*device_pointer)(), uint8_t type) {
+uint8_t load_device(const char* name, uint8_t name_length, void(*device_pointer)(), uint8_t device_type) {
 	
 	if (name_length > DEVICE_NAME_LENGTH_MAX)
 		name_length = DEVICE_NAME_LENGTH_MAX;
@@ -58,7 +57,7 @@ uint8_t load_device(const char* name, uint8_t name_length, void(*device_pointer)
 	
 	if (free_index == DEVICE_TABLE_SIZE) return 0;
 	
-	device_table.type[free_index] = type;
+	device_table.type[free_index] = device_type;
 	
 	for (uint8_t i=0; i < name_length-1; i++)
 		device_table.name[free_index][i] = name[i];
@@ -78,10 +77,10 @@ uint8_t free_device(const char* name, uint8_t name_length) {
 	for (uint8_t index=0; index < DEVICE_TABLE_SIZE; index++) {
 		
 		uint8_t i;
-		for (i=0; i < name_length; i++) 
+		for (i=0; i < name_length-1; i++) 
 			if (name[i] != device_table.name[index][i]) break;
 		
-		if (i == name_length) {
+		if (i == name_length-1) {
 			
 			device_table.type[index] = 0x00;
 			
@@ -90,8 +89,6 @@ uint8_t free_device(const char* name, uint8_t name_length) {
 			
 			device_table.table[index] = 0;
 			
-		} else {
-			return 0;
 		}
 		
 	}
@@ -100,7 +97,7 @@ uint8_t free_device(const char* name, uint8_t name_length) {
 }
 
 
-Module get_func_address(const char* device_name, uint8_t name_length) {
+void* get_func_address(const char* device_name, uint8_t name_length) {
 	
 	if (name_length > DEVICE_NAME_LENGTH_MAX)
 		name_length = DEVICE_NAME_LENGTH_MAX;
@@ -116,11 +113,11 @@ Module get_func_address(const char* device_name, uint8_t name_length) {
 		}
 		
 		if (count == name_length-1)
-		return (Module)device_table.table[i];
+		return (void*)device_table.table[i];
 		
 	}
 	
-	return (Module) nullptr;
+	return (void*) nullptr;
 }
 
 

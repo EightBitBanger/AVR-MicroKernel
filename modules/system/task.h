@@ -19,7 +19,7 @@ void command_task(uint8_t, uint8_t&, uint8_t&, uint8_t&, uint8_t&) {
 	// List running processes/services
 	if (param0 == 'l') {
 		
-		for (uint8_t i=0; i<PROCESS_LIST_SIZE; i++) {
+		for (uint8_t i=0; i<TASK_LIST_SIZE; i++) {
 			
 			if (proc_info.name[i][0] == 0x20) continue;
 			
@@ -41,7 +41,7 @@ void command_task(uint8_t, uint8_t&, uint8_t&, uint8_t&, uint8_t&) {
 				console.printSpace();
 			}
 			
-			for (uint8_t a=0; a < PROCESS_NAME_LENGTH_MAX; a++) {
+			for (uint8_t a=0; a < TASK_NAME_LENGTH_MAX; a++) {
 				uint8_t nameChar = proc_info.name[i][a];
 				if (nameChar == 0x20) break;
 				console.printChar(nameChar);

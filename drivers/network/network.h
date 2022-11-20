@@ -218,26 +218,18 @@ uint8_t network_receive(Device network_device, NetworkPacket& buffer) {
 			continue;
 		
 		buffer.start = _PACKET_START_BYTE__;
+		
+		// Set the packet addresses
 		address = i + 1;  networkInterfaceDriver.readRXbuffer(address, buffer.addr_d[0]);
 		address = i + 2;  networkInterfaceDriver.readRXbuffer(address, buffer.addr_d[1]);
 		address = i + 3;  networkInterfaceDriver.readRXbuffer(address, buffer.addr_s[0]);
 		address = i + 4;  networkInterfaceDriver.readRXbuffer(address, buffer.addr_s[1]);
-		address = i + 5;  networkInterfaceDriver.readRXbuffer(address, buffer.data[0]);
-		address = i + 6;  networkInterfaceDriver.readRXbuffer(address, buffer.data[1]);
-		address = i + 7;  networkInterfaceDriver.readRXbuffer(address, buffer.data[2]);
-		address = i + 8;  networkInterfaceDriver.readRXbuffer(address, buffer.data[3]);
-		address = i + 9;  networkInterfaceDriver.readRXbuffer(address, buffer.data[4]);
-		address = i + 10; networkInterfaceDriver.readRXbuffer(address, buffer.data[5]);
-		address = i + 11; networkInterfaceDriver.readRXbuffer(address, buffer.data[6]);
-		address = i + 12; networkInterfaceDriver.readRXbuffer(address, buffer.data[7]);
-		address = i + 13; networkInterfaceDriver.readRXbuffer(address, buffer.data[8]);
-		address = i + 14; networkInterfaceDriver.readRXbuffer(address, buffer.data[9]);
-		address = i + 15; networkInterfaceDriver.readRXbuffer(address, buffer.data[10]);
-		address = i + 16; networkInterfaceDriver.readRXbuffer(address, buffer.data[11]);
-		address = i + 17; networkInterfaceDriver.readRXbuffer(address, buffer.data[12]);
-		address = i + 18; networkInterfaceDriver.readRXbuffer(address, buffer.data[13]);
-		address = i + 19; networkInterfaceDriver.readRXbuffer(address, buffer.data[14]);
-		address = i + 20; networkInterfaceDriver.readRXbuffer(address, buffer.data[15]);
+		
+		// Packet data
+		for (uint8_t a=0; a < 16; a++) {
+			networkInterfaceDriver.readRXbuffer(i + a + 5, buffer.data[a]);
+		}
+		
 		buffer.stop = _PACKET_STOP_BYTE__;
 		
 		// Clear the old packet
@@ -265,42 +257,33 @@ uint8_t network_send_handshake(Device network_device, uint8_t device_type, uint8
 	handshake.addr_d[1]  = 0xff;
 	handshake.addr_s[0]  = address_low;  // Our device address
 	handshake.addr_s[1]  = address_high;
-	handshake.data[0]   = 0x55;
+	
+	for (uint8_t i=0; i < 16; i++) 
+		handshake.data[i] = 0x55;
+	
 	handshake.data[1]   = device_type; // Indication of device type
-	handshake.data[2]   = 0x55;
-	handshake.data[3]   = 0x55;
-	handshake.data[4]   = 0x55;
-	handshake.data[5]   = 0x55;
-	handshake.data[6]   = 0x55;
-	handshake.data[7]   = 0x55;
-	handshake.data[8]   = 0x55;
-	handshake.data[9]   = 0x55;
-	handshake.data[10]   = 0x55;
-	handshake.data[11]   = 0x55;
-	handshake.data[12]   = 0x55;
-	handshake.data[13]   = 0x55;
-	handshake.data[14]   = 0x55;
-	handshake.data[15]   = 0x55;
+	
 	handshake.stop      = _PACKET_STOP_BYTE__;
 	
 	network_send(network_device, handshake);
 	
-	uint16_t timeout = 8000;
+	uint16_t timeout = 40;
 	for (uint16_t i=0; i < timeout; i++) {
 		
 		NetworkPacket rec_packet;
 		if (network_receive(network_device, rec_packet) != 0) {
 			
 			if ((rec_packet.addr_s[0] == 0xff) &
-			(rec_packet.addr_s[1] == 0xff) &
-			(rec_packet.data[0] == 0x55) &
-			(rec_packet.data[1] == 0xff) &
-			(rec_packet.data[2] == 0x00)) 
+				(rec_packet.addr_s[1] == 0xff) &
+				(rec_packet.data[0] == 0x55) &
+				(rec_packet.data[1] == 0xff) &
+				(rec_packet.data[2] == 0x00)) {
 				return 1;
+			}
 			
 		}
 		
-		_delay_us(1000);
+		_delay_ms(100);
 		
 		if (i == (timeout-1)) 
 			return 0;

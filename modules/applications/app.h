@@ -28,14 +28,14 @@ void application_entry_point(uint8_t, uint8_t&, uint8_t&, uint8_t&, uint8_t&) {
 	_BUS_UPPER_DIR__ = 0xff;
 	_BUS_UPPER_OUT__ = 0xff;
 	
-	_delay_ms(100);
+	_delay_ms(10);
 	
 	
 	
 	
 	// Start bit
-	_BUS_UPPER_OUT__ &= ~(1 << 7);
-	_BUS_UPPER_OUT__ &= ~(1 << 6); _DELAY_KB__; _BUS_UPPER_OUT__ |= (1 << 6);
+	//_BUS_UPPER_OUT__ &= ~(1 << 7);
+	//_BUS_UPPER_OUT__ &= ~(1 << 6); _DELAY_KB__; _BUS_UPPER_OUT__ |= (1 << 6);
 	
 	// Data packet
 	_BUS_UPPER_OUT__ |= (1 << 7);
@@ -63,12 +63,12 @@ void application_entry_point(uint8_t, uint8_t&, uint8_t&, uint8_t&, uint8_t&) {
 	_BUS_UPPER_OUT__ &= ~(1 << 6); _DELAY_KB__; _BUS_UPPER_OUT__ |= (1 << 6);
 	
 	// Parity bit
-	_BUS_UPPER_OUT__ |= (1 << 7);
-	_BUS_UPPER_OUT__ &= ~(1 << 6); _DELAY_KB__; _BUS_UPPER_OUT__ |= (1 << 6);
+	//_BUS_UPPER_OUT__ |= (1 << 7);
+	//_BUS_UPPER_OUT__ &= ~(1 << 6); _DELAY_KB__; _BUS_UPPER_OUT__ |= (1 << 6);
 	
 	// Stop bit
-	_BUS_UPPER_OUT__ |= (1 << 7);
-	_BUS_UPPER_OUT__ &= ~(1 << 6); _DELAY_KB__; _BUS_UPPER_OUT__ |= (1 << 6);
+	//_BUS_UPPER_OUT__ |= (1 << 7);
+	//_BUS_UPPER_OUT__ &= ~(1 << 6); _DELAY_KB__; _BUS_UPPER_OUT__ |= (1 << 6);
 	
 	
 	
@@ -80,26 +80,9 @@ void application_entry_point(uint8_t, uint8_t&, uint8_t&, uint8_t&, uint8_t&) {
 	_BUS_UPPER_DIR__ = 0x3f;
 	_BUS_UPPER_OUT__ = 0x00;
 	
-	_delay_ms(500);
+	_delay_ms(80);
 	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	//task_create("app", sizeof("app"), application_task, TASK_PRIORITY_NORMAL, TASK_TYPE_USER);
+	task_create("app", sizeof("app"), application_task, TASK_PRIORITY_NORMAL, TASK_TYPE_USER);
 	
 	uint8_t last_char=0;
 	
@@ -111,7 +94,7 @@ void application_entry_point(uint8_t, uint8_t&, uint8_t&, uint8_t&, uint8_t&) {
 		
 		char byteLow, byteHigh;
 		bus_read_byte(device_bus, 0x90000, byteLow);
-		bus_read_byte(device_bus, 0xa0000, byteHigh);
+		bus_read_byte(device_bus, 0x90001, byteHigh);
 		
 		uint8_t current_char = byteLow;
 		

@@ -72,7 +72,7 @@ struct CommandConsole {
 		call_extern(keyboardDriverPtr, 0x00, lastChar);
 		
 		// Link to the display driver
-		displayDriverPtr = (Device)get_func_address(_DISPLAY_CONSOLE__, sizeof(_DISPLAY_CONSOLE__));
+		displayDriverPtr = (Device)get_func_address(_DISPLAY_DEVICE__, sizeof(_DISPLAY_DEVICE__));
 		if (displayDriverPtr == 0) return;
 		//printPrompt();
 		clearKeyboardString();

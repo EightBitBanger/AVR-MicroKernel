@@ -39,10 +39,8 @@ void router_entry_point(void) {
 	Device networkDevice;
 	networkDevice = (Device)get_func_address(_NETWORK_INTERFACE__, sizeof(_NETWORK_INTERFACE__));
 	
-	if (networkDevice == 0) {
-		console.print(error_driver_error, sizeof(error_driver_error));
+	if (networkDevice == 0) 
 		return;
-	}
 	
 	console.setCursorPosition(0, 0);
 	console.clearBuffer();
@@ -83,9 +81,6 @@ void router_entry_point(void) {
 		console.printLn();
 		
 #endif
-		// No zero address packets
-		if ((packet.addr_d[0] == 0x00) & (packet.addr_d[0] == 0x00)) 
-			continue;
 		
 		//
 		// Router handshake packet
@@ -223,8 +218,6 @@ void get_available_network_hardware(void) {
 		console.print(hInfo.device_name, 10);
 		console.printLn();
 		
-		_delay_ms(40);
-		
 		// Set network device address
 		networkInterfaceDriver.device_address = device_address;
 		
@@ -233,8 +226,6 @@ void get_available_network_hardware(void) {
 		uint8_t byte = 0xff;
 		networkInterfaceDriver.writeBaudrate(2);          // 2400 baud
 		networkInterfaceDriver.writeBaudrateFlag(0xff);
-		
-		_delay_ms(40);
 		
 	}
 	return;

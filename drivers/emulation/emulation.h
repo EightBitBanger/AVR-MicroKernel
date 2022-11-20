@@ -2,13 +2,13 @@
 // Simple emulator
 
 // add   0x01 - Add a byte into a register
-// add   0x02 - Add a register into a register
+// addr  0x02 - Add a register into a register
 // sub   0x28 - Subtract a byte from a register
-// sub   0x29 - Subtract a register from a register
+// subr  0x29 - Subtract a register from a register
 // mul   0xF6 - Multiply a register by a register into a register
 //
 // mov   0xa0 - Move a byte into a register
-// mov   0xa1 - Move a register into a register
+// movr  0xa1 - Move a register into a register
 //
 // int   0xcd - Call a software interrupt routine
 //
@@ -23,7 +23,34 @@
 // push  0x06 - Push register A onto the stack
 // pop   0x07 - Pop data off the stack into register A
 
+#ifndef _SOFTWARE_EMULATOR__
+#define _SOFTWARE_EMULATOR__
 
+// Instructions
+#define add  0x01
+#define addr 0x02
+#define sub  0x28
+#define subr 0x29
+#define mul  0xF6
+
+#define mov  0xa0
+#define movr 0xa1
+
+#define INT  0xcd
+
+#define jmp  0xea
+#define je   0xeb
+#define jl   0xec
+#define jg   0xed
+
+#define call 0x9a
+#define ret  0xc3
+
+#define push 0x06
+#define pop  0x07
+
+
+// Registers
 #define  rAX  0x00
 #define  rBX  0x01
 #define  rCX  0x02
@@ -35,13 +62,15 @@
 
 
 
+
 uint8_t software_interrupt_handler(uint8_t interrupt_id);
 
 // Call return pointer
-WrappedPointer call_return;
+uint32_t ip;   // Instruction pointer
+uint32_t rp;   // Return pointer
 
 // Registers
-char reg[31];   // General purpose
+char reg[31];   // General purpose registers
 char flags[31]; // Flags
 
 // Opcode registers
@@ -60,20 +89,23 @@ void emulation_test_scrpt(void) {
 		flags[b] = 0x00;
 	}
 	
-	// Open file and check EXECUTABLE attribute
-	char attr = file_get_attribute(console.keyboard_string, 0);
-	uint8_t file_state;
+	// Reset the instruction pointer
+	ip = 0x00;
 	
+	// Open file and check executable attribute
+	Attribute buffer;
+	file_get_attribute(console.keyboard_string, buffer);
+	
+	uint8_t file_state;
 	file_state = file_open(console.keyboard_string);
 	
-	if ((file_state != 0) & (attr == 'x')) {
+	if ((file_state != 0) & (buffer.Executable == 'x')) {
 		
 		char data_byte=0;
 		
 		uint32_t file_start = 0;
-		uint32_t file_end   = file_start + fs.file_size + (SECTOR_SIZE - 1);
 		
-		for (uint32_t ip=file_start; ip <= file_end;) {
+		while (1) {
 			
 			// Read the opcode
 			file_read_byte(ip, opcode);
@@ -200,14 +232,14 @@ void emulation_test_scrpt(void) {
 				ip++; file_read_byte(ip, pointer.byte[1]);
 				ip++; file_read_byte(ip, pointer.byte[0]);
 				
-				call_return.address = ip;
+				rp = ip;
 				ip = (file_start + pointer.address) - 1;
 				
 				continue;
 			}
 			// Return from a function sub routine
 			if (opcode == 0xc3) {
-				ip = (file_start + call_return.address) - 1;
+				ip = (file_start + rp) - 1;
 				continue;
 			}
 			
@@ -227,7 +259,7 @@ void emulation_test_scrpt(void) {
 				continue;
 			}
 			
-			// No opcode shift down
+			// No opcode shift to the next opcode
 			ip++;
 		}
 		
@@ -255,12 +287,24 @@ void emulation_test_scrpt(void) {
 
 uint8_t software_interrupt_handler(uint8_t interrupt_id) {
 	
+	uint8_t byte;
+	
 	// INT 20 - Return control
 	if (opndA == 0x20) return 1;
 	
 	// INT 10 - Display
 #ifdef _CONSOLE_DRIVER__
 	if (opndA == 0x10) {
+		
+		// Print string
+		if (reg[rAX] == 0x00) {
+			for (uint16_t i=0; i < reg[rCX]; i++) {
+				file_read_byte(reg[rDX] + i, (char&)byte);
+				call_extern((Device)ConsoleLibraryEntryPoint, 0x00, byte);
+			}
+			return 0;
+		}
+		
 		call_extern((Device)ConsoleLibraryEntryPoint, reg[rAX], (uint8_t&)reg[rDX]);
 		return 0;
 	}
@@ -291,6 +335,9 @@ uint8_t software_interrupt_handler(uint8_t interrupt_id) {
 
 
 
+
+
+#endif
 
 
 

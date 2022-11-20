@@ -70,7 +70,23 @@ void net_entry_point(uint8_t, uint8_t&, uint8_t&, uint8_t&, uint8_t&) {
 			
 		}
 		
+		// Check zero address
+		if ((netModuleLoader.addr_destination[0] == 0x00) & (netModuleLoader.addr_destination[1] == 0x00)) {
+			char msg_address_invalid[] = "Invalid address";
+			console.print(msg_address_invalid, sizeof(msg_address_invalid));
+			console.printLn();
+			return;
+		}
+		
 		console.print(msg_connecting, sizeof(msg_connecting));
+		console.printLn();
+		console.printSpace();
+		console.printSpace();
+		
+		console.printHex(netModuleLoader.addr_destination[0]);
+		console.printChar(':');
+		console.printHex(netModuleLoader.addr_destination[1]);
+		
 		console.printLn();
 		
 		// Handshake as a client device
@@ -271,6 +287,10 @@ void net_entry_point(uint8_t, uint8_t&, uint8_t&, uint8_t&, uint8_t&) {
 			console.printLn();
 			return;
 		}
+		
+		char msg_host_active[] = "Connection is active";
+		console.print(msg_host_active, sizeof(msg_host_active));
+		console.printLn();
 		
 		return;
 	}

@@ -24,7 +24,7 @@ void command_attrib(uint8_t, uint8_t&, uint8_t&, uint8_t&, uint8_t&) {
 	uint8_t char_b = console.keyboard_string[sizeof("attr") + name_len + 1];
 	
 	// Check the volume header of the current device
-	uint32_t current_device = set_device_scope();
+	uint32_t current_device = fs_set_device_scope();
 	
 	if (device_check_header(_MASS_STORAGE__, current_device) == 0) {
 		console.print(msg_device_not_ready, sizeof(msg_device_not_ready));
@@ -39,6 +39,8 @@ void command_attrib(uint8_t, uint8_t&, uint8_t&, uint8_t&, uint8_t&) {
 		return;
 	}
 	
+	Attribute buffer;
+	file_get_attribute(filename, buffer);
 	
 	//
 	// Execute | read | write | Extra
@@ -46,26 +48,29 @@ void command_attrib(uint8_t, uint8_t&, uint8_t&, uint8_t&, uint8_t&) {
 	// Add attribute
 	if (char_a == '+') {
 		
-		if (char_b == 'x') file_set_attribute(filename, char_b, 0); eeprom_wait_state();
-		if (char_b == 'r') file_set_attribute(filename, char_b, 1); eeprom_wait_state();
-		if (char_b == 'w') file_set_attribute(filename, char_b, 2); eeprom_wait_state();
+		if (char_b == 'x') buffer.Executable = 'x';
+		if (char_b == 'r') buffer.Read       = 'r';
+		if (char_b == 'w') buffer.Write      = 'w';
 		
 		if ((char_b != 'x') & (char_b != 'r') & (char_b != 'w'))
-			file_set_attribute(filename, char_b, 3); eeprom_wait_state();
+			buffer.Extra = char_b;
+		
+		file_set_attribute(filename, buffer);
 		
 		return;
 	}
 	
 	// Remove attribute
 	if (char_a == '-') {
-		uint8_t zerochar = 0x00;
 		
-		if (char_b == 'x') file_set_attribute(filename, zerochar, 0); eeprom_wait_state();
-		if (char_b == 'r') file_set_attribute(filename, zerochar, 1); eeprom_wait_state();
-		if (char_b == 'w') file_set_attribute(filename, zerochar, 2); eeprom_wait_state();
+		if (char_b == 'x') buffer.Executable = ' ';
+		if (char_b == 'r') buffer.Read       = ' ';
+		if (char_b == 'w') buffer.Write      = ' ';
 		
-		if ((char_b != 'x') & (char_b != 'r') & (char_b != 'w'))
-			file_set_attribute(filename, zerochar, 3); eeprom_wait_state();
+		if ((char_b != 'x') & (char_b != 'r') & (char_b != 'w')) 
+			buffer.Extra = ' ';
+		
+		file_set_attribute(filename, buffer);
 		
 		return;
 	}

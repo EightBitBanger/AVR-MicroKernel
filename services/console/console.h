@@ -191,7 +191,9 @@ void eventKeyboardEnter(void) {
 		}
 		
 		// Run the program
+#ifdef _SOFTWARE_EMULATOR__
 		emulation_test_scrpt();
+#endif
 		
 	}
 	

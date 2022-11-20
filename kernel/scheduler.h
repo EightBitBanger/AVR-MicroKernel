@@ -4,8 +4,8 @@
 #include <avr/interrupt.h>
 
 // Task list
-#define PROCESS_LIST_SIZE              10
-#define PROCESS_NAME_LENGTH_MAX        10
+#define TASK_LIST_SIZE                 10
+#define TASK_NAME_LENGTH_MAX           10
 
 #define TASK_TYPE_USER                 'u' // User task
 #define TASK_TYPE_SERVICE              's' // System service task
@@ -19,7 +19,7 @@
 
 
 #define _SCHEDULER_TCCRxA    2  // 0 - Normal counter and waveform
-                                // 2 - No OC0A, no OC0B, CTC
+                                // 2 - No OC0A, no OC0B, with CTC
 
 #define _SCHEDULER_TCCRxB    4  // 0 - Timer stopped
 							    // 1 - No prescaler
@@ -32,7 +32,8 @@
 							    // 2 - Timer output Compare A Match
 							    // 3 - Timer output Compare B Match
 
-#define _SCHEDULER_OCR     100  // 24,000,000 / 256 / (1 + 93)  = 997Kh
+#define _SCHEDULER_OCR      97  // 24,000,000 / 256 / (1 + 93)  = 997Kh
+                                // 25,000,000 / 256 / (1 + 97)  = 996Kh
 
 
 // Schedule a new task
@@ -49,25 +50,25 @@ static volatile uint32_t timer_ms  = 0;
 
 struct ProcessDescriptorTable {
 	
-	uint8_t  name     [PROCESS_LIST_SIZE][PROCESS_NAME_LENGTH_MAX];
-	uint8_t  type     [PROCESS_LIST_SIZE];
-	uint16_t priority [PROCESS_LIST_SIZE];
-	uint16_t counter  [PROCESS_LIST_SIZE];
-	void   (*table    [PROCESS_LIST_SIZE])();
+	uint8_t  name     [TASK_LIST_SIZE][TASK_NAME_LENGTH_MAX];
+	uint8_t  type     [TASK_LIST_SIZE];
+	uint16_t priority [TASK_LIST_SIZE];
+	uint16_t counter  [TASK_LIST_SIZE];
+	void   (*table    [TASK_LIST_SIZE])();
 	
 }volatile static proc_info;
 
 
 uint8_t task_create(const char* name, uint8_t name_length, void(*task_ptr)(), uint32_t priority, uint8_t type) {
 	
-	if (name_length > PROCESS_NAME_LENGTH_MAX) 
-		name_length = PROCESS_NAME_LENGTH_MAX;
+	if (name_length > TASK_NAME_LENGTH_MAX) 
+		name_length = TASK_NAME_LENGTH_MAX;
 	
 	uint8_t index;
-	for (index=0; index < PROCESS_LIST_SIZE; index++) 
+	for (index=0; index < TASK_LIST_SIZE; index++) 
 		if (proc_info.priority[index] == 0) break;
 	
-	if (index >= PROCESS_LIST_SIZE) return 0;
+	if (index >= TASK_LIST_SIZE) return 0;
 	
 	for (uint8_t a=0; a < name_length-1; a++)
 		proc_info.name[index][a] = name[a];
@@ -85,7 +86,7 @@ uint8_t task_destroy(uint8_t index) {
 	
 	uint8_t PID = index - 1;
 	
-	if (PID > PROCESS_LIST_SIZE) return 0;
+	if (PID > TASK_LIST_SIZE) return 0;
 	if (proc_info.name[PID][0] == 0x20) return 0;
 	
 	proc_info.type[PID]      = 0;
@@ -93,7 +94,7 @@ uint8_t task_destroy(uint8_t index) {
 	proc_info.counter[PID]   = 0;
 	proc_info.table[PID]     = 0;
 	
-	for (uint8_t i=0; i < PROCESS_NAME_LENGTH_MAX; i++)
+	for (uint8_t i=0; i < TASK_NAME_LENGTH_MAX; i++)
 		proc_info.name[PID][i] = 0x20;
 	
 	return 1;
@@ -102,19 +103,19 @@ uint8_t task_destroy(uint8_t index) {
 
 uint8_t get_task_index(const char* name, uint8_t name_length) {
 	
-	if (name_length > PROCESS_NAME_LENGTH_MAX)
-		name_length = PROCESS_NAME_LENGTH_MAX;
+	if (name_length > TASK_NAME_LENGTH_MAX)
+		name_length = TASK_NAME_LENGTH_MAX;
 	
 	char task_name[name_length];
-	for (uint8_t i=0; i < name_length; i++)
+	for (uint8_t i=0; i < name_length-1; i++)
 		task_name[i] = name[i];
 	
-	for (uint8_t index=0; index< PROCESS_LIST_SIZE; index++) {
+	for (uint8_t index=0; index< TASK_LIST_SIZE; index++) {
 		
 		if (proc_info.name[index][0] == 0x20) continue;
 		
 		char list_task_name[name_length];
-		for (uint8_t i=0; i < name_length; i++) 
+		for (uint8_t i=0; i < name_length-1; i++) 
 			list_task_name[i] = proc_info.name[index][i];
 		
 		if (strcmp(task_name, list_task_name, name_length) == 1) 
@@ -131,7 +132,7 @@ ISR (TIMER0_COMPA_vect) {
 	
 	timer_ms++;
 	
-	for (uint8_t PID=0; PID < PROCESS_LIST_SIZE; PID++) {
+	for (uint8_t PID=0; PID < TASK_LIST_SIZE; PID++) {
 		
 		if (proc_info.priority[PID] == 0) continue;
 		
@@ -147,7 +148,7 @@ ISR (TIMER0_COMPA_vect) {
 			
 			case TASK_TYPE_VOLATILE: {
 				
-				for (uint8_t i=0; i < PROCESS_NAME_LENGTH_MAX; i++) 
+				for (uint8_t i=0; i < TASK_NAME_LENGTH_MAX; i++) 
 					proc_info.name[PID][i] = 0x20;
 				
 				proc_info.type[PID]      = 0;
@@ -173,13 +174,13 @@ ISR (TIMER0_COMPA_vect) {
 void __scheduler_init_(void) {
 #ifdef __CORE_SCHEDULER_
 	
-	for (uint8_t i=0; i < PROCESS_LIST_SIZE; i++) {
+	for (uint8_t i=0; i < TASK_LIST_SIZE; i++) {
 		proc_info.type[i]     = 0x00;
 		proc_info.priority[i] = 0x00;
 		proc_info.counter[i]  = 0x00;
 		proc_info.table[i]    = 0;
 		
-		for (uint8_t a=0; a < PROCESS_NAME_LENGTH_MAX; a++)
+		for (uint8_t a=0; a < TASK_NAME_LENGTH_MAX; a++)
 			proc_info.name[i][a] = 0x20;
 	}
 	

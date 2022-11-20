@@ -10,7 +10,7 @@ int main(void) {
 	bus_zero();
 	
 	// Allow the system some time to stabilize
-	_delay_ms(500);
+	_delay_ms(300);
 	
 	// Initiate device drivers
 #ifdef __CORE_MAIN_
