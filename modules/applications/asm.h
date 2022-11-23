@@ -192,8 +192,8 @@ void command_asm(uint8_t, uint8_t&, uint8_t&, uint8_t&, uint8_t&) {
 		
 		while (i<0xffff) {i++;
 			
-			uint8_t file_offset = moduleLoaderAsm.page_offset;
-			file_read_byte(file_offset, byte);
+			file_read_byte(moduleLoaderAsm.page_offset, byte);
+			moduleLoaderAsm.page_offset++;
 			
 			if (asm_decode_instruction(byte) == 1) 
 				break;
@@ -236,8 +236,6 @@ void command_asm(uint8_t, uint8_t&, uint8_t&, uint8_t&, uint8_t&) {
 
 uint8_t asm_decode_instruction(char byte) {
 	
-	uint32_t file_offset;
-	
 	// End of file
 	if (moduleLoaderAsm.page_offset > 0xfd) {
 		moduleLoaderAsm.page_offset == 0xff;
@@ -249,8 +247,6 @@ uint8_t asm_decode_instruction(char byte) {
 		return 1;
 	}
 	
-	moduleLoaderAsm.page_offset++;
-	
 	// ADD  0x01
 	if (byte == 0x01) {
 		console.printHex( moduleLoaderAsm.page_offset - 1 );
@@ -258,21 +254,20 @@ uint8_t asm_decode_instruction(char byte) {
 		
 		console.print("add ", sizeof("add "));
 		
-		file_offset = moduleLoaderAsm.page_offset;
-		file_read_byte(file_offset, byte);
+		file_read_byte(moduleLoaderAsm.page_offset, byte);
 		console.printChar( byte + 'a' ); console.printChar('x');
 		console.printSpace();
 		
 		moduleLoaderAsm.page_offset++;
 		
-		file_offset = moduleLoaderAsm.page_offset;
-		file_read_byte(file_offset, byte);
+		file_read_byte(moduleLoaderAsm.page_offset, byte);
 		console.printHex(byte);
 		
 		moduleLoaderAsm.page_offset++;
 		
 		console.printLn();
 		moduleLoaderAsm.asm_counter++;
+		return 0;
 	}
 	
 	// ADD  0x02
@@ -282,15 +277,13 @@ uint8_t asm_decode_instruction(char byte) {
 		
 		console.print("add ", sizeof("add "));
 		
-		file_offset = moduleLoaderAsm.page_offset;
-		file_read_byte(file_offset, byte);
+		file_read_byte(moduleLoaderAsm.page_offset, byte);
 		console.printChar( byte + 'a' ); console.printChar('x');
 		console.printSpace();
 		
 		moduleLoaderAsm.page_offset++;
 		
-		file_offset = moduleLoaderAsm.page_offset;
-		file_read_byte(file_offset, byte);
+		file_read_byte(moduleLoaderAsm.page_offset, byte);
 		console.printChar( byte + 'a' ); console.printChar('x');
 		console.printSpace();
 		
@@ -298,6 +291,7 @@ uint8_t asm_decode_instruction(char byte) {
 		
 		console.printLn();
 		moduleLoaderAsm.asm_counter++;
+		return 0;
 	}
 	
 	// SUB 0x28
@@ -308,21 +302,20 @@ uint8_t asm_decode_instruction(char byte) {
 		
 		console.print("sub ", sizeof("sub "));
 		
-		file_offset = moduleLoaderAsm.page_offset;
-		file_read_byte(file_offset, byte);
+		file_read_byte(moduleLoaderAsm.page_offset, byte);
 		console.printChar( byte + 'a' ); console.printChar('x');
 		console.printSpace();
 		
 		moduleLoaderAsm.page_offset++;
 		
-		file_offset = moduleLoaderAsm.page_offset;
-		file_read_byte(file_offset, byte);
+		file_read_byte(moduleLoaderAsm.page_offset, byte);
 		console.printHex(byte);
 		
 		moduleLoaderAsm.page_offset++;
 		
 		console.printLn();
 		moduleLoaderAsm.asm_counter++;
+		return 0;
 	}
 	
 	// SUB 0x29
@@ -333,15 +326,13 @@ uint8_t asm_decode_instruction(char byte) {
 		
 		console.print("sub ", sizeof("sub "));
 		
-		file_offset = moduleLoaderAsm.page_offset;
-		file_read_byte(file_offset, byte);
+		file_read_byte(moduleLoaderAsm.page_offset, byte);
 		console.printChar( byte + 'a' ); console.printChar('x');
 		console.printSpace();
 		
 		moduleLoaderAsm.page_offset++;
 		
-		file_offset = moduleLoaderAsm.page_offset;
-		file_read_byte(file_offset, byte);
+		file_read_byte(moduleLoaderAsm.page_offset, byte);
 		console.printChar( byte + 'a' ); console.printChar('x');
 		console.printSpace();
 		
@@ -349,6 +340,7 @@ uint8_t asm_decode_instruction(char byte) {
 		
 		console.printLn();
 		moduleLoaderAsm.asm_counter++;
+		return 0;
 	}
 	
 	// MUL 0xF6
@@ -360,8 +352,7 @@ uint8_t asm_decode_instruction(char byte) {
 		console.print("mul ", sizeof("mul "));
 		
 		for (uint8_t a=0; a < 3; a++) {
-			file_offset = moduleLoaderAsm.page_offset;
-			file_read_byte(file_offset, byte);
+			file_read_byte(moduleLoaderAsm.page_offset, byte);
 			console.printChar( byte + 'a' ); console.printChar('x');
 			console.printSpace();
 			
@@ -370,6 +361,7 @@ uint8_t asm_decode_instruction(char byte) {
 		
 		console.printLn();
 		moduleLoaderAsm.asm_counter++;
+		return 0;
 	}
 	
 	// MOV 0xa0
@@ -380,21 +372,20 @@ uint8_t asm_decode_instruction(char byte) {
 		
 		console.print("mov ", sizeof("mov "));
 		
-		file_offset = moduleLoaderAsm.page_offset;
-		file_read_byte(file_offset, byte);
+		file_read_byte(moduleLoaderAsm.page_offset, byte);
 		console.printChar( byte + 'a' ); console.printChar('x');
 		console.printSpace();
 		
 		moduleLoaderAsm.page_offset++;
 		
-		file_offset = moduleLoaderAsm.page_offset;
-		file_read_byte(file_offset, byte);
+		file_read_byte(moduleLoaderAsm.page_offset, byte);
 		console.printHex(byte);
 		
 		moduleLoaderAsm.page_offset++;
 		
 		console.printLn();
 		moduleLoaderAsm.asm_counter++;
+		return 0;
 	}
 	
 	// MOV 0xa1
@@ -405,21 +396,20 @@ uint8_t asm_decode_instruction(char byte) {
 		
 		console.print("mov ", sizeof("mov "));
 		
-		file_offset = moduleLoaderAsm.page_offset;
-		file_read_byte(file_offset, byte);
+		file_read_byte(moduleLoaderAsm.page_offset, byte);
 		console.printChar( byte + 'a' ); console.printChar('x');
 		console.printSpace();
 		
 		moduleLoaderAsm.page_offset++;
 		
-		file_offset = moduleLoaderAsm.page_offset;
-		file_read_byte(file_offset, byte);
+		file_read_byte(moduleLoaderAsm.page_offset, byte);
 		console.printChar( byte + 'a' ); console.printChar('x');
 		
 		moduleLoaderAsm.page_offset++;
 		
 		console.printLn();
 		moduleLoaderAsm.asm_counter++;
+		return 0;
 	}
 	
 	// INT 0xcd
@@ -430,14 +420,14 @@ uint8_t asm_decode_instruction(char byte) {
 		
 		console.print("int ", sizeof("int "));
 		
-		file_offset = moduleLoaderAsm.page_offset;
-		file_read_byte(file_offset, byte);
+		file_read_byte(moduleLoaderAsm.page_offset, byte);
 		console.printHex(byte);
 		
 		moduleLoaderAsm.page_offset++;
 		
 		console.printLn();
 		moduleLoaderAsm.asm_counter++;
+		return 0;
 	}
 	
 	// JMP 0xea
@@ -449,14 +439,14 @@ uint8_t asm_decode_instruction(char byte) {
 		console.print("jmp ", sizeof("jmp "));
 		
 		for (uint8_t a=0; a < 4; a++) {
-			file_offset = moduleLoaderAsm.page_offset;
-			file_read_byte(file_offset, byte);
+			file_read_byte(moduleLoaderAsm.page_offset, byte);
 			console.printHex(byte);
 			
 			moduleLoaderAsm.page_offset++;
 		}
 		console.printLn();
 		moduleLoaderAsm.asm_counter++;
+		return 0;
 	}
 	
 	// JE 0xeb
@@ -468,8 +458,7 @@ uint8_t asm_decode_instruction(char byte) {
 		console.print("je ", sizeof("je "));
 		
 		for (uint8_t a=0; a < 4; a++) {
-			file_offset = moduleLoaderAsm.page_offset;
-			file_read_byte(file_offset, byte);
+			file_read_byte(moduleLoaderAsm.page_offset, byte);
 			console.printHex(byte);
 			
 			moduleLoaderAsm.page_offset++;
@@ -477,6 +466,7 @@ uint8_t asm_decode_instruction(char byte) {
 		
 		console.printLn();
 		moduleLoaderAsm.asm_counter++;
+		return 0;
 	}
 	
 	
@@ -489,8 +479,7 @@ uint8_t asm_decode_instruction(char byte) {
 		console.print("jl ", sizeof("jl "));
 		
 		for (uint8_t a=0; a < 4; a++) {
-			file_offset = moduleLoaderAsm.page_offset;
-			file_read_byte(file_offset, byte);
+			file_read_byte(moduleLoaderAsm.page_offset, byte);
 			console.printHex(byte);
 			
 			moduleLoaderAsm.page_offset++;
@@ -498,6 +487,7 @@ uint8_t asm_decode_instruction(char byte) {
 		
 		console.printLn();
 		moduleLoaderAsm.asm_counter++;
+		return 0;
 	}
 	
 	
@@ -510,8 +500,7 @@ uint8_t asm_decode_instruction(char byte) {
 		console.print("jg ", sizeof("jg "));
 		
 		for (uint8_t a=0; a < 4; a++) {
-			file_offset = moduleLoaderAsm.page_offset;
-			file_read_byte(file_offset, byte);
+			file_read_byte(moduleLoaderAsm.page_offset, byte);
 			console.printHex(byte);
 			
 			moduleLoaderAsm.page_offset++;
@@ -519,6 +508,7 @@ uint8_t asm_decode_instruction(char byte) {
 		
 		console.printLn();
 		moduleLoaderAsm.asm_counter++;
+		return 0;
 	}
 	
 	
@@ -531,8 +521,7 @@ uint8_t asm_decode_instruction(char byte) {
 		console.print("call ", sizeof("call "));
 		
 		for (uint8_t a=0; a < 4; a++) {
-			file_offset = moduleLoaderAsm.page_offset;
-			file_read_byte(file_offset, byte);
+			file_read_byte(moduleLoaderAsm.page_offset, byte);
 			console.printHex(byte);
 			
 			moduleLoaderAsm.page_offset++;
@@ -540,6 +529,7 @@ uint8_t asm_decode_instruction(char byte) {
 		
 		console.printLn();
 		moduleLoaderAsm.asm_counter++;
+		return 0;
 	}
 	
 	// CALL 0xc3
@@ -552,6 +542,7 @@ uint8_t asm_decode_instruction(char byte) {
 		
 		console.printLn();
 		moduleLoaderAsm.asm_counter++;
+		return 0;
 	}
 	
 	
@@ -563,14 +554,14 @@ uint8_t asm_decode_instruction(char byte) {
 		
 		console.print("push ", sizeof("push "));
 		
-		file_offset = moduleLoaderAsm.page_offset;
-		file_read_byte(file_offset, byte);
+		file_read_byte(moduleLoaderAsm.page_offset, byte);
 		console.printHex(byte);
 		
 		moduleLoaderAsm.page_offset++;
 		
 		console.printLn();
 		moduleLoaderAsm.asm_counter++;
+		return 0;
 	}
 	// POP 0x07
 	if (byte == 0x07) {
@@ -580,14 +571,14 @@ uint8_t asm_decode_instruction(char byte) {
 		
 		console.print("pop ", sizeof("pop "));
 		
-		file_offset = moduleLoaderAsm.page_offset;
-		file_read_byte(file_offset, byte);
+		file_read_byte(moduleLoaderAsm.page_offset, byte);
 		console.printHex(byte);
 		
 		moduleLoaderAsm.page_offset++;
 		
 		console.printLn();
 		moduleLoaderAsm.asm_counter++;
+		return 0;
 	}
 	
 }

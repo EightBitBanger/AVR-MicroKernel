@@ -69,7 +69,7 @@ void command_mk(uint8_t, uint8_t&, uint8_t&, uint8_t&, uint8_t&) {
 			hex_string[0] = char_a;
 			hex_string[1] = char_b;
 			
-			__moduleLoaderMk__.file_size = string_get_hex_char(hex_string) * SECTOR_SIZE;
+			__moduleLoaderMk__.file_size = string_get_hex_char(hex_string) * (SECTOR_SIZE / 2);
 			
 		}
 		

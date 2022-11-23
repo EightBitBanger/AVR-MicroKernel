@@ -256,7 +256,12 @@ uint8_t file_create(char* file_name, uint32_t file_size, uint8_t* attributes) {
 		file_size = SECTOR_SIZE;
 	
 	// File sector count
-	uint32_t number_of_sectors = (file_size / (SECTOR_SIZE - 1));
+	uint32_t number_of_sectors=0;
+	for (uint32_t i=0; i < file_size; i += (SECTOR_SIZE - 1)) 
+		number_of_sectors++;
+	
+	if (number_of_sectors == 0) 
+		number_of_sectors = 1;
 	
 	for (uint32_t i=current_device; i < current_device + device_capacity; i += SECTOR_SIZE) {
 		
@@ -591,7 +596,7 @@ uint8_t file_write_byte(uint32_t address, char byte) {
 	if (fs.file_address == 0)
 		return 0;
 	
-	address += address / (SECTOR_SIZE - 1); // Add to the address the number of data sectors
+	address += address / (SECTOR_SIZE - 1); // Add to the address 1 for each sector header
 	address += SECTOR_SIZE;                 // Skip the first sector / header sector
 	address ++;                             // Add one to skip the sector state byte
 	

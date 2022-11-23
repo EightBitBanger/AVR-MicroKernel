@@ -103,8 +103,6 @@ void emulation_test_scrpt(void) {
 		
 		char data_byte=0;
 		
-		uint32_t file_start = 0;
-		
 		while (1) {
 			
 			// Read the opcode
@@ -115,6 +113,7 @@ void emulation_test_scrpt(void) {
 				ip++; file_read_byte(ip, opndA);
 				ip++; file_read_byte(ip, opndB);
 				reg[opndA] += opndB;
+				ip++;
 				continue;
 			}
 			// ADD - Add a register to a register
@@ -122,6 +121,7 @@ void emulation_test_scrpt(void) {
 				ip++; file_read_byte(ip, opndA);
 				ip++; file_read_byte(ip, opndB);
 				reg[opndA] += reg[opndB];
+				ip++;
 				continue;
 			}
 			// SUB - Subtract a byte from a register
@@ -129,6 +129,7 @@ void emulation_test_scrpt(void) {
 				ip++; file_read_byte(ip, opndA);
 				ip++; file_read_byte(ip, opndB);
 				reg[opndA] -= opndB;
+				ip++;
 				continue;
 			}
 			// SUB - Subtract a register from a register
@@ -136,6 +137,7 @@ void emulation_test_scrpt(void) {
 				ip++; file_read_byte(ip, opndA);
 				ip++; file_read_byte(ip, opndB);
 				reg[opndA] -= reg[opndB];
+				ip++;
 				continue;
 			}
 			// MUL - Multiply a register by a register into a register
@@ -144,6 +146,7 @@ void emulation_test_scrpt(void) {
 				ip++; file_read_byte(ip, opndB);
 				ip++; file_read_byte(ip, opndC);
 				reg[opndA] = (reg[opndB] * reg[opndC]);
+				ip++;
 				continue;
 			}
 			
@@ -154,6 +157,7 @@ void emulation_test_scrpt(void) {
 				ip++; file_read_byte(ip, opndA);
 				ip++; file_read_byte(ip, opndB);
 				reg[opndA] = opndB;
+				ip++;
 				continue;
 			}
 			// MOV - Move register into a register
@@ -161,6 +165,7 @@ void emulation_test_scrpt(void) {
 				ip++; file_read_byte(ip, opndA);
 				ip++; file_read_byte(ip, opndB);
 				reg[opndA] = reg[opndB];
+				ip++;
 				continue;
 			}
 			
@@ -174,6 +179,7 @@ void emulation_test_scrpt(void) {
 					console.printLn();
 					return;
 				}
+				ip++;
 				continue;
 			}
 			
@@ -186,7 +192,7 @@ void emulation_test_scrpt(void) {
 				ip++; file_read_byte(ip, pointer.byte[2]);
 				ip++; file_read_byte(ip, pointer.byte[1]);
 				ip++; file_read_byte(ip, pointer.byte[0]);
-				ip = (file_start + pointer.address) - 1;
+				ip = pointer.address - 1;
 				continue;
 			}
 			// JE - Jump to the offset if AX is equal to BX
@@ -196,8 +202,8 @@ void emulation_test_scrpt(void) {
 				ip++; file_read_byte(ip, pointer.byte[2]);
 				ip++; file_read_byte(ip, pointer.byte[1]);
 				ip++; file_read_byte(ip, pointer.byte[0]);
-				if (reg[opndA] == reg[opndB]) 
-					ip = (file_start + pointer.address) - 1;
+				if (reg[rAX] == reg[rBX]) 
+					ip = pointer.address - 1;
 				continue;
 			}
 			// JL - Jump to the offset if AX is less than BX
@@ -207,8 +213,8 @@ void emulation_test_scrpt(void) {
 				ip++; file_read_byte(ip, pointer.byte[2]);
 				ip++; file_read_byte(ip, pointer.byte[1]);
 				ip++; file_read_byte(ip, pointer.byte[0]);
-				if (reg[opndA] < reg[opndB]) 
-					ip = (file_start + pointer.address) - 1;
+				if (reg[rAX] < reg[rBX]) 
+					ip = pointer.address - 1;
 				continue;
 			}
 			// JG - Jump to the offset if AX is greater than BX
@@ -218,8 +224,8 @@ void emulation_test_scrpt(void) {
 				ip++; file_read_byte(ip, pointer.byte[2]);
 				ip++; file_read_byte(ip, pointer.byte[1]);
 				ip++; file_read_byte(ip, pointer.byte[0]);
-				if (reg[opndA] > reg[opndB]) 
-					ip = (file_start + pointer.address) - 1;
+				if (reg[rAX] > reg[rBX]) 
+					ip = pointer.address - 1;
 				continue;
 			}
 			
@@ -233,26 +239,26 @@ void emulation_test_scrpt(void) {
 				ip++; file_read_byte(ip, pointer.byte[0]);
 				
 				rp = ip;
-				ip = (file_start + pointer.address) - 1;
+				ip = pointer.address - 1;
 				
 				continue;
 			}
 			// Return from a function sub routine
 			if (opcode == 0xc3) {
-				ip = (file_start + rp) - 1;
+				ip = rp - 1;
 				continue;
 			}
 			
 			
 			
 			// Push a register onto the stack
-			if (opcode == 0x06) {
+			if (opcode == 0x06) {ip++;
 				uint32_t ptr = exMem.stack_push(1);
 				exMem.write(ptr, reg[ opndA ]);
 				continue;
 			}
 			// Pop a byte off the stack into a register
-			if (opcode == 0x07) {
+			if (opcode == 0x07) {ip++;
 				uint32_t ptr = (exMem._STACK_BEGIN__ + exMem.stack_size());
 				exMem.stack_pop(1);
 				exMem.read(ptr, reg[ opndA ]);
