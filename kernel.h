@@ -18,8 +18,8 @@
 //#define __BOOT_ROUTER_PROGRAM_                 // Run the system as a packet router
 
 #define _USE_VIRTUAL_STORAGE__                 // Enable and format a section of memory for storage
-#define _VIRTUAL_STORAGE_ADDRESS__  0x10000    // Storage location in memory
-#define _VIRTUAL_STORAGE_SIZE__     1024 * 2   // Total size of the memory storage
+#define _VIRTUAL_STORAGE_ADDRESS__  0x08000    // Storage location in memory
+#define _VIRTUAL_STORAGE_SIZE__     0x07fff    // Total size of the memory storage
 
 //
 // Target device
@@ -132,8 +132,6 @@ void __kernel_initiate(void) {
 			if (byte != test_byte) 
 				break;
 			
-			test_byte++;
-			
 			// Print total memory
 			if (skip > 245) {skip=0;
 				
@@ -179,17 +177,20 @@ void __kernel_initiate(void) {
 		
 	}
 	
+	
 #ifdef __BOOT_ROUTER_PROGRAM_
 	router_entry_point();
 #endif
+	
 	
 #ifdef _USE_VIRTUAL_STORAGE__
 	
 	if (total_memory.address > _VIRTUAL_STORAGE_ADDRESS__ + _VIRTUAL_STORAGE_SIZE__) {
 		
 		// Initiate file system
-		fs_device_format(_VIRTUAL_STORAGE_ADDRESS__, _VIRTUAL_STORAGE_SIZE__);
+		fs_device_format(_VIRTUAL_STORAGE_ADDRESS__, 1024);
 		
+		// Switch to the ram storage
 		console.promptString[0] = '/';
 		fs_set_device_scope();
 		
@@ -201,7 +202,7 @@ void __kernel_initiate(void) {
 			INT,0x10,
 			movr,rAX,rAX,
 			
-			'K','e','r','n','e','l',
+			'E','s','c','a','p','e',
 			
 			
 			// 20
@@ -242,7 +243,7 @@ void __kernel_initiate(void) {
 	// Launch the command console
 	task_create("console", sizeof("console"), keyboard_event_handler, TASK_PRIORITY_REALTIME, TASK_TYPE_SERVICE);
 	
-	// Drop a command prompt
+	// Drop a command prompt on the console
 	call_extern(console_device, 0x02);
 	
 #endif

@@ -65,6 +65,8 @@ void command_make_fs(uint8_t, uint8_t&, uint8_t&, uint8_t&, uint8_t&) {
 		
 		console.print(in_prog_str, sizeof(in_prog_str));
 		console.printLn();
+		char current_device_letter = console.promptString[0];
+		console.promptString[0] = param2;
 		
 		if (param2 == '/') {
 			current_device = _VIRTUAL_STORAGE_ADDRESS__;
@@ -74,6 +76,7 @@ void command_make_fs(uint8_t, uint8_t&, uint8_t&, uint8_t&, uint8_t&) {
 		
 		fs_device_format(current_device, (moduleLoaderFormat.format_size * 1024));
 		
+		console.promptString[0] = current_device_letter;
 		return;
 	}
 	

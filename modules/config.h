@@ -61,6 +61,8 @@ struct __ModuleLoader__ {
 		load_device("mem",  sizeof("mem"), (Module)command_memory, DEVICE_TYPE_MODULE);
 		load_device("port", sizeof("port"), (Module)__port_control_, DEVICE_TYPE_MODULE);
 		
+		load_device("app", sizeof("app"), (Module)application_entry_point, DEVICE_TYPE_MODULE);
+		
 #endif
 		
 #endif

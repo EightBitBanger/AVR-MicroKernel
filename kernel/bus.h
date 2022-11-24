@@ -156,8 +156,8 @@ void address_zero(void) {
 	_BUS_MIDDLE_DIR__=0xff;
 	_BUS_MIDDLE_OUT__=0xff;
 	
-	_BUS_UPPER_DIR__=0x3f;
-	_BUS_UPPER_OUT__=0x3f;
+	_BUS_UPPER_DIR__=0x0f;
+	_BUS_UPPER_OUT__=0xff;
 	
 }
 
@@ -189,10 +189,10 @@ void bus_read_byte(Bus& bus, uint32_t address, char& buffer) {
 	
 	// End cycle
 	_CONTROL_OUT__ = _CONTROL_OPEN_LATCH__;
-	_BUS_UPPER_OUT__  = 0xc0;
+	_BUS_UPPER_OUT__  = 0x00;
 	_BUS_MIDDLE_OUT__ = 0x00;
 	_BUS_LOWER_OUT__  = 0x00;
-	//_CONTROL_OUT__ = _CONTROL_CLOSED_LATCH__;
+	_CONTROL_OUT__ = _CONTROL_CLOSED_LATCH__;
 	
 	return;
 }
@@ -221,10 +221,10 @@ void bus_write_byte(Bus& bus, uint32_t address, char byte) {
 	
 	// End cycle
 	_CONTROL_OUT__ = _CONTROL_OPEN_LATCH__;
-	_BUS_UPPER_OUT__  = 0xc0;
+	_BUS_UPPER_OUT__  = 0x00;
 	_BUS_MIDDLE_OUT__ = 0x00;
 	_BUS_LOWER_OUT__  = 0x00;
-	//_CONTROL_OUT__ = _CONTROL_CLOSED_LATCH__;
+	_CONTROL_OUT__ = _CONTROL_CLOSED_LATCH__;
 	
 	return;
 }

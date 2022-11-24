@@ -10,9 +10,9 @@ void application_task(void);
 
 void kb_send_bit(uint8_t bit) {
 	
-	if (bit == 0) {_BUS_UPPER_OUT__ &= ~(1 << 7);} else {_BUS_UPPER_OUT__ |= (1 << 7);}
+	if (bit == 0) {_BUS_UPPER_OUT__ &= ~(1 << 6);} else {_BUS_UPPER_OUT__ |= (1 << 6);}
 	
-	_BUS_UPPER_OUT__ &= ~(1 << 6); _DELAY_KB__; _BUS_UPPER_OUT__ |= (1 << 6);
+	_BUS_UPPER_OUT__ &= ~(1 << 7); _DELAY_KB__; _BUS_UPPER_OUT__ |= (1 << 7);
 	
 }
 
@@ -22,7 +22,7 @@ void kb_send_bit(uint8_t bit) {
 
 void application_entry_point(uint8_t, uint8_t&, uint8_t&, uint8_t&, uint8_t&) {
 	
-	
+	/*
 	// Out to keyboard
 	_BUS_UPPER_OUT__ = 0xff;
 	_BUS_UPPER_DIR__ = 0xff;
@@ -34,59 +34,52 @@ void application_entry_point(uint8_t, uint8_t&, uint8_t&, uint8_t&, uint8_t&) {
 	
 	
 	// Start bit
-	//_BUS_UPPER_OUT__ &= ~(1 << 7);
-	//_BUS_UPPER_OUT__ &= ~(1 << 6); _DELAY_KB__; _BUS_UPPER_OUT__ |= (1 << 6);
+	_BUS_UPPER_OUT__ &= ~(1 << 6);
+	_BUS_UPPER_OUT__ &= ~(1 << 7); _DELAY_KB__; _BUS_UPPER_OUT__ |= (1 << 7);
 	
 	// Data packet
-	_BUS_UPPER_OUT__ |= (1 << 7);
-	_BUS_UPPER_OUT__ &= ~(1 << 6); _DELAY_KB__; _BUS_UPPER_OUT__ |= (1 << 6);
+	_BUS_UPPER_OUT__ |= (1 << 6);
+	_BUS_UPPER_OUT__ &= ~(1 << 7); _DELAY_KB__; _BUS_UPPER_OUT__ |= (1 << 7);
 	
-	_BUS_UPPER_OUT__ |= (1 << 7);
-	_BUS_UPPER_OUT__ &= ~(1 << 6); _DELAY_KB__; _BUS_UPPER_OUT__ |= (1 << 6);
+	_BUS_UPPER_OUT__ |= (1 << 6);
+	_BUS_UPPER_OUT__ &= ~(1 << 7); _DELAY_KB__; _BUS_UPPER_OUT__ |= (1 << 7);
 	
-	_BUS_UPPER_OUT__ |= (1 << 7);
-	_BUS_UPPER_OUT__ &= ~(1 << 6); _DELAY_KB__; _BUS_UPPER_OUT__ |= (1 << 6);
+	_BUS_UPPER_OUT__ |= (1 << 6);
+	_BUS_UPPER_OUT__ &= ~(1 << 7); _DELAY_KB__; _BUS_UPPER_OUT__ |= (1 << 7);
 	
-	_BUS_UPPER_OUT__ |= (1 << 7);
-	_BUS_UPPER_OUT__ &= ~(1 << 6); _DELAY_KB__; _BUS_UPPER_OUT__ |= (1 << 6);
+	_BUS_UPPER_OUT__ |= (1 << 6);
+	_BUS_UPPER_OUT__ &= ~(1 << 7); _DELAY_KB__; _BUS_UPPER_OUT__ |= (1 << 7);
 	
-	_BUS_UPPER_OUT__ |= (1 << 7);
-	_BUS_UPPER_OUT__ &= ~(1 << 6); _DELAY_KB__; _BUS_UPPER_OUT__ |= (1 << 6);
+	_BUS_UPPER_OUT__ |= (1 << 6);
+	_BUS_UPPER_OUT__ &= ~(1 << 7); _DELAY_KB__; _BUS_UPPER_OUT__ |= (1 << 7);
 	
-	_BUS_UPPER_OUT__ |= (1 << 7);
-	_BUS_UPPER_OUT__ &= ~(1 << 6); _DELAY_KB__; _BUS_UPPER_OUT__ |= (1 << 6);
+	_BUS_UPPER_OUT__ |= (1 << 6);
+	_BUS_UPPER_OUT__ &= ~(1 << 7); _DELAY_KB__; _BUS_UPPER_OUT__ |= (1 << 7);
 	
-	_BUS_UPPER_OUT__ |= (1 << 7);
-	_BUS_UPPER_OUT__ &= ~(1 << 6); _DELAY_KB__; _BUS_UPPER_OUT__ |= (1 << 6);
+	_BUS_UPPER_OUT__ |= (1 << 6);
+	_BUS_UPPER_OUT__ &= ~(1 << 7); _DELAY_KB__; _BUS_UPPER_OUT__ |= (1 << 7);
 	
-	_BUS_UPPER_OUT__ |= (1 << 7);
-	_BUS_UPPER_OUT__ &= ~(1 << 6); _DELAY_KB__; _BUS_UPPER_OUT__ |= (1 << 6);
+	_BUS_UPPER_OUT__ |= (1 << 6);
+	_BUS_UPPER_OUT__ &= ~(1 << 7); _DELAY_KB__; _BUS_UPPER_OUT__ |= (1 << 7);
 	
 	// Parity bit
-	//_BUS_UPPER_OUT__ |= (1 << 7);
-	//_BUS_UPPER_OUT__ &= ~(1 << 6); _DELAY_KB__; _BUS_UPPER_OUT__ |= (1 << 6);
+	_BUS_UPPER_OUT__ |= (1 << 6);
+	_BUS_UPPER_OUT__ &= ~(1 << 7); _DELAY_KB__; _BUS_UPPER_OUT__ |= (1 << 7);
 	
 	// Stop bit
-	//_BUS_UPPER_OUT__ |= (1 << 7);
-	//_BUS_UPPER_OUT__ &= ~(1 << 6); _DELAY_KB__; _BUS_UPPER_OUT__ |= (1 << 6);
-	
-	
-	
-	
-	
-	
+	_BUS_UPPER_OUT__ |= (1 << 6);
+	_BUS_UPPER_OUT__ &= ~(1 << 7); _DELAY_KB__; _BUS_UPPER_OUT__ |= (1 << 7);
 	
 	// Return keyboard to input
-	_BUS_UPPER_DIR__ = 0x3f;
-	_BUS_UPPER_OUT__ = 0x00;
+	address_zero();
 	
-	_delay_ms(80);
+	//task_create("app", sizeof("app"), application_task, TASK_PRIORITY_NORMAL, TASK_TYPE_USER);
 	
-	task_create("app", sizeof("app"), application_task, TASK_PRIORITY_NORMAL, TASK_TYPE_USER);
+	*/
 	
 	uint8_t last_char=0;
 	
-	//while(1) {
+	while(1) {
 		
 		Bus device_bus;
 		device_bus.waitstate_read  = 2;
@@ -114,7 +107,7 @@ void application_entry_point(uint8_t, uint8_t&, uint8_t&, uint8_t&, uint8_t&) {
 		}
 		
 		
-	//}
+	}
 	
 	return;
 }
