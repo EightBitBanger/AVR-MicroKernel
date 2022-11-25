@@ -188,7 +188,7 @@ void __kernel_initiate(void) {
 	if (total_memory.address > _VIRTUAL_STORAGE_ADDRESS__ + _VIRTUAL_STORAGE_SIZE__) {
 		
 		// Initiate file system
-		fs_device_format(_VIRTUAL_STORAGE_ADDRESS__, 1024);
+		fs_device_format(_VIRTUAL_STORAGE_ADDRESS__, _VIRTUAL_STORAGE_SIZE__);
 		
 		// Switch to the ram storage
 		console.promptString[0] = '/';
@@ -196,24 +196,24 @@ void __kernel_initiate(void) {
 		
 		char file_data[] = {
 			mov,rAX,0,
-			mov,rCX,6,
+			mov,rCX,13,
 			mov,rDX,14,
 			
 			INT,0x10,
 			movr,rAX,rAX,
 			
-			'E','s','c','a','p','e',
+			'H','e','l','l','o',',',' ','w','o','r','l','d','!',
 			
 			
-			// 20
+			// 27
 			mov,rAX,0,
 			INT, 0x16,
 			mov, rAX, 0x07, // ESC key
 			
-			je, 0x00, 0x00, 0x00, 38,
-			jmp, 0x00, 0x00, 0x00, 20,
+			je, 0x00, 0x00, 0x00, 45,
+			jmp, 0x00, 0x00, 0x00, 27,
 			
-			// 38
+			// 45
 			INT, 0x20,
 			
 			
@@ -228,11 +228,12 @@ void __kernel_initiate(void) {
 		if (file_open(filename) == 0) {
 			console.print(msg_device_not_ready, sizeof(msg_device_not_ready));
 			console.printLn();
-			while(1){}
+		} else {
+			
+			for (uint16_t i=0; i<file_size; i++)
+				file_write_byte(i, file_data[i]);
+			
 		}
-		
-		for (uint16_t i=0; i<file_size; i++)
-		file_write_byte(i, file_data[i]);
 		
 		
 	}

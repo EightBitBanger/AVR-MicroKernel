@@ -14,6 +14,7 @@ char _DATA_MEMORY__[]          = "nvmem";
 char _INTERNAL_SPEAKER__[]     = "audio";
 char _NETWORK_INTERFACE__[]    = "network";
 char _MASS_STORAGE__[]         = "storage";
+char _FILE_SYSTEM__[]          = "fs";
 char _GPIO_INTERFACE__[]       = "gpio";
 
 struct HardwareInformation {
@@ -92,7 +93,7 @@ void __detect_hardware(void) {
 }
 
 
-uint8_t device_check_header(char* device_name, uint32_t device_address) {
+uint8_t device_check_header(char* device_name, uint8_t name_length, uint32_t device_address) {
 	
 	Bus device_bus;
 	device_bus.waitstate_read  = 2;
@@ -101,7 +102,7 @@ uint8_t device_check_header(char* device_name, uint32_t device_address) {
 	HardwareInformation hInfo;
 	get_hardware_info(device_address, device_bus, hInfo);
 	
-	if (strcmp(hInfo.device_name, device_name, 8) == 1)
+	if (strcmp(hInfo.device_name, device_name, name_length) == 1)
 		return 1;
 	
 	return 0;

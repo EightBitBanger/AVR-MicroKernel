@@ -9,7 +9,7 @@ void command_rm(uint8_t, uint8_t&, uint8_t&, uint8_t&, uint8_t&) {
 	
 	uint32_t current_device = fs_set_device_scope();
 	
-	if (device_check_header(_MASS_STORAGE__, current_device) == 0) {
+	if (device_check_header(_FILE_SYSTEM__, sizeof(_FILE_SYSTEM__), current_device) == 0) {
 		console.print(msg_device_not_ready, sizeof(msg_device_not_ready));
 		console.printLn();
 		return;

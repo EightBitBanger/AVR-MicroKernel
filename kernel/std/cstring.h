@@ -141,9 +141,9 @@ void string_upper(char* string, uint8_t string_length) {
 }
 
 uint8_t strln(char* string) {
-	for (uint8_t i=0; i < 32; i++) {
+	for (uint8_t i=0; i < 0xff; i++) {
 		if (string[i] == 0x20) 
-			return i;
+			return i+1;
 	}
 	return 0;
 }

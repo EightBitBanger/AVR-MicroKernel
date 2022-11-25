@@ -5,7 +5,8 @@
 #include "display/console.h"       // Command console library
 #include "display/display.h"       // 20x4 display driver
 #include "keyboard/PS2.h"          // On-board PS2 keyboard driver
-#include "fs/fs.h"                 // File system
+#include "storage/storage.h"       // Storage device driver
+#include "fs/fs.h"                 // File system library
 
 // Normal mode device drivers
 #include "network/network.h"       // Network interface client
@@ -35,6 +36,7 @@ struct __DriverLoader__ {
 		
 #ifdef __BOOT_FS_SUPPORT_
 		load_device(_MASS_STORAGE__, sizeof(_MASS_STORAGE__), (Driver)storageDeviceDriverEntryPoint, DEVICE_TYPE_DRIVER);
+		load_device(_FILE_SYSTEM__, sizeof(_FILE_SYSTEM__),   (Driver)fileSystemDeviceDriverEntryPoint, DEVICE_TYPE_LIBRARY);
 #endif
 		
 #ifndef __BOOT_SAFEMODE_

@@ -1,5 +1,5 @@
 //
-// File system device driver
+// File system library
 
 #ifndef _DRIVER_FILE_SYSTEM__
 #define _DRIVER_FILE_SYSTEM__
@@ -54,8 +54,6 @@ void eeprom_wait_state(void);
 
 struct FileSystemDeviceDriver {
 	
-	Bus device_bus;
-	
 	char file_name[10];
 	
 	uint32_t device_address;
@@ -64,6 +62,8 @@ struct FileSystemDeviceDriver {
 	uint32_t file_address;
 	uint32_t file_size;
 	
+	Device storageDriverPtr;
+	
 	FileSystemDeviceDriver() {
 		
 		device_address = 0x00000;
@@ -71,60 +71,71 @@ struct FileSystemDeviceDriver {
 		for (uint8_t i=0; i < sizeof(file_name); i++)
 			file_name[i]=0x20;
 		
-		device_bus.waitstate_read  = 2;
-		device_bus.waitstate_write = 0;
-		
 		file_address = 0;
 		file_size    = 0;
 		
 	}
 	
-	void write(uint32_t address, char byte) {bus_write_byte(device_bus, address, byte); return;}
-	void read(uint32_t address, char& byte) {bus_read_byte(device_bus, address, byte); return;}
+	void initiate(void) {
+		
+		// Link to the storage driver
+		storageDriverPtr = (Device)get_func_address(_MASS_STORAGE__, sizeof(_MASS_STORAGE__));
+		if (storageDriverPtr == 0) return;
+		
+	}
+	
+	void read(uint32_t address, char& byte) {
+		WrappedPointer pointer;
+		pointer.address = address;
+		call_extern(storageDriverPtr, DEVICE_CALL_ADDRESS, pointer.byte_t[0], pointer.byte_t[1], pointer.byte_t[2], pointer.byte_t[3]);
+		call_extern(storageDriverPtr, 0x00, (uint8_t&)byte);
+		return;
+	}
+	
+	void write(uint32_t address, char byte) {
+		WrappedPointer pointer;
+		pointer.address = address;
+		call_extern(storageDriverPtr, DEVICE_CALL_ADDRESS, pointer.byte_t[0], pointer.byte_t[1], pointer.byte_t[2], pointer.byte_t[3]);
+		call_extern(storageDriverPtr, 0x01, (uint8_t&)byte);
+		return;
+	}
 	
 }static fs;
 
-
-
-
 uint8_t fs_device_format(uint32_t device_address, uint32_t device_size) {
 	
-	uint8_t flag = 0x00; // Sector state flag
-	uint8_t byte = 0x20; // Sector data byte
+	char flag = 0x00; // Sector state flag
+	char byte = 0x20; // Sector data byte
+	char chk  = 0x00; // Data check byte
 	
-	uint8_t write_counter = 0;
+	uint8_t sector_counter = 0;
 	
 	// Wipe the device
 	for (uint32_t i=device_address; i < device_address + device_size; i++) {
-		
-		if (write_counter == 0) {
+		if (sector_counter == 32) {sector_counter=0;
 			fs.write(i, flag);
 		} else {
 			fs.write(i, byte);
 		}
-		
-		// 32 byte page write counter
-		if (write_counter >= 31) {write_counter=0; eeprom_wait_state();} else {write_counter++;}
-		
+		sector_counter++;
 	}
-	
-	write_counter=0;
 	
 	WrappedPointer size_ptr;
 	size_ptr.address = device_size;
 	
 	// Initiate device header
-	char header[] = {0x13,'s','t','o','r','a','g','e',' ',' ',' ',
-					 0x00, 
+	char header[] = {0x13, // Hardware ID
+					 ' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',
 					 size_ptr.byte[0],size_ptr.byte[1],size_ptr.byte[2],size_ptr.byte[3],
 					 0x20,0x20,0x20,0x20,  0x20,0x20,0x20,0x20,
 					 0x20,0x20,0x20,0x20,  0x20,0x20,0x20,0x20,
 	};
+	for (uint8_t i=0; i < sizeof(_FILE_SYSTEM__) - 1; i++)
+		header[i + 1] = _FILE_SYSTEM__[i];
 	
+	// Write the device header
 	for (uint8_t i=0; i < sizeof(header); i++) {
 		fs.write(i + device_address, header[i]);
-		
-		if (write_counter >= 31) {write_counter=0; eeprom_wait_state();} else {write_counter++;}
 	}
 	
 	return 1;
@@ -133,7 +144,7 @@ uint8_t fs_device_format(uint32_t device_address, uint32_t device_size) {
 uint32_t fs_device_get_size(uint32_t device_address) {
 	WrappedPointer device_size;
 	
-	if (device_check_header(_MASS_STORAGE__, device_address) == 0) 
+	if (device_check_header(_FILE_SYSTEM__, sizeof(_FILE_SYSTEM__), device_address) == 0) 
 		return 0;
 	
 	for (uint8_t i=0; i < 4; i++) 
@@ -157,7 +168,7 @@ void list_directory(uint8_t enable_page_pause) {
 	
 	uint32_t current_device = fs_set_device_scope();
 	
-	if (device_check_header(_MASS_STORAGE__, current_device) == 0) {
+	if (device_check_header(_FILE_SYSTEM__, sizeof(_FILE_SYSTEM__), current_device) == 0) {
 		console.print(msg_device_not_ready, sizeof(msg_device_not_ready));
 		console.printLn();
 		return;
@@ -243,7 +254,7 @@ uint8_t file_create(char* file_name, uint32_t file_size, uint8_t* attributes) {
 	
 	// Check storage device
 	uint32_t current_device = fs_set_device_scope();
-	if (device_check_header(_MASS_STORAGE__, current_device) == 0) 
+	if (device_check_header(_FILE_SYSTEM__, sizeof(_FILE_SYSTEM__), current_device) == 0) 
 		return 0;
 	
 	uint32_t device_capacity  = fs_device_get_size(current_device);
@@ -251,9 +262,6 @@ uint8_t file_create(char* file_name, uint32_t file_size, uint8_t* attributes) {
 	uint32_t count_free_sectors  = 0;
 	
 	char byte;
-	
-	if (file_size < SECTOR_SIZE) 
-		file_size = SECTOR_SIZE;
 	
 	// File sector count
 	uint32_t number_of_sectors=0;
@@ -297,17 +305,17 @@ uint8_t file_create(char* file_name, uint32_t file_size, uint8_t* attributes) {
 		// File size is available
 		// Mark first sector as a file header sector
 		byte = 0x55; // File start byte 0x55
-		fs.write(i, byte); eeprom_wait_state();
+		fs.write(i, byte);
 		
 		// Write new file name
-		uint8_t blank = 0x20;
+		char blank = 0x20;
 		uint8_t sw=0;
 		for (uint8_t a=0; a < 10; a++) {
 			if (sw == 0) {
-				fs.write(i + a + 1, (uint8_t&)file_name[a]);
+				fs.write(i + a + 1, file_name[a]);
 			} else {
 				fs.write(i + a + 1, blank);
-			}eeprom_wait_state();
+			}
 			if (file_name[a] == 0x20) sw = 1;
 		}
 		
@@ -316,12 +324,12 @@ uint8_t file_create(char* file_name, uint32_t file_size, uint8_t* attributes) {
 		file_size_ptr.address = file_size;
 		if (file_size_ptr.address == 0) file_size_ptr.address = 1;
 		for (uint8_t a=0; a < 4; a++) {
-			fs.write(i + a + 11, (uint8_t&)file_size_ptr.byte_t[a]); eeprom_wait_state();
+			fs.write(i + a + 11, file_size_ptr.byte[a]);
 		}
 		
 		// Write attributes
 		for (uint8_t a=0; a < 4; a++) {
-			fs.write(i + 15 + a, attributes[a]); eeprom_wait_state();
+			fs.write(i + 15 + a, (char&)attributes[a]);
 		}
 		
 		// Mark following sectors as taken
@@ -332,7 +340,7 @@ uint8_t file_create(char* file_name, uint32_t file_size, uint8_t* attributes) {
 			if (a == number_of_sectors) 
 				byte = 0xaa; // File end sector 0xaa
 			
-			fs.write(i + (a * SECTOR_SIZE), byte); eeprom_wait_state();
+			fs.write(i + (a * SECTOR_SIZE), byte);
 			
 		}
 		
@@ -347,7 +355,7 @@ uint8_t file_delete(char* file_name) {
 	
 	// Check storage device
 	uint32_t current_device = fs_set_device_scope();
-	if (device_check_header(_MASS_STORAGE__, current_device) == 0) 
+	if (device_check_header(_FILE_SYSTEM__, sizeof(_FILE_SYSTEM__), current_device) == 0) 
 		return 0;
 	
 	uint32_t device_capacity  = fs_device_get_size(current_device);
@@ -377,19 +385,19 @@ uint8_t file_delete(char* file_name) {
 				
 				if (byte == 0x55) {
 					byte = 0x00;
-					fs.write(i + (a * SECTOR_SIZE), byte); eeprom_wait_state();
+					fs.write(i + (a * SECTOR_SIZE), byte);
 					continue;
 				}
 				
 				if (byte == 0xff) {
 					byte = 0x00;
-					fs.write(i + (a * SECTOR_SIZE), byte); eeprom_wait_state();
+					fs.write(i + (a * SECTOR_SIZE), byte);
 					continue;
 				}
 				
 				if (byte == 0xaa) {
 					byte = 0x00;
-					fs.write(i + (a * SECTOR_SIZE), byte); eeprom_wait_state();
+					fs.write(i + (a * SECTOR_SIZE), byte);
 					break;
 				}
 				
@@ -410,7 +418,7 @@ uint8_t file_rename(char* file_name, char* new_file_name) {
 	
 	// Check storage device
 	uint32_t current_device = fs_set_device_scope();
-	if (device_check_header(_MASS_STORAGE__, current_device) == 0) 
+	if (device_check_header(_FILE_SYSTEM__, sizeof(_FILE_SYSTEM__), current_device) == 0) 
 		return 0;
 	
 	uint32_t device_capacity  = fs_device_get_size(current_device);
@@ -435,14 +443,14 @@ uint8_t file_rename(char* file_name, char* new_file_name) {
 		if (strcmp(current_file_name, file_name, strln(file_name)) == 1) {
 			
 			// Write new file name
-			uint8_t blank = 0x20;
+			char blank = 0x20;
 			uint8_t sw=0;
 			for (uint8_t a=0; a < 10; a++) {
 				if (sw == 0) {
-					fs.write(i + a + 1, (uint8_t&)new_file_name[a]);
+					fs.write(i + a + 1, new_file_name[a]);
 				} else {
 					fs.write(i + a + 1, blank);
-				}eeprom_wait_state();
+				}
 				if (new_file_name[a] == 0x20) sw = 1;
 			}
 			
@@ -460,7 +468,7 @@ uint8_t file_open(char* file_name) {
 	
 	// Check storage device
 	uint32_t current_device = fs_set_device_scope();
-	if (device_check_header(_MASS_STORAGE__, current_device) == 0) 
+	if (device_check_header(_FILE_SYSTEM__, sizeof(_FILE_SYSTEM__), current_device) == 0) 
 		return 0;
 	
 	uint32_t device_capacity  = fs_device_get_size(current_device);
@@ -512,7 +520,7 @@ uint8_t file_set_attribute(char* file_name, Attribute& buffer) {
 	
 	// Check storage device
 	uint32_t current_device = fs_set_device_scope();
-	if (device_check_header(_MASS_STORAGE__, current_device) == 0) 
+	if (device_check_header(_FILE_SYSTEM__, sizeof(_FILE_SYSTEM__), current_device) == 0) 
 		return 0;
 	
 	uint32_t device_capacity  = fs_device_get_size(current_device);
@@ -536,10 +544,10 @@ uint8_t file_set_attribute(char* file_name, Attribute& buffer) {
 		
 		if (strcmp(current_file_name, file_name, strln(file_name)) == 1) {
 			
-			fs.write(i + 15,     (char&)buffer.Executable); eeprom_wait_state();
-			fs.write(i + 15 + 1, (char&)buffer.Read); eeprom_wait_state();
-			fs.write(i + 15 + 2, (char&)buffer.Write); eeprom_wait_state();
-			fs.write(i + 15 + 3, (char&)buffer.Extra); eeprom_wait_state();
+			fs.write(i + 15,     (char&)buffer.Executable);
+			fs.write(i + 15 + 1, (char&)buffer.Read);
+			fs.write(i + 15 + 2, (char&)buffer.Write);
+			fs.write(i + 15 + 3, (char&)buffer.Extra);
 			
 			return 1;
 		}
@@ -553,7 +561,7 @@ uint8_t file_get_attribute(char* file_name, Attribute& buffer) {
 	
 	// Check storage device
 	uint32_t current_device = fs_set_device_scope();
-	if (device_check_header(_MASS_STORAGE__, current_device) == 0) 
+	if (device_check_header(_FILE_SYSTEM__, sizeof(_FILE_SYSTEM__), current_device) == 0) 
 		return 0;
 	
 	uint32_t device_capacity  = fs_device_get_size(current_device);
@@ -604,7 +612,7 @@ uint8_t file_write_byte(uint32_t address, char byte) {
 	if ((fs.file_address + address) > (fs.file_address + (address + fs.file_size))) 
 		return 0;
 	
-	fs.write(fs.file_address + address, byte); eeprom_wait_state();
+	fs.write(fs.file_address + address, byte);
 	
 	return 1;
 }
@@ -643,7 +651,9 @@ uint32_t fs_set_device_scope(void) {
 }
 
 
-void storageDeviceDriverEntryPoint(uint8_t functionCall, uint8_t& paramA, uint8_t& paramB, uint8_t& paramC, uint8_t& paramD) {
+void fileSystemDeviceDriverEntryPoint(uint8_t functionCall, uint8_t& paramA, uint8_t& paramB, uint8_t& paramC, uint8_t& paramD) {
+	
+	if (functionCall == DEVICE_CALL_INITIATE) {fs.initiate(); return;}
 	
 	if (functionCall == DEVICE_CALL_ADDRESS) {
 		WrappedPointer pointer; pointer.byte_t[0] = paramA; pointer.byte_t[1] = paramB; pointer.byte_t[2] = paramC; pointer.byte_t[3] = paramD;

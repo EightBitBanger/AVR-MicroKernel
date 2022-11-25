@@ -24,7 +24,7 @@ void command_mk(uint8_t, uint8_t&, uint8_t&, uint8_t&, uint8_t&) {
 	// Check the volume header of the current device
 	uint32_t current_device = fs_set_device_scope();
 	
-	if (device_check_header(_MASS_STORAGE__, current_device) == 0) {
+	if (device_check_header(_FILE_SYSTEM__, sizeof(_FILE_SYSTEM__), current_device) == 0) {
 		console.print(msg_device_not_ready, sizeof(msg_device_not_ready));
 		console.printLn();
 		return;
@@ -69,7 +69,7 @@ void command_mk(uint8_t, uint8_t&, uint8_t&, uint8_t&, uint8_t&) {
 			hex_string[0] = char_a;
 			hex_string[1] = char_b;
 			
-			__moduleLoaderMk__.file_size = string_get_hex_char(hex_string) * (SECTOR_SIZE / 2);
+			__moduleLoaderMk__.file_size = string_get_hex_char(hex_string);
 			
 		}
 		
