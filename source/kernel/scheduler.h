@@ -36,10 +36,10 @@
 
 
 // Millisecond clock timer
-#define _CLOCK_TCCRxA    2
-#define _CLOCK_TCCRxB    4
-#define _CLOCK_TIMSK     2
-#define _CLOCK_OCR       97
+#define _CLOCK_TCCRxA        2
+#define _CLOCK_TCCRxB        4
+#define _CLOCK_TIMSK         2
+#define _CLOCK_OCR           97
 
 // Scheduler counter
 #define _SCHEDULER_TCCRxA    2
@@ -49,7 +49,7 @@
 
 
 // Schedule a new task
-uint8_t task_create(const char* name, uint8_t name_length, void(*task_ptr)(), uint32_t priority, uint8_t type);
+uint8_t task_create(const char* name, uint8_t name_length, void(*task_ptr)(), uint16_t priority, uint8_t type);
 // Remove a running task
 uint8_t task_destroy(uint8_t PID);
 // Get a task index by its name
