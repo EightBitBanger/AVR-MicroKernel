@@ -36,16 +36,16 @@ void keyboard_event_handler(void) {
 	uint8_t scanCodeLow         = 0x00;
 	uint8_t scanCodeHigh        = 0x00;
 	
+	keyboard.read_scancodes(scanCodeLow, scanCodeHigh);
+	
 	// Check for a scan code change
-	call_extern(commandConsole.keyboard_device, 0x02, scanCodeLow, scanCodeHigh);
 	if ((commandConsole.scanCodeLow == scanCodeLow) & (commandConsole.scanCodeHigh == scanCodeHigh))
 		return;
 	
 	commandConsole.scanCodeLow  = scanCodeLow;
 	commandConsole.scanCodeHigh = scanCodeHigh;
 	
-	// Read and convert scan code to an ASCII character
-	call_extern(commandConsole.keyboard_device, 0x00, readKeyCode);
+	keyboard.read(readKeyCode);
 	
 	// Check MAX string length
 	if (console.keyboard_string_length < _MAX_KEYBOARD_STRING_LENGTH__) {
@@ -152,13 +152,11 @@ void eventKeyboardEnter(void) {
 		}
 		
 		// Function look up
-		Module modulePtr = (Module)get_func_address(console.keyboard_string, console.keyboard_string_length-1);
+		Module modulePtr = (Module)get_func_address(console.keyboard_string, strln(console.keyboard_string));
 		if (modulePtr != nullptr) {
 			
 			// Execute the command
-			Device console_function;
-			console_function = (void(*)(uint8_t, uint8_t&, uint8_t&, uint8_t&, uint8_t&))modulePtr;
-			console_function(0x00, nullchar, nullchar, nullchar, nullchar);
+			modulePtr();
 			
 			console.clearKeyboardString();
 			console.printPrompt();

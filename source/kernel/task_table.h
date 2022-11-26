@@ -13,19 +13,19 @@ struct ProcessDescriptorTable {
 }volatile static proc_info;
 
 
-uint8_t task_create(const char* name, uint8_t name_length, void(*task_ptr)(), uint32_t priority, uint8_t type) {
+uint8_t task_create(const char* name, uint8_t name_length, void(*task_ptr)(), uint16_t priority, uint8_t type) {
 	
 	if (name_length > TASK_NAME_LENGTH_MAX)
-	name_length = TASK_NAME_LENGTH_MAX;
+		name_length = TASK_NAME_LENGTH_MAX;
 	
 	uint8_t index;
 	for (index=0; index < TASK_LIST_SIZE; index++)
-	if (proc_info.priority[index] == 0) break;
+		if (proc_info.priority[index] == 0) break;
 	
 	if (index >= TASK_LIST_SIZE) return 0;
 	
 	for (uint8_t a=0; a < name_length-1; a++)
-	proc_info.name[index][a] = name[a];
+		proc_info.name[index][a] = name[a];
 	
 	proc_info.type[index]      = type;
 	proc_info.priority[index]  = priority;
@@ -49,7 +49,7 @@ uint8_t task_destroy(uint8_t index) {
 	proc_info.table[PID]     = 0;
 	
 	for (uint8_t i=0; i < TASK_NAME_LENGTH_MAX; i++)
-	proc_info.name[PID][i] = 0x20;
+		proc_info.name[PID][i] = 0x20;
 	
 	return 1;
 }
@@ -82,8 +82,9 @@ uint8_t get_task_index(const char* name, uint8_t name_length) {
 
 ISR (TIMER0_COMPA_vect) {
 	
-	timer_ms++;
+	timer_ms ++;
 	
+	return;
 }
 
 ISR (TIMER1_COMPA_vect) {
@@ -160,13 +161,13 @@ void __scheduler_start(void) {
 	
 	cli();
 	
-	// Start the millisecond clock
+	// Millisecond clock
 	TCCR1A  = _CLOCK_TCCRxA;
 	TCCR1B  = _CLOCK_TCCRxB;
 	TIMSK1  = _CLOCK_TIMSK;
 	OCR1A   = _CLOCK_OCR;
 	
-	// Start the scheduler
+	// Scheduler
 	TCCR0A  = _SCHEDULER_TCCRxA;
 	TCCR0B  = _SCHEDULER_TCCRxB;
 	TIMSK0  = _SCHEDULER_TIMSK;
@@ -185,6 +186,8 @@ void __scheduler_stop(void) {
 #ifdef __CORE_SCHEDULER_
 	
 	TCCR0B  = 0;
+	TCCR1B  = 0;
+	TCCR2B  = 0;
 	
 #endif
 	

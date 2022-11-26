@@ -18,7 +18,7 @@ struct __ModuleLoaderMk__ {
 void command_mk(uint8_t, uint8_t&, uint8_t&, uint8_t&, uint8_t&) {
 	
 	Device storageDevice;
-	storageDevice = (Device)get_func_address(_MASS_STORAGE__, sizeof(_MASS_STORAGE__));
+	storageDevice = (Device)get_func_address(_FILE_SYSTEM__, sizeof(_FILE_SYSTEM__));
 	if (storageDevice == 0) return;
 	
 	// Check the volume header of the current device
