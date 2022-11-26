@@ -1,8 +1,8 @@
 //
-// Hardware level storage device driver
+// Hardware level storage driver
 
-#ifndef __STORAGE_DRIVER_
-#define __STORAGE_DRIVER_
+#ifndef _HARD_STORAGE_DRIVER_
+#define _HARD_STORAGE_DRIVER_
 
 struct StorageDeviceDriver {
 	
@@ -38,14 +38,6 @@ struct StorageDeviceDriver {
 }storageDeviceDriver;
 
 
-
-
-
-
-
-
-
-// Device Driver entry point
 void storageDeviceDriverEntryPoint(uint8_t functionCall, uint8_t& paramA, uint8_t& paramB, uint8_t& paramC, uint8_t& paramD) {
 	
 	if (functionCall == DEVICE_CALL_ADDRESS) {

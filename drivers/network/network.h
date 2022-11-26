@@ -40,6 +40,7 @@ uint8_t network_send_handshake(Device network_device, uint8_t address_low, uint8
 
 
 
+
 struct NetworkInterfaceDriver {
 	
 	Bus device_bus;
@@ -82,9 +83,30 @@ struct NetworkInterfaceDriver {
 
 
 
+//
+// Associated command line modules
+
+#include "modules/net.h"           // Network client application
+#include "modules/server.h"        // Network server application
+#include "modules/router.h"        // Network packet router
+
+
 
 // Device Driver entry point
 void NetworkInterfaceDeviceDriverEntryPoint(uint8_t functionCall, uint8_t& paramA, uint8_t& paramB, uint8_t& paramC, uint8_t& paramD) {
+	
+#ifdef __BOOT_NETWORK_SUPPORT_
+	
+	if (functionCall == DEVICE_CALL_INITIATE) {
+		
+		load_device("net",  sizeof("net"), (Module)net_entry_point, DEVICE_TYPE_MODULE);
+		load_device("router",  sizeof("router"), (Module)router_entry_point, DEVICE_TYPE_MODULE);
+		load_device("server",  sizeof("server"), (Module)server_host_entry_point, DEVICE_TYPE_MODULE);
+		
+	}
+	
+#endif
+	
 	
 	if (functionCall == DEVICE_CALL_ADDRESS) {
 		WrappedPointer pointer; pointer.byte_t[0] = paramA; pointer.byte_t[1] = paramB; pointer.byte_t[2] = paramC; pointer.byte_t[3] = paramD;
@@ -293,7 +315,6 @@ uint8_t network_send_handshake(Device network_device, uint8_t device_type, uint8
 	
 	return 1;
 }
-
 
 #endif
 

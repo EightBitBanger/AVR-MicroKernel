@@ -6,7 +6,7 @@
 #include "display/display.h"       // 20x4 display driver
 #include "keyboard/PS2.h"          // On-board PS2 keyboard driver
 #include "storage/storage.h"       // Storage device driver
-#include "fs/fs.h"                 // File system library
+#include "fs/fs.h"                 // File system core library
 
 // Normal mode device drivers
 #include "network/network.h"       // Network interface client

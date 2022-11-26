@@ -651,9 +651,40 @@ uint32_t fs_set_device_scope(void) {
 }
 
 
+
+//
+// Associated command line modules
+
+#include "modules/dir.h"      // List files on device
+#include "modules/mk.h"       // Make a new file
+#include "modules/rm.h"       // Remove a file
+#include "modules/rn.h"       // Rename a file
+#include "modules/cd.h"       // Change device
+#include "modules/copy.h"     // Copy a file to new file
+#include "modules/mkfs.h"     // Create a file system on a device
+#include "modules/attr.h"     // File attributes
+
+
+
 void fileSystemDeviceDriverEntryPoint(uint8_t functionCall, uint8_t& paramA, uint8_t& paramB, uint8_t& paramC, uint8_t& paramD) {
 	
-	if (functionCall == DEVICE_CALL_INITIATE) {fs.initiate(); return;}
+	if (functionCall == DEVICE_CALL_INITIATE) {
+		
+#ifdef __BOOT_FS_SUPPORT_
+		
+		load_device("dir", sizeof("dir"), (Module)command_dir, DEVICE_TYPE_MODULE);
+		load_device("mk", sizeof("mk"), (Module)command_mk, DEVICE_TYPE_MODULE);
+		load_device("rm", sizeof("rm"), (Module)command_rm, DEVICE_TYPE_MODULE);
+		load_device("rn", sizeof("rn"), (Module)command_rn, DEVICE_TYPE_MODULE);
+		load_device("cd", sizeof("cd"), (Module)command_cd, DEVICE_TYPE_MODULE);
+		load_device("copy", sizeof("copy"), (Module)command_copy, DEVICE_TYPE_MODULE);
+		load_device("attr", sizeof("attr"), (Module)command_attrib, DEVICE_TYPE_MODULE);
+		
+		load_device("mkfs", sizeof("mkfs"), (Module)command_make_fs, DEVICE_TYPE_MODULE);
+		
+#endif
+		fs.initiate(); return;
+	}
 	
 	if (functionCall == DEVICE_CALL_ADDRESS) {
 		WrappedPointer pointer; pointer.byte_t[0] = paramA; pointer.byte_t[1] = paramB; pointer.byte_t[2] = paramC; pointer.byte_t[3] = paramD;
@@ -689,17 +720,6 @@ void fileSystemDeviceDriverEntryPoint(uint8_t functionCall, uint8_t& paramA, uin
 }
 
 
-
-#undef _HARDWARE_WAITSTATE__
-
-
-
-
-
-
-
-
-
-
-
 #endif
+
+

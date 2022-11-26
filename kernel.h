@@ -12,6 +12,7 @@
 
 //#define __BOOT_SAFEMODE_                       // Load only the minimal drivers required to boot
 //#define __BOOT_LIGHTWEIGHT_                    // Dont load the command modules
+#define __BOOT_SYSTEM_SERVICES_                // Load system service routines
 #define __BOOT_FS_SUPPORT_                     // Include file system support console functions
 #define __BOOT_NETWORK_SUPPORT_                // Include network support console functions
 #define __BOOT_SYSTEM_FUNCTIONS_               // Include system support console functions
@@ -22,7 +23,7 @@
 #define _VIRTUAL_STORAGE_SIZE__     0x07fff    // Total size of the memory storage
 
 //
-// Target device
+// Target device platform
 
 #define __AVR_CUSTOM_BOARD_                    // Compile for a custom AVR board
 //#define _REV_1_ADDRESS_MAP__
@@ -36,7 +37,7 @@
 //
 // Kernel memory map
 
-#define _KERNEL_BEGIN__                 0x00000 // Kernel memory area
+#define _KERNEL_BEGIN__                 0x00000 // Kernel memory range
 #define _KERNEL_END__                   0x000ff 
 #define _KERNEL_STACK_BEGIN__           0x00100 // Stack memory
 #define _KERNEL_STACK_COUNTER__         0x00000 
@@ -57,24 +58,24 @@ char msg_kernel_version[]   = "1.0";
 #include "kernel/std/cstring.h"       // C string functions
 
 // Kernel systems
-#include "kernel/device_table.h"      // Device resource manager
+#include "kernel/device.h"            // Device resource management
 #include "kernel/scheduler.h"         // Task scheduler
 #include "kernel/bus.h"               // System bus interface
 
 // Hardware information detection
 #include "kernel/hardware_detection.h"
 
-// Load device drivers, function modules and system services
+// Load device drivers, application modules and system services
 #include "drivers/config.h"
-#include "modules/config.h"
-#include "services/config.h"
+#include "applications/config.h"
+
+// Kernel tables
+#include "kernel/device_table.h"
+#include "kernel/task_table.h"
 
 
-void __kernel_initiate(void) {	
+void __kernel_initiate(void) {
 #ifdef __AVR_CUSTOM_BOARD_
-	
-	// Initiate the scheduler
-	__scheduler_init_();
 	
 	char skip=0;
 	char byte=0;
@@ -240,9 +241,6 @@ void __kernel_initiate(void) {
 	
 	
 #endif
-	
-	// Launch the command console
-	task_create("console", sizeof("console"), keyboard_event_handler, TASK_PRIORITY_REALTIME, TASK_TYPE_SERVICE);
 	
 	// Drop a command prompt on the console
 	call_extern(console_device, 0x02);
