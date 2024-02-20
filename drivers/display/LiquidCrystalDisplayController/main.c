@@ -6,7 +6,6 @@ struct DisplayDeviceDriver displayDeviceDriver;
 struct DisplayDeviceDriver* displayDriver = &displayDeviceDriver;
 
 
-
 void initiateDisplayDriver(void) {
     
 	displayDriver->device.hardware_address = 0x40000;
@@ -14,7 +13,7 @@ void initiateDisplayDriver(void) {
 	displayDriver->interface.read_waitstate = 10;
 	displayDriver->interface.write_waitstate = 10;
     
-	// Initiate function pointers
+	// Initiate member functions
 	
     displayDriver->read                = __read_display_device;
     displayDriver->write               = __write_display_device;

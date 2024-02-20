@@ -1,11 +1,14 @@
 #include <avr/io.h>
 #include <util/delay.h>
 
-#include <kernel/bus.h>
-#include <kernel/device.h>
 #include <kernel/kernel.h>
 
 #include <drivers/display/LiquidCrystalDisplayController/main.h>
+
+
+
+//
+// Kernel entry point
 
 int main(void) {
     
@@ -17,28 +20,23 @@ int main(void) {
 	
 	initiateDisplayDriver();
 	
-    kernel_initiate();
+    initiateDeviceTable();
     
 	
 	
 	
 	
 	
-	// Print off plugged in peripheral cards
+	// Print off names of attached peripheral devices
 	
-	unsigned int index=0;
+	displayDriver->cursorSetBlinkRate(0);
 	
 	for (unsigned int d=0; d < NUMBER_OF_PERIPHERALS; d++) {
         
         struct Device* device = GetDevice(d);
         
-        if (is_letter( &device->device_name[1] ) == 0) 
-            continue;
+        displayDriver->print( d, 0, &device->device_name[1], DEVICE_NAME_LENGTH - 1 );
         
-        displayDriver->print( index, 0, &device->device_name[0], DEVICE_NAME_LENGTH );
-        
-        
-        index++;
     }
     
 	_delay_ms( 300 );
