@@ -6,20 +6,19 @@
 #include <kernel/bus/bus.h>
 #include <kernel/device/device.h>
 
-extern struct DisplayDeviceDriver* displayDriver;
-
-
 struct DisplayDeviceDriver {
     
     struct Device device;
     
     struct Bus interface;
     
+    // Driver functions
     
     void(*read)(uint32_t address, char* buffer);
     void(*write)(uint32_t address, char buffer);
     
-    // Custom functions here
+    //
+    // Custom functions
     
     void(*print)(uint8_t line, uint8_t position, char* string, unsigned int length);
     void(*printMask)(uint8_t line, uint8_t position, char* string, unsigned int length);
@@ -39,27 +38,8 @@ struct DisplayDeviceDriver {
     
 };
 
-
+extern struct DisplayDeviceDriver* displayDriver;
 
 void initiateDisplayDriver(void);
-
-void __read_display_device(uint32_t address, char* buffer);
-void __write_display_device(uint32_t address, char buffer);
-
-void __print(uint8_t line, uint8_t position, char* string, unsigned int length);
-void __print_mask(uint8_t line, uint8_t position, char* string, unsigned int length);
-
-void __set_cursor_line(uint8_t line);
-void __set_cursor_position(uint8_t position);
-void __set_cursor_prompt(uint8_t prompt);
-void __set_cursor_blink_rate(uint8_t rate);
-void __set_refresh_rate(uint8_t rate);
-
-void __clear_frame_buffer(void);
-void __clear_mask_buffer(void);
-void __clear_line(uint8_t line);
-
-void __shift_frame_up(void);
-void __shift_frame_down(void);
 
 #endif

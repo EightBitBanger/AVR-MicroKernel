@@ -1,14 +1,22 @@
 #include <kernel/device/device.h>
 
+void* device_registry[DEVICE_REGISTRY_SIZE];
+
 struct Device device_table[ DEVICE_TABLE_SIZE ];
 
 
-void initiateDeviceTable(void) {
+uint8_t number_of_devices = 0;
+
+
+
+void InitiateDeviceTable(void) {
     
     // Clear the device table
     for (unsigned int d=0; d < DEVICE_TABLE_SIZE; d++) {
         
         device_table[d].hardware_address = 0x00000;
+        
+        device_table[d].device_id = 0x00;
         
         for (unsigned int i=0; i < DEVICE_NAME_LENGTH; i++) 
             device_table[d].device_name[i] = ' ';
@@ -44,17 +52,52 @@ void initiateDeviceTable(void) {
         
         device_table[d].hardware_address = hardware_address;
         
+        device_table[d].device_id = nameBuffer[0];
+        
         index++;
         
         continue;
     }
     
+    // Link the hardware to the device drivers
+    
+    for (unsigned int i=0; i < number_of_devices; i++) {
+        
+        for (unsigned int d=0; d < DEVICE_TABLE_SIZE; d++) {
+            
+            struct Device* registryEntry = (struct Device*)device_registry[i];
+            
+            if (registryEntry->device_id != device_table[d].device_id) 
+                continue;
+            
+            registryEntry->hardware_address = device_table[d].hardware_address;
+            
+            i = number_of_devices;
+            break;
+        }
+        
+    }
+    
+    
+    
     return;
 }
 
 
-struct Device* GetDevice(unsigned int deviceIndex) {
+struct Device* GetHardwareDevice(unsigned int deviceIndex) {
     return &device_table[ deviceIndex ];
 }
 
+
+
+uint8_t RegisterDriver(void* deviceDriverPtr) {
+    
+    uint8_t current_number_of_devices = number_of_devices;
+    
+    device_registry[ number_of_devices ] = (void*)deviceDriverPtr;
+    
+    number_of_devices++;
+    
+    return current_number_of_devices;
+}
 

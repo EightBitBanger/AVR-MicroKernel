@@ -13,18 +13,36 @@
 
 #define DEVICE_TABLE_SIZE  16
 
-
+#define DEVICE_REGISTRY_SIZE  24
 
 struct Device {
     
     char device_name[DEVICE_NAME_LENGTH];
     
+    uint8_t device_id;
+    
     uint32_t hardware_address;
     
 };
 
-void initiateDeviceTable(void);
 
-struct Device* GetDevice(unsigned int deviceIndex);
+struct Driver {
+    
+    struct Device device;
+    
+    struct Bus interface;
+    
+    void(*read)(uint32_t address, char* buffer);
+    void(*write)(uint32_t address, char buffer);
+    
+};
+
+
+
+void InitiateDeviceTable(void);
+
+struct Device* GetHardwareDevice(unsigned int deviceIndex);
+
+uint8_t RegisterDriver(void* deviceDriverPtr);
 
 #endif

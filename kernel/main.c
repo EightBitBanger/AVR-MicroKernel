@@ -18,12 +18,28 @@ int main(void) {
     // Allow board some time to stabilize
     _delay_ms(1000);
 	
+	// Initiate drivers here
+	
 	initiateDisplayDriver();
 	
-    initiateDeviceTable();
+	
+	
+	
+	
+	
+	
+	
+	
+	RegisterDriver( (void*)displayDriver );
+	
+	
+	
+	
+	// Initiate the kernel
+	InitiateDeviceTable();
     
-	
-	
+    
+    
 	
 	
 	
@@ -33,7 +49,7 @@ int main(void) {
 	
 	for (unsigned int d=0; d < NUMBER_OF_PERIPHERALS; d++) {
         
-        struct Device* device = GetDevice(d);
+        struct Device* device = GetHardwareDevice(d);
         
         displayDriver->print( d, 0, &device->device_name[1], DEVICE_NAME_LENGTH - 1 );
         
@@ -56,8 +72,8 @@ int main(void) {
     
     PORTD = 0x00;
     
-    PORTD |= (1 << PD4);  // High
-    //PORTD |= (1 << PD5);  // High
+    //PORTD |= (1 << PD4);  // High
+    PORTD |= (1 << PD5);  // High
     
     
     while(1) {

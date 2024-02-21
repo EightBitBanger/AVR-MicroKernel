@@ -6,11 +6,41 @@ struct DisplayDeviceDriver displayDeviceDriver;
 struct DisplayDeviceDriver* displayDriver = &displayDeviceDriver;
 
 
+// Driver function declarations
+
+void __read_display_device(uint32_t address, char* buffer);
+void __write_display_device(uint32_t address, char buffer);
+
+void __print(uint8_t line, uint8_t position, char* string, unsigned int length);
+void __print_mask(uint8_t line, uint8_t position, char* string, unsigned int length);
+
+void __set_cursor_line(uint8_t line);
+void __set_cursor_position(uint8_t position);
+void __set_cursor_prompt(uint8_t prompt);
+void __set_cursor_blink_rate(uint8_t rate);
+void __set_refresh_rate(uint8_t rate);
+
+void __clear_frame_buffer(void);
+void __clear_mask_buffer(void);
+void __clear_line(uint8_t line);
+
+void __shift_frame_up(void);
+void __shift_frame_down(void);
+
+
 void initiateDisplayDriver(void) {
     
-	displayDriver->device.hardware_address = 0x40000;
+    char deviceName[] = "display";
+    
+    for (unsigned int i=0; i < sizeof(deviceName); i++) {
+        displayDriver->device.device_name[i] = deviceName[i];
+    }
+    
+	displayDriver->device.hardware_address = 0x00000;
 	
-	displayDriver->interface.read_waitstate = 10;
+	displayDriver->device.device_id = 0x10;
+	
+	displayDriver->interface.read_waitstate  = 10;
 	displayDriver->interface.write_waitstate = 10;
     
 	// Initiate member functions
