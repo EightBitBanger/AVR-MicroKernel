@@ -1,11 +1,15 @@
 #include <kernel/device/device.h>
 
-void* device_registry[DEVICE_REGISTRY_SIZE];
+void* driver_registry[DEVICE_REGISTRY_SIZE];
 
 struct Device device_table[ DEVICE_TABLE_SIZE ];
 
+// Number of drivers registered in the kernel
+uint8_t number_of_drivers = 0;
 
+// Number of devices on the system bus
 uint8_t number_of_devices = 0;
+
 
 
 
@@ -54,6 +58,8 @@ void InitiateDeviceTable(void) {
         
         device_table[d].device_id = nameBuffer[0];
         
+        number_of_devices++;
+        
         index++;
         
         continue;
@@ -61,18 +67,18 @@ void InitiateDeviceTable(void) {
     
     // Link the hardware to the device drivers
     
-    for (unsigned int i=0; i < number_of_devices; i++) {
+    for (unsigned int i=0; i < number_of_drivers; i++) {
         
         for (unsigned int d=0; d < DEVICE_TABLE_SIZE; d++) {
             
-            struct Device* registryEntry = (struct Device*)device_registry[i];
+            struct Device* registryEntry = (struct Device*)driver_registry[i];
             
             if (registryEntry->device_id != device_table[d].device_id) 
                 continue;
             
             registryEntry->hardware_address = device_table[d].hardware_address;
             
-            i = number_of_devices;
+            i = number_of_drivers;
             break;
         }
         
@@ -84,20 +90,60 @@ void InitiateDeviceTable(void) {
 }
 
 
-struct Device* GetHardwareDevice(unsigned int deviceIndex) {
-    return &device_table[ deviceIndex ];
+
+
+struct Driver* GetDriverByName(char* nameString, uint8_t stringSize) {
+	
+	for (uint8_t d=0; d < number_of_drivers; d++) {
+        
+        struct Driver* driverPtr = GetDriverByIndex(d);
+        
+        uint8_t isWrongName = 0;
+        
+        for (uint8_t i=0; i < stringSize - 1; i++) {
+            
+            if (driverPtr->device.device_name[i] != nameString[i]) {
+                isWrongName = 1;
+                break;
+            }
+            
+        }
+        
+        if (isWrongName == 0) 
+            return driverPtr;
+        
+        continue;
+	}
+	
+	return nullptr;
 }
 
+
+struct Device* GetHardwareDeviceByIndex(uint8_t index) {
+    return &device_table[ index ];
+}
+
+struct Driver* GetDriverByIndex(uint8_t index) {
+    return driver_registry[ index ];
+}
 
 
 uint8_t RegisterDriver(void* deviceDriverPtr) {
     
-    uint8_t current_number_of_devices = number_of_devices;
+    uint8_t current_number_of_drivers = number_of_drivers;
     
-    device_registry[ number_of_devices ] = (void*)deviceDriverPtr;
+    driver_registry[ number_of_drivers ] = (void*)deviceDriverPtr;
     
-    number_of_devices++;
+    number_of_drivers++;
     
-    return current_number_of_devices;
+    return current_number_of_drivers;
 }
 
+
+uint8_t GetNumberOfDevices(void) {
+    return number_of_devices;
+}
+
+uint8_t GetNumberOfDrivers(void) {
+    return number_of_drivers;
+}
