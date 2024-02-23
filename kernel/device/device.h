@@ -1,5 +1,5 @@
-#ifndef __DEVICE_DRIVER_
-#define __DEVICE_DRIVER_
+#ifndef __DEVICE_TABLE_
+#define __DEVICE_TABLE_
 
 #include <kernel/bus/bus.h>
 
@@ -30,34 +30,13 @@ struct Device {
 };
 
 
-struct Driver {
-    
-    struct Device device;
-    
-    struct Bus interface;
-    
-    void(*read)(uint32_t address, char* buffer);
-    void(*write)(uint32_t address, char buffer);
-    
-    void(*main)(uint8_t func, uint8_t arg0, uint8_t arg1, uint8_t arg2, uint8_t arg3);
-    
-};
-
 
 
 void InitiateDeviceTable(void);
 
-struct Driver* GetDriverByName(char* nameString, uint8_t stringSize);
-
 struct Device* GetHardwareDeviceByIndex(uint8_t index);
-
-struct Driver* GetDriverByIndex(uint8_t index);
-
-uint8_t RegisterDriver(void* deviceDriverPtr);
 
 
 uint8_t GetNumberOfDevices(void);
-
-uint8_t GetNumberOfDrivers(void);
 
 #endif
