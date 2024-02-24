@@ -26,14 +26,14 @@ struct Driver {
     
     struct Bus interface;
     
-    void(*read)(uint32_t address, char* buffer);
-    void(*write)(uint32_t address, char buffer);
+    void(*read)(uint32_t address, uint8_t* buffer);
+    void(*write)(uint32_t address, uint8_t buffer);
     
 };
 
 
 
-struct Driver* GetDriverByName(char* nameString, uint8_t stringSize);
+struct Driver* GetDriverByName(uint8_t* nameString, uint8_t stringSize);
 
 struct Driver* GetDriverByIndex(uint8_t index);
 

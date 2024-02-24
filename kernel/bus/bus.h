@@ -1,8 +1,6 @@
 #ifndef __BUS_INTERFACE_
 #define __BUS_INTERFACE_
 
-#include <avr/io.h>
-
 
 // NOTE: Address and data buses are multiplexed requiring external logic
 #define _BUS_LOWER_PORT_A__     // Define port A as the lower address bus
@@ -136,10 +134,10 @@ void bus_address_zero(void);
 
 
 /// Read a byte from an address using the given bus.
-void bus_read_byte(struct Bus* bus, uint32_t address, char* buffer);
+void bus_read_byte(struct Bus* bus, uint32_t address, uint8_t* buffer);
 
 /// Write a byte to an address using the given bus.
-void bus_write_byte(struct Bus* bus, uint32_t address, char byte);
+void bus_write_byte(struct Bus* bus, uint32_t address, uint8_t byte);
 
 
 #endif

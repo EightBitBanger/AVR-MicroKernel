@@ -31,8 +31,8 @@ struct DisplayDeviceDriver {
     
     // Driver functions
     
-    void(*read)(uint32_t address, char* buffer);
-    void(*write)(uint32_t address, char buffer);
+    void(*read)(uint32_t address, uint8_t* buffer);
+    void(*write)(uint32_t address, uint8_t buffer);
     
 };
 

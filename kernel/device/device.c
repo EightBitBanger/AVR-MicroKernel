@@ -1,5 +1,8 @@
+#include <avr/io.h>
+
 #include <kernel/device/device.h>
 #include <kernel/driver/driver.h>
+
 
 struct Device device_table[ DEVICE_TABLE_SIZE ];
 
@@ -34,7 +37,7 @@ void InitiateDeviceTable(void) {
         // Set the device address
         uint32_t hardware_address = PERIPHERAL_ADDRESS_BEGIN + (PERIPHERAL_STRIDE * d);
         
-        char nameBuffer[ DEVICE_NAME_LENGTH ];
+        uint8_t nameBuffer[ DEVICE_NAME_LENGTH ];
         
         // Get device name
         for (unsigned int i=0; i < DEVICE_NAME_LENGTH; i++) 

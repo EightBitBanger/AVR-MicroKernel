@@ -1,4 +1,7 @@
+#include <avr/io.h>
+
 #include <kernel/driver/driver.h>
+
 
 void* driver_registry[DEVICE_REGISTRY_SIZE];
 
@@ -6,7 +9,7 @@ void* driver_registry[DEVICE_REGISTRY_SIZE];
 uint8_t number_of_drivers = 0;
 
 
-struct Driver* GetDriverByName(char* nameString, uint8_t stringSize) {
+struct Driver* GetDriverByName(uint8_t* nameString, uint8_t stringSize) {
 	
 	for (uint8_t d=0; d < number_of_drivers; d++) {
         

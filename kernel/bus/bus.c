@@ -1,4 +1,7 @@
+#include <avr/io.h>
+
 #include <kernel/bus/bus.h>
+
 
 void bus_control_zero(void) {
     _CONTROL_DIR__=0xff;
@@ -18,7 +21,7 @@ void bus_address_zero(void) {
 	return;
 }
 
-void bus_read_byte(struct Bus* bus, uint32_t address, char* buffer) {
+void bus_read_byte(struct Bus* bus, uint32_t address, uint8_t* buffer) {
 	
 	// Address the device
 	_BUS_LOWER_DIR__ = 0xff;
@@ -52,7 +55,7 @@ void bus_read_byte(struct Bus* bus, uint32_t address, char* buffer) {
 }
 
 
-void bus_write_byte(struct Bus* bus, uint32_t address, char byte) {
+void bus_write_byte(struct Bus* bus, uint32_t address, uint8_t byte) {
 	
 	// Address the device
 	_BUS_LOWER_DIR__ = 0xff;

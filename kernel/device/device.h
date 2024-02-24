@@ -21,7 +21,7 @@
 
 struct Device {
     
-    char device_name[DEVICE_NAME_LENGTH];
+    uint8_t device_name[DEVICE_NAME_LENGTH];
     
     uint8_t device_id;
     
