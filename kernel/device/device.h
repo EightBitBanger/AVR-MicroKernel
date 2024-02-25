@@ -3,7 +3,7 @@
 
 #include <kernel/bus/bus.h>
 
-#include <kernel/strcase.h>
+#include <kernel/cstring.h>
 
 #define PERIPHERAL_ADDRESS_BEGIN  0x40000
 #define PERIPHERAL_STRIDE         0x10000

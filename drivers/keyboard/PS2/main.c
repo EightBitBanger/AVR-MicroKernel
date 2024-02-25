@@ -7,6 +7,7 @@ struct PS2DeviceDriver keyboardDeviceDriver;
 struct PS2DeviceDriver* keyboardDriver = &keyboardDeviceDriver;
 
 
+
 // Driver function declarations
 
 void __read_ps2_device(uint32_t address, uint8_t* buffer);
@@ -44,15 +45,7 @@ void initiatePS2Driver(void) {
 
 
 void __read_ps2_device(uint32_t address, uint8_t* buffer) {
-    
-    uint8_t scanCodeLow;
-    uint8_t scanCodeHigh;
-    
-    bus_read_byte( &keyboardDriver->interface, keyboardDriver->device.hardware_address + address + 0, &scanCodeLow );
-    bus_read_byte( &keyboardDriver->interface, keyboardDriver->device.hardware_address + address + 1, &scanCodeHigh );
-    
-    *buffer = decodeScanCode(scanCodeLow, scanCodeHigh);
-    
+    bus_read_byte( &keyboardDriver->interface, keyboardDriver->device.hardware_address + address, buffer );
     return;
 }
 

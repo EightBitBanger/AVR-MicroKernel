@@ -7,6 +7,9 @@
 #include <kernel/device/device.h>
 #include <kernel/driver/driver.h>
 
-#include <kernel/strcase.h>
+#include <kernel/cstring.h>
+
+#include <kernel/console.h>
+
 
 #endif
