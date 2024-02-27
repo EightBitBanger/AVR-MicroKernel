@@ -1,5 +1,7 @@
 #include <avr/io.h>
 
+#include <util/delay.h>
+
 #include <kernel/device/device.h>
 #include <kernel/driver/driver.h>
 
@@ -75,7 +77,7 @@ void InitiateDeviceTable(void) {
             
             registryEntry->hardware_address = device_table[d].hardware_address;
             
-            // Exit out the parent for loop aswell
+            // Exit out the parent for loop as well
             i = GetNumberOfDrivers();
             
             break;
@@ -83,8 +85,8 @@ void InitiateDeviceTable(void) {
         
     }
     
-    
-    
+    _delay_ms(80);
+	
     return;
 }
 

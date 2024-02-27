@@ -8,8 +8,9 @@
 #include <drivers/keyboard/ps2/main.h>
 #include <drivers/display/LiquidCrystalDisplayController/main.h>
 
+#define CONSOLE_STRING_LENGTH  40
 
-uint8_t console_string[20];
+uint8_t console_string[CONSOLE_STRING_LENGTH];
 uint8_t console_string_length = 0;
 
 uint8_t console_position = 0;
@@ -20,6 +21,8 @@ uint8_t oldScanCodeHigh = 0;
 
 uint8_t lastChar = 0x00;
 
+uint8_t console_prompt[8];
+uint8_t console_prompt_length = 1;
 
 struct Driver* displayDevice;
 struct Driver* keyboadDevice;
@@ -30,7 +33,7 @@ struct ConsoleCommand {
     
     uint8_t name[CONSOLE_FUNCTION_NAME_LENGTH];
     
-    void(*function)();
+    void(*function)(uint8_t* string, uint8_t length);
     
     
 };
@@ -43,7 +46,7 @@ struct ConsoleCommand CommandRegistry[10];
 
 void consoleInitiate(void) {
     
-	uint8_t nameKeyboard[] = "PS2";
+    uint8_t nameKeyboard[] = "PS2";
 	keyboadDevice = (struct Driver*)GetDriverByName( nameKeyboard, sizeof(nameKeyboard) );
 	
 	uint8_t nameString[] = "display";
@@ -54,7 +57,7 @@ void consoleInitiate(void) {
     
     lastChar = decodeScanCode(oldScanCodeLow, oldScanCodeHigh);
     
-    for (uint8_t i=0; i < 20; i++) 
+    for (uint8_t i=0; i < CONSOLE_STRING_LENGTH; i++) 
         console_string[i] = ' ';
     
     displayDevice->write( SET_CURSOR_BLINK_RATE, 0x24 );
@@ -68,6 +71,10 @@ void consoleInitiate(void) {
         CommandRegistry[i].function = nullptr;
         
 	}
+	
+	uint8_t promptString[] = "A>";
+	
+	ConsoleSetPrompt( promptString, sizeof(promptString) );
 	
 	return;
 }
@@ -96,37 +103,43 @@ void consoleUpdate(void) {
     
     lastChar = scanCode;
     
+    
+    //
     // Backspace
+    //
+    
     if (scanCode == 0x01) {
         
         if (console_string_length > 0) {
             
+            // Remove last character from the console string
             console_string[ console_string_length - 1 ] = ' ';
             
-            displayDevice->write( (console_string_length - 1) + (20 * console_line), ' ' );
+            // Remove the character from the display
+            displayDevice->write( console_string_length + (20 * console_line) + console_prompt_length - 1, ' ' );
             
+            // Decrement the console string length
             console_string_length--;
-            
-            displayDevice->write( SET_CURSOR_POSITION, console_string_length);
-            
-            displayDevice->write( SET_CURSOR_LINE, console_line);
             
         }
         
     }
     
     
+    //
     // Return
+    //
+    
     if (scanCode == 0x02) {
         
-        printLn();
+        printPrompt();
         
-        if (console_string_length == 0) 
-            return;
+        printLn();
         
         // Look up function name
         
         uint8_t isRightFunction = 0;
+        uint8_t parameters_begin = 0;
         
         for (uint8_t i=0; i < 10; i++) {
             
@@ -141,58 +154,89 @@ void consoleUpdate(void) {
                     break;
                 }
                 
+                if (parameters_begin == 0) {
+                    
+                    if (CommandRegistry[i].name[n] == ' ') {
+                        
+                        parameters_begin = n + 1;
+                        
+                        break;
+                    }
+                    
+                }
+                
             }
             
             if (isRightFunction == 0)
                 continue;
             
+            
+            uint8_t length = console_string_length;
+            
             console_string_length = 0;
             
             console_position = 0;
             
+            
             // Run the function
             if (CommandRegistry[i].function != nullptr) 
-                CommandRegistry[i].function();
+                CommandRegistry[i].function( &console_string[parameters_begin], length - parameters_begin );
             
             break;
         }
         
-        for (uint8_t i=0; i < 20; i++) 
+        if (isRightFunction == 0) {
+            
+            uint8_t badCommandOrFilename[] = "Bad cmd or filename";
+            
+            print( badCommandOrFilename, sizeof(badCommandOrFilename) );
+            
+            printLn();
+            
+        }
+        
+        // Clear the console string
+        for (uint8_t i=0; i < CONSOLE_STRING_LENGTH; i++) 
             console_string[i] = ' ';
         
         console_string_length = 0;
         
-        console_position = 0;
-        
-        displayDevice->write( SET_CURSOR_POSITION, console_position);
-        
-        displayDevice->write( SET_CURSOR_LINE, console_line);
-        
     }
     
     
-    // Character
-    if (scanCode > 0x29) {
+    //
+    // Add letter or number
+    //
+    
+    if (scanCode > 0x19) {
         
         console_string[console_string_length] = scanCode;
         
         console_string_length++;
         
+        console_position++;
+        
         if (console_string_length >= 20) 
             console_string_length = 20;
         
-        displayDevice->write( SET_CURSOR_POSITION, console_string_length);
-        
     }
     
+    printPrompt();
+    
+    uint8_t promptOffset = console_prompt_length;
+    
     for (uint8_t i=0; i < console_string_length; i++) 
-        displayDevice->write( 0x00000 + i + (20 * console_line), console_string[i] );
+        displayDevice->write( i + (20 * console_line) + promptOffset, console_string[i] );
+    
+    displayDevice->write( SET_CURSOR_POSITION, console_string_length + promptOffset);
+    
+    displayDevice->write( SET_CURSOR_LINE, console_line);
     
     return;
 }
 
 
-uint8_t ConsoleCommandRegister(uint8_t* name, uint8_t nameLength, void(*functionPtr)()) {
+uint8_t ConsoleRegisterCommand(uint8_t* name, uint8_t nameLength, void(*functionPtr)(uint8_t* string, uint8_t length)) {
     
     uint8_t index = 0;
     for (uint8_t i=0; i < 10; i++) {
@@ -228,6 +272,8 @@ void print(uint8_t* string, uint8_t length) {
         continue;
     }
     
+    console_position += length;
+    
     console_string_length = 0;
     
     return;
@@ -251,6 +297,33 @@ void printLn(void) {
         
     }
     
+    console_position = 0;
+    
+    return;
+}
+
+void printSpace(uint8_t numberOfSpaces) {
+    
+    for (uint8_t i=0; i < numberOfSpaces; i++) {
+        
+        displayDevice->write( console_position + (20 * console_line), ' ' );
+        
+        console_position++;
+    }
+    
+    return;
+}
+
+void printPrompt(void) {
+    
+    // Print a prompt char
+    for (uint8_t i=0; i < console_prompt_length; i++) 
+        displayDevice->write( (20 * console_line) + i, console_prompt[i] );
+    
+    console_position = console_prompt_length;
+    
+    displayDevice->write( SET_CURSOR_POSITION, console_position );
+    
     return;
 }
 
@@ -262,3 +335,14 @@ void ConsoleSetCursor(uint8_t line, uint8_t position) {
     
     return;
 }
+
+void ConsoleSetPrompt(uint8_t* prompt, uint8_t length) {
+    
+    for (uint8_t i=0; i < length; i++) 
+        console_prompt[i] = prompt[i];
+    
+    console_prompt_length = length - 1;
+    
+    return;
+}
+

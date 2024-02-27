@@ -3,6 +3,10 @@
 
 #include <avr/io.h>
 
+#include <kernel/pointers.h>
+
+#include <kernel/fs/fs.h>
+
 #include <kernel/bus/bus.h>
 #include <kernel/device/device.h>
 #include <kernel/driver/driver.h>

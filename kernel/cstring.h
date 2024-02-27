@@ -11,8 +11,8 @@ int is_letter(uint8_t* charPtr);
 int is_uppercase(uint8_t* charPtr);
 int is_lowercase(uint8_t* charPtr);
 
-void make_uppercase(uint8_t* charPtr);
-void make_lowercase(uint8_t* charPtr);
+void uppercase(uint8_t* charPtr);
+void lowercase(uint8_t* charPtr);
 
 // Conversion
 

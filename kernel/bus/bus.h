@@ -119,9 +119,9 @@
 
 struct Bus {
     
-    uint8_t read_waitstate;
+    uint16_t read_waitstate;
     
-    uint8_t write_waitstate;
+    uint16_t write_waitstate;
     
 };
 
@@ -139,5 +139,8 @@ void bus_read_byte(struct Bus* bus, uint32_t address, uint8_t* buffer);
 /// Write a byte to an address using the given bus.
 void bus_write_byte(struct Bus* bus, uint32_t address, uint8_t byte);
 
+/// Write a byte to an address using the given bus.
+/// 5 milliseconds wait state for EEPROM writes
+void bus_write_byte_eeprom(uint32_t address, uint8_t byte);
 
 #endif

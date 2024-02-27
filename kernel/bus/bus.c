@@ -1,4 +1,5 @@
 #include <avr/io.h>
+#include <util/delay.h>
 
 #include <kernel/bus/bus.h>
 
@@ -82,4 +83,33 @@ void bus_write_byte(struct Bus* bus, uint32_t address, uint8_t byte) {
 	_CONTROL_OUT__ = _CONTROL_CLOSED_LATCH__;
 	
 	return;
+}
+
+void bus_write_byte_eeprom(uint32_t address, uint8_t byte) {
+    
+	// Address the device
+	_BUS_LOWER_DIR__ = 0xff;
+	
+	_BUS_UPPER_OUT__  = (address >> 16);
+	_BUS_MIDDLE_OUT__ = (address >> 8);
+	_BUS_LOWER_OUT__  = (address & 0xff);
+	
+	_CONTROL_OUT__ = _CONTROL_OPEN_LATCH__;
+	_CONTROL_OUT__ = _CONTROL_WRITE_LATCH__;
+	
+	// Cast the data byte
+	_BUS_LOWER_OUT__ = byte;
+	_CONTROL_OUT__ = _CONTROL_WRITE_CYCLE__;
+	
+	// Wait state
+	_delay_ms(40);
+	
+	// End cycle
+	_CONTROL_OUT__ = _CONTROL_OPEN_LATCH__;
+	_BUS_UPPER_OUT__  = 0x00;
+	_BUS_MIDDLE_OUT__ = 0x00;
+	_BUS_LOWER_OUT__  = 0x00;
+	_CONTROL_OUT__ = _CONTROL_CLOSED_LATCH__;
+	
+    return;
 }

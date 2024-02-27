@@ -1,26 +1,25 @@
 #include <avr/io.h>
+//#include <stdlib.h>
+
 #include <util/delay.h>
 
 #include <kernel/kernel.h>
+
+// Included console commands
+#include <kernel/commands/list.h>
+#include <kernel/commands/repair.h>
+#include <kernel/commands/cd.h>
+#include <kernel/commands/cls.h>
+#include <kernel/commands/dir.h>
+#include <kernel/commands/cap.h>
+#include <kernel/commands/mk.h>
+
 
 // Included drivers
 #include <drivers/display/LiquidCrystalDisplayController/main.h>
 #include <drivers/keyboard/ps2/main.h>
 
 #include <kernel/console.h>
-
-extern struct DisplayDeviceDriver* displayDriver;
-
-void functionTest(void) {
-    
-    displayDriver->write( CLEAR_FRAME_BUFFER, 0x01 );
-    
-    _delay_ms(100);
-    
-    ConsoleSetCursor(0, 0);
-    
-    return;
-}
 
 
 
@@ -31,7 +30,7 @@ int main(void) {
     bus_control_zero();
     
     // Allow board some time to stabilize
-    _delay_ms(700);
+    _delay_ms(1500);
 	
 	
 	// Initiate drivers here
@@ -46,13 +45,23 @@ int main(void) {
 	InitiateDeviceTable();
     
     
-    
-    
+    // Initiate console commands
     consoleInitiate();
     
-    uint8_t commandName[] = "cls";
+    registerCommandList();
+    registerCommandRepair();
     
-    ConsoleCommandRegister(commandName, sizeof(commandName), functionTest);
+    registerCommandCD();
+    registerCommandCLS();
+    registerCommandDIR();
+    registerCommandCAP();
+    registerCommandMK();
+    
+    
+    
+    _delay_ms(100);
+    
+    printPrompt();
     
     while(1) {
         

@@ -25,15 +25,15 @@ int is_lowercase(uint8_t* charPtr) {
     return 0;
 }
 
-void make_uppercase(uint8_t* charPtr) {
+void uppercase(uint8_t* charPtr) {
     if (is_lowercase(charPtr) == 1) 
-        charPtr -= 0x20;
+        *charPtr -= 0x20;
     return;
 }
 
-void make_lowercase(uint8_t* charPtr) {
+void lowercase(uint8_t* charPtr) {
     if (is_uppercase(charPtr) == 1) 
-        charPtr += 0x20;
+        *charPtr += 0x20;
     return;
 }
 
