@@ -4,8 +4,8 @@
 // Capacities
 
 #define CAPACITY_32K      1024
-#define CAPACITY_16K      64
-#define CAPACITY_8K       32
+#define CAPACITY_16K      512
+#define CAPACITY_8K       256
 
 // Format
 
@@ -17,6 +17,7 @@
 
 #define FILE_NAME_LENGTH          10
 
+#define OFFSET_FILE_NAME          1
 #define OFFSET_FILE_SIZE          11
 #define OFFSET_FILE_ATTRIBUTES    15
 
@@ -37,8 +38,12 @@ uint32_t fsGetCurrentDevice(void);
 
 uint32_t fsFileCreate(uint8_t* name, uint8_t nameLength, uint32_t fileSize);
 
+uint32_t fsFileDelete(uint8_t* name, uint8_t nameLength);
+
 
 void fsListDirectory(void);
+
+uint8_t fsFormatDevice(void);
 
 uint8_t fsRepairDevice(void);
 

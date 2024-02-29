@@ -99,10 +99,10 @@ void bus_write_byte_eeprom(uint32_t address, uint8_t byte) {
 	
 	// Cast the data byte
 	_BUS_LOWER_OUT__ = byte;
-	_CONTROL_OUT__ = _CONTROL_WRITE_CYCLE__;
 	
 	// Wait state
-	_delay_ms(40);
+	for (uint8_t i=0; i < 4; i++) 
+        _CONTROL_OUT__ = _CONTROL_WRITE_CYCLE__;
 	
 	// End cycle
 	_CONTROL_OUT__ = _CONTROL_OPEN_LATCH__;
@@ -110,6 +110,8 @@ void bus_write_byte_eeprom(uint32_t address, uint8_t byte) {
 	_BUS_MIDDLE_OUT__ = 0x00;
 	_BUS_LOWER_OUT__  = 0x00;
 	_CONTROL_OUT__ = _CONTROL_CLOSED_LATCH__;
+	
+	_delay_ms(10);
 	
     return;
 }
