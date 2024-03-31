@@ -9,6 +9,15 @@
 
 struct Driver* networkDevice;
 
+uint8_t ntPacketSend(struct NetworkPacket* packet) {
+    
+    return;
+}
+
+
+//
+// Low level networking functions
+//
 
 void ntInitiate(void) {
     
@@ -37,7 +46,7 @@ void ntSend(uint8_t* buffer, uint16_t bufferSize) {
             continue;
         
         // Check after a few cycles
-        for (uint16_t t=0; t < 10000; t++) {
+        for (uint32_t t=0; t < 10000; t++) {
             
             _delay_us(1);
             
@@ -77,7 +86,7 @@ uint8_t ntReceive(uint8_t* buffer, uint16_t bufferSize) {
     return receiveBufferSz;
 }
 
-void ntClearReceiveBuffer(void) {
+void ntReceiveClear(void) {
     
     networkDevice->write( 0x0b, 0x00);
     

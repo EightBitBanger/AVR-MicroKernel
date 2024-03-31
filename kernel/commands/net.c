@@ -50,7 +50,7 @@ void functionNet(uint8_t* param, uint8_t param_length) {
         for (uint8_t i=0; i < 16; i++) 
             packet.data[i] = 0x55;
         
-        packet.start   = _PACKET_START_BYTE__;
+        packet.start   = NETWORK_PACKET_START_BYTE;
         
         packet.addr_d[0]   = 0x00;
         packet.addr_d[1]   = 0x00;
@@ -64,7 +64,7 @@ void functionNet(uint8_t* param, uint8_t param_length) {
         for (uint8_t i=0; i < (param_length - offset) + 1; i++) 
             packet.data[i] = param[offset + i];
         
-        packet.stop    = _PACKET_STOP_BYTE__;
+        packet.stop    = NETWORK_PACKET_STOP_BYTE;
         
         // Start byte to indicate we are starting to send a message to the server
         ntSend(&packet.start, 1);
@@ -93,7 +93,7 @@ void functionNet(uint8_t* param, uint8_t param_length) {
         for (uint8_t i=0; i < 16; i++) 
             packet.data[i] = 0x55;
         
-        packet.start   = _PACKET_START_BYTE__;
+        packet.start   = NETWORK_PACKET_START_BYTE;
         
         packet.addr_d[0]   = 0xff;
         packet.addr_d[1]   = 0xff;
@@ -104,7 +104,7 @@ void functionNet(uint8_t* param, uint8_t param_length) {
         packet.data[0] = 0x55;
         packet.data[1] = 0x00;
         
-        packet.stop    = _PACKET_STOP_BYTE__;
+        packet.stop    = NETWORK_PACKET_STOP_BYTE;
         
         // Start byte to indicate we are starting to send a message to the server
         ntSend(&packet.start, 1);
@@ -135,7 +135,7 @@ void functionNet(uint8_t* param, uint8_t param_length) {
         for (uint8_t i=0; i < 16; i++) 
             packet.data[i] = 0x55;
         
-        packet.start   = _PACKET_START_BYTE__;
+        packet.start   = NETWORK_PACKET_START_BYTE;
         
         packet.addr_d[0]   = 0xff;
         packet.addr_d[1]   = 0xff;
@@ -149,11 +149,11 @@ void functionNet(uint8_t* param, uint8_t param_length) {
         for (uint8_t i=0; i < (param_length - offset) + 1; i++) 
             packet.data[i] = param[offset + i];
         
-        packet.stop    = _PACKET_STOP_BYTE__;
+        packet.stop    = NETWORK_PACKET_STOP_BYTE;
         
-        ntClearReceiveBuffer();
+        ntReceiveClear();
         
-        for (uint8_t i=0; i < 3; i++) {
+        for (uint8_t i=0; i < 1; i++) {
             
             // Start byte to indicate we are starting to send a message to the server
             ntSend(&packet.start, 1);
@@ -177,12 +177,25 @@ void functionNet(uint8_t* param, uint8_t param_length) {
                 
                 bufferSz = ntReceive(dataBuffer, 32);
                 
-                ntClearReceiveBuffer();
+                ntReceiveClear();
                 
                 if (bufferSz > 0) {
+                    uint8_t addrStrLow[8];
+                    uint8_t addrStrHigh[8];
                     
-                    uint8_t msgReplyFrom[] = "Reply from 255.255";
+                    int_to_string(packet.addr_d[0], addrStrLow);
+                    int_to_string(packet.addr_d[1], addrStrHigh);
+                    
+                    uint8_t msgReplyFrom[] = "Reply from ";
                     print(msgReplyFrom, sizeof(msgReplyFrom));
+                    
+                    print(addrStrLow, 4);
+                    
+                    uint8_t msgPeriod[] = ".";
+                    print(msgPeriod, sizeof(msgPeriod));
+                    
+                    print(addrStrHigh, 4);
+                   
                     printLn();
                     
                     break;

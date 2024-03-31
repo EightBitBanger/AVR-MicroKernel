@@ -87,7 +87,7 @@ int main(void) {
         
         ConsoleSetBlinkRate(0);
         
-        _delay_ms(800);
+        _delay_ms(1000);
         
         uint32_t total = 0;
         uint8_t counter = 0;
@@ -133,6 +133,7 @@ int main(void) {
         
         ConsoleSetCursor(0, 0);
         print(totalString, place + 1);
+        printSpace(1);
         
         uint8_t byteFreeString[] = "bytes free";
         print(byteFreeString, sizeof(byteFreeString));
@@ -166,7 +167,7 @@ int main(void) {
         if (deviceHeader != 0x13) 
             continue;
         
-        // Set the root directory to C
+        // Set the root directory
         fsSetCurrentDevice( d );
         uint8_t prompt[] = {('A' + d), '>'};
         ConsoleSetPrompt( prompt, sizeof(prompt) + 1 );

@@ -22,20 +22,22 @@ struct NetworkPacket {
 
 #define _PACKET_SIZE__        sizeof(struct NetworkPacket)
 
-#define _PACKET_START_BYTE__   0x55
-#define _PACKET_TYPE_DATA__    0x00
-#define _PACKET_STOP_BYTE__    0xaa
+#define NETWORK_PACKET_START_BYTE   0x55
+#define NETWORK_PACKET_TYPE_DATA    0x00
 
-#define _NETWORK_WAITSTATE__  4000
+#define NETWORK_PACKET_STOP_BYTE    0xaa
+
+uint8_t ntPacketSend(struct NetworkPacket* packet);
 
 
+// TX/RX UART communication
 void ntInitiate(void);
 
 void ntSend(uint8_t* buffer, uint16_t bufferSize);
 
 uint8_t ntReceive(uint8_t* buffer, uint16_t bufferSize);
 
-void ntClearReceiveBuffer(void);
+void ntReceiveClear(void);
 
 void ntSetBaudRate(uint8_t baudRate);
 

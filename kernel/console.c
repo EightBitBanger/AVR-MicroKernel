@@ -275,7 +275,7 @@ void print(uint8_t* string, uint8_t length) {
         continue;
     }
     
-    console_position += length;
+    console_position += length - 1;
     
     console_string_length = 0;
     
