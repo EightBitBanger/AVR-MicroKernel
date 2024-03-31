@@ -5,6 +5,8 @@
 
 #include <kernel/cstring.h>
 
+#define EXTERNAL_MEMORY_BEGIN     0x00000
+
 #define PERIPHERAL_ADDRESS_BEGIN  0x40000
 #define PERIPHERAL_STRIDE         0x10000
 
@@ -24,6 +26,8 @@ struct Device {
     uint8_t device_name[DEVICE_NAME_LENGTH];
     
     uint8_t device_id;
+    
+    uint8_t hardware_slot;
     
     uint32_t hardware_address;
     

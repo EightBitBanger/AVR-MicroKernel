@@ -14,6 +14,7 @@
 #include <kernel/cstring.h>
 
 #include <kernel/console.h>
+#include <kernel/network.h>
 
 
 #endif

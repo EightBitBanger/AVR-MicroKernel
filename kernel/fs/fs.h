@@ -7,7 +7,7 @@
 #define CAPACITY_16K      512
 #define CAPACITY_8K       256
 
-// Format
+// Sector format
 
 #define SECTOR_SIZE               32
 
@@ -40,10 +40,12 @@ uint32_t fsFileCreate(uint8_t* name, uint8_t nameLength, uint32_t fileSize);
 
 uint32_t fsFileDelete(uint8_t* name, uint8_t nameLength);
 
+uint32_t fsFileRename(uint8_t* name, uint8_t nameLength, uint8_t* newName, uint8_t newNameLength);
+
 
 void fsListDirectory(void);
 
-uint8_t fsFormatDevice(void);
+uint8_t fsFormatDevice(uint32_t device_capacity);
 
 uint8_t fsRepairDevice(void);
 

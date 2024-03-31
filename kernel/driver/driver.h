@@ -13,8 +13,6 @@
 
 #define DEVICE_NAME_LENGTH  10
 
-#define DEVICE_TABLE_SIZE  16
-
 #define DEVICE_REGISTRY_SIZE  24
 
 #define nullptr  0x00000000

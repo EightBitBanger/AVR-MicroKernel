@@ -38,7 +38,10 @@ struct ConsoleCommand {
     
 };
 
-struct ConsoleCommand CommandRegistry[10];
+
+#define CONSOLE_FUNCTION_TABLE_SIZE  32
+
+struct ConsoleCommand CommandRegistry[CONSOLE_FUNCTION_TABLE_SIZE];
 
 
 
@@ -49,8 +52,8 @@ void consoleInitiate(void) {
     uint8_t nameKeyboard[] = "PS2";
 	keyboadDevice = (struct Driver*)GetDriverByName( nameKeyboard, sizeof(nameKeyboard) );
 	
-	uint8_t nameString[] = "display";
-	displayDevice = (struct Driver*)GetDriverByName( nameString, sizeof(nameString) );
+	uint8_t nameDisplay[] = "display";
+	displayDevice = (struct Driver*)GetDriverByName( nameDisplay, sizeof(nameDisplay) );
 	
     keyboadDevice->read( 0x00000, &oldScanCodeLow );
     keyboadDevice->read( 0x00001, &oldScanCodeHigh );
@@ -62,7 +65,7 @@ void consoleInitiate(void) {
     
     displayDevice->write( SET_CURSOR_BLINK_RATE, 0x24 );
 	
-	for (uint8_t i=0; i < 10; i++) {
+	for (uint8_t i=0; i < CONSOLE_FUNCTION_TABLE_SIZE; i++) {
         
         for (uint8_t n=0; n < CONSOLE_FUNCTION_NAME_LENGTH; n++) {
             CommandRegistry[i].name[n] = ' ';
@@ -141,7 +144,7 @@ void consoleUpdate(void) {
         uint8_t isRightFunction = 0;
         uint8_t parameters_begin = 0;
         
-        for (uint8_t i=0; i < 10; i++) {
+        for (uint8_t i=0; i < CONSOLE_FUNCTION_TABLE_SIZE; i++) {
             
             isRightFunction = 1;
             
@@ -185,7 +188,7 @@ void consoleUpdate(void) {
             break;
         }
         
-        if (isRightFunction == 0) {
+        if ((isRightFunction == 0) & (console_string_length > 0)) {
             
             uint8_t badCommandOrFilename[] = "Bad cmd or filename";
             
@@ -239,7 +242,7 @@ void consoleUpdate(void) {
 uint8_t ConsoleRegisterCommand(uint8_t* name, uint8_t nameLength, void(*functionPtr)(uint8_t* string, uint8_t length)) {
     
     uint8_t index = 0;
-    for (uint8_t i=0; i < 10; i++) {
+    for (uint8_t i=0; i < CONSOLE_FUNCTION_TABLE_SIZE; i++) {
         
         // Is set to a valid value
         if ((is_letter( &CommandRegistry[i].name[0] ) == 1) | 
@@ -293,7 +296,7 @@ void printLn(void) {
         // Otherwise shift the frame down
         displayDevice->write( SHIFT_FRAME_DOWN, 0x01);
         
-        _delay_ms(80);
+        _delay_ms(40);
         
     }
     
@@ -323,6 +326,13 @@ void printPrompt(void) {
     console_position = console_prompt_length;
     
     displayDevice->write( SET_CURSOR_POSITION, console_position );
+    
+    return;
+}
+
+void ConsoleSetBlinkRate(uint8_t rate) {
+    
+    displayDevice->write( SET_CURSOR_BLINK_RATE, rate);
     
     return;
 }

@@ -13,7 +13,7 @@ void functionCLS(uint8_t* param, uint8_t param_length) {
     // Clear display frame buffer
     displayDriver->write( 165, 0x01 );
     
-    _delay_ms(100);
+    _delay_ms(40);
     
     ConsoleSetCursor(0, 0);
     

@@ -19,6 +19,8 @@ void InitiateDeviceTable(void) {
         
         device_table[d].hardware_address = 0x00000;
         
+        device_table[d].hardware_slot = 0;
+        
         device_table[d].device_id = 0x00;
         
         for (unsigned int i=0; i < DEVICE_NAME_LENGTH; i++) 
@@ -27,22 +29,22 @@ void InitiateDeviceTable(void) {
     
     struct Bus bus;
     
-    bus.read_waitstate  = 20;
-    bus.write_waitstate = 20;
+    bus.read_waitstate  = 40;
+    bus.write_waitstate = 40;
     
     // Check peripheral devices
     
     unsigned int index=0;
     
-    for (unsigned int d=0; d < NUMBER_OF_PERIPHERALS; d++) {
+    for (uint32_t d=0; d < NUMBER_OF_PERIPHERALS; d++) {
         
         // Set the device address
         uint32_t hardware_address = PERIPHERAL_ADDRESS_BEGIN + (PERIPHERAL_STRIDE * d);
         
-        uint8_t nameBuffer[ DEVICE_NAME_LENGTH ];
+        // Get device header
+        uint8_t nameBuffer[ 10 ];
         
-        // Get device name
-        for (unsigned int i=0; i < DEVICE_NAME_LENGTH; i++) 
+        for (unsigned int i=0; i < 10; i++) 
             bus_read_byte(&bus, hardware_address + i, &nameBuffer[i]);
         
         // Reject device name
@@ -53,9 +55,11 @@ void InitiateDeviceTable(void) {
         for (unsigned int i=0; i < DEVICE_NAME_LENGTH; i++) 
             device_table[ index ].device_name[i] = nameBuffer[i];
         
-        device_table[d].hardware_address = hardware_address;
+        device_table[index].hardware_address = hardware_address;
         
-        device_table[d].device_id = nameBuffer[0];
+        device_table[index].hardware_slot = d + '1';
+        
+        device_table[index].device_id = nameBuffer[0];
         
         number_of_devices++;
         
@@ -76,9 +80,6 @@ void InitiateDeviceTable(void) {
                 continue;
             
             registryEntry->hardware_address = device_table[d].hardware_address;
-            
-            // Exit out the parent for loop as well
-            i = GetNumberOfDrivers();
             
             break;
         }
