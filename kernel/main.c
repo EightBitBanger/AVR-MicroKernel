@@ -3,8 +3,7 @@
 
 #include <util/delay.h>
 
-
-#define BOARD_RETROBOARD_REV2
+#include <kernel/bus/board.h>
 
 #include <kernel/kernel.h>
 
@@ -29,17 +28,18 @@
 #include <drivers/keyboard/ps2/main.h>
 #include <drivers/network/NIC/main.h>
 
+// RAM TOP ADDRESS 0x78000
+
 int main(void) {
     
     // Zero the system bus
-    bus_address_zero();
     bus_control_zero();
+    bus_address_zero();
     
     // Allow board some time to stabilize
     _delay_ms(1000);
     
-    
-	// Initiate device drivers here
+    // Initiate device drivers here
 	initiateDisplayDriver();      // 20x4 LCD Display
 	initiatePS2Driver();          // PS/2 Port
 	initiateNetworkDriver();      // UART Network Card
@@ -74,47 +74,40 @@ int main(void) {
     
     struct Bus memoryBus;
 	
-	memoryBus.read_waitstate  = 1;
-	memoryBus.write_waitstate = 1;
+	memoryBus.read_waitstate  = 20;
+	memoryBus.write_waitstate = 20;
 	
 	// Check kernel was initiated
 	uint8_t kernerBuffer[] = {0x00};
 	
-	bus_read_byte(&memoryBus, EXTERNAL_MEMORY_BEGIN, &kernerBuffer[0]);
+	bus_read_memory(&memoryBus, EXTERNAL_MEMORY_BEGIN, &kernerBuffer[0]);
 	
 	// Check cold start, was kernel already initiated
 	if (kernerBuffer[0] != 'K') {
         
         ConsoleSetBlinkRate(0);
         
-        _delay_ms(1000);
+        _delay_ms(1500);
         
         uint32_t total = 0;
-        uint8_t counter = 0;
+        uint16_t counter = 0;
         
-        for (uint32_t address=EXTERNAL_MEMORY_BEGIN; address < PERIPHERAL_ADDRESS_BEGIN; address++) {
+        uint8_t buffer=0;
+        
+        for (uint32_t address=0x00000000; address < 0xffffffff; address++) {
             
             // Test byte 0xff
-            bus_write_byte(&memoryBus, address, 0x55);
+            bus_write_memory(&memoryBus, address, 0xff);
             
-            uint8_t buffer=0;
-            bus_read_byte(&memoryBus, address, &buffer);
+            bus_read_memory(&memoryBus, address, &buffer);
             
-            if (buffer != 0x55) 
-                break;
-            
-            // Test byte 0x00
-            bus_write_byte(&memoryBus, address, 0xaa);
-            
-            bus_read_byte(&memoryBus, address, &buffer);
-            
-            if (buffer != 0xaa) 
+            if (buffer != 0xff) 
                 break;
             
             total++;
             
             counter++;
-            if (counter < 100) 
+            if (counter < 512) 
                 continue;
             
             counter = 0;
@@ -145,11 +138,12 @@ int main(void) {
     
     ConsoleSetBlinkRate(35);
     
+    
     //
     // Initiate kernel space in external memory
     //
     
-    bus_write_byte( &memoryBus, EXTERNAL_MEMORY_BEGIN, 'K');
+    bus_write_memory( &memoryBus, EXTERNAL_MEMORY_BEGIN, 'K');
     
     
     

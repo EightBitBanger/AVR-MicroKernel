@@ -5,11 +5,18 @@
 #include <kernel/fs/fs.h>
 #include <kernel/fs/fs.h>
 
-uint32_t fs_device_address = 0x40000;
+
+#ifdef BOARD_RETROBOARD_REV2
+    uint32_t fs_device_address = 0x40000;
+#endif
+
+#ifdef BOARD_RETRO_AVR_X4_REV1
+    uint32_t fs_device_address = 0x10000;
+#endif
 
 void fsSetCurrentDevice(uint8_t device_index) {
     
-    fs_device_address = 0x40000 + (device_index * 0x10000);
+    fs_device_address = fs_device_address + (device_index * 0x10000);
     
     return;
 }
@@ -24,7 +31,7 @@ uint8_t fsGetDeviceHeaderByte(uint32_t address_offset) {
     struct Bus bus;
     bus.read_waitstate  = 4;
     
-    bus_read_byte(&bus, fs_device_address + address_offset, &headerByte);
+    bus_read_memory(&bus, fs_device_address + address_offset, &headerByte);
     
     return headerByte;
 }
@@ -33,12 +40,13 @@ uint32_t fsGetDeviceCapacity(void) {
     
     struct Bus bus;
     bus.read_waitstate  = 4;
+    bus.write_waitstate = 5;
     
     uint8_t buffer[SECTOR_SIZE];
     
     // Get header sector
     for (uint8_t i=0; i < SECTOR_SIZE; i++) 
-        bus_read_byte(&bus, fsGetCurrentDevice() + i, &buffer[i]);
+        bus_read_memory(&bus, fsGetCurrentDevice() + i, &buffer[i]);
     
     // Check header byte
     if (buffer[0] != 0x13) {
@@ -64,6 +72,7 @@ uint32_t fsFileCreate(uint8_t* name, uint8_t nameLength, uint32_t fileSize) {
     
     struct Bus bus;
     bus.read_waitstate  = 4;
+    bus.write_waitstate = 5;
     
     uint32_t freeSectorCount = 0;
     uint32_t fileTargetAddress = 0;
@@ -101,7 +110,7 @@ uint32_t fsFileCreate(uint8_t* name, uint8_t nameLength, uint32_t fileSize) {
         
         // Get sector header byte
         uint8_t headerByte = 0;
-        bus_read_byte(&bus, currentDevice + (sector * SECTOR_SIZE), &headerByte);
+        bus_read_memory(&bus, currentDevice + (sector * SECTOR_SIZE), &headerByte);
         
         // Find an empty sector
         if (fsGetDeviceHeaderByte( sector * SECTOR_SIZE ) != 0x00) 
@@ -112,7 +121,7 @@ uint32_t fsFileCreate(uint8_t* name, uint8_t nameLength, uint32_t fileSize) {
             
             // Get sector header byte
             uint8_t headerByte = 0;
-            bus_read_byte(&bus, currentDevice + (nextSector * SECTOR_SIZE), &headerByte);
+            bus_read_memory(&bus, currentDevice + (nextSector * SECTOR_SIZE), &headerByte);
             
             if (fsGetDeviceHeaderByte( nextSector * SECTOR_SIZE ) == 0x00) {
                 
@@ -138,36 +147,37 @@ uint32_t fsFileCreate(uint8_t* name, uint8_t nameLength, uint32_t fileSize) {
 		if (totalSectors != freeSectorCount) 
 			continue;
 		
+		
         // Mark following sectors as taken
         for (uint32_t i = 0; i <= totalSectors; i++) 
-            bus_write_byte_eeprom(fileTargetAddress + (i * SECTOR_SIZE), 0xff);
+            bus_write_byte_eeprom(&bus, fileTargetAddress + (i * SECTOR_SIZE), 0xff);
         
         // Mark the end of file sector
-        bus_write_byte_eeprom(fileTargetAddress + (totalSectors * SECTOR_SIZE), 0xaa);
+        bus_write_byte_eeprom(&bus, fileTargetAddress + (totalSectors * SECTOR_SIZE), 0xaa);
         
 		// Mark the first sector
         uint8_t fileStartbyte = 0x55; // File start byte is 0x55
-		bus_write_byte_eeprom(fileTargetAddress, fileStartbyte);
+		bus_write_byte_eeprom(&bus, fileTargetAddress, fileStartbyte);
 		
 		// Blank the file name
 		for (uint8_t i=0; i < 10; i++) 
-            bus_write_byte_eeprom( fileTargetAddress + i + OFFSET_FILE_NAME, ' ' );
+            bus_write_byte_eeprom( &bus,  fileTargetAddress + i + OFFSET_FILE_NAME, ' ' );
 		
 		// Write file name
 		for (uint8_t i=0; i < nameLength; i++) 
-            bus_write_byte_eeprom( fileTargetAddress + i + OFFSET_FILE_NAME, name[i] );
+            bus_write_byte_eeprom( &bus, fileTargetAddress + i + OFFSET_FILE_NAME, name[i] );
 		
         // Set file size
         union Pointer sizePtr;
         sizePtr.address = fileSize;
         
         for (uint8_t i=0; i < 4; i++) 
-            bus_write_byte_eeprom( fileTargetAddress + i + OFFSET_FILE_SIZE, sizePtr.byte_t[i] );
+            bus_write_byte_eeprom( &bus, fileTargetAddress + i + OFFSET_FILE_SIZE, sizePtr.byte_t[i] );
         
         // Write file attributes
         uint8_t attributes[4] = {' ', ' ', 'r', 'w'};
         for (uint8_t i=0; i < 4; i++) 
-            bus_write_byte_eeprom( fileTargetAddress + i + OFFSET_FILE_ATTRIBUTES, attributes[i] );
+            bus_write_byte_eeprom( &bus, fileTargetAddress + i + OFFSET_FILE_ATTRIBUTES, attributes[i] );
         
         return fileTargetAddress;
     }
@@ -215,7 +225,7 @@ uint32_t fsFileDelete(uint8_t* name, uint8_t nameLength) {
             
             uint8_t nameByte = 0;
             
-            bus_read_byte(&bus, currentDevice + (sector * SECTOR_SIZE) + OFFSET_FILE_NAME + i, &nameByte);
+            bus_read_memory(&bus, currentDevice + (sector * SECTOR_SIZE) + OFFSET_FILE_NAME + i, &nameByte);
             
             if (name[i] != nameByte) {
                 isFileFound = 0;
@@ -233,12 +243,16 @@ uint32_t fsFileDelete(uint8_t* name, uint8_t nameLength) {
         
         uint8_t isHeaderDeleted = 0;
         
+		struct Bus bus;
+		bus.write_waitstate = 5;
+		bus.write_waitstate = 5;
+        
         // Delete the file sectors
         for (uint32_t nextSector = sector; nextSector < currentCapacity; nextSector++) {
             
             // Get sector header byte
             uint8_t headerByte = 0;
-            bus_read_byte(&bus, currentDevice + (nextSector * SECTOR_SIZE), &headerByte);
+            bus_read_memory(&bus, currentDevice + (nextSector * SECTOR_SIZE), &headerByte);
             
             // Delete file header sector
             if (headerByte == 0x55) {
@@ -247,7 +261,7 @@ uint32_t fsFileDelete(uint8_t* name, uint8_t nameLength) {
                 if (isHeaderDeleted == 1) 
                     return 1;
                 
-                bus_write_byte_eeprom(currentDevice + (nextSector * SECTOR_SIZE), clearByte);
+                bus_write_byte_eeprom(&bus, currentDevice + (nextSector * SECTOR_SIZE), clearByte);
                 
                 isHeaderDeleted = 1;
                 continue;
@@ -255,14 +269,14 @@ uint32_t fsFileDelete(uint8_t* name, uint8_t nameLength) {
             
             // Delete sector
             if (headerByte == 0xff) {
-                bus_write_byte_eeprom(currentDevice + (nextSector * SECTOR_SIZE), clearByte);
+                bus_write_byte_eeprom(&bus, currentDevice + (nextSector * SECTOR_SIZE), clearByte);
                 continue;
             }
             
             // Delete end sector
             if (headerByte == 0xaa) {
                 
-                bus_write_byte_eeprom(currentDevice + (nextSector * SECTOR_SIZE), clearByte);
+                bus_write_byte_eeprom(&bus, currentDevice + (nextSector * SECTOR_SIZE), clearByte);
                 
                 return 1;
             }
@@ -280,6 +294,7 @@ uint32_t fsFileRename(uint8_t* name, uint8_t nameLength, uint8_t* newName, uint8
     
     struct Bus bus;
     bus.read_waitstate  = 4;
+    bus.write_waitstate = 5;
     
     uint32_t currentDevice = fsGetCurrentDevice();
     
@@ -314,7 +329,7 @@ uint32_t fsFileRename(uint8_t* name, uint8_t nameLength, uint8_t* newName, uint8
             
             uint8_t nameByte = 0;
             
-            bus_read_byte(&bus, currentDevice + (sector * SECTOR_SIZE) + OFFSET_FILE_NAME + i, &nameByte);
+            bus_read_memory(&bus, currentDevice + (sector * SECTOR_SIZE) + OFFSET_FILE_NAME + i, &nameByte);
             
             if (name[i] != nameByte) {
                 isFileFound = 0;
@@ -332,7 +347,7 @@ uint32_t fsFileRename(uint8_t* name, uint8_t nameLength, uint8_t* newName, uint8
         
         // Replace the file name
         for (uint8_t i=0; i < newNameLength; i++) 
-            bus_write_byte_eeprom(currentDevice + (sector * SECTOR_SIZE) + OFFSET_FILE_NAME + i, newName[i]);
+            bus_write_byte_eeprom(&bus, currentDevice + (sector * SECTOR_SIZE) + OFFSET_FILE_NAME + i, newName[i]);
         
 		return 1;
     }
@@ -374,7 +389,7 @@ void fsListDirectory(void) {
         
         // Get sector header byte
         uint8_t headerByte = 0;
-        bus_read_byte(&bus, currentDevice + (sector * SECTOR_SIZE), &headerByte);
+        bus_read_memory(&bus, currentDevice + (sector * SECTOR_SIZE), &headerByte);
         
         // Check active sector
         
@@ -383,7 +398,7 @@ void fsListDirectory(void) {
         
         // Get header sector
         for (uint8_t i=0; i < SECTOR_SIZE; i++) 
-            bus_read_byte(&bus, currentDevice + (sector * SECTOR_SIZE) + i, &buffer[i]);
+            bus_read_memory(&bus, currentDevice + (sector * SECTOR_SIZE) + i, &buffer[i]);
         
         // Get file size
         union Pointer fileSize;
@@ -427,6 +442,8 @@ void fsListDirectory(void) {
             
             print( &fileAttributes[1], 4 );
             
+            printSpace(1);
+            
             print(&buffer[1], FILE_NAME_LENGTH + 1);
             
             printSpace(integerOffset);
@@ -446,33 +463,37 @@ void fsListDirectory(void) {
 
 uint8_t fsFormatDevice(uint32_t device_capacity) {
     
+    struct Bus bus;
+    bus.read_waitstate  = 4;
+    bus.write_waitstate = 5;
+    
     uint32_t deviceCapacity = device_capacity / SECTOR_SIZE;
     
     uint32_t currentDevice = fsGetCurrentDevice();
     
     // Full clean
     for (uint32_t i=0; i < 256; i++) 
-        bus_write_byte_eeprom( currentDevice + i, ' ' );
+        bus_write_byte_eeprom( &bus, currentDevice + i, ' ' );
     
     // Mark sectors as available
     for (uint32_t sector = 0; sector < deviceCapacity; sector++) 
-        bus_write_byte_eeprom( currentDevice + (sector * SECTOR_SIZE), 0x00 );
+        bus_write_byte_eeprom( &bus, currentDevice + (sector * SECTOR_SIZE), 0x00 );
     
     // Zero the header sector
     for (uint32_t i=0; i < 32; i++) {
         
         if (i == 0) {
-            bus_write_byte_eeprom( currentDevice + i, 0x00 );
+            bus_write_byte_eeprom( &bus, currentDevice + i, 0x00 );
         } else {
-            bus_write_byte_eeprom( currentDevice + i, ' ' );
+            bus_write_byte_eeprom( &bus, currentDevice + i, ' ' );
         }
         
     }
     
     // Initiate first sector
-    bus_write_byte_eeprom( currentDevice + 0, 0x13 );
-    bus_write_byte_eeprom( currentDevice + 1, 'f' );
-    bus_write_byte_eeprom( currentDevice + 2, 's' );
+    bus_write_byte_eeprom( &bus, currentDevice + 0, 0x13 );
+    bus_write_byte_eeprom( &bus, currentDevice + 1, 'f' );
+    bus_write_byte_eeprom( &bus, currentDevice + 2, 's' );
     
     // Device size
     
@@ -480,7 +501,7 @@ uint8_t fsFormatDevice(uint32_t device_capacity) {
     deviceSize.address = deviceCapacity * SECTOR_SIZE;
     
     for (uint8_t i=0; i < 4; i++) 
-        bus_write_byte_eeprom(currentDevice + DEVICE_CAPACITY_OFFSET + i, deviceSize.byte_t[i]);
+        bus_write_byte_eeprom(&bus, currentDevice + DEVICE_CAPACITY_OFFSET + i, deviceSize.byte_t[i]);
     
     return 1;
 }
@@ -490,6 +511,7 @@ uint8_t fsRepairDevice(void) {
     
     struct Bus bus;
     bus.read_waitstate  = 4;
+    bus.write_waitstate = 5;
     
     uint8_t buffer[SECTOR_SIZE];
     
@@ -497,7 +519,7 @@ uint8_t fsRepairDevice(void) {
     uint32_t currentDevice = fsGetCurrentDevice();
     
     for (uint8_t i=0; i < SECTOR_SIZE; i++) 
-        bus_read_byte(&bus, currentDevice + i, &buffer[i]);
+        bus_read_memory(&bus, currentDevice + i, &buffer[i]);
     
     // Check header byte
     if (buffer[0] != 0x13) {
@@ -505,7 +527,7 @@ uint8_t fsRepairDevice(void) {
         uint8_t headerByte = 0x13;
         
         // Attempt to fix the header byte
-        bus_write_byte_eeprom(currentDevice, headerByte);
+        bus_write_byte_eeprom(&bus, currentDevice, headerByte);
         
     }
     
@@ -515,8 +537,8 @@ uint8_t fsRepairDevice(void) {
         uint8_t deviceName[2] = {'f', 's'};
         
         // Attempt to fix the header byte
-        bus_write_byte_eeprom(currentDevice + 1, deviceName[0]);
-        bus_write_byte_eeprom(currentDevice + 2, deviceName[1]);
+        bus_write_byte_eeprom(&bus, currentDevice + 1, deviceName[0]);
+        bus_write_byte_eeprom(&bus, currentDevice + 2, deviceName[1]);
         
         
     }

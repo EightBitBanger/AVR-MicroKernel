@@ -66,21 +66,12 @@ void functionNet(uint8_t* param, uint8_t param_length) {
         
         packet.stop    = NETWORK_PACKET_STOP_BYTE;
         
-        // Start byte to indicate we are starting to send a message to the server
-        ntSend(&packet.start, 1);
-        
-        // Send the destination and source address
-        // NOTE: The source address is the address referring 
-        // to the client device who is making the request.
-        ntSend(&packet.addr_d[0], 2);
-        ntSend(&packet.addr_s[0], 2);
-        
-        ntSend(&packet.data[0], 16);
-        
-        ntSend(&packet.stop, 1);
+        // Transmit the packet
+        ntPacketSend(&packet);
         
         return;
     }
+    
     
     //
     // Connect to a server, adding your address to the routing table
@@ -97,8 +88,8 @@ void functionNet(uint8_t* param, uint8_t param_length) {
         
         packet.addr_d[0]   = 0xff;
         packet.addr_d[1]   = 0xff;
-        packet.addr_s[0]   = 0x01;
-        packet.addr_s[1]   = 0x00;
+        packet.addr_s[0]   = 'H';
+        packet.addr_s[1]   = 'I';
         
         // Indicate we are a client attempting to connect to a server
         packet.data[0] = 0x55;
@@ -106,21 +97,56 @@ void functionNet(uint8_t* param, uint8_t param_length) {
         
         packet.stop    = NETWORK_PACKET_STOP_BYTE;
         
-        // Start byte to indicate we are starting to send a message to the server
-        ntSend(&packet.start, 1);
+        ntReceiveClear();
         
-        // Send the destination and source address
-        // NOTE: The source address is the address referring 
-        // to the client device who is making the request.
-        ntSend(&packet.addr_d[0], 2);
-        ntSend(&packet.addr_s[0], 2);
+        // Transmit the packet
+        ntPacketSend(&packet);
         
-        ntSend(&packet.data[0], 16);
+        uint8_t bufferSz = 0;
         
-        ntSend(&packet.stop, 1);
+        for (uint32_t i=0; i < 30000; i++) {
+            
+            uint8_t dataBuffer[32];
+            
+            bufferSz = ntReceive(dataBuffer, 32);
+            
+            if (bufferSz > sizeof(struct NetworkPacket) - 1) {
+                
+                // Check return packet
+                if (dataBuffer[0]  != NETWORK_PACKET_START_BYTE) continue;
+                if (dataBuffer[21] != NETWORK_PACKET_STOP_BYTE) continue;
+                
+                if (dataBuffer[3] != 0xff) continue;
+                if (dataBuffer[4] != 0xff) continue;
+                
+                uint8_t addrStrLow[8];
+                uint8_t addrStrHigh[8];
+                
+                int_to_string(packet.addr_d[0], addrStrLow);
+                int_to_string(packet.addr_d[1], addrStrHigh);
+                
+                uint8_t msgReplyFrom[] = "Connected to host";
+                print(msgReplyFrom, sizeof(msgReplyFrom));
+                printLn();
+                
+                break;
+            }
+            
+            _delay_us(1);
+            
+        }
+        
+        if (bufferSz == 0) {
+            
+            uint8_t msgReplyFrom[] = "Cannot reach host";
+            print(msgReplyFrom, sizeof(msgReplyFrom));
+            printLn();
+            
+        }
         
         return;
     }
+    
     
     //
     // Ping the server
@@ -155,31 +181,22 @@ void functionNet(uint8_t* param, uint8_t param_length) {
         
         for (uint8_t i=0; i < 1; i++) {
             
-            // Start byte to indicate we are starting to send a message to the server
-            ntSend(&packet.start, 1);
-            
-            // Send the destination and source address
-            // NOTE: The source address is the address referring 
-            // to the client device who is making the request.
-            ntSend(&packet.addr_d[0], 2);
-            ntSend(&packet.addr_s[0], 2);
-            
-            // Send the packet data
-            ntSend(&packet.data[0], 16);
-            
-            ntSend(&packet.stop, 1);
+            ntPacketSend(&packet);
             
             uint8_t dataBuffer[32];
             
             uint8_t bufferSz = 0;
             
-            for (uint16_t i=0; i < 10000; i++) {
+            for (uint16_t i=0; i < 30000; i++) {
                 
                 bufferSz = ntReceive(dataBuffer, 32);
                 
-                ntReceiveClear();
-                
-                if (bufferSz > 0) {
+                if (bufferSz > sizeof(struct NetworkPacket) - 1) {
+                    
+                    // Check return packet
+                    if (dataBuffer[0]  != NETWORK_PACKET_START_BYTE) continue;
+                    if (dataBuffer[21] != NETWORK_PACKET_STOP_BYTE) continue;
+                    
                     uint8_t addrStrLow[8];
                     uint8_t addrStrHigh[8];
                     
@@ -188,7 +205,7 @@ void functionNet(uint8_t* param, uint8_t param_length) {
                     
                     uint8_t msgReplyFrom[] = "Reply from ";
                     print(msgReplyFrom, sizeof(msgReplyFrom));
-                    
+                     
                     print(addrStrLow, 4);
                     
                     uint8_t msgPeriod[] = ".";
@@ -217,6 +234,102 @@ void functionNet(uint8_t* param, uint8_t param_length) {
             printLn();
             
             continue;
+        }
+        
+        return;
+    }
+    
+    //
+    // Hammer the network with continuous packets
+    //
+    
+    if ((param[0] == 'r') & (param[1] == 'e') & (param[2] == 'p')) {
+        
+        while (1) {
+            
+            uint8_t offset = 10;
+            
+            struct NetworkPacket packet;
+            
+            for (uint8_t i=0; i < 16; i++) 
+                packet.data[i] = 0x55;
+            
+            packet.start   = NETWORK_PACKET_START_BYTE;
+            
+            packet.addr_d[0]   = 0xff;
+            packet.addr_d[1]   = 0xff;
+            packet.addr_s[0]   = 0x00;
+            packet.addr_s[1]   = 0x00;
+            
+            packet.data[0] = 0x00;
+            packet.data[1] = 0x00;
+            
+            for (uint8_t i=0; i < (param_length - offset) + 1; i++) 
+                packet.data[i] = param[offset + i];
+            
+            packet.stop    = NETWORK_PACKET_STOP_BYTE;
+            
+            ntPacketSend(&packet);
+            
+            _delay_ms(1);
+            
+        }
+        
+    }
+    
+    
+    
+    //
+    // Check for any packets
+    //
+    
+    if ((param[0] == 'r') & (param[1] == 'e') & (param[2] == 'c') & (param[3] == 'v')) {
+        
+        struct NetworkPacket packet;
+        
+        uint8_t state = ntPacketReceive(&packet);
+        ntPacketClean();
+        
+        if (state == 1) {
+            
+            uint8_t msgAddressDestA[10];
+            uint8_t msgAddressDestB[10];
+            
+            uint8_t msgAddressSrceA[10];
+            uint8_t msgAddressSrceB[10];
+            
+            uint8_t placeDstA = int_to_string(packet.addr_d[0], msgAddressDestA);
+            uint8_t placeDstB = int_to_string(packet.addr_d[1], msgAddressDestB);
+            
+            uint8_t placeSrcA = int_to_string(packet.addr_s[0], msgAddressSrceA);
+            uint8_t placeSrcB = int_to_string(packet.addr_s[1], msgAddressSrceB);
+            
+            if (placeDstA == 0) placeDstA++;
+            if (placeDstB == 0) placeDstB++;
+            
+            if (placeSrcA == 0) placeSrcA++;
+            if (placeSrcB == 0) placeSrcB++;
+            
+            print(msgAddressDestA, placeDstA+1);
+            uint8_t msgPeriod[] = ".";
+            print(msgPeriod, sizeof(msgPeriod));
+            print(msgAddressDestB, placeDstB+1);
+            
+            printLn();
+            
+            print(msgAddressSrceA, placeSrcA+1);
+            print(msgPeriod, sizeof(msgPeriod));
+            print(msgAddressSrceB, placeSrcB+1);
+            
+            printLn();
+            
+        } else {
+            
+            uint8_t msgNoSuccess[] = "No messages";
+            
+            print(msgNoSuccess, sizeof(msgNoSuccess));
+            printLn();
+            
         }
         
         return;

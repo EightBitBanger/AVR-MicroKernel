@@ -6,11 +6,6 @@
 
 #include <kernel/cstring.h>
 
-#define PERIPHERAL_ADDRESS_BEGIN  0x40000
-#define PERIPHERAL_STRIDE         0x10000
-
-#define NUMBER_OF_PERIPHERALS  5
-
 #define DEVICE_NAME_LENGTH  10
 
 #define DEVICE_REGISTRY_SIZE  24

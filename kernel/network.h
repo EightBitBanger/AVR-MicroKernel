@@ -29,13 +29,16 @@ struct NetworkPacket {
 
 uint8_t ntPacketSend(struct NetworkPacket* packet);
 
+uint8_t ntPacketReceive(struct NetworkPacket* packet);
 
-// TX/RX UART communication
+uint8_t ntPacketClean(void);
+
+
 void ntInitiate(void);
 
-void ntSend(uint8_t* buffer, uint16_t bufferSize);
+void ntSend(uint8_t* buffer, uint8_t bufferSize);
 
-uint8_t ntReceive(uint8_t* buffer, uint16_t bufferSize);
+uint8_t ntReceive(uint8_t* buffer, uint8_t bufferSize);
 
 void ntReceiveClear(void);
 

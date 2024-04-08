@@ -20,20 +20,19 @@ void initiatePS2Driver(void) {
     
     uint8_t deviceName[] = "PS2";
     
-    for (unsigned int i=0; i < sizeof(deviceName); i++) {
+    for (unsigned int i=0; i < sizeof(deviceName); i++) 
         keyboardDriver->device.device_name[i] = deviceName[i];
-    }
     
     // Register the driver with the kernel
 	RegisterDriver( (void*)keyboardDriver );
 	
 	// Set hardware device details
-	keyboardDriver->device.hardware_address = 0x90000;
+	keyboardDriver->device.hardware_address = 0x00002;
 	
 	keyboardDriver->device.device_id = 0x01;
 	
-	keyboardDriver->interface.read_waitstate  = 0;
-	keyboardDriver->interface.write_waitstate = 0;
+	keyboardDriver->interface.read_waitstate  = 10;
+	keyboardDriver->interface.write_waitstate = 10;
     
 	// Initiate member functions
 	
@@ -57,7 +56,97 @@ void __write_ps2_device(uint32_t address, uint8_t buffer) {
 
 // Decode the scan code returning an ASCII character
 uint8_t decodeScanCode(uint8_t scancode_low, uint8_t scancode_high) {
+    
+#ifdef BOARD_RETRO_AVR_X4_REV1
+    
+	if ( (scancode_low == 0x19)|(scancode_low == 0x99)|(scancode_low == 0x49)|(scancode_low == 0x89)|(scancode_low == 0x09)|(scancode_low == 0x59)|(scancode_low == 0xD9) ) {
+		if (scancode_high == 0xc4) {return 0x11;} // Left shift pressed
+	}
 	
+	if ( (scancode_low == 0x1A)|(scancode_low == 0x9A)|(scancode_low == 0x4A)|(scancode_low == 0x8A)|(scancode_low == 0x0A)|(scancode_low == 0xA5)|(scancode_low == 0xDA) ) {
+		if (scancode_high == 0xd6) {return 0x11;} // Right shift pressed
+	}
+	
+	if (scancode_low == 0xFB) {
+		if (scancode_high == 0x59) {return 0x05;} // Left arrow
+		if (scancode_high == 0x69) {return ']';}  // Right square bracket
+		if (scancode_high == 0x09) {return 'i';}
+		if (scancode_high == 0x63) {return 's';}
+		if (scancode_high == 0x11) {return 'd';}
+		if (scancode_high == 0x53) {return 'f';}
+		if (scancode_high == 0x33) {return 'h';}
+		if (scancode_high == 0x71) {return 'j';}
+		if (scancode_high == 0x4B) {return 'l';}
+		return  0x00;
+	}
+	
+	if (scancode_low == 0xF9) {
+		if (scancode_high == 0x23) {return 0x12;} // Shift left released
+		if (scancode_high == 0x9B) {return 0x01;} // Backspace
+		if (scancode_high == 0x6B) {return 0x02;} // Enter
+		if (scancode_high == 0x3B) {return 0x04;} // Down arrow
+		if (scancode_high == 0xCB) {return '-';}  // Dash
+		if (scancode_high == 0xC1) {return '`';}  // Apostrophe
+		if (scancode_high == 0xB9) {return 0x07;} // Escape
+		if (scancode_high == 0x49) {return '/';}  // Forward slash
+		if (scancode_high == 0x29) {return 0x27;} // '
+		if (scancode_high == 0x89) {return '9';}
+		if (scancode_high == 0xF1) {return '8';}
+		if (scancode_high == 0xB3) {return '6';}
+		if (scancode_high == 0xD3) {return '5';}
+		if (scancode_high == 0x91) {return '3';}
+		if (scancode_high == 0xE3) {return '2';}
+		if (scancode_high == 0xA1) {return '1';}
+		if (scancode_high == 0x61) {return 'z';}
+		if (scancode_high == 0x13) {return 'x';}
+		if (scancode_high == 0x51) {return 'v';}
+		if (scancode_high == 0x31) {return 'b';}
+		if (scancode_high == 0x73) {return 'm';}
+		if (scancode_high == 0x0b) {return 'k';}
+		return  0x00;
+	}
+	
+	if (scancode_low == 0xFA) {
+		if (scancode_high == 0x6B) {return 0x12;} // Right shift released
+		if (scancode_high == 0xB9) {return 0x03;} // Up arrow
+		if (scancode_high == 0x51) {return 0x20;} // Space
+		if (scancode_high == 0x23) {return 0x09;} // Alt
+		if (scancode_high == 0xAB) {return '=';}  // Equals
+		if (scancode_high == 0x3B) {return 0x10;} // Delete
+		if (scancode_high == 0x0b) {return ',';}  // Comma
+		if (scancode_high == 0x49) {return '.';}  // Period
+		if (scancode_high == 0xE9) {return 0x5c;} // Backslash
+		if (scancode_high == 0x89) {return '0';}
+		if (scancode_high == 0xF1) {return '7';}
+		if (scancode_high == 0x91) {return '4';}
+		if (scancode_high == 0x13) {return 'c';}
+		if (scancode_high == 0x31) {return 'n';}
+		if (scancode_high == 0xA1) {return 'q';}
+		if (scancode_high == 0xE3) {return 'w';}
+		if (scancode_high == 0xD3) {return 'r';}
+		if (scancode_high == 0xB3) {return 'y';}
+		if (scancode_high == 0xCB) {return 'p';}
+		return  0x00;
+	}
+	
+	if (scancode_low == 0xf8) {
+		if (scancode_high == 0xDD) {return 0x06;} // Right arrow
+		if (scancode_high == 0xA3) {return 0x08;} // Control
+		if (scancode_high == 0xC9) {return ';';}  // Semi-colon
+		if (scancode_high == 0xA9) {return '[';}  // Left square bracket
+		if (scancode_high == 0x93) {return 'e';}
+		if (scancode_high == 0xD1) {return 't';}
+		if (scancode_high == 0xF3) {return 'u';}
+		if (scancode_high == 0x8B) {return 'o';}
+		if (scancode_high == 0xE1) {return 'a';}
+		if (scancode_high == 0xB1) {return 'g';}
+		return  0x00;
+	}
+	
+#endif
+    
+#ifdef BOARD_RETROBOARD_REV2
+    
 	if ( (scancode_low == 0x98)|(scancode_low == 0x99)|(scancode_low == 0x92)|(scancode_low == 0x91)|(scancode_low == 0x90)|(scancode_low == 0x9a)|(scancode_low == 0x9b) ) {
 		if (scancode_high == 0xc4) {return 0x11;} // Left shift pressed
 	}
@@ -142,5 +231,8 @@ uint8_t decodeScanCode(uint8_t scancode_low, uint8_t scancode_high) {
 		return  0x00;
 	}
 	
+#endif
+    
 	return 0x00;
 }
+

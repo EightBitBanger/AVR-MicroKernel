@@ -2,6 +2,7 @@
 #include <util/delay.h>
 
 #include <kernel/kernel.h>
+#include <kernel/bus/bus.h>
 
 #include <kernel/console.h>
 
@@ -55,8 +56,16 @@ void consoleInitiate(void) {
 	uint8_t nameDisplay[] = "display";
 	displayDevice = (struct Driver*)GetDriverByName( nameDisplay, sizeof(nameDisplay) );
 	
+    
+#ifdef BOARD_RETRO_AVR_X4_REV1
+    keyboadDevice->read( 0x00001, &oldScanCodeLow );
+    keyboadDevice->read( 0x00000, &oldScanCodeHigh );
+#endif
+    
+#ifdef BOARD_RETROBOARD_REV2
     keyboadDevice->read( 0x00000, &oldScanCodeLow );
     keyboadDevice->read( 0x00001, &oldScanCodeHigh );
+#endif
     
     lastChar = decodeScanCode(oldScanCodeLow, oldScanCodeHigh);
     
@@ -87,8 +96,15 @@ void consoleUpdate(void) {
     uint8_t scanCodeLow  = 0;
     uint8_t scanCodeHigh = 0;
     
+#ifdef BOARD_RETRO_AVR_X4_REV1
+    keyboadDevice->read( 0x00001, &scanCodeLow );
+    keyboadDevice->read( 0x00000, &scanCodeHigh );
+#endif
+    
+#ifdef BOARD_RETROBOARD_REV2
     keyboadDevice->read( 0x00000, &scanCodeLow );
     keyboadDevice->read( 0x00001, &scanCodeHigh );
+#endif
     
     if (oldScanCodeLow != scanCodeLow) lastChar = 0x00;
     if (oldScanCodeHigh != scanCodeHigh) lastChar = 0x00;

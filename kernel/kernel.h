@@ -16,5 +16,6 @@
 #include <kernel/console.h>
 #include <kernel/network.h>
 
+#include <kernel/bus/board.h>
 
 #endif

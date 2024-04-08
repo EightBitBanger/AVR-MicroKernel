@@ -11,6 +11,7 @@ struct Bus {
 
 
 #include <kernel/bus/boards/Retroboard_REV2/bus.h>
+#include <kernel/bus/boards/RetroAVRx4/bus.h>
 
 /// Zero the control logic IO port.
 void bus_control_zero(void);
@@ -25,8 +26,23 @@ void bus_read_byte(struct Bus* bus, uint32_t address, uint8_t* buffer);
 /// Write a byte to an address using the given bus.
 void bus_write_byte(struct Bus* bus, uint32_t address, uint8_t byte);
 
+
+/// Read a byte from IO address space.
+void bus_read_io(struct Bus* bus, uint32_t address, uint8_t* buffer);
+
+/// Write a byte to IO address space.
+void bus_write_io(struct Bus* bus, uint32_t address, uint8_t byte);
+
+
+/// Read a byte from memory address space.
+void bus_read_memory(struct Bus* bus, uint32_t address, uint8_t* buffer);
+
+/// Write a byte to memory address space.
+void bus_write_memory(struct Bus* bus, uint32_t address, uint8_t byte);
+
+
 /// Write a byte to an address using the given bus.
 /// 5 milliseconds wait state for EEPROM writes
-void bus_write_byte_eeprom(uint32_t address, uint8_t byte);
+void bus_write_byte_eeprom(struct Bus* bus, uint32_t address, uint8_t byte);
 
 #endif

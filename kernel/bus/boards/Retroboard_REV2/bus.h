@@ -1,5 +1,13 @@
 #ifdef BOARD_RETROBOARD_REV2
 
+#define EXTERNAL_MEMORY_BEGIN     0x00000
+
+#define PERIPHERAL_ADDRESS_BEGIN  0x40000
+#define PERIPHERAL_STRIDE         0x10000
+
+#define NUMBER_OF_PERIPHERALS  5
+
+
 #include <kernel/bus/bus.h>
 
 // NOTE: Address and data buses are multiplexed requiring external logic
@@ -169,7 +177,7 @@ void bus_read_byte(struct Bus* bus, uint32_t address, uint8_t* buffer) {
 	_BUS_LOWER_OUT__ = 0xff; // Internal pull-up resistors
 	
 	// Wait state
-	for (uint8_t i=0; i < bus->read_waitstate; i++) 
+	for (uint16_t i=0; i < bus->read_waitstate; i++) 
         _CONTROL_OUT__ = _CONTROL_READ_CYCLE__;
 	
 	// Read the data byte
@@ -203,7 +211,7 @@ void bus_write_byte(struct Bus* bus, uint32_t address, uint8_t byte) {
 	_BUS_LOWER_OUT__ = byte;
 	
 	// Wait state
-	for (uint8_t i=0; i < bus->write_waitstate; i++) 
+	for (uint16_t i=0; i < bus->write_waitstate; i++) 
         _CONTROL_OUT__ = _CONTROL_WRITE_CYCLE__;
 	
 	// End cycle
@@ -216,7 +224,7 @@ void bus_write_byte(struct Bus* bus, uint32_t address, uint8_t byte) {
 	return;
 }
 
-void bus_write_byte_eeprom(uint32_t address, uint8_t byte) {
+void bus_write_byte_eeprom(struct Bus* bus, uint32_t address, uint8_t byte) {
     
 	// Address the device
 	_BUS_LOWER_DIR__ = 0xff;
@@ -232,7 +240,7 @@ void bus_write_byte_eeprom(uint32_t address, uint8_t byte) {
 	_BUS_LOWER_OUT__ = byte;
 	
 	// Wait state
-	for (uint8_t i=0; i < 4; i++) 
+	for (uint16_t i=0; i < bus->write_waitstate; i++) 
         _CONTROL_OUT__ = _CONTROL_WRITE_CYCLE__;
 	
 	// End cycle
