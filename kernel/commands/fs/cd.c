@@ -8,7 +8,7 @@ void functionCD(uint8_t* param, uint8_t param_length) {
     
     uppercase( &param[0] );
     
-    fsSetCurrentDevice( param[0] - 'A' );
+    fsSetCurrentDevice( (param[0] - 'A') + 1 );
     
     uint8_t consolePrompt[2];
     consolePrompt[0] = param[0];

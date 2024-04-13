@@ -45,4 +45,8 @@ void bus_write_memory(struct Bus* bus, uint32_t address, uint8_t byte);
 /// 5 milliseconds wait state for EEPROM writes
 void bus_write_byte_eeprom(struct Bus* bus, uint32_t address, uint8_t byte);
 
+void bus_write_memory_eeprom(struct Bus* bus, uint32_t address, uint8_t byte);
+
+void bus_write_io_eeprom(struct Bus* bus, uint32_t address, uint8_t byte);
+
 #endif

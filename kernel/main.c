@@ -28,7 +28,6 @@
 #include <drivers/keyboard/ps2/main.h>
 #include <drivers/network/NIC/main.h>
 
-// RAM TOP ADDRESS 0x78000
 
 int main(void) {
     
@@ -37,7 +36,7 @@ int main(void) {
     bus_address_zero();
     
     // Allow board some time to stabilize
-    _delay_ms(1000);
+    _delay_ms(1500);
     
     // Initiate device drivers here
 	initiateDisplayDriver();      // 20x4 LCD Display
@@ -74,78 +73,61 @@ int main(void) {
     
     struct Bus memoryBus;
 	
-	memoryBus.read_waitstate  = 20;
-	memoryBus.write_waitstate = 20;
+	memoryBus.read_waitstate  = 4;
+	memoryBus.write_waitstate = 1;
 	
-	// Check kernel was initiated
-	uint8_t kernerBuffer[] = {0x00};
 	
-	bus_read_memory(&memoryBus, EXTERNAL_MEMORY_BEGIN, &kernerBuffer[0]);
-	
-	// Check cold start, was kernel already initiated
-	if (kernerBuffer[0] != 'K') {
+    ConsoleSetBlinkRate(0);
+    
+    uint16_t counter=0;
+    uint32_t address=0;
+    
+    for (address=0x00000; address < 0xfffff; address++) {
         
-        ConsoleSetBlinkRate(0);
-        
-        _delay_ms(1500);
-        
-        uint32_t total = 0;
-        uint16_t counter = 0;
+        bus_write_memory(&memoryBus, address, 0xaa);
         
         uint8_t buffer=0;
+        bus_read_memory(&memoryBus, address, &buffer);
         
-        for (uint32_t address=0x00000000; address < 0xffffffff; address++) {
-            
-            // Test byte 0xff
-            bus_write_memory(&memoryBus, address, 0xff);
-            
-            bus_read_memory(&memoryBus, address, &buffer);
-            
-            if (buffer != 0xff) 
-                break;
-            
-            total++;
-            
-            counter++;
-            if (counter < 512) 
-                continue;
-            
+        if (buffer != 0xaa) 
+            break;
+        
+        
+        
+        counter++;
+        if (counter > 255) {
             counter = 0;
+            
+            bus_control_zero();
+            bus_address_zero();
             
             ConsoleSetCursor(0, 0);
             
-            uint8_t totalString[10];
-            uint8_t place = int_to_string(total, totalString);
+            uint8_t totalString[40];
+            uint8_t place = int_to_string(address, totalString);
             print(totalString, place + 1);
             
-            continue;
+            bus_control_zero();
+            bus_address_zero();
+            
         }
         
-        uint8_t totalString[10];
-        uint8_t place = int_to_string(total, totalString);
-        
-        ConsoleSetCursor(0, 0);
-        print(totalString, place + 1);
-        printSpace(1);
-        
-        uint8_t byteFreeString[] = "bytes free";
-        print(byteFreeString, sizeof(byteFreeString));
-        
-        printLn();
-        
-	}
+        continue;
+    }
     
+    uint8_t totalString[40];
+    uint8_t place = int_to_string(address, totalString);
+    
+    ConsoleSetCursor(0, 0);
+    print(totalString, place + 1);
+    printSpace(1);
+    
+    //uint8_t byteFreeString[] = "bytes free";
+    //print(byteFreeString, sizeof(byteFreeString));
+    
+    printLn();
     
     ConsoleSetBlinkRate(35);
-    
-    
-    //
-    // Initiate kernel space in external memory
-    //
-    
-    bus_write_memory( &memoryBus, EXTERNAL_MEMORY_BEGIN, 'K');
-    
-    
     
     
     //
@@ -156,20 +138,21 @@ int main(void) {
         
         fsSetCurrentDevice( d );
         
-        uint8_t deviceHeader = fsGetDeviceHeaderByte(0);
+        uint8_t deviceHeader[2];
+        deviceHeader[0] = fsGetDeviceHeaderByte(1);
+        deviceHeader[1] = fsGetDeviceHeaderByte(2);
         
-        if (deviceHeader != 0x13) 
+        if ((deviceHeader[0] != 'f') | (deviceHeader[1] != 's')) 
             continue;
         
         // Set the root directory
-        fsSetCurrentDevice( d );
-        uint8_t prompt[] = {('A' + d), '>'};
+        uint8_t prompt[] = {('A' + d) - 1, '>'};
         ConsoleSetPrompt( prompt, sizeof(prompt) + 1 );
         
         break;
     }
     
-    _delay_ms(300);
+    //_delay_ms(300);
     
     printPrompt();
     
