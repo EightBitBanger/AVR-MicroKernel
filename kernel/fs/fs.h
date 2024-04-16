@@ -3,9 +3,9 @@
 
 // Capacities
 
-#define CAPACITY_32K      1024
-#define CAPACITY_16K      512
-#define CAPACITY_8K       256
+#define CAPACITY_32K      256
+#define CAPACITY_16K      128
+#define CAPACITY_8K       64
 
 // Sector format
 
@@ -26,6 +26,15 @@
 #define FILE_ATTRIBUTE_WRITE      17
 #define FILE_ATTRIBUTE_SPECIAL    18
 
+struct FSAttribute {
+    
+    uint8_t executable;
+    uint8_t readable;
+    uint8_t writeable;
+    
+};
+
+
 
 void fsSetCurrentDevice(uint8_t device_index);
 
@@ -35,12 +44,18 @@ uint32_t fsGetDeviceCapacity(void);
 
 uint32_t fsGetCurrentDevice(void);
 
+uint8_t fsCheckDeviceReady(void);
 
-uint32_t fsFileCreate(uint8_t* name, uint8_t nameLength, uint32_t fileSize);
 
-uint32_t fsFileDelete(uint8_t* name, uint8_t nameLength);
+uint8_t fsFileCreate(uint8_t* name, uint8_t nameLength, uint32_t fileSize);
 
-uint32_t fsFileRename(uint8_t* name, uint8_t nameLength, uint8_t* newName, uint8_t newNameLength);
+uint8_t fsFileDelete(uint8_t* name, uint8_t nameLength);
+
+uint8_t fsFileRename(uint8_t* name, uint8_t nameLength, uint8_t* newName, uint8_t newNameLength);
+
+uint8_t fsGetFileAttributes(uint8_t* name, uint8_t nameLength, struct FSAttribute* attributes);
+
+uint8_t fsSetFileAttributes(uint8_t* name, uint8_t nameLength, struct FSAttribute* attributes);
 
 
 void fsListDirectory(void);

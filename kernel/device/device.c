@@ -1,36 +1,9 @@
 #include <avr/io.h>
 
-#include <util/delay.h>
+#include <kernel/delay.h>
 
 #include <kernel/device/device.h>
 #include <kernel/driver/driver.h>
-
-#include <kernel/bus/board.h>
-
-
-
-#ifdef BOARD_RETROBOARD_REV2
-    
-    #define EXTERNAL_MEMORY_BEGIN     0x00000
-    
-    #define PERIPHERAL_ADDRESS_BEGIN  0x40000
-    #define PERIPHERAL_STRIDE         0x10000
-    
-    #define NUMBER_OF_PERIPHERALS  5
-    
-#endif
-
-#ifdef BOARD_RETRO_AVR_X4_REV1
-    
-    #define EXTERNAL_MEMORY_BEGIN     0x00000
-    
-    #define PERIPHERAL_ADDRESS_BEGIN  0x10000
-    #define PERIPHERAL_STRIDE         0x10000
-    
-    #define NUMBER_OF_PERIPHERALS  5
-    
-#endif
-
 
 
 struct Device device_table[ DEVICE_TABLE_SIZE ];
@@ -56,8 +29,8 @@ void InitiateDeviceTable(void) {
     
     struct Bus bus;
     
-    bus.read_waitstate  = 40;
-    bus.write_waitstate = 40;
+    bus.read_waitstate  = 10;
+    bus.write_waitstate = 10;
     
     // Check peripheral devices
     
@@ -69,24 +42,29 @@ void InitiateDeviceTable(void) {
         uint32_t hardware_address = PERIPHERAL_ADDRESS_BEGIN + (PERIPHERAL_STRIDE * d);
         
         // Get device header
-        uint8_t nameBuffer[ 10 ];
+        uint8_t buffer[ 10 ];
         
-        for (unsigned int i=0; i < 10; i++) 
-            bus_read_byte(&bus, hardware_address + i, &nameBuffer[i]);
+        for (unsigned int i=0; i < 10; i++) {
+            bus_read_byte(&bus, hardware_address + i, &buffer[i]);
+            _delay_us(1);
+        }
         
         // Reject device name
-        if (is_letter( &nameBuffer[1] ) == 0) 
+        if (is_letter( &buffer[1] ) == 0) 
+            continue;
+        
+        if (buffer[1] == ' ') 
             continue;
         
         // Add device to the device table
-        for (unsigned int i=0; i < DEVICE_NAME_LENGTH; i++) 
-            device_table[ index ].device_name[i] = nameBuffer[i];
+        for (unsigned int i=0; i < DEVICE_NAME_LENGTH - 1; i++) 
+            device_table[ index ].device_name[i] = buffer[i + 1];
         
         device_table[index].hardware_address = hardware_address;
         
         device_table[index].hardware_slot = d + '1';
         
-        device_table[index].device_id = nameBuffer[0];
+        device_table[index].device_id = buffer[0];
         
         number_of_devices++;
         
@@ -113,8 +91,6 @@ void InitiateDeviceTable(void) {
         
     }
     
-    _delay_ms(80);
-	
     return;
 }
 

@@ -25,7 +25,7 @@ void initiateDisplayDriver(void) {
 	RegisterDriver( (void*)displayDriver );
 	
 	// Set hardware device details
-	displayDriver->device.hardware_address = 0x00000;
+	displayDriver->device.hardware_address = PERIPHERAL_ADDRESS_BEGIN;
 	
 	displayDriver->device.device_id = 0x10;
 	

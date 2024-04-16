@@ -57,7 +57,7 @@ void functionList(uint8_t* param, uint8_t param_length) {
             int_to_hex_string( buffer[i], &hex[0] );
             
             print(hex, sizeof(hex) + 1);
-            console_position--;
+            //console_position--;
             
             if ((i == 9) | (i == 19))
                 printLn();

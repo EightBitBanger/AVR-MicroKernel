@@ -1,7 +1,7 @@
 #include <avr/io.h>
 //#include <stdlib.h>
 
-#include <util/delay.h>
+#include <kernel/delay.h>
 
 #include <kernel/bus/board.h>
 
@@ -29,14 +29,45 @@
 #include <drivers/network/NIC/main.h>
 
 
+
+void spkBeep(uint16_t duration, uint16_t frequency) {
+    
+    struct Bus speakerBus;
+    speakerBus.write_waitstate = 1000;
+    
+    for (uint16_t i=0; i < duration; i++) {
+        
+        bus_write_io(&speakerBus, 0x60000, 0x00);
+        
+        for (uint16_t i=0; i < frequency / 16; i++) 
+            __asm__("nop");
+        
+        continue;
+    }
+    
+    
+    return;
+}
+
+
+
+
 int main(void) {
     
     // Zero the system bus
     bus_control_zero();
     bus_address_zero();
     
+    //uint16_t duration  = 10;
+    //uint16_t frequency = 20000;
+    
+    //spkBeep(duration, frequency);
+    
+    
+    //while(1) {}
+    
     // Allow board some time to stabilize
-    _delay_ms(1500);
+    _delay_ms(2000);
     
     // Initiate device drivers here
 	initiateDisplayDriver();      // 20x4 LCD Display
@@ -82,48 +113,44 @@ int main(void) {
     uint16_t counter=0;
     uint32_t address=0;
     
-    for (address=0x00000; address < 0xfffff; address++) {
+    uint8_t buffer=0;
+    
+    for (address=0x00000000; address < 0xffffffff; address++) {
         
-        bus_write_memory(&memoryBus, address, 0xaa);
+        bus_write_memory(&memoryBus, address, 0x55);
         
-        uint8_t buffer=0;
+        _delay_us(1);
+        
         bus_read_memory(&memoryBus, address, &buffer);
         
-        if (buffer != 0xaa) 
-            break;
+        _delay_us(1);
         
-        
+        if (buffer != 0x55) break;
         
         counter++;
-        if (counter > 255) {
-            counter = 0;
-            
-            bus_control_zero();
-            bus_address_zero();
-            
-            ConsoleSetCursor(0, 0);
-            
-            uint8_t totalString[40];
-            uint8_t place = int_to_string(address, totalString);
-            print(totalString, place + 1);
-            
-            bus_control_zero();
-            bus_address_zero();
-            
-        }
+        if (counter < 256) 
+            continue;
+        
+        counter = 0;
+        
+        ConsoleSetCursor(0, 0);
+        
+        uint8_t totalString[10];
+        uint8_t place = int_to_string(address, totalString);
+        print(totalString, place + 1);
         
         continue;
     }
     
-    uint8_t totalString[40];
+    uint8_t totalString[10];
     uint8_t place = int_to_string(address, totalString);
     
     ConsoleSetCursor(0, 0);
     print(totalString, place + 1);
     printSpace(1);
     
-    //uint8_t byteFreeString[] = "bytes free";
-    //print(byteFreeString, sizeof(byteFreeString));
+    uint8_t byteFreeString[] = "bytes free";
+    print(byteFreeString, sizeof(byteFreeString));
     
     printLn();
     
@@ -134,25 +161,22 @@ int main(void) {
     // Find an active storage device to call the file system root directory
     //
     
-    for (uint8_t d=0; d < NUMBER_OF_PERIPHERALS; d++) {
+    for (uint8_t d=1; d <= NUMBER_OF_PERIPHERALS; d++) {
         
         fsSetCurrentDevice( d );
         
-        uint8_t deviceHeader[2];
-        deviceHeader[0] = fsGetDeviceHeaderByte(1);
-        deviceHeader[1] = fsGetDeviceHeaderByte(2);
-        
-        if ((deviceHeader[0] != 'f') | (deviceHeader[1] != 's')) 
+        if (fsCheckDeviceReady() == 0) 
             continue;
         
         // Set the root directory
-        uint8_t prompt[] = {('A' + d) - 1, '>'};
+        uint8_t prompt[] = {('A' + d), '>'};
         ConsoleSetPrompt( prompt, sizeof(prompt) + 1 );
         
         break;
     }
     
-    //_delay_ms(300);
+    
+    _delay_ms(100);
     
     printPrompt();
     

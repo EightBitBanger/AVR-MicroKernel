@@ -23,9 +23,16 @@ void printPrompt(void);
 
 void ConsoleSetCursor(uint8_t line, uint8_t position);
 
+void ConsoleCursorEnable(void);
+
+void ConsoleCursorDisable(void);
+
+void ConsoleSetCursorPosition(uint8_t position);
+
 void ConsoleSetBlinkRate(uint8_t rate);
 
 void ConsoleSetPrompt(uint8_t* prompt, uint8_t length);
 
+uint8_t consoleWait(uint8_t key);
 
 #endif

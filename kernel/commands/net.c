@@ -1,5 +1,5 @@
 #include <avr/io.h>
-#include <util/delay.h>
+#include <kernel/delay.h>
 
 #include <kernel/kernel.h>
 
@@ -61,8 +61,16 @@ void functionNet(uint8_t* param, uint8_t param_length) {
         packet.data[0] = 0x55;
         packet.data[1] = 0x00;
         
-        for (uint8_t i=0; i < (param_length - offset) + 1; i++) 
-            packet.data[i] = param[offset + i];
+        //for (uint8_t i=0; i < (param_length - offset) + 1; i++) 
+        //    packet.data[i] = param[offset + i];
+        
+        packet.data[0] = 'A';
+        packet.data[1] = 'S';
+        packet.data[2] = 'S';
+        packet.data[3] = 'T';
+        packet.data[4] = 'W';
+        packet.data[5] = 'A';
+        packet.data[6] = 'T';
         
         packet.stop    = NETWORK_PACKET_STOP_BYTE;
         

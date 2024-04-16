@@ -155,20 +155,6 @@ void bus_read_byte(struct Bus* bus, uint32_t address, uint8_t* buffer) {
 	_BUS_MIDDLE_OUT__ = (address >> 8);
 	_BUS_LOWER_OUT__  = (address & 0xff);
 	
-	// Write the control
-	/*
-	__asm__("push   r27");
-    __asm__("ldi    r27,  0b00111111");
-    __asm__("out    0x05, r27");
-    __asm__("nop");
-    __asm__("nop");
-    __asm__("nop");
-    __asm__("nop");
-    __asm__("ldi    r27,  0b00110100");
-    __asm__("out    0x05, r27");
-    __asm__("pop    r27");
-    */
-    
 	_CONTROL_OUT__ = _CONTROL_OPEN_LATCH__;
 	_CONTROL_OUT__ = _CONTROL_READ_LATCH__;
 	
@@ -224,7 +210,72 @@ void bus_write_byte(struct Bus* bus, uint32_t address, uint8_t byte) {
 	return;
 }
 
-void bus_write_byte_eeprom(struct Bus* bus, uint32_t address, uint8_t byte) {
+void bus_read_memory(struct Bus* bus, uint32_t address, uint8_t* buffer) {
+	
+	// Output the data bus
+    _BUS_LOWER_DIR__ = 0xff;
+	
+	// Address the device
+	_BUS_UPPER_OUT__  = (address >> 16);
+	_BUS_MIDDLE_OUT__ = (address >> 8);
+	_BUS_LOWER_OUT__  = (address & 0xff);
+	
+	_CONTROL_OUT__ = _CONTROL_OPEN_LATCH__;
+	_CONTROL_OUT__ = _CONTROL_READ_LATCH__;
+	
+	// Set data direction
+	_BUS_LOWER_DIR__ = 0x00;
+	_BUS_LOWER_OUT__ = 0xff; // Internal pull-up resistors
+	
+	// Wait state
+	for (uint16_t i=0; i < bus->read_waitstate; i++) 
+        _CONTROL_OUT__ = _CONTROL_READ_CYCLE__;
+	
+	// Read the data byte
+	*buffer = _BUS_LOWER_IN__;
+	
+	// End cycle
+	_CONTROL_OUT__ = _CONTROL_OPEN_LATCH__;
+	_BUS_UPPER_OUT__  = 0x00;
+	_BUS_MIDDLE_OUT__ = 0x00;
+	_BUS_LOWER_OUT__  = 0x00;
+	_CONTROL_OUT__ = _CONTROL_CLOSED_LATCH__;
+	
+	return;
+}
+
+
+void bus_write_memory(struct Bus* bus, uint32_t address, uint8_t byte) {
+	
+	// Output the data bus
+    _BUS_LOWER_DIR__ = 0xff;
+	
+	// Address the device
+	_BUS_UPPER_OUT__  = (address >> 16);
+	_BUS_MIDDLE_OUT__ = (address >> 8);
+	_BUS_LOWER_OUT__  = (address & 0xff);
+	
+	_CONTROL_OUT__ = _CONTROL_OPEN_LATCH__;
+	_CONTROL_OUT__ = _CONTROL_WRITE_LATCH__;
+	
+	// Cast the data byte
+	_BUS_LOWER_OUT__ = byte;
+	
+	// Wait state
+	for (uint16_t i=0; i < bus->write_waitstate; i++) 
+        _CONTROL_OUT__ = _CONTROL_WRITE_CYCLE__;
+	
+	// End cycle
+	_CONTROL_OUT__ = _CONTROL_OPEN_LATCH__;
+	_BUS_UPPER_OUT__  = 0x00;
+	_BUS_MIDDLE_OUT__ = 0x00;
+	_BUS_LOWER_OUT__  = 0x00;
+	_CONTROL_OUT__ = _CONTROL_CLOSED_LATCH__;
+	
+	return;
+}
+
+void bus_write_byte_eeprom(struct Bus* bus, uint32_t address, uint8_t byte, uint8_t* pageCounter) {
     
 	// Address the device
 	_BUS_LOWER_DIR__ = 0xff;

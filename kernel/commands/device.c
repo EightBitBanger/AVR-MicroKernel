@@ -6,20 +6,19 @@
 
 void functionDevice(uint8_t* param, uint8_t param_length) {
     
-    uint8_t numberOfDrivers = GetNumberOfDrivers();
+    uint8_t numberOfDevices = GetNumberOfDevices();
     
-    //uint8_t numberOfDevices = GetNumberOfDevices();
-    
-    for (uint8_t i=0; i < numberOfDrivers; i++) {
+    for (uint8_t i=0; i < numberOfDevices; i++) {
         
         struct Device* dev = GetHardwareDeviceByIndex( i );
         
         print(dev->device_name, 10);
         printSpace(1);
         
-        uint8_t deviceAddr[] = "0x40000";
+        uint8_t deviceAddr[] = "0x00000";
         
-        uint8_t addr = (dev->hardware_address - 0x40000) / 0x10000;
+        uint8_t addr = (dev->hardware_address) / 0x10000;
+        
         deviceAddr[2] += addr;
         print(&deviceAddr[0], sizeof(deviceAddr));
         
@@ -37,7 +36,7 @@ void functionDevice(uint8_t* param, uint8_t param_length) {
         printSpace(1);
         
         
-        uint8_t deviceAddr[] = "0x40000";
+        uint8_t deviceAddr[] = "0x00000";
         
         uint8_t addr = (drv->device.hardware_address - 0x40000) / 0x10000;
         deviceAddr[2] += addr;

@@ -15,6 +15,8 @@
 #define nullptr  0x00000000
 
 
+#include <kernel/bus/board.h>
+
 struct Device {
     
     uint8_t device_name[DEVICE_NAME_LENGTH];

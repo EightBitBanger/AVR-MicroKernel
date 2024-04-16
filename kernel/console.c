@@ -1,5 +1,5 @@
 #include <avr/io.h>
-#include <util/delay.h>
+#include <kernel/delay.h>
 
 #include <kernel/kernel.h>
 #include <kernel/bus/bus.h>
@@ -25,6 +25,8 @@ uint8_t lastChar = 0x00;
 uint8_t console_prompt[8];
 uint8_t console_prompt_length = 1;
 
+uint8_t cursor_blink_rate = 35;
+
 struct Driver* displayDevice;
 struct Driver* keyboadDevice;
 
@@ -45,7 +47,50 @@ struct ConsoleCommand {
 struct ConsoleCommand CommandRegistry[CONSOLE_FUNCTION_TABLE_SIZE];
 
 
-
+uint8_t consoleWait(uint8_t key) {
+    
+#ifdef BOARD_RETRO_AVR_X4_REV1
+    keyboadDevice->read( 0x00001, &oldScanCodeLow );
+    keyboadDevice->read( 0x00000, &oldScanCodeHigh );
+#endif
+    
+#ifdef BOARD_RETROBOARD_REV2
+    keyboadDevice->read( 0x00000, &oldScanCodeLow );
+    keyboadDevice->read( 0x00001, &oldScanCodeHigh );
+#endif
+    
+    uint8_t currentChar = decodeScanCode(oldScanCodeLow, oldScanCodeHigh);
+    currentChar = lastChar;
+    
+    ConsoleSetCursor(console_line, 0);
+    
+    while (currentChar == lastChar) {
+        
+#ifdef BOARD_RETRO_AVR_X4_REV1
+        keyboadDevice->read( 0x00001, &oldScanCodeLow );
+        keyboadDevice->read( 0x00000, &oldScanCodeHigh );
+#endif
+        
+#ifdef BOARD_RETROBOARD_REV2
+        keyboadDevice->read( 0x00000, &oldScanCodeLow );
+        keyboadDevice->read( 0x00001, &oldScanCodeHigh );
+#endif
+        
+        currentChar = decodeScanCode(oldScanCodeLow, oldScanCodeHigh);
+        
+        if (currentChar == 0x00) 
+            lastChar = currentChar;
+        
+        continue;
+    }
+    
+    lastChar = currentChar;
+    
+    if (key == lastChar) 
+        return 1;
+    
+    return 0;
+}
 
 
 void consoleInitiate(void) {
@@ -56,7 +101,6 @@ void consoleInitiate(void) {
 	uint8_t nameDisplay[] = "display";
 	displayDevice = (struct Driver*)GetDriverByName( nameDisplay, sizeof(nameDisplay) );
 	
-    
 #ifdef BOARD_RETRO_AVR_X4_REV1
     keyboadDevice->read( 0x00001, &oldScanCodeLow );
     keyboadDevice->read( 0x00000, &oldScanCodeHigh );
@@ -348,6 +392,8 @@ void printPrompt(void) {
 
 void ConsoleSetBlinkRate(uint8_t rate) {
     
+    cursor_blink_rate = rate;
+    
     displayDevice->write( SET_CURSOR_BLINK_RATE, rate);
     
     return;
@@ -358,6 +404,32 @@ void ConsoleSetCursor(uint8_t line, uint8_t position) {
     console_line = line;
     
     console_position = position;
+    
+    displayDevice->write( SET_CURSOR_LINE, console_line );
+    displayDevice->write( SET_CURSOR_POSITION, console_position );
+    
+    return;
+}
+
+void ConsoleSetCursorPosition(uint8_t position) {
+    
+    console_position = position;
+    
+    displayDevice->write( SET_CURSOR_POSITION, console_position );
+    
+    return;
+}
+
+void ConsoleCursorEnable(void) {
+    
+    displayDevice->write( SET_CURSOR_BLINK_RATE, cursor_blink_rate);
+    
+    return;
+}
+
+void ConsoleCursorDisable(void) {
+    
+    displayDevice->write( SET_CURSOR_BLINK_RATE, 0);
     
     return;
 }

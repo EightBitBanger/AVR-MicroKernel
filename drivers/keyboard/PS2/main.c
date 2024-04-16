@@ -27,7 +27,14 @@ void initiatePS2Driver(void) {
 	RegisterDriver( (void*)keyboardDriver );
 	
 	// Set hardware device details
-	keyboardDriver->device.hardware_address = 0x00002;
+    
+#ifdef BOARD_RETROBOARD_REV2
+    keyboardDriver->device.hardware_address = 0x90000;
+#endif
+    
+#ifdef BOARD_RETRO_AVR_X4_REV1
+    keyboardDriver->device.hardware_address = 0x00002;
+#endif
 	
 	keyboardDriver->device.device_id = 0x01;
 	

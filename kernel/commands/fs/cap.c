@@ -1,5 +1,5 @@
 #include <avr/io.h>
-#include <util/delay.h>
+#include <kernel/delay.h>
 
 #include <kernel/kernel.h>
 
@@ -13,7 +13,10 @@ void functionCAP(uint8_t* param, uint8_t param_length) {
     
     uint8_t place = int_to_string( deviceCapacity, integer);
     
+    uint8_t capacityMsg[] = " bytes total";
+    
     print( &integer[0], place + 1 );
+    print( &capacityMsg[0], sizeof(capacityMsg) );
     
     printLn();
     
