@@ -14,7 +14,8 @@
 #include <kernel/cstring.h>
 
 #include <kernel/console.h>
-#include <kernel/network.h>
+#include <kernel/network/network.h>
+#include <kernel/network/router.h>
 
 #include <kernel/bus/board.h>
 

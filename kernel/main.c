@@ -8,19 +8,21 @@
 #include <kernel/kernel.h>
 
 // Included console commands
-#include <kernel/commands/list.h>
-#include <kernel/commands/device.h>
-#include <kernel/commands/cls.h>
-#include <kernel/commands/net.h>
-
-#include <kernel/commands/fs/cap.h>
-#include <kernel/commands/fs/cd.h>
-#include <kernel/commands/fs/dir.h>
-#include <kernel/commands/fs/mk.h>
-#include <kernel/commands/fs/rm.h>
-#include <kernel/commands/fs/rn.h>
-#include <kernel/commands/fs/repair.h>
-#include <kernel/commands/fs/format.h>
+#ifndef NETWORK_APPLICATION_PACKET_ROUTER
+ #include <kernel/commands/list.h>
+ #include <kernel/commands/device.h>
+ #include <kernel/commands/cls.h>
+ #include <kernel/commands/net.h>
+ 
+ #include <kernel/commands/fs/cap.h>
+ #include <kernel/commands/fs/cd.h>
+ #include <kernel/commands/fs/dir.h>
+ #include <kernel/commands/fs/mk.h>
+ #include <kernel/commands/fs/rm.h>
+ #include <kernel/commands/fs/rn.h>
+ #include <kernel/commands/fs/repair.h>
+ #include <kernel/commands/fs/format.h>
+#endif
 
 
 // Included drivers
@@ -64,8 +66,6 @@ int main(void) {
     //spkBeep(duration, frequency);
     
     
-    //while(1) {}
-    
     // Allow board some time to stabilize
     _delay_ms(2000);
     
@@ -81,6 +81,16 @@ int main(void) {
     // Console
     consoleInitiate();
     
+    
+    //
+    // Packet router
+    //
+    
+#ifdef NETWORK_APPLICATION_PACKET_ROUTER
+    InitiateRouter();
+#endif
+    
+#ifndef NETWORK_APPLICATION_PACKET_ROUTER
     // Console commands to include in the kernel
     registerCommandList();
     registerCommandDevice();
@@ -95,6 +105,7 @@ int main(void) {
     registerCommandRN();
     registerCommandRepair();
     registerCommandFormat();
+#endif
     
     
     
