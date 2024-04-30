@@ -5,14 +5,22 @@
 
 #include <kernel/commands/net.h>
 
-uint8_t clientAddress[2] = {0x45, 0x45};
+uint8_t clientAddress[2] = {24, 0};
+uint8_t targetAddress[2] = {0x80, 0x80};
+
+uint8_t msgConnected[]        = "Connected to host";
+uint8_t msgReplyFrom[]        = "Reply from ";
+uint8_t msgNoHostResponce[]   = "Cannot reach host";
+uint8_t msgRequestTimedOut[]  = "Request timed out";
+uint8_t msgNoMessages[]       = "Empty";
+
 
 void functionNet(uint8_t* param, uint8_t param_length) {
     
-    lowercase( &param[0] );
-    lowercase( &param[1] );
-    lowercase( &param[2] );
-    lowercase( &param[3] );
+    // Lower case the string
+    
+    for (uint8_t i=0; i < 4; i++) 
+        lowercase( &param[i] );
     
     
     //
@@ -54,41 +62,64 @@ void functionNet(uint8_t* param, uint8_t param_length) {
         return;
     }
     
+    
     //
     // Send the parameter message
     //
     
     if ((param[0] == 's') & (param[1] == 'e') & (param[2] == 'n') & (param[3] == 'd')) {
         
-        //uint8_t offset = 10;
-        
         struct NetworkPacket packet;
         
         for (uint8_t i=0; i < NETWORK_PACKET_DATA_SIZE; i++) 
-            packet.data[i] = 0x55;
+            packet.data[i] = ' ';
         
         packet.start   = NETWORK_PACKET_START_BYTE;
         
-        packet.addr_d[0]  = 0x45; // Destination address
-        packet.addr_d[1]  = 0x45;
+        packet.addr_d[0]  = targetAddress[0]; // Destination address
+        packet.addr_d[1]  = targetAddress[1];
         packet.addr_s[0]  = clientAddress[0]; // Return source address
         packet.addr_s[1]  = clientAddress[1];
         
-        //for (uint8_t i=0; i < (param_length - offset) + 1; i++) 
-        //    packet.data[i] = param[offset + i];
+        uint8_t stringLen = (param_length - 4) + 1;
         
-        packet.data[0] = 'T';
-        packet.data[1] = 'E';
-        packet.data[2] = 'S';
-        packet.data[3] = 'T';
+        for (uint8_t i=0; i < stringLen; i++) 
+            packet.data[i] = param[5 + i];
         
         packet.stop  = NETWORK_PACKET_STOP_BYTE;
+        
+        ntPacketClearAll();
         
         // Transmit the packet
         ntPacketSend(&packet);
         
+        
+        //
+        // Check receiver packet
+        
+        struct NetworkPacket receive;
+        
+        for (uint8_t i=0; i < 24; i++) {
+            
+            _delay_ms(100);
+            
+            if (ntPacketReceive(&receive, 1) == 0) 
+                continue;
+            
+            print(&receive.data[0], NETWORK_PACKET_DATA_SIZE);
+            printLn();
+            
+            ntPacketClearAll();
+            
+            return;
+        }
+        
+        print(&msgNoHostResponce[0], sizeof(msgNoHostResponce));
+        printLn();
+        
         return;
     }
+    
     
     //
     // Send the parameter message
@@ -99,9 +130,9 @@ void functionNet(uint8_t* param, uint8_t param_length) {
         struct NetworkPacket packet;
         
         if (ntPacketReceive(&packet, 1) == 0) {
-            uint8_t msgNoMessages[] = "No messages";
-            print(&msgNoMessages[0], sizeof(msgNoMessages));
-            printLn();
+            
+            //print(&msgNoMessages[0], sizeof(msgNoMessages));
+            //printLn();
             
             ntPacketClearAll();
             
@@ -152,7 +183,7 @@ void functionNet(uint8_t* param, uint8_t param_length) {
             
             bufferSz = ntReceive(dataBuffer, 32);
             
-            if (bufferSz > sizeof(struct NetworkPacket) - 1) {
+            if (bufferSz > (sizeof(struct NetworkPacket) - 1)) {
                 
                 // Check return packet
                 if (dataBuffer[0]  != NETWORK_PACKET_START_BYTE) continue;
@@ -167,8 +198,7 @@ void functionNet(uint8_t* param, uint8_t param_length) {
                 int_to_string(packet.addr_d[0], addrStrLow);
                 int_to_string(packet.addr_d[1], addrStrHigh);
                 
-                uint8_t msgReplyFrom[] = "Connected to host";
-                print(msgReplyFrom, sizeof(msgReplyFrom));
+                print(msgConnected, sizeof(msgConnected));
                 printLn();
                 
                 break;
@@ -180,8 +210,7 @@ void functionNet(uint8_t* param, uint8_t param_length) {
         
         if (bufferSz == 0) {
             
-            uint8_t msgReplyFrom[] = "Cannot reach host";
-            print(msgReplyFrom, sizeof(msgReplyFrom));
+            print(msgNoHostResponce, sizeof(msgNoHostResponce));
             printLn();
             
         }
@@ -196,8 +225,6 @@ void functionNet(uint8_t* param, uint8_t param_length) {
     
     if ((param[0] == 'p') & (param[1] == 'i') & (param[2] == 'n') & (param[3] == 'g')) {
         
-        uint8_t offset = 10;
-        
         struct NetworkPacket packet;
         
         for (uint8_t i=0; i < NETWORK_PACKET_DATA_SIZE; i++) 
@@ -207,15 +234,12 @@ void functionNet(uint8_t* param, uint8_t param_length) {
         
         packet.addr_d[0]   = 0xff; // To the router
         packet.addr_d[1]   = 0xff;
-        packet.addr_s[0]   = clientAddress[0]; // From the client
-        packet.addr_s[1]   = clientAddress[1];
+        packet.addr_s[0]   = 0x00; // Ping request
+        packet.addr_s[1]   = 0x00;
         
-        // Indicate we are a client attempting to connect to a server
+        // Indicate we are requesting a ping from the server
         packet.data[0] = 0x55;
         packet.data[1] = 0x00;
-        
-        for (uint8_t i=0; i < (param_length - offset) + 1; i++) 
-            packet.data[i] = param[offset + i];
         
         packet.stop    = NETWORK_PACKET_STOP_BYTE;
         
@@ -245,7 +269,6 @@ void functionNet(uint8_t* param, uint8_t param_length) {
                     int_to_string(packet.addr_d[0], addrStrLow);
                     int_to_string(packet.addr_d[1], addrStrHigh);
                     
-                    uint8_t msgReplyFrom[] = "Reply from ";
                     print(msgReplyFrom, sizeof(msgReplyFrom));
                      
                     print(addrStrLow, 4);
@@ -271,7 +294,6 @@ void functionNet(uint8_t* param, uint8_t param_length) {
             
             _delay_ms(1000);
             
-            uint8_t msgRequestTimedOut[] = "Request timed out";
             print(msgRequestTimedOut, sizeof(msgRequestTimedOut));
             printLn();
             
@@ -298,10 +320,10 @@ void functionNet(uint8_t* param, uint8_t param_length) {
             
             packet.start   = NETWORK_PACKET_START_BYTE;
             
-            packet.addr_d[0]   = 0xff;
-            packet.addr_d[1]   = 0xff;
-            packet.addr_s[0]   = 0x00;
-            packet.addr_s[1]   = 0x00;
+            packet.addr_d[0]   = targetAddress[0];
+            packet.addr_d[1]   = targetAddress[1];
+            packet.addr_s[0]   = clientAddress[0];
+            packet.addr_s[1]   = clientAddress[1];
             
             packet.data[0] = 0x00;
             packet.data[1] = 0x00;
@@ -325,21 +347,34 @@ void functionNet(uint8_t* param, uint8_t param_length) {
     // Check for any packets
     //
     
-    if ((param[0] == 'a') & (param[1] == 'd') & (param[2] == 'd') & (param[3] == 'r')) {
+    if ((param[0] == 's') & (param[1] == 'r') & (param[2] == 'c')) {
         
-        if (param[7] == '.') {
+        uint8_t periodIndex = 0;
+        for (uint8_t i=0; i < param_length; i++) {
+            if (param[i] == '.') {
+                periodIndex = i;
+                break;
+            }
+        }
+        
+        if (periodIndex > 0) {
             
-            param[5] -= '0';
-            param[6] -= '0';
+            uint8_t firstNumber[3]  = {' ', ' ', ' '};
+            uint8_t secondNumber[3] = {' ', ' ', ' '};
             
-            param[8] -= '0';
-            param[9] -= '0';
+            uint8_t secondNumberLen = param_length - periodIndex;
             
-            clientAddress[0] = param[6] + (param[5] * 10);
-            clientAddress[1] = param[9] + (param[8] * 10);
+            for (uint8_t i=0; i < 4; i++) {
+                if (param[4 + i] == '.') 
+                    break;
+                firstNumber[i] = param[4 + i];
+            }
             
-        } else {
+            for (uint8_t i=0; i < secondNumberLen; i++) 
+                secondNumber[i] = param[periodIndex + 1 + i];
             
+            clientAddress[0] = string_get_int( &firstNumber[0] );
+            clientAddress[1] = string_get_int( &secondNumber[0] );
             
         }
         
@@ -348,6 +383,56 @@ void functionNet(uint8_t* param, uint8_t param_length) {
         
         uint8_t placeDstA = int_to_string(clientAddress[0], msgAddressDestA);
         uint8_t placeDstB = int_to_string(clientAddress[1], msgAddressDestB);
+        
+        if (placeDstA == 0) placeDstA++;
+        if (placeDstB == 0) placeDstB++;
+        
+        print(msgAddressDestA, placeDstA+1);
+        uint8_t msgPeriod[] = ".";
+        print(msgPeriod, sizeof(msgPeriod));
+        print(msgAddressDestB, placeDstB+1);
+        
+        printLn();
+        
+        return;
+    }
+    
+    if ((param[0] == 'd') & (param[1] == 's') & (param[2] == 't')) {
+        
+        uint8_t periodIndex = 0;
+        for (uint8_t i=0; i < param_length; i++) {
+            if (param[i] == '.') {
+                periodIndex = i;
+                break;
+            }
+        }
+        
+        if (periodIndex > 0) {
+            
+            uint8_t firstNumber[3]  = {' ', ' ', ' '};
+            uint8_t secondNumber[3] = {' ', ' ', ' '};
+            
+            uint8_t secondNumberLen = param_length - periodIndex;
+            
+            for (uint8_t i=0; i < 4; i++) {
+                if (param[4 + i] == '.') 
+                    break;
+                firstNumber[i] = param[4 + i];
+            }
+            
+            for (uint8_t i=0; i < secondNumberLen; i++) 
+                secondNumber[i] = param[periodIndex + 1 + i];
+            
+            targetAddress[0] = string_get_int( &firstNumber[0] );
+            targetAddress[1] = string_get_int( &secondNumber[0] );
+            
+        }
+        
+        uint8_t msgAddressDestA[10];
+        uint8_t msgAddressDestB[10];
+        
+        uint8_t placeDstA = int_to_string(targetAddress[0], msgAddressDestA);
+        uint8_t placeDstB = int_to_string(targetAddress[1], msgAddressDestB);
         
         if (placeDstA == 0) placeDstA++;
         if (placeDstB == 0) placeDstB++;

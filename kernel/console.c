@@ -9,7 +9,10 @@
 #include <drivers/keyboard/ps2/main.h>
 #include <drivers/display/LiquidCrystalDisplayController/main.h>
 
-#define CONSOLE_STRING_LENGTH  40
+#define CONSOLE_STRING_LENGTH  80
+
+uint16_t display_width  = 0;
+uint16_t display_height = 0;
 
 uint8_t console_string[CONSOLE_STRING_LENGTH];
 uint8_t console_string_length = 0;
@@ -135,7 +138,25 @@ void consoleInitiate(void) {
 	return;
 }
 
-void consoleUpdate(void) {
+uint8_t ConsoleGetRawChar(void) {
+    
+    uint8_t scanCodeLow  = 0;
+    uint8_t scanCodeHigh = 0;
+    
+#ifdef BOARD_RETRO_AVR_X4_REV1
+    keyboadDevice->read( 0x00001, &scanCodeLow );
+    keyboadDevice->read( 0x00000, &scanCodeHigh );
+#endif
+    
+#ifdef BOARD_RETROBOARD_REV2
+    keyboadDevice->read( 0x00000, &scanCodeLow );
+    keyboadDevice->read( 0x00001, &scanCodeHigh );
+#endif
+    
+    return decodeScanCode(scanCodeLow, scanCodeHigh);
+}
+
+uint8_t ConsoleGetLastChar(void) {
     
     uint8_t scanCodeLow  = 0;
     uint8_t scanCodeHigh = 0;
@@ -159,12 +180,20 @@ void consoleUpdate(void) {
     uint8_t scanCode = decodeScanCode(scanCodeLow, scanCodeHigh);
     
     if (scanCode == 0x00) 
-        return;
+        return 0x00;
     
     if (lastChar == scanCode) 
-        return;
+        return 0x00;
     
     lastChar = scanCode;
+    
+    return lastChar;
+}
+
+void consoleUpdate(void) {
+    
+    // Check the current scan code
+    uint8_t scanCode = ConsoleGetLastChar();
     
     
     //
@@ -175,14 +204,22 @@ void consoleUpdate(void) {
         
         if (console_string_length > 0) {
             
+            if (console_position == 0) {
+                console_line--;
+                console_position = 20;
+            }
+            
             // Remove last character from the console string
             console_string[ console_string_length - 1 ] = ' ';
             
             // Remove the character from the display
-            displayDevice->write( console_string_length + (20 * console_line) + console_prompt_length - 1, ' ' );
+            displayDevice->write( console_position + (20 * console_line) - 1, ' ' );
             
             // Decrement the console string length
             console_string_length--;
+            console_position--;
+            
+            ConsoleSetCursor(console_line, console_position);
             
         }
         
@@ -194,8 +231,6 @@ void consoleUpdate(void) {
     //
     
     if (scanCode == 0x02) {
-        
-        printPrompt();
         
         printLn();
         
@@ -240,21 +275,26 @@ void consoleUpdate(void) {
             
             console_position = 0;
             
-            
             // Run the function
             if (CommandRegistry[i].function != nullptr) 
                 CommandRegistry[i].function( &console_string[parameters_begin], length - parameters_begin );
+            
+            printPrompt();
             
             break;
         }
         
         if ((isRightFunction == 0) & (console_string_length > 0)) {
             
+            ConsoleSetCursor(console_line, 0);
+            
             uint8_t badCommandOrFilename[] = "Bad cmd or filename";
             
             print( badCommandOrFilename, sizeof(badCommandOrFilename) );
             
             printLn();
+            
+            printPrompt();
             
         }
         
@@ -273,27 +313,48 @@ void consoleUpdate(void) {
     
     if (scanCode > 0x19) {
         
-        console_string[console_string_length] = scanCode;
-        
-        console_string_length++;
-        
-        console_position++;
-        
-        if (console_string_length >= 20) 
-            console_string_length = 20;
+        if (console_string_length < CONSOLE_STRING_LENGTH) {
+            
+            console_string[console_string_length] = scanCode;
+            
+            console_string_length++;
+            
+            
+            ConsoleSetCursor(console_line, console_position + 1);
+            console_position--;
+            
+            printChar( scanCode );
+            
+            if (console_position > 19) {
+                
+                if (console_line < 3) {
+                    
+                    printLn();
+                    
+                    console_position = 0;
+                    
+                    ConsoleSetCursor(console_line, console_position);
+                    
+                } else {
+                    
+                    ConsoleSetCursor(console_line, 0);
+                    
+                    console_position = 0;
+                    
+                    console_line = 3;
+                    
+                    ConsoleSetCursor(console_line, console_position);
+                    
+                    printLn();
+                    
+                }
+                
+            }
+            
+            
+        }
         
     }
-    
-    printPrompt();
-    
-    uint8_t promptOffset = console_prompt_length;
-    
-    for (uint8_t i=0; i < console_string_length; i++) 
-        displayDevice->write( i + (20 * console_line) + promptOffset, console_string[i] );
-    
-    displayDevice->write( SET_CURSOR_POSITION, console_string_length + promptOffset);
-    
-    displayDevice->write( SET_CURSOR_LINE, console_line);
     
     return;
 }
@@ -337,7 +398,14 @@ void print(uint8_t* string, uint8_t length) {
     
     console_position += length - 1;
     
-    console_string_length = 0;
+    return;
+}
+
+void printChar(uint8_t character) {
+    
+    displayDevice->write( console_position + (20 * console_line), character );
+    
+    console_position++;
     
     return;
 }
@@ -444,3 +512,12 @@ void ConsoleSetPrompt(uint8_t* prompt, uint8_t length) {
     return;
 }
 
+void ConsoleClearScreen(void) {
+    
+    // Clear display frame buffer
+    displayDevice->write( 165, 0x01 );
+    
+    _delay_ms(40);
+    
+    return;
+}

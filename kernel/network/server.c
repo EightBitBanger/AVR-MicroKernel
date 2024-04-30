@@ -1,21 +1,198 @@
 #include <avr/io.h>
 #include <kernel/delay.h>
 
-#include <kernel/network/router.h>
+#include <kernel/kernel.h>
 
-struct RoutingTable routingTable;
+#include <kernel/network/server.h>
+
+uint8_t serverAddress[2] = {240, 80};
 
 
-void InitiateRouter(void) {
+void InitiateServer(void) {
     
-    uint16_t reconnRequestMax = 2700;
-    uint16_t reconnRequestMin = 1000;
+    ConsoleSetBlinkRate(0);
+    ConsoleSetCursor(0, 0);
     
-    uint16_t reconnRequestTimeOut = 0;
-    uint16_t reconnRequestRate = reconnRequestMin;
+    uint8_t msgString[] = "Server not connected";
+    print( msgString, sizeof(msgString) );
+    printLn();
+    
+    uint8_t msgAddressLow[10];
+    uint8_t msgAddressHigh[10];
+    
+    uint8_t placeLow  = int_to_string(serverAddress[0], msgAddressLow);
+    uint8_t placeHigh = int_to_string(serverAddress[1], msgAddressHigh);
+    
+    
+    print( msgAddressLow, placeLow+1 );
+    printChar('.');
+    print( msgAddressHigh, placeHigh+1 );
+    printLn();
+    
+    
+    //
+    // Client return packet
+    
+    struct NetworkPacket packetClientReturn;
+    packetClientReturn.start = NETWORK_PACKET_START_BYTE;
+    
+    packetClientReturn.addr_d[0] = 0x00; // To the client address
+    packetClientReturn.addr_d[1] = 0x00;
+    packetClientReturn.addr_s[0] = serverAddress[0]; // From the server
+    packetClientReturn.addr_s[1] = serverAddress[1];
+    
+    for (uint8_t i=0; i < NETWORK_PACKET_DATA_SIZE; i++) 
+        packetClientReturn.data[i] = ' ';
+    
+    packetClientReturn.stop = NETWORK_PACKET_STOP_BYTE;
+    
+    //
+    // Router connection handshake packet
+    
+    struct NetworkPacket packetRouterConnectionRequest;
+    
+    for (uint8_t i=0; i < NETWORK_PACKET_DATA_SIZE; i++) 
+        packetRouterConnectionRequest.data[i] = 0x55;
+    
+    packetRouterConnectionRequest.start   = NETWORK_PACKET_START_BYTE;
+    
+    packetRouterConnectionRequest.addr_d[0]   = 0xff; // Destination
+    packetRouterConnectionRequest.addr_d[1]   = 0xff;
+    packetRouterConnectionRequest.addr_s[0]   = serverAddress[0]; // Source
+    packetRouterConnectionRequest.addr_s[1]   = serverAddress[1];
+    
+    // Indicate we are a client attempting to connect to a server
+    packetRouterConnectionRequest.data[0] = 0x55;
+    packetRouterConnectionRequest.data[1] = 0x00;
+    
+    packetRouterConnectionRequest.stop    = NETWORK_PACKET_STOP_BYTE;
     
     
     
+    
+    
+    struct NetworkPacket receive;
+    
+    uint8_t  connectionStatus = 0;
+    uint16_t connectionAttemptCounter = 0;
+    
+    while(1) {
+        
+        if (connectionStatus == 0) {
+            
+            connectionAttemptCounter++;
+            if (connectionAttemptCounter > 800) {
+                connectionAttemptCounter = 0;
+                
+                ntPacketSend( &packetRouterConnectionRequest );
+                
+            }
+            
+        }
+        
+        receive.addr_d[0] = 0x00; receive.addr_d[1] = 0x00;
+        receive.addr_s[0] = 0x00; receive.addr_s[1] = 0x00;
+        
+        // Check incoming packet
+        if (ntPacketReceive(&receive, 1) == 0) 
+            continue;
+        
+        // Check packet address
+        if ((receive.addr_d[0] == 0x00) & (receive.addr_d[1] == 0x00) & 
+            (receive.addr_s[0] == 0x00) & (receive.addr_s[1] == 0x00)) 
+            continue;
+        
+        // Clear old packet data
+        ntPacketClearAll();
+        
+        
+        //
+        // Incoming packet from the router
+        //
+        
+        if ((receive.addr_s[0] == 0xff) & 
+            (receive.addr_s[1] == 0xff)) {
+            
+            //
+            // Client connection confirmation
+            //
+            
+            if ((receive.data[0] == 0x55) & 
+                (receive.data[1] == 0x00)) {
+                
+                connectionStatus = 1;
+                
+                ConsoleSetCursor(0, 0);
+                
+                uint8_t msgConnected[] = "Connected           ";
+                print( msgConnected, sizeof(msgConnected) );
+                
+            }
+            continue;
+        }
+        
+        //
+        // Handle client packets
+        
+        packetClientReturn.addr_s[0] = serverAddress[0];
+        packetClientReturn.addr_s[1] = serverAddress[1];
+        
+        // Send packet to the sender
+        packetClientReturn.addr_d[0] = receive.addr_s[0];
+        packetClientReturn.addr_d[1] = receive.addr_s[1];
+        
+        ConsoleSetCursor(2, 0);
+        
+        uint8_t msgConnected[] = " <<                ";
+        print( msgConnected, sizeof(msgConnected) );
+        
+        
+        uint8_t srcAddressLow[10];
+        uint8_t srcAddressHigh[10];
+        
+        uint8_t addrPlaceLow  = int_to_string(receive.addr_s[0], srcAddressLow);
+        uint8_t addrPlaceHigh = int_to_string(receive.addr_s[1], srcAddressHigh);
+        
+        if (addrPlaceLow == 0) addrPlaceLow++;
+        if (addrPlaceHigh == 0) addrPlaceHigh++;
+        
+        // Return packet message
+        uint8_t messageString[] = "Message string";
+        
+        for (uint8_t i=0; i < NETWORK_PACKET_DATA_SIZE; i++) 
+            packetClientReturn.data[i] = ' ';
+        
+        for (uint8_t i=0; i < sizeof(messageString) - 1; i++) 
+            packetClientReturn.data[i] = messageString[i];
+        
+        ntPacketSend( &packetClientReturn );
+        
+        ConsoleSetCursor(2, 4);
+        
+        if ((srcAddressLow[0] == ' ') | (srcAddressLow[1] == ' ')) srcAddressLow[0]  = '0';
+        if ((srcAddressLow[0] == ' ') | (srcAddressLow[1] == ' ')) srcAddressLow[0]  = '0';
+        
+        print( srcAddressLow, addrPlaceLow+1 );
+        printChar('.');
+        print( srcAddressHigh, addrPlaceHigh+1 );
+        
+        
+        //
+        // Display packet contents
+        
+        ConsoleSetCursor(3, 0);
+        
+        for (uint8_t i=0; i < NETWORK_PACKET_DATA_SIZE; i++) 
+            printChar( receive.data[i] );
+        
+        continue;
+    }
+    
+    return;
+    
+    
+    
+    /*
     //
     // Assemble default packets
     //
@@ -72,171 +249,104 @@ void InitiateRouter(void) {
     packetRouterHandshakeReturn.stop = NETWORK_PACKET_STOP_BYTE;
     
     
+    
+    
     uint16_t reconnRequestCounter[5] = {0, 0, 0, 0, 0};
+    
+    uint16_t reconnRequestMax = 1000;
     
     
     
     //
     // Initiate the routing table
     //
-    for (uint8_t retry=0; retry < 3; retry++) {
+    
+    for (uint8_t s=0; s < NUMBER_OF_PERIPHERALS; s++) {
         
-        for (uint8_t s=0; s < NUMBER_OF_PERIPHERALS; s++) {
-            
-            if (routingTable.device_state[s] == 1) 
-                continue;
-            
-            routingTable.device_state[s] = 0x00;
-            routingTable.device_type[s]  = 0x00;
-            
-            routingTable.address_low[s]  = 0x00;
-            routingTable.address_high[s] = 0x00;
-            
-            routingTable.device_state[s] = 0;
-            routingTable.device_type[s] = 0;
-            
-            // Initiate NIC baud rate
-            ntBindDevice(s);
-            
-            _delay_ms(10);
-            
-            if (ntCheckDevice() == 0) 
-                continue;
-            
-            _delay_ms(10);
-            
-            ntSetBaudRate( NETWORK_BAUD_RATE );
-            
-            routingTable.device_state[s] = 1; // Normal active NIC device
-            
-            routingTable.device_type[s]  = CLIENT_TYPE_UNKNOWN;
-            
+        routingTable.device_state[s] = 0x00;
+        routingTable.device_type[s]  = 0x00;
+        
+        routingTable.address_low[s]  = 0x00;
+        routingTable.address_high[s] = 0x00;
+        
+        routingTable.device_state[s] = 0;
+        routingTable.device_type[s] = 0;
+        
+        // Initiate NIC baud rate
+        ntBindDevice(s);
+        
+        _delay_ms(10);
+        
+        if (ntCheckDevice() == 0) 
             continue;
-        }
+        
+        _delay_ms(10);
+        
+        ntSetBaudRate( NETWORK_BAUD_RATE );
+        
+        routingTable.device_state[s] = 1; // Normal active NIC device
+        
+        routingTable.device_type[s]  = CLIENT_TYPE_UNKNOWN;
         
         continue;
     }
+    
     
     
     //
     // Connect to adjacent routers to set the default gateway(s)
     //
-    for (uint8_t retry=0; retry < 3; retry++) {
+    
+    for (uint8_t s=0; s < NUMBER_OF_PERIPHERALS; s++) {
         
-        for (uint8_t s=0; s < NUMBER_OF_PERIPHERALS; s++) {
-            
-            if (routingTable.device_state[s] == 0) 
-                continue;
-            
-            ntBindDevice(s);
-            
-            ntPacketSend( &packetRouterHandshakeOutgoing );
-            
-            _delay_ms(10);
-            
-        }
+        if (routingTable.device_state[s] == 0) 
+            continue;
         
-        _delay_ms(120);
+        ntBindDevice(s);
         
-        continue;
+        ntPacketClearAll();
+        
+        ntPacketSend( &packetRouterHandshakeOutgoing );
+        
     }
     
-    //
-    // Router main loop
-    //
+    
     
     struct NetworkPacket receive;
     
-    while (1) {
+    while(1) {
         
         for (uint8_t s=0; s < NUMBER_OF_PERIPHERALS; s++) {
-            
-            ntBindDevice(s);
             
             //
             // Reconnection attempt
             //
             
             reconnRequestCounter[s]++;
-            if (reconnRequestCounter[s] > reconnRequestRate) {
+            if (reconnRequestCounter[s] > reconnRequestMax) {
                 
                 reconnRequestCounter[s] = 0;
-                
-                // Time out counter
-                if (s == 0) reconnRequestTimeOut++;
-                
-                if (reconnRequestTimeOut > 2) {
-                    
-                    // Lengthen connection request interval
-                    reconnRequestRate = reconnRequestMax;
-                    
-                    if (reconnRequestTimeOut > 10) {
-                        
-                        reconnRequestRate = reconnRequestMin;
-                        reconnRequestTimeOut = 0;
-                        
-                        //
-                        // Initiate a hot inserted NIC card
-                        
-                        for (uint8_t ds=0; ds < NUMBER_OF_PERIPHERALS; ds++) {
-                            
-                            if (routingTable.device_type[ds] != CLIENT_TYPE_UNKNOWN) 
-                                continue;
-                            
-                            // Initiate NIC baud rate
-                            ntBindDevice(ds);
-                            
-                            _delay_ms(10);
-                            
-                            if (ntCheckDevice() == 0) 
-                                continue;
-                            
-                            _delay_ms(10);
-                            
-                            ntSetBaudRate( NETWORK_BAUD_RATE );
-                            
-                            routingTable.device_state[ds] = 1;
-                            
-                        }
-                        
-                        for (uint8_t ds=0; ds < NUMBER_OF_PERIPHERALS; ds++) {
-                            
-                            if (routingTable.device_state[ds] == 0) 
-                                continue;
-                            
-                            if (routingTable.device_type[ds] != CLIENT_TYPE_UNKNOWN) 
-                                continue;
-                            
-                            // Initiate NIC baud rate
-                            ntBindDevice(ds);
-                            
-                            ntPacketClearAll();
-                            
-                            ntPacketSend( &packetRouterHandshakeOutgoing );
-                            
-                        }
-                        
-                        ntBindDevice(s);
-                        
-                    }
-                }
                 
                 // Only reconnect to known router devices
                 if (routingTable.device_type[s] == CLIENT_TYPE_ROUTER) {
                     
+                    ntBindDevice(s);
+                    
                     ntPacketClearAll();
                     
                     ntPacketSend( &packetRouterHandshakeOutgoing );
-                    
                 }
                 
             }
+            
             
             if (routingTable.device_state[s] == 0) 
                 continue;
             
             receive.addr_d[0] = 0x00; receive.addr_d[1] = 0x00;
             receive.addr_s[0] = 0x00; receive.addr_s[1] = 0x00;
+            
+            ntBindDevice(s);
             
             // Check incoming packet
             if (ntPacketReceive(&receive, 1) == 0) 
@@ -389,7 +499,6 @@ void InitiateRouter(void) {
             continue;
         }
         
-        continue;
     }
     
     
@@ -397,7 +506,7 @@ void InitiateRouter(void) {
     
     
     
-    
+    */
     return;
 }
 

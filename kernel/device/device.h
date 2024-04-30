@@ -15,7 +15,7 @@
 #define nullptr  0x00000000
 
 
-#include <kernel/bus/board.h>
+#include <kernel/board.h>
 
 struct Device {
     
@@ -30,12 +30,9 @@ struct Device {
 };
 
 
-
-
 void InitiateDeviceTable(void);
 
 struct Device* GetHardwareDeviceByIndex(uint8_t index);
-
 
 uint8_t GetNumberOfDevices(void);
 

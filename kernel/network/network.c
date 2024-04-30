@@ -5,7 +5,7 @@
 
 #include <kernel/network/network.h>
 
-#include <drivers/network/NIC/main.h>
+//#include <drivers/network/NIC/main.h>
 
 struct Driver* networkDevice;
 
@@ -112,6 +112,8 @@ void ntSend(uint8_t* buffer, uint8_t bufferSize) {
         // Set the flag to send the byte
         networkDevice->write( 0x0a, 0x01);
         
+        _delay_us(100);
+        
         // Check for the byte to finish being sent
         uint8_t checkByte = 1;
         networkDevice->read( 0x0a, &checkByte);
@@ -141,6 +143,7 @@ uint8_t ntReceive(uint8_t* buffer, uint8_t bufferSize) {
     uint8_t receiveBufferSz = 0;
     
     networkDevice->read( 0x0b, &receiveBufferSz);
+    _delay_us(1);
     
     if (receiveBufferSz == 0) 
         return 0;
@@ -148,8 +151,10 @@ uint8_t ntReceive(uint8_t* buffer, uint8_t bufferSize) {
     if (bufferSize > receiveBufferSz) 
         bufferSize = receiveBufferSz;
     
-    for (uint8_t i=0; i < bufferSize; i++) 
+    for (uint8_t i=0; i < bufferSize; i++) {
         networkDevice->read( 0x10 + i, &buffer[i]);
+        _delay_us(1);
+    }
     
     return bufferSize;
 }
@@ -158,13 +163,17 @@ void ntReceiveClear(void) {
     
     networkDevice->write( 0x0b, 0x00);
     
+    _delay_us(300);
+    
     return;
 }
 
 void ntSetBaudRate(uint8_t baudRate) {
     
     networkDevice->write( 0x0e, baudRate);
+    _delay_us(100);
     networkDevice->write( 0x0d, 0x01);
+    _delay_us(100);
     
     return;
 }
@@ -174,6 +183,7 @@ uint8_t ntGetBaudRate(void) {
     uint8_t baudrate;
     
     networkDevice->read( 0x0e, &baudrate);
+    _delay_us(100);
     
     return baudrate;
 }

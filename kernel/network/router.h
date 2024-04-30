@@ -6,7 +6,6 @@
 #define CLIENT_TYPE_UNKNOWN   0
 #define CLIENT_TYPE_NODE      1
 #define CLIENT_TYPE_ROUTER    2
-#define CLIENT_TYPE_SERVER    3
 
 
 struct RoutingTable {

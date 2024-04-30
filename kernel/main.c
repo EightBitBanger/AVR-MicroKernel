@@ -1,35 +1,4 @@
-#include <avr/io.h>
-//#include <stdlib.h>
-
-#include <kernel/delay.h>
-
-#include <kernel/bus/board.h>
-
-#include <kernel/kernel.h>
-
-// Included console commands
-#ifndef NETWORK_APPLICATION_PACKET_ROUTER
- #include <kernel/commands/list.h>
- #include <kernel/commands/device.h>
- #include <kernel/commands/cls.h>
- #include <kernel/commands/net.h>
- 
- #include <kernel/commands/fs/cap.h>
- #include <kernel/commands/fs/cd.h>
- #include <kernel/commands/fs/dir.h>
- #include <kernel/commands/fs/mk.h>
- #include <kernel/commands/fs/rm.h>
- #include <kernel/commands/fs/rn.h>
- #include <kernel/commands/fs/repair.h>
- #include <kernel/commands/fs/format.h>
-#endif
-
-
-// Included drivers
-#include <drivers/display/LiquidCrystalDisplayController/main.h>
-#include <drivers/keyboard/ps2/main.h>
-#include <drivers/network/NIC/main.h>
-
+#include <kernel/main.h>
 
 
 void spkBeep(uint16_t duration, uint16_t frequency) {
@@ -60,12 +29,6 @@ int main(void) {
     bus_control_zero();
     bus_address_zero();
     
-    //uint16_t duration  = 10;
-    //uint16_t frequency = 20000;
-    
-    //spkBeep(duration, frequency);
-    
-    
     // Allow board some time to stabilize
     _delay_ms(2000);
     
@@ -83,29 +46,55 @@ int main(void) {
     
     
     //
-    // Packet router
+    // Display keyboard input hex
     //
     
-#ifdef NETWORK_APPLICATION_PACKET_ROUTER
-    InitiateRouter();
-#endif
+    /*
     
-#ifndef NETWORK_APPLICATION_PACKET_ROUTER
-    // Console commands to include in the kernel
-    registerCommandList();
-    registerCommandDevice();
-    registerCommandCLS();
-    registerCommandNet();
+    uint8_t nameKeyboard[] = "PS2";
+	struct Driver* keyboadDevice = (struct Driver*)GetDriverByName( nameKeyboard, sizeof(nameKeyboard) );
+	
+	uint8_t oldScanCodeLow  = 0;
+    uint8_t oldScanCodeHigh = 0;
     
-    registerCommandCAP();
-    registerCommandCD();
-    registerCommandDIR();
-    registerCommandMK();
-    registerCommandRM();
-    registerCommandRN();
-    registerCommandRepair();
-    registerCommandFormat();
+    uint8_t currentScanCodeLow  = 0;
+    uint8_t currentScanCodeHigh = 0;
+    
+    while(1) {
+        
+        uint8_t hexStringLow[2];
+        uint8_t hexStringHigh[2];
+        
+        
+#ifdef BOARD_RETRO_AVR_X4_REV1
+        keyboadDevice->read( 0x00001, &currentScanCodeLow );
+        keyboadDevice->read( 0x00000, &currentScanCodeHigh );
 #endif
+        
+#ifdef BOARD_RETROBOARD_REV2
+        keyboadDevice->read( 0x00000, &currentScanCodeLow );
+        keyboadDevice->read( 0x00001, &currentScanCodeHigh );
+#endif
+        
+        if ((oldScanCodeLow  == currentScanCodeLow) & 
+            (oldScanCodeHigh == currentScanCodeHigh)) 
+            continue;
+        
+        oldScanCodeLow  = currentScanCodeLow;
+        oldScanCodeHigh = currentScanCodeHigh;
+        
+        int_to_hex_string(oldScanCodeLow,  hexStringLow);
+        int_to_hex_string(oldScanCodeHigh, hexStringHigh);
+        
+        print(hexStringLow, sizeof(hexStringLow)+1);
+        printChar(' ');
+        print(hexStringHigh, sizeof(hexStringHigh)+1);
+        printLn();
+        
+        continue;
+    }
+    
+    */
     
     
     
@@ -167,6 +156,18 @@ int main(void) {
     
     ConsoleSetBlinkRate(35);
     
+    //
+    // Speaker beep if available
+    //
+    
+#ifdef BOARD_RETRO_AVR_X4_REV1
+    
+    uint16_t duration  = 200;
+    uint16_t frequency = 20000;
+    
+    spkBeep(duration, frequency);
+    
+#endif
     
     //
     // Find an active storage device to call the file system root directory
@@ -185,6 +186,57 @@ int main(void) {
         
         break;
     }
+     
+    
+    //
+    // Packet router
+    //
+    
+#ifdef NETWORK_APPLICATION_PACKET_ROUTER
+    
+    InitiateRouter();
+    
+#endif
+    
+#ifdef NETWORK_APPLICATION_SERVER
+    
+    InitiateServer();
+    
+#endif
+    
+#ifndef DONT_INCLUDE_CONSOLE_COMMANDS
+    
+    // Console commands to include in the kernel
+  #ifdef INCLUDE_KERNEL_APPLICATIONS
+    
+    registerCommandList();
+    registerCommandDevice();
+    registerCommandCLS();
+    registerCommandEDIT();
+    
+  #endif
+    
+  #ifdef INCLUDE_NETWORK_APPLICATIONS
+    
+    registerCommandNet();
+    
+  #endif
+    
+  #ifdef INCLUDE_FILE_SYSTEM_APPLICATIONS
+    
+    registerCommandCAP();
+    registerCommandCD();
+    registerCommandDIR();
+    registerCommandMK();
+    registerCommandRM();
+    registerCommandRN();
+    registerCommandRepair();
+    registerCommandFormat();
+    
+  #endif
+    
+#endif
+    
     
     
     _delay_ms(100);

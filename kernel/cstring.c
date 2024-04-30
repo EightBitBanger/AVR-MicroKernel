@@ -105,3 +105,50 @@ void int_to_hex_string(uint32_t integer, uint8_t* string) {
 	
 	return;
 }
+
+uint8_t string_get_int(uint8_t* string) {
+	
+	uint8_t integer=0;
+	
+	// Check shift up
+	if ((string[1] == ' ') & (string[2] == ' ')) {
+        string[2] = string[0];
+        string[1] = ' ';
+        string[0] = ' ';
+	}
+	
+	if (string[2] == ' ') {
+        string[2] = string[1];
+        string[1] = string[0];
+        string[0] = ' ';
+	}
+	
+	if (is_number(&string[2])) 
+        integer += (string[2] - '0') * 1;
+	if (is_number(&string[1])) 
+        integer += (string[1] - '0') * 10;
+	if (is_number(&string[0])) 
+        integer += (string[0] - '0') * 100;
+	
+	return integer;
+}
+
+uint8_t string_get_hex_char(uint8_t* string) {
+	
+	uint32_t value_a = 0;
+	uint32_t value_b = 0;
+	uint8_t hex;
+	
+	// First digit
+	hex = string[1];
+	if ((hex >= 0x30) && (hex <= 0x40)) value_b += hex - 0x30;
+	if ((hex >= 0x60) && (hex <= 0x67)) value_b += 9 + (hex - 0x60);
+	
+	// Second digit
+	hex = string[0];
+	if ((hex >= 0x30) && (hex <= 0x40)) value_a += hex - 0x30;
+	if ((hex >= 0x60) && (hex <= 0x67)) value_a += 9 + (hex - 0x60);
+	
+	return value_a + (value_b * 16);
+}
+

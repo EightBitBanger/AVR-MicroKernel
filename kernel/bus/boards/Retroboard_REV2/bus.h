@@ -275,6 +275,16 @@ void bus_write_memory(struct Bus* bus, uint32_t address, uint8_t byte) {
 	return;
 }
 
+void bus_write_io(struct Bus* bus, uint32_t address, uint8_t byte) {
+    bus_write_memory(bus, address, byte);
+    return;
+}
+
+void bus_read_io(struct Bus* bus, uint32_t address, uint8_t* buffer) {
+    bus_read_memory(bus, address, buffer);
+    return;
+}
+
 void bus_write_byte_eeprom(struct Bus* bus, uint32_t address, uint8_t byte, uint8_t* pageCounter) {
     
 	// Address the device

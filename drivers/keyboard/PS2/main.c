@@ -137,7 +137,7 @@ uint8_t decodeScanCode(uint8_t scancode_low, uint8_t scancode_high) {
 	}
 	
 	if (scancode_low == 0xf8) {
-		if (scancode_high == 0xDD) {return 0x06;} // Right arrow
+		if (scancode_high == 0xBB) {return 0x06;} // Right arrow
 		if (scancode_high == 0xA3) {return 0x08;} // Control
 		if (scancode_high == 0xC9) {return ';';}  // Semi-colon
 		if (scancode_high == 0xA9) {return '[';}  // Left square bracket
