@@ -1,6 +1,8 @@
 #ifndef __CONSOLE_INTERFACE_
 #define __CONSOLE_INTERFACE_
 
+#define CURSOR_BLINK_RATE  35
+
 #include <kernel/bus/bus.h>
 #include <kernel/device/device.h>
 #include <kernel/driver/driver.h>

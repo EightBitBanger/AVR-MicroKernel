@@ -7,6 +7,9 @@
 #include <kernel/fs/fs.h>
 #include <kernel/fs/fs.h>
 
+uint8_t deviceNotReady[]= "Device not ready";
+
+
 uint32_t fs_device_address = 0;
 
 uint8_t fsCheckDeviceReady(void) {
@@ -57,14 +60,12 @@ uint32_t fsGetDeviceCapacity(void) {
         bus_read_byte(&bus, fsGetCurrentDevice() + i, &buffer[i]);
     
     // Check header byte
-    if (buffer[0] != 0x13) {
+    if (buffer[0] != 0x13) 
         return 0;
-    }
     
     // Check hardware name
-    if ((buffer[1] != 'f') | (buffer[2] != 's')) {
+    if ((buffer[1] != 'f') | (buffer[2] != 's')) 
         return 0;
-    }
     
     union Pointer sizePointer;
     
@@ -77,13 +78,13 @@ uint32_t fsGetDeviceCapacity(void) {
 
 
 
-uint8_t fsFileCreate(uint8_t* name, uint8_t nameLength, uint32_t fileSize) {
+uint32_t fsFileCreate(uint8_t* name, uint8_t nameLength, uint32_t fileSize) {
     
     struct Bus bus;
-    bus.read_waitstate  = 5;
+    bus.read_waitstate  = 4;
     bus.write_waitstate = 5;
     
-	uint8_t pageCounter;
+	uint8_t pageCounter = 0;
     
     uint32_t freeSectorCount = 0;
     uint32_t fileTargetAddress = 0;
@@ -93,7 +94,6 @@ uint8_t fsFileCreate(uint8_t* name, uint8_t nameLength, uint32_t fileSize) {
     uint32_t currentCapacity = fsGetDeviceCapacity() / SECTOR_SIZE;
     
     if (currentCapacity == 0) {
-        uint8_t deviceNotReady[]= "Device not ready";
         print( &deviceNotReady[0], sizeof(deviceNotReady) );
         printLn();
         return 0;
@@ -101,9 +101,8 @@ uint8_t fsFileCreate(uint8_t* name, uint8_t nameLength, uint32_t fileSize) {
     
     // Calculate sectors required to fit the file
     uint32_t totalSectors=0;
-	for (uint32_t i=0; i < fileSize; i += (SECTOR_SIZE - 1)) {
+	for (uint32_t i=0; i < fileSize; i += (SECTOR_SIZE - 1)) 
 		totalSectors++;
-	}
 	
 	// Always have one sector
 	if (totalSectors == 0) 
@@ -151,7 +150,6 @@ uint8_t fsFileCreate(uint8_t* name, uint8_t nameLength, uint32_t fileSize) {
 			continue;
 		
         // Mark following sectors as taken
-        _delay_ms(10);
         
         for (uint32_t i = 0; i <= totalSectors; i++) {
             bus_write_byte_eeprom(&bus, fileTargetAddress + (i * SECTOR_SIZE), 0xff, &pageCounter);
@@ -160,25 +158,23 @@ uint8_t fsFileCreate(uint8_t* name, uint8_t nameLength, uint32_t fileSize) {
         
         // Mark the end of file sector
         bus_write_byte_eeprom(&bus, fileTargetAddress + (totalSectors * SECTOR_SIZE), 0xaa, &pageCounter);
+        _delay_ms(10);
         
 		// Mark the first sector
-        _delay_ms(10);
-        
         uint8_t fileStartbyte = 0x55; // File start byte is 0x55
 		bus_write_byte_eeprom(&bus, fileTargetAddress, fileStartbyte,  &pageCounter);
+		_delay_ms(10);
 		
-        _delay_ms(10);
-        
 		// Blank the file name
 		for (uint8_t i=0; i < 10; i++) {
-            _delay_ms(10);
             bus_write_byte_eeprom( &bus,  fileTargetAddress + i + OFFSET_FILE_NAME, ' ', &pageCounter );
+            _delay_ms(10);
 		}
 		
 		// Write file name
 		for (uint8_t i=0; i < nameLength; i++) {
-            _delay_ms(10);
             bus_write_byte_eeprom( &bus, fileTargetAddress + i + OFFSET_FILE_NAME, name[i], &pageCounter );
+            _delay_ms(10);
 		}
         
         // Set file size
@@ -186,18 +182,18 @@ uint8_t fsFileCreate(uint8_t* name, uint8_t nameLength, uint32_t fileSize) {
         sizePtr.address = fileSize;
         
         for (uint8_t i=0; i < 4; i++) {
-            _delay_ms(10);
             bus_write_byte_eeprom( &bus, fileTargetAddress + i + OFFSET_FILE_SIZE, sizePtr.byte_t[i], &pageCounter );
+            _delay_ms(10);
         }
         
         // Write file attributes
         uint8_t attributes[4] = {' ', ' ', 'r', 'w'};
         for (uint8_t i=0; i < 4; i++) {
-            _delay_ms(10);
             bus_write_byte_eeprom( &bus, fileTargetAddress + i + OFFSET_FILE_ATTRIBUTES, attributes[i], &pageCounter );
+            _delay_ms(10);
         }
         
-        return 1;
+        return fileTargetAddress;
     }
     
     return 0;
@@ -214,10 +210,9 @@ uint8_t fsFileDelete(uint8_t* name, uint8_t nameLength) {
     
     uint8_t clearByte = 0x00;
     
-    uint8_t pageCounter;
+    uint8_t pageCounter = 0;
     
     if (currentCapacity == 0) {
-        uint8_t deviceNotReady[]= "Device not ready";
         print( &deviceNotReady[0], sizeof(deviceNotReady) );
         printLn();
         return 0;
@@ -314,20 +309,17 @@ uint8_t fsFileDelete(uint8_t* name, uint8_t nameLength) {
     return 0;
 }
 
-uint8_t fsFileRename(uint8_t* name, uint8_t nameLength, uint8_t* newName, uint8_t newNameLength) {
+uint32_t fsFileExists(uint8_t* name, uint8_t nameLength) {
     
     struct Bus bus;
     bus.read_waitstate  = 4;
     bus.write_waitstate = 5;
-    
-    uint8_t pageCounter;
     
     uint32_t currentDevice = fsGetCurrentDevice();
     
     uint32_t currentCapacity = fsGetDeviceCapacity();
     
     if (currentCapacity == 0) {
-        uint8_t deviceNotReady[]= "Device not ready";
         print( &deviceNotReady[0], sizeof(deviceNotReady) );
         printLn();
         return 0;
@@ -341,7 +333,68 @@ uint8_t fsFileRename(uint8_t* name, uint8_t nameLength, uint8_t* newName, uint8_
         currentCapacity = CAPACITY_8K;
     }
     
-    // Delete following sectors allocated to this file
+    // Check following sectors allocated to this file
+    for (uint32_t sector=0; sector < currentCapacity; sector++) {
+        
+        // Find an active file start byte
+        if (fsGetDeviceHeaderByte( sector * SECTOR_SIZE ) != 0x55) 
+            continue;
+        
+        uint8_t isFileFound = 0;
+        
+        // Check file name
+        for (uint8_t i=0; i < nameLength; i++) {
+            
+            uint8_t nameByte = 0;
+            
+            bus_read_byte(&bus, currentDevice + (sector * SECTOR_SIZE) + OFFSET_FILE_NAME + i, &nameByte);
+            
+            if (name[i] != nameByte) {
+                isFileFound = 0;
+                break;
+            }
+            
+            isFileFound = 1;
+            
+            continue;
+        }
+        
+        if (isFileFound == 0) 
+            continue;
+        
+		return currentDevice + (sector * SECTOR_SIZE);
+    }
+    
+    return 0;
+}
+
+uint8_t fsFileRename(uint8_t* name, uint8_t nameLength, uint8_t* newName, uint8_t newNameLength) {
+    
+    struct Bus bus;
+    bus.read_waitstate  = 4;
+    bus.write_waitstate = 5;
+    
+    uint8_t pageCounter = 0;
+    
+    uint32_t currentDevice = fsGetCurrentDevice();
+    
+    uint32_t currentCapacity = fsGetDeviceCapacity();
+    
+    if (currentCapacity == 0) {
+        print( &deviceNotReady[0], sizeof(deviceNotReady) );
+        printLn();
+        return 0;
+    }
+    
+    // Verify the capacity
+    // Default to minimum size if size unknown
+    if ((currentCapacity != CAPACITY_8K) & 
+        (currentCapacity != CAPACITY_16K) & 
+        (currentCapacity != CAPACITY_32K)) {
+        currentCapacity = CAPACITY_8K;
+    }
+    
+    // Check following sectors allocated to this file
     for (uint32_t sector=0; sector < currentCapacity; sector++) {
         
         // Find an active file start byte
@@ -381,6 +434,138 @@ uint8_t fsFileRename(uint8_t* name, uint8_t nameLength, uint8_t* newName, uint8_
     return 0;
 }
 
+uint32_t fsGetFileSize(uint8_t* name, uint8_t nameLength) {
+    
+    struct Bus bus;
+    bus.read_waitstate  = 4;
+    bus.write_waitstate = 5;
+    
+    uint32_t currentDevice = fsGetCurrentDevice();
+    
+    uint32_t currentCapacity = fsGetDeviceCapacity();
+    
+    if (currentCapacity == 0) {
+        print( &deviceNotReady[0], sizeof(deviceNotReady) );
+        printLn();
+        return 0;
+    }
+    
+    // Verify the capacity
+    // Default to minimum size if size unknown
+    if ((currentCapacity != CAPACITY_8K) & 
+        (currentCapacity != CAPACITY_16K) & 
+        (currentCapacity != CAPACITY_32K)) {
+        currentCapacity = CAPACITY_8K;
+    }
+    
+    // Check following sectors allocated to this file
+    for (uint32_t sector=0; sector < currentCapacity; sector++) {
+        
+        // Find an active file start byte
+        if (fsGetDeviceHeaderByte( sector * SECTOR_SIZE ) != 0x55) 
+            continue;
+        
+        uint8_t isFileFound = 0;
+        
+        // Check file name
+        for (uint8_t i=0; i < nameLength; i++) {
+            
+            uint8_t nameByte = 0;
+            
+            bus_read_byte(&bus, currentDevice + (sector * SECTOR_SIZE) + OFFSET_FILE_NAME + i, &nameByte);
+            
+            if (name[i] != nameByte) {
+                isFileFound = 0;
+                break;
+            }
+            
+            isFileFound = 1;
+            
+            continue;
+        }
+        
+        // Was the file located
+        if (isFileFound == 0) 
+            continue;
+        
+        // Read file size
+        union Pointer fileSize;
+        
+        for (uint8_t i=0; i < 4; i++) 
+            bus_read_byte( &bus, currentDevice + (sector * SECTOR_SIZE) + OFFSET_FILE_SIZE + i, &fileSize.byte_t[i]);
+        
+		return fileSize.address;
+    }
+    
+    return 0;
+}
+
+uint8_t fsGetFileAttributes(uint8_t* name, uint8_t nameLength, struct FSAttribute* attributes) {
+    
+    struct Bus bus;
+    bus.read_waitstate  = 4;
+    bus.write_waitstate = 5;
+    
+    uint32_t currentDevice = fsGetCurrentDevice();
+    
+    uint32_t currentCapacity = fsGetDeviceCapacity();
+    
+    if (currentCapacity == 0) {
+        print( &deviceNotReady[0], sizeof(deviceNotReady) );
+        printLn();
+        return 0;
+    }
+    
+    // Verify the capacity
+    // Default to minimum size if size unknown
+    if ((currentCapacity != CAPACITY_8K) & 
+        (currentCapacity != CAPACITY_16K) & 
+        (currentCapacity != CAPACITY_32K)) {
+        currentCapacity = CAPACITY_8K;
+    }
+    
+    // Check following sectors allocated to this file
+    for (uint32_t sector=0; sector < currentCapacity; sector++) {
+        
+        // Find an active file start byte
+        if (fsGetDeviceHeaderByte( sector * SECTOR_SIZE ) != 0x55) 
+            continue;
+        
+        uint8_t isFileFound = 0;
+        
+        // Check file name
+        for (uint8_t i=0; i < nameLength; i++) {
+            
+            uint8_t nameByte = 0;
+            
+            bus_read_byte(&bus, currentDevice + (sector * SECTOR_SIZE) + OFFSET_FILE_NAME + i, &nameByte);
+            
+            if (name[i] != nameByte) {
+                isFileFound = 0;
+                break;
+            }
+            
+            isFileFound = 1;
+            
+            continue;
+        }
+        
+        // Was the file located
+        if (isFileFound == 0) 
+            continue;
+        
+        // Read file attributes
+        uint8_t attributes[4] = {' ', ' ', 'r', 'w'};
+        
+        for (uint8_t i=0; i < 4; i++) 
+            bus_read_byte( &bus, currentDevice + (sector * SECTOR_SIZE) + OFFSET_FILE_ATTRIBUTES + i, &attributes[i] );
+        
+		return 1;
+    }
+    
+    return 0;
+}
+
 uint8_t fsSetFileAttributes(uint8_t* name, uint8_t nameLength, struct FSAttribute* attributes) {
     
     struct Bus bus;
@@ -391,10 +576,9 @@ uint8_t fsSetFileAttributes(uint8_t* name, uint8_t nameLength, struct FSAttribut
     
     uint32_t currentCapacity = fsGetDeviceCapacity();
     
-    uint8_t pageCounter;
+    uint8_t pageCounter = 0;
     
     if (currentCapacity == 0) {
-        uint8_t deviceNotReady[]= "Device not ready";
         print( &deviceNotReady[0], sizeof(deviceNotReady) );
         printLn();
         return 0;
@@ -449,7 +633,117 @@ uint8_t fsSetFileAttributes(uint8_t* name, uint8_t nameLength, struct FSAttribut
     
     return 0;
 }
- 
+
+
+
+//
+// File open/close and read/write
+//
+
+
+uint32_t fileBeginAddress = 0;
+
+
+uint8_t fsFileOpen(uint8_t* name, uint8_t nameLength) {
+    
+    fileBeginAddress = fsFileExists(name, nameLength);
+    
+    if (fileBeginAddress != 0)
+        return 1;
+    
+    return 0;
+}
+
+uint8_t fsFileClose(uint8_t index) {
+    
+    if (fileBeginAddress != 0) {
+        fileBeginAddress = 0;
+        return 1;
+    }
+    
+    return 0;
+}
+
+uint8_t fsFileWrite(uint8_t index, uint8_t* buffer, uint8_t length) {
+    
+    if (fileBeginAddress == 0) 
+        return 0;
+    
+    //uint32_t currentDevice = fsGetCurrentDevice();
+    
+    //uint32_t currentCapacity = fsGetDeviceCapacity();
+    
+    struct Bus bus;
+    bus.read_waitstate  = 4;
+    bus.write_waitstate = 5;
+    
+    uint8_t pageCounter = 0;
+    
+    uint16_t sectorCounter = 1;
+    uint32_t sectorIndex = 1;
+    
+    // Write file data starting at the sector after the header
+    for (uint32_t i=0; i < length; i++) {
+        
+        // Skip sector marker bytes
+        if (sectorCounter == (SECTOR_SIZE - 1)) {
+            sectorCounter = 0;
+            sectorIndex++;
+        } else {
+            sectorCounter++;
+        }
+        
+        bus_write_io_eeprom(&bus, fileBeginAddress + SECTOR_SIZE + 1 + sectorIndex, buffer[sectorIndex - 1], &pageCounter);
+        
+        sectorIndex++;
+        
+        continue;
+    }
+    
+    return 1;
+}
+
+uint8_t fsFileRead(uint8_t index, uint8_t* buffer, uint8_t length) {
+    
+    if (fileBeginAddress == 0) 
+        return 0;
+    
+    //uint32_t currentDevice = fsGetCurrentDevice();
+    
+    //uint32_t currentCapacity = fsGetDeviceCapacity();
+    
+    struct Bus bus;
+    bus.read_waitstate  = 4;
+    bus.write_waitstate = 5;
+    
+    uint16_t sectorCounter = 1;
+    uint32_t sectorIndex = 1;
+    
+    // Read file data starting at the sector after the header
+    for (uint32_t i=0; i < length; i++) {
+        
+        // Skip sector marker bytes
+        if (sectorCounter == (SECTOR_SIZE - 1)) {
+            sectorCounter = 0;
+            sectorIndex++;
+        } else {
+            sectorCounter++;
+        }
+        
+        bus_read_byte(&bus, fileBeginAddress + SECTOR_SIZE + 1 + sectorIndex, &buffer[sectorIndex - 1] );
+        
+        sectorIndex++;
+        
+        continue;
+    }
+    
+    return ' ';
+}
+
+
+
+
+
 void fsListDirectory(void) {
     
     struct Bus bus;
@@ -462,13 +756,8 @@ void fsListDirectory(void) {
     uint32_t currentCapacity = fsGetDeviceCapacity();
     
     if (currentCapacity == 0) {
-        
-        uint8_t deviceNotReady[]= "Device not ready";
-        
         print( &deviceNotReady[0], sizeof(deviceNotReady) );
-        
         printLn();
-        
         return;
     }
     

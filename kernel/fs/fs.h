@@ -35,6 +35,7 @@ struct FSAttribute {
 };
 
 
+// Device context
 
 void fsSetCurrentDevice(uint8_t device_index);
 
@@ -46,17 +47,34 @@ uint32_t fsGetCurrentDevice(void);
 
 uint8_t fsCheckDeviceReady(void);
 
+// File manipulation
 
-uint8_t fsFileCreate(uint8_t* name, uint8_t nameLength, uint32_t fileSize);
+uint32_t fsFileCreate(uint8_t* name, uint8_t nameLength, uint32_t fileSize);
 
 uint8_t fsFileDelete(uint8_t* name, uint8_t nameLength);
 
+uint32_t fsFileExists(uint8_t* name, uint8_t nameLength);
+
 uint8_t fsFileRename(uint8_t* name, uint8_t nameLength, uint8_t* newName, uint8_t newNameLength);
+
+uint32_t fsGetFileSize(uint8_t* name, uint8_t nameLength);
 
 uint8_t fsGetFileAttributes(uint8_t* name, uint8_t nameLength, struct FSAttribute* attributes);
 
 uint8_t fsSetFileAttributes(uint8_t* name, uint8_t nameLength, struct FSAttribute* attributes);
 
+// File IO
+
+uint8_t fsFileOpen(uint8_t* name, uint8_t nameLength);
+
+uint8_t fsFileClose(uint8_t index);
+
+uint8_t fsFileWrite(uint8_t index, uint8_t* buffer, uint8_t length);
+
+uint8_t fsFileRead(uint8_t index, uint8_t* buffer, uint8_t length);
+
+
+// Special
 
 void fsListDirectory(void);
 

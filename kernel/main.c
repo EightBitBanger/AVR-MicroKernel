@@ -154,7 +154,7 @@ int main(void) {
     
     printLn();
     
-    ConsoleSetBlinkRate(35);
+    ConsoleSetBlinkRate( CURSOR_BLINK_RATE );
     
     //
     // Speaker beep if available
@@ -206,7 +206,6 @@ int main(void) {
     
 #ifndef DONT_INCLUDE_CONSOLE_COMMANDS
     
-    // Console commands to include in the kernel
   #ifdef INCLUDE_KERNEL_APPLICATIONS
     
     registerCommandList();
@@ -236,7 +235,6 @@ int main(void) {
   #endif
     
 #endif
-    
     
     
     _delay_ms(100);
