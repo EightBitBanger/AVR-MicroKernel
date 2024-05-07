@@ -669,9 +669,8 @@ uint8_t fsFileWrite(uint8_t index, uint8_t* buffer, uint8_t length) {
     if (fileBeginAddress == 0) 
         return 0;
     
-    //uint32_t currentDevice = fsGetCurrentDevice();
-    
-    //uint32_t currentCapacity = fsGetDeviceCapacity();
+    if (length < SECTOR_SIZE) 
+        length = SECTOR_SIZE;
     
     struct Bus bus;
     bus.read_waitstate  = 4;
@@ -684,6 +683,10 @@ uint8_t fsFileWrite(uint8_t index, uint8_t* buffer, uint8_t length) {
     
     // Write file data starting at the sector after the header
     for (uint32_t i=0; i < length; i++) {
+        
+        bus_write_io_eeprom(&bus, fileBeginAddress + i, buffer[i], &pageCounter);
+        
+        continue;
         
         // Skip sector marker bytes
         if (sectorCounter == (SECTOR_SIZE - 1)) {
@@ -708,9 +711,8 @@ uint8_t fsFileRead(uint8_t index, uint8_t* buffer, uint8_t length) {
     if (fileBeginAddress == 0) 
         return 0;
     
-    //uint32_t currentDevice = fsGetCurrentDevice();
-    
-    //uint32_t currentCapacity = fsGetDeviceCapacity();
+    if (length < SECTOR_SIZE) 
+        length = SECTOR_SIZE;
     
     struct Bus bus;
     bus.read_waitstate  = 4;
@@ -721,6 +723,10 @@ uint8_t fsFileRead(uint8_t index, uint8_t* buffer, uint8_t length) {
     
     // Read file data starting at the sector after the header
     for (uint32_t i=0; i < length; i++) {
+        
+        bus_read_byte(&bus, fileBeginAddress + i, &buffer[i] );
+        
+        continue;
         
         // Skip sector marker bytes
         if (sectorCounter == (SECTOR_SIZE - 1)) {
