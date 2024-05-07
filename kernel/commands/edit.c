@@ -146,10 +146,16 @@ void functionEDIT(uint8_t* param, uint8_t param_length) {
         
         // Cursor left
         if (lastChar == 0x05) {
-            if (cursorPos > 0) 
+            if (cursorPos > 0) {
                 cursorPos--;
-            
+            } else {
+                if (cursorLine > 0) {
+                    cursorPos = 19;
+                    cursorLine--;
+                }
+            }
         }
+        
         // Cursor up
         if (lastChar == 0x03) {
             if (cursorLine > 0) 
@@ -161,7 +167,19 @@ void functionEDIT(uint8_t* param, uint8_t param_length) {
         if (lastChar == 0x06) {
             if (cursorPos < 19) {
                 cursorPos++;
+            } else {
+                if (cursorLine < 3) {
+                    cursorPos = 0;
+                    cursorLine++;
+                }
             }
+        }
+        
+        // Delete
+        if (lastChar == 0x10) {
+            
+            textBuffer[cursorPos + (cursorLine * 20)] = ' ';
+            
         }
         
         // Backspace
@@ -177,7 +195,7 @@ void functionEDIT(uint8_t* param, uint8_t param_length) {
                     
                     cursorLine--;
                     
-                    cursorPos = 0;
+                    cursorPos = 19;
                     
                 }
                 
@@ -194,18 +212,20 @@ void functionEDIT(uint8_t* param, uint8_t param_length) {
         
         if (lastChar > 0x19) {
             
-            textBuffer[cursorPos + (cursorLine * 20)] = lastChar;
-            
             if (cursorPos < 19) {
+                
+                textBuffer[cursorPos + (cursorLine * 20)] = lastChar;
                 
                 cursorPos++;
                 
             } else {
                 
-                cursorPos = 0;
+                textBuffer[cursorPos + (cursorLine * 20)] = lastChar;
                 
-                if (cursorLine < 3) 
+                if (cursorLine < 3) {
+                    cursorPos = 0;
                     cursorLine++;
+                }
                 
             }
             
@@ -217,7 +237,7 @@ void functionEDIT(uint8_t* param, uint8_t param_length) {
         ConsoleSetCursor(0, 0);
         for (uint8_t i=0; i < 4; i++) {
             
-            print( &textBuffer[20 * i], 20 );
+            print( &textBuffer[20 * i], 21 );
             
         }
         

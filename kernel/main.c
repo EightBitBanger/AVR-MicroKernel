@@ -97,7 +97,6 @@ int main(void) {
     */
     
     
-    
     //
     // Allocate external memory
     //
@@ -217,19 +216,19 @@ int main(void) {
     
   #ifdef INCLUDE_NETWORK_APPLICATIONS
     
-    registerCommandNet();
+    //registerCommandNet();
     
   #endif
     
   #ifdef INCLUDE_FILE_SYSTEM_APPLICATIONS
     
-    registerCommandCAP();
-    registerCommandCD();
+    //registerCommandCAP();
+    //registerCommandCD();
     registerCommandDIR();
     registerCommandMK();
     registerCommandRM();
-    registerCommandRN();
-    registerCommandRepair();
+    //registerCommandRN();
+    //registerCommandRepair();
     registerCommandFormat();
     
   #endif

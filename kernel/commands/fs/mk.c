@@ -14,20 +14,24 @@ void functionMK(uint8_t* param, uint8_t param_length) {
         
         uint8_t fileSizeString[3]  = {' ', ' ', ' '};
         
-        if (param[5] == ' ') {
+        if ((param[3] != ' ') & (param[4] != ' ')) {
             
-            // Double digit
-            for (uint8_t i=0; i < 2; i++) 
-                fileSizeString[i] = param[3 + i];
+            if (param[5] == ' ') {
+                
+                // Double digit
+                for (uint8_t i=0; i < 2; i++) 
+                    fileSizeString[i] = param[3 + i];
+                
+            } else {
+                
+                // Triple digit
+                for (uint8_t i=0; i < 3; i++) 
+                    fileSizeString[i] = param[3 + i];
+            }
             
-        } else {
+            filesize = string_get_int( &fileSizeString[0] );
             
-            // Triple digit
-            for (uint8_t i=0; i < 3; i++) 
-                fileSizeString[i] = param[3 + i];
         }
-        
-        filesize = string_get_int( &fileSizeString[0] );
         
         uint8_t stringFileSize[10];
         uint8_t place = int_to_string(filesize, stringFileSize);
