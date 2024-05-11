@@ -30,7 +30,7 @@ int main(void) {
     bus_address_zero();
     
     // Allow board some time to stabilize
-    _delay_ms(2000);
+    _delay_ms(1700);
     
     // Initiate device drivers here
 	initiateDisplayDriver();      // 20x4 LCD Display
