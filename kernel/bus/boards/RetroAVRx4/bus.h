@@ -203,37 +203,29 @@ void bus_write_byte(struct Bus* bus, uint32_t address, uint8_t byte) {
     return;
 }
 
-void bus_write_io_eeprom(struct Bus* bus, uint32_t address, uint8_t byte, uint8_t* pageCounter) {
+void bus_write_io_eeprom(struct Bus* bus, uint32_t address, uint8_t byte) {
     
     bus_write_io(bus, address, byte);
     
-    *pageCounter += 1;
-    if (*pageCounter < 32) 
-        return;
-    *pageCounter = 0;
-    
     _delay_ms(10);
     
     return;
 }
 
-void bus_write_memory_eeprom(struct Bus* bus, uint32_t address, uint8_t byte, uint8_t* pageCounter) {
+void bus_write_memory_eeprom(struct Bus* bus, uint32_t address, uint8_t byte) {
     
     bus_write_memory(bus, address, byte);
     
-    *pageCounter += 1;
-    if (*pageCounter < 32) 
-        return;
-    *pageCounter = 0;
-    
     _delay_ms(10);
     
     return;
 }
 
-void bus_write_byte_eeprom(struct Bus* bus, uint32_t address, uint8_t byte, uint8_t* pageCounter) {
+void bus_write_byte_eeprom(struct Bus* bus, uint32_t address, uint8_t byte) {
     
-    bus_write_io_eeprom(bus, address, byte, pageCounter);
+    bus_write_io_eeprom(bus, address, byte);
+    
+    _delay_ms(10);
     
     return;
 }

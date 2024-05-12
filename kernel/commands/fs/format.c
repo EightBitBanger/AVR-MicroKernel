@@ -58,7 +58,6 @@ void functionFORMAT(uint8_t* param, uint8_t param_length) {
     uint8_t percentageSymbole[1];
     percentageSymbole[0] = '%';
     
-    uint8_t pageCounter = 0;
     uint8_t sectorCounter = 0;
     
     for (uint16_t i=0; i <= 1000; i++) {
@@ -77,11 +76,10 @@ void functionFORMAT(uint8_t* param, uint8_t param_length) {
             sector++;
             
             if (sectorCounter < 31) {
-                bus_write_byte_eeprom( &bus, currentDevice + sector, ' ',  &pageCounter);
+                bus_write_byte_eeprom( &bus, currentDevice + sector, ' ');
                 sectorCounter++;
             } else {
-                bus_write_byte_eeprom( &bus, currentDevice + sector, 0x00,  &pageCounter);
-                sectorCounter=0;
+                bus_write_byte_eeprom( &bus, currentDevice + sector, 0x00);
             }
             
             if (sector < deviceCapacityBytes) 
@@ -104,9 +102,9 @@ void functionFORMAT(uint8_t* param, uint8_t param_length) {
     _delay_ms(10);
     
     // Initiate first sector
-    bus_write_byte_eeprom( &bus, currentDevice    , 0x13,  &pageCounter );
-    bus_write_byte_eeprom( &bus, currentDevice + 1, 'f',  &pageCounter );
-    bus_write_byte_eeprom( &bus, currentDevice + 2, 's',  &pageCounter );
+    bus_write_byte_eeprom( &bus, currentDevice    , 0x13 );
+    bus_write_byte_eeprom( &bus, currentDevice + 1, 'f' );
+    bus_write_byte_eeprom( &bus, currentDevice + 2, 's' );
     
     // Device total capacity
     union Pointer deviceSize;
@@ -116,7 +114,7 @@ void functionFORMAT(uint8_t* param, uint8_t param_length) {
     for (uint8_t i=0; i < 4; i++) {
         _delay_ms(10);
         
-        bus_write_byte_eeprom( &bus, currentDevice + DEVICE_CAPACITY_OFFSET + i, deviceSize.byte_t[i],  &pageCounter );
+        bus_write_byte_eeprom( &bus, currentDevice + DEVICE_CAPACITY_OFFSET + i, deviceSize.byte_t[i] );
     }
     
     ConsoleCursorEnable();

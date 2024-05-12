@@ -62,7 +62,7 @@ void __write_ps2_device(uint32_t address, uint8_t buffer) {
 
 
 // Decode the scan code returning an ASCII character
-uint8_t decodeScanCode(uint8_t scancode_low, uint8_t scancode_high) {
+uint8_t kbDecodeScanCode(uint8_t scancode_low, uint8_t scancode_high) {
     
 #ifdef BOARD_RETRO_AVR_X4_REV1
     
@@ -242,4 +242,52 @@ uint8_t decodeScanCode(uint8_t scancode_low, uint8_t scancode_high) {
     
 	return 0x00;
 }
+
+void kbPrintInput(void) {
+    uint8_t nameKeyboard[] = "PS2";
+	struct Driver* keyboadDevice = (struct Driver*)GetDriverByName( nameKeyboard, sizeof(nameKeyboard) );
+	
+	uint8_t oldScanCodeLow  = 0;
+    uint8_t oldScanCodeHigh = 0;
+    
+    uint8_t currentScanCodeLow  = 0;
+    uint8_t currentScanCodeHigh = 0;
+    
+    while(1) {
+        
+        uint8_t hexStringLow[2];
+        uint8_t hexStringHigh[2];
+        
+        
+#ifdef BOARD_RETRO_AVR_X4_REV1
+        keyboadDevice->read( 0x00001, &currentScanCodeLow );
+        keyboadDevice->read( 0x00000, &currentScanCodeHigh );
+#endif
+        
+#ifdef BOARD_RETROBOARD_REV2
+        keyboadDevice->read( 0x00000, &currentScanCodeLow );
+        keyboadDevice->read( 0x00001, &currentScanCodeHigh );
+#endif
+        
+        if ((oldScanCodeLow  == currentScanCodeLow) & 
+            (oldScanCodeHigh == currentScanCodeHigh)) 
+            continue;
+        
+        oldScanCodeLow  = currentScanCodeLow;
+        oldScanCodeHigh = currentScanCodeHigh;
+        
+        int_to_hex_string(oldScanCodeLow,  hexStringLow);
+        int_to_hex_string(oldScanCodeHigh, hexStringHigh);
+        
+        print(hexStringLow, sizeof(hexStringLow)+1);
+        printChar(' ');
+        print(hexStringHigh, sizeof(hexStringHigh)+1);
+        printLn();
+        
+        continue;
+    }
+    
+    return;
+}
+
 

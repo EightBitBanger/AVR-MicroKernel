@@ -30,7 +30,7 @@ int main(void) {
     bus_address_zero();
     
     // Allow board some time to stabilize
-    _delay_ms(1700);
+    _delay_ms(1800);
     
     // Initiate device drivers here
 	initiateDisplayDriver();      // 20x4 LCD Display
@@ -43,58 +43,6 @@ int main(void) {
     ntInitiate();
     // Console
     consoleInitiate();
-    
-    
-    //
-    // Display keyboard input hex
-    //
-    
-    /*
-    
-    uint8_t nameKeyboard[] = "PS2";
-	struct Driver* keyboadDevice = (struct Driver*)GetDriverByName( nameKeyboard, sizeof(nameKeyboard) );
-	
-	uint8_t oldScanCodeLow  = 0;
-    uint8_t oldScanCodeHigh = 0;
-    
-    uint8_t currentScanCodeLow  = 0;
-    uint8_t currentScanCodeHigh = 0;
-    
-    while(1) {
-        
-        uint8_t hexStringLow[2];
-        uint8_t hexStringHigh[2];
-        
-        
-#ifdef BOARD_RETRO_AVR_X4_REV1
-        keyboadDevice->read( 0x00001, &currentScanCodeLow );
-        keyboadDevice->read( 0x00000, &currentScanCodeHigh );
-#endif
-        
-#ifdef BOARD_RETROBOARD_REV2
-        keyboadDevice->read( 0x00000, &currentScanCodeLow );
-        keyboadDevice->read( 0x00001, &currentScanCodeHigh );
-#endif
-        
-        if ((oldScanCodeLow  == currentScanCodeLow) & 
-            (oldScanCodeHigh == currentScanCodeHigh)) 
-            continue;
-        
-        oldScanCodeLow  = currentScanCodeLow;
-        oldScanCodeHigh = currentScanCodeHigh;
-        
-        int_to_hex_string(oldScanCodeLow,  hexStringLow);
-        int_to_hex_string(oldScanCodeHigh, hexStringHigh);
-        
-        print(hexStringLow, sizeof(hexStringLow)+1);
-        printChar(' ');
-        print(hexStringHigh, sizeof(hexStringHigh)+1);
-        printLn();
-        
-        continue;
-    }
-    
-    */
     
     
     //

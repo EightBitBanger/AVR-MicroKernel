@@ -9,7 +9,7 @@
 #include <drivers/keyboard/ps2/main.h>
 #include <drivers/display/LiquidCrystalDisplayController/main.h>
 
-#define CONSOLE_STRING_LENGTH  80
+#define CONSOLE_STRING_LENGTH  40
 
 uint16_t display_width  = 0;
 uint16_t display_height = 0;
@@ -33,14 +33,13 @@ uint8_t cursor_blink_rate = 35;
 struct Driver* displayDevice;
 struct Driver* keyboadDevice;
 
-#define CONSOLE_FUNCTION_NAME_LENGTH   8
+#define CONSOLE_FUNCTION_NAME_LENGTH   10
 
 struct ConsoleCommand {
     
     uint8_t name[CONSOLE_FUNCTION_NAME_LENGTH];
     
     void(*function)(uint8_t* string, uint8_t length);
-    
     
 };
 
@@ -62,7 +61,7 @@ uint8_t consoleWait(uint8_t key) {
     keyboadDevice->read( 0x00001, &oldScanCodeHigh );
 #endif
     
-    uint8_t currentChar = decodeScanCode(oldScanCodeLow, oldScanCodeHigh);
+    uint8_t currentChar = kbDecodeScanCode(oldScanCodeLow, oldScanCodeHigh);
     currentChar = lastChar;
     
     ConsoleSetCursor(console_line, 0);
@@ -79,7 +78,7 @@ uint8_t consoleWait(uint8_t key) {
         keyboadDevice->read( 0x00001, &oldScanCodeHigh );
 #endif
         
-        currentChar = decodeScanCode(oldScanCodeLow, oldScanCodeHigh);
+        currentChar = kbDecodeScanCode(oldScanCodeLow, oldScanCodeHigh);
         
         if (currentChar == 0x00) 
             lastChar = currentChar;
@@ -114,7 +113,7 @@ void consoleInitiate(void) {
     keyboadDevice->read( 0x00001, &oldScanCodeHigh );
 #endif
     
-    lastChar = decodeScanCode(oldScanCodeLow, oldScanCodeHigh);
+    lastChar = kbDecodeScanCode(oldScanCodeLow, oldScanCodeHigh);
     
     for (uint8_t i=0; i < CONSOLE_STRING_LENGTH; i++) 
         console_string[i] = ' ';
@@ -153,7 +152,7 @@ uint8_t ConsoleGetRawChar(void) {
     keyboadDevice->read( 0x00001, &scanCodeHigh );
 #endif
     
-    return decodeScanCode(scanCodeLow, scanCodeHigh);
+    return kbDecodeScanCode(scanCodeLow, scanCodeHigh);
 }
 
 uint8_t ConsoleGetLastChar(void) {
@@ -177,7 +176,7 @@ uint8_t ConsoleGetLastChar(void) {
     oldScanCodeLow  = scanCodeLow;
     oldScanCodeHigh = scanCodeHigh;
     
-    uint8_t scanCode = decodeScanCode(scanCodeLow, scanCodeHigh);
+    uint8_t scanCode = kbDecodeScanCode(scanCodeLow, scanCodeHigh);
     
     if (scanCode == 0x00) 
         return 0x00;

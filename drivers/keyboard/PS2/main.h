@@ -6,7 +6,9 @@
 #include <kernel/bus/bus.h>
 #include <kernel/device/device.h>
 
-uint8_t decodeScanCode(uint8_t scancode_low, uint8_t scancode_high);
+uint8_t kbDecodeScanCode(uint8_t scancode_low, uint8_t scancode_high);
+
+void kbPrintInput(void);
 
 struct PS2DeviceDriver {
     
