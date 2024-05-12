@@ -27,12 +27,15 @@
 
 #ifdef INCLUDE_FILE_SYSTEM_APPLICATIONS
   
-  #include <kernel/commands/fs/cap.h>
-  #include <kernel/commands/fs/cd.h>
   #include <kernel/commands/fs/dir.h>
+  #include <kernel/commands/fs/cd.h>
+  #include <kernel/commands/fs/cap.h>
   #include <kernel/commands/fs/mk.h>
   #include <kernel/commands/fs/rm.h>
   #include <kernel/commands/fs/rn.h>
+  
+  #include <kernel/commands/fs/attrib.h>
+  
   #include <kernel/commands/fs/repair.h>
   #include <kernel/commands/fs/format.h>
   
@@ -44,4 +47,5 @@
 #include <drivers/display/LiquidCrystalDisplayController/main.h>
 #include <drivers/keyboard/ps2/main.h>
 #include <drivers/network/NIC/main.h>
+#include <drivers/audio/speaker/main.h>
 

@@ -7,6 +7,11 @@
 
 uint32_t filesize = 20;
 
+uint8_t msgInBytes[]       = "bytes";
+uint8_t msgFileCreated[]   = "File created";
+uint8_t msgNoSpace[]       = "No space available";
+uint8_t msgAlreadyExists[] = "File already exists";
+
 void functionMK(uint8_t* param, uint8_t param_length) {
     
     // File size
@@ -40,23 +45,29 @@ void functionMK(uint8_t* param, uint8_t param_length) {
         
         printSpace(1);
         
-        uint8_t msgInBytes[] = "bytes";
         print(msgInBytes, sizeof(msgInBytes));
         printLn();
         
         return;
     }
     
-    if (fsFileCreate(param, param_length, filesize) != 0) {
+    // Check if the file already exists
+    if (fsFileExists(param, param_length) != 0) {
         
-        uint8_t msgTest[] = "File created";
-        print(msgTest, sizeof(msgTest));
+        print(msgAlreadyExists, sizeof(msgAlreadyExists));
+        printLn();
+        
+        return;
+    }
+    
+    if (fsFileCreate(param, param_length, filesize) == 0) {
+        
+        print(msgNoSpace, sizeof(msgNoSpace));
         printLn();
         
     } else {
         
-        uint8_t msgTest[] = "No space available";
-        print(msgTest, sizeof(msgTest));
+        print(msgFileCreated, sizeof(msgFileCreated));
         printLn();
         
     }

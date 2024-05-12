@@ -78,8 +78,4 @@ uint8_t fsFileRead(uint8_t index, uint8_t* buffer, uint8_t length);
 
 void fsListDirectory(void);
 
-uint8_t fsFormatDevice(uint32_t device_capacity);
-
-uint8_t fsRepairDevice(void);
-
 #endif

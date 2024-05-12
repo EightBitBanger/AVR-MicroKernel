@@ -60,6 +60,13 @@ void functionFORMAT(uint8_t* param, uint8_t param_length) {
     
     uint8_t sectorCounter = 0;
     
+    // Arbitrary read to trigger EEPROM cache flush
+    uint8_t dummy;
+    bus_read_byte( &bus, 0, &dummy );
+    _delay_ms(10);
+    
+    uint8_t pageCounter = 0;
+    
     for (uint16_t i=0; i <= 1000; i++) {
         
         ConsoleSetCursorPosition(0);
@@ -75,11 +82,19 @@ void functionFORMAT(uint8_t* param, uint8_t param_length) {
             
             sector++;
             
-            if (sectorCounter < 31) {
-                bus_write_byte_eeprom( &bus, currentDevice + sector, ' ');
+            if (sectorCounter < (SECTOR_SIZE - 1)) {
+                bus_write_byte( &bus, currentDevice + sector, ' ');
                 sectorCounter++;
             } else {
-                bus_write_byte_eeprom( &bus, currentDevice + sector, 0x00);
+                bus_write_byte( &bus, currentDevice + sector, 0x00);
+                sectorCounter = 0;
+            }
+            
+            pageCounter++;
+            if (pageCounter > 30) {
+                pageCounter = 0;
+                bus_read_byte( &bus, 0, &dummy );
+                _delay_ms(10);
             }
             
             if (sector < deviceCapacityBytes) 
@@ -111,11 +126,8 @@ void functionFORMAT(uint8_t* param, uint8_t param_length) {
     
     deviceSize.address = deviceCapacityBytes;
     
-    for (uint8_t i=0; i < 4; i++) {
-        _delay_ms(10);
-        
+    for (uint8_t i=0; i < 4; i++) 
         bus_write_byte_eeprom( &bus, currentDevice + DEVICE_CAPACITY_OFFSET + i, deviceSize.byte_t[i] );
-    }
     
     ConsoleCursorEnable();
     

@@ -6,11 +6,7 @@
 
 #include <kernel/cstring.h>
 
-#define DEVICE_NAME_LENGTH  10
-
-#define DEVICE_REGISTRY_SIZE  24
-
-#define nullptr  0x00000000
+#define DRIVER_REGISTRY_SIZE   24
 
 
 struct Driver {

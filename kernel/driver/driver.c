@@ -3,7 +3,7 @@
 #include <kernel/driver/driver.h>
 
 
-void* driver_registry[DEVICE_REGISTRY_SIZE];
+void* driver_registry[ DRIVER_REGISTRY_SIZE ];
 
 // Number of drivers registered in the kernel
 uint8_t number_of_drivers = 0;

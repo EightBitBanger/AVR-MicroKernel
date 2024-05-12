@@ -1,28 +1,6 @@
 #include <kernel/main.h>
 
 
-void spkBeep(uint16_t duration, uint16_t frequency) {
-    
-    struct Bus speakerBus;
-    speakerBus.write_waitstate = 1000;
-    
-    for (uint16_t i=0; i < duration; i++) {
-        
-        bus_write_io(&speakerBus, 0x60000, 0x00);
-        
-        for (uint16_t i=0; i < frequency / 16; i++) 
-            __asm__("nop");
-        
-        continue;
-    }
-    
-    
-    return;
-}
-
-
-
-
 int main(void) {
     
     // Zero the system bus
@@ -36,6 +14,7 @@ int main(void) {
 	initiateDisplayDriver();      // 20x4 LCD Display
 	initiatePS2Driver();          // PS/2 Port
 	initiateNetworkDriver();      // UART Network Card
+	initiateSpeakerDriver();      // On-Board speaker
 	
 	// Initiate the kernel
 	InitiateDeviceTable();
@@ -66,11 +45,11 @@ int main(void) {
         
         bus_write_memory(&memoryBus, address, 0x55);
         
-        _delay_us(1);
+        //_delay_us(1);
         
         bus_read_memory(&memoryBus, address, &buffer);
         
-        _delay_us(1);
+        //_delay_us(1);
         
         if (buffer != 0x55) break;
         
@@ -117,7 +96,7 @@ int main(void) {
 #endif
     
     //
-    // Find an active storage device to call the file system root directory
+    // Find an active storage device to call the root directory
     //
     
     for (uint8_t d=1; d <= NUMBER_OF_PERIPHERALS; d++) {
@@ -133,11 +112,6 @@ int main(void) {
         
         break;
     }
-     
-    
-    //
-    // Packet router
-    //
     
 #ifdef NETWORK_APPLICATION_PACKET_ROUTER
     
@@ -156,9 +130,9 @@ int main(void) {
   #ifdef INCLUDE_KERNEL_APPLICATIONS
     
     registerCommandList();
-    registerCommandDevice();
+    //registerCommandDevice();
     registerCommandCLS();
-    registerCommandEDIT();
+    //registerCommandEDIT();
     
   #endif
     
@@ -170,19 +144,19 @@ int main(void) {
     
   #ifdef INCLUDE_FILE_SYSTEM_APPLICATIONS
     
-    //registerCommandCAP();
-    //registerCommandCD();
     registerCommandDIR();
+    registerCommandCD();
+    registerCommandCAP();
     registerCommandMK();
     registerCommandRM();
-    //registerCommandRN();
-    //registerCommandRepair();
+    registerCommandRN();
+    registerCommandATTRIB();
+    registerCommandRepair();
     registerCommandFormat();
     
   #endif
     
 #endif
-    
     
     _delay_ms(100);
     
