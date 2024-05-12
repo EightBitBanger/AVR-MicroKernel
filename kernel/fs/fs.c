@@ -80,6 +80,18 @@ uint32_t fsGetDeviceCapacity(void) {
 
 uint32_t fsFileCreate(uint8_t* name, uint8_t nameLength, uint32_t fileSize) {
     
+    // Check if the file already exists
+    if (fsFileExists(name, nameLength) == 0) {
+        return 0;
+    } else {
+        
+        uint16_t fileSize = 20;
+        
+        if (fsFileCreate(name, nameLength, fileSize) == 0) 
+            return 0;
+        
+    }
+    
     struct Bus bus;
     bus.read_waitstate  = 4;
     bus.write_waitstate = 5;
@@ -186,6 +198,10 @@ uint32_t fsFileCreate(uint8_t* name, uint8_t nameLength, uint32_t fileSize) {
 }
 
 uint8_t fsFileDelete(uint8_t* name, uint8_t nameLength) {
+    
+    if (fsFileExists(name, nameLength) == 0) {
+        return 0;
+    }
     
     struct Bus bus;
     bus.read_waitstate  = 5;
