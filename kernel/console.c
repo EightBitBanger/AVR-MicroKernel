@@ -15,7 +15,9 @@ uint16_t display_width  = 0;
 uint16_t display_height = 0;
 
 uint8_t console_string[CONSOLE_STRING_LENGTH];
+uint8_t console_string_old[CONSOLE_STRING_LENGTH];
 uint8_t console_string_length = 0;
+uint8_t console_string_length_old = 0;
 
 uint8_t console_position = 0;
 uint8_t console_line     = 0;
@@ -194,6 +196,25 @@ void consoleUpdate(void) {
     // Check the current scan code
     uint8_t scanCode = ConsoleGetLastChar();
     
+    //
+    // Function F3 - Repeat last command
+    //
+    
+    if (scanCode == 0xf3) {
+        
+        console_string_length = console_string_length_old;
+        ConsoleSetCursorPosition(console_prompt_length);
+        
+        for (uint8_t i=0; i < console_string_length; i++) {
+            console_string[i] = console_string_old[i];
+            printChar( console_string[i] );
+            
+            ConsoleSetCursorPosition( console_string_length );
+        }
+        
+        return;
+    }
+    
     
     //
     // Backspace
@@ -230,6 +251,12 @@ void consoleUpdate(void) {
     //
     
     if (scanCode == 0x02) {
+        
+        // Save last entered command string
+        for (uint8_t i=0; i < CONSOLE_STRING_LENGTH; i++) 
+            console_string_old[i] = console_string[i];
+        
+        console_string_length_old = console_string_length;
         
         printLn();
         
@@ -300,6 +327,8 @@ void consoleUpdate(void) {
         // Clear the console string
         for (uint8_t i=0; i < CONSOLE_STRING_LENGTH; i++) 
             console_string[i] = ' ';
+        
+        console_string_length_old = console_string_length;
         
         console_string_length = 0;
         
