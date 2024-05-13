@@ -208,9 +208,9 @@ void consoleUpdate(void) {
         for (uint8_t i=0; i < console_string_length; i++) {
             console_string[i] = console_string_old[i];
             printChar( console_string[i] );
-            
-            ConsoleSetCursorPosition( console_string_length );
         }
+        
+        ConsoleSetCursorPosition( console_string_length + 2 );
         
         return;
     }
@@ -252,19 +252,14 @@ void consoleUpdate(void) {
     
     if (scanCode == 0x02) {
         
-        // Save last entered command string
-        for (uint8_t i=0; i < CONSOLE_STRING_LENGTH; i++) 
-            console_string_old[i] = console_string[i];
-        
-        console_string_length_old = console_string_length;
-        
         printLn();
-        
-        // Look up function name
         
         uint8_t isRightFunction = 0;
         uint8_t parameters_begin = 0;
         
+        uint8_t length = console_string_length - parameters_begin;
+        
+        // Look up function name
         for (uint8_t i=0; i < CONSOLE_FUNCTION_TABLE_SIZE; i++) {
             
             isRightFunction = 1;
@@ -294,8 +289,10 @@ void consoleUpdate(void) {
             if (isRightFunction == 0)
                 continue;
             
-            
-            uint8_t length = console_string_length;
+            // Save last entered command string
+            for (uint8_t i=0; i < console_string_length; i++) 
+                console_string_old[i] = console_string[i];
+            console_string_length_old = console_string_length;
             
             console_string_length = 0;
             
@@ -303,19 +300,41 @@ void consoleUpdate(void) {
             
             // Run the function
             if (CommandRegistry[i].function != nullptr) 
-                CommandRegistry[i].function( &console_string[parameters_begin], length - parameters_begin );
+                CommandRegistry[i].function( &console_string[parameters_begin], length );
             
             printPrompt();
             
             break;
         }
         
-        if ((isRightFunction == 0) & (console_string_length > 0)) {
+        // Check executable file exists
+        uint8_t doesFileExists = fsFileExists(&console_string[parameters_begin], length);
+        
+        // Execute the file
+        if (doesFileExists == 1) {
+            
+            
+            uint8_t badCommandOrFilename[] = "Bad cmd or filename";
+            print( badCommandOrFilename, sizeof(badCommandOrFilename) );
+            
+            printLn();
+            
+            printPrompt();
+            
+            return;
+        }
+        
+        // Bad command for filename
+        if ((doesFileExists == 0) & (isRightFunction == 0) & (console_string_length > 0)) {
+            
+            // Save last entered command string
+            for (uint8_t i=0; i < console_string_length; i++) 
+                console_string_old[i] = console_string[i];
+            console_string_length_old = console_string_length;
             
             ConsoleSetCursor(console_line, 0);
             
             uint8_t badCommandOrFilename[] = "Bad cmd or filename";
-            
             print( badCommandOrFilename, sizeof(badCommandOrFilename) );
             
             printLn();
@@ -327,8 +346,6 @@ void consoleUpdate(void) {
         // Clear the console string
         for (uint8_t i=0; i < CONSOLE_STRING_LENGTH; i++) 
             console_string[i] = ' ';
-        
-        console_string_length_old = console_string_length;
         
         console_string_length = 0;
         
