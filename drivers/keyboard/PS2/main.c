@@ -77,6 +77,10 @@ uint8_t kbDecodeScanCode(uint8_t scancode_low, uint8_t scancode_high) {
 	if (scancode_low == 0xFB) {
 		if (scancode_high == 0x59) {return 0x05;} // Left arrow
 		if (scancode_high == 0x69) {return ']';}  // Right square bracket
+		if (scancode_high == 0x03) {return 0xf5;} // Function F5
+		if (scancode_high == 0x41) {return 0xf6;} // Function F6
+		if (scancode_high == 0x05) {return 0xf7;} // Function F7
+		if (scancode_high == 0x81) {return 0xfc;} // Function F12
 		if (scancode_high == 0x09) {return 'i';}
 		if (scancode_high == 0x63) {return 's';}
 		if (scancode_high == 0x11) {return 'd';}
@@ -97,6 +101,8 @@ uint8_t kbDecodeScanCode(uint8_t scancode_low, uint8_t scancode_high) {
 		if (scancode_high == 0xB9) {return 0x07;} // Escape
 		if (scancode_high == 0x49) {return '/';}  // Forward slash
 		if (scancode_high == 0x29) {return 0x27;} // '
+		if (scancode_high == 0x83) {return 0xf2;} // Function F2
+		if (scancode_high == 0x43) {return 0xf8;} // Function F8
 		if (scancode_high == 0x89) {return '9';}
 		if (scancode_high == 0xF1) {return '8';}
 		if (scancode_high == 0xB3) {return '6';}
@@ -123,6 +129,9 @@ uint8_t kbDecodeScanCode(uint8_t scancode_low, uint8_t scancode_high) {
 		if (scancode_high == 0x0b) {return ',';}  // Comma
 		if (scancode_high == 0x49) {return '.';}  // Period
 		if (scancode_high == 0xE9) {return 0x5c;} // Backslash
+		if (scancode_high == 0x83) {return 0xf1;} // Function F1
+		if (scancode_high == 0x01) {return 0xf9;} // Function F9
+		if (scancode_high == 0x43) {return 0xfa;}// Function F10
 		if (scancode_high == 0x89) {return '0';}
 		if (scancode_high == 0xF1) {return '7';}
 		if (scancode_high == 0x91) {return '4';}
@@ -141,6 +150,9 @@ uint8_t kbDecodeScanCode(uint8_t scancode_low, uint8_t scancode_high) {
 		if (scancode_high == 0xA3) {return 0x08;} // Control
 		if (scancode_high == 0xC9) {return ';';}  // Semi-colon
 		if (scancode_high == 0xA9) {return '[';}  // Left square bracket
+		if (scancode_high == 0x81) {return 0xf3;} // Function F3
+		if (scancode_high == 0xc3) {return 0xf4;} // Function F4
+		if (scancode_high == 0xb7) {return 0xfb;} // Function F11
 		if (scancode_high == 0x93) {return 'e';}
 		if (scancode_high == 0xD1) {return 't';}
 		if (scancode_high == 0xF3) {return 'u';}

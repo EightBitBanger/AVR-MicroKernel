@@ -17,7 +17,7 @@ void functionATTRIB(uint8_t* param, uint8_t param_length) {
     
     for (uint8_t i=0; i < param_length; i++) {
         
-        filenameLength = i + 2;
+        filenameLength = i;
         
         if (param[i] == ' ') 
             break;
@@ -27,7 +27,7 @@ void functionATTRIB(uint8_t* param, uint8_t param_length) {
     }
     
     // Check file exists
-    if (fsFileExists(param, param_length) == 0) {
+    if (fsFileExists(filename, filenameLength) == 0) {
         
         print(msgFileNotFound, sizeof(msgFileNotFound));
         printLn();
@@ -35,73 +35,48 @@ void functionATTRIB(uint8_t* param, uint8_t param_length) {
         return;
     }
     
+    // Get current file attributes
+    struct FSAttribute attributeCurrent;
+    fsGetFileAttributes(filename, filenameLength, &attributeCurrent);
+    
     //
     // Determine the applied attributes
     struct FSAttribute attribute;
-    attribute.executable  = 1;
-    attribute.readable    = 1;
-    attribute.writeable   = 1;
+    attribute.executable  = attributeCurrent.executable;
+    attribute.readable    = attributeCurrent.readable;
+    attribute.writeable   = attributeCurrent.writeable;
     
-    for (uint8_t i=0; i < 6; i++) {
+    if ((param[filenameLength+1] == '-') & (param[filenameLength + 2] == 'x')) attribute.executable = 0;
+    if ((param[filenameLength+1] == '-') & (param[filenameLength + 2] == 'r')) attribute.readable   = 0;
+    if ((param[filenameLength+1] == '-') & (param[filenameLength + 2] == 'w')) attribute.writeable  = 0;
+    
+    if (param[filenameLength+1] == 'x') attribute.executable = 1;
+    if (param[filenameLength+1] == 'r') attribute.readable   = 1;
+    if (param[filenameLength+1] == 'w') attribute.writeable  = 1;
+    
+    // Apply file attributes if any changes are made
+    uint8_t isChanged = 0;
+    if (attribute.executable != attributeCurrent.executable) isChanged = 1;
+    if (attribute.readable   != attributeCurrent.readable)   isChanged = 1;
+    if (attribute.writeable  != attributeCurrent.writeable)  isChanged = 1;
+    
+    if (isChanged == 1) {
         
-        filenameLength = i + 2;
-        
-        if (param[i] == ' ') 
-            break;
-        
-        filename[i] = param[i];
+        if (fsSetFileAttributes(filename, filenameLength-1, &attribute) == 0) {
+            
+            print(msgAttributeNotSet, sizeof(msgAttributeNotSet));
+            printLn();
+            
+            return;
+        }
         
     }
     
-    // Apply file attributes
-    if (fsSetFileAttributes(filename, filenameLength-1, &attribute) == 0) {
-        
-        print(msgAttributeNotSet, sizeof(msgAttributeNotSet));
-        printLn();
-        
-        return;
-    }
+    if (attribute.executable == 1) {printChar('x');} else {printSpace(1);}
+    if (attribute.readable   == 1) {printChar('r');} else {printSpace(1);}
+    if (attribute.writeable  == 1) {printChar('w');} else {printSpace(1);}
     
-    print(msgAttributeSet, sizeof(msgAttributeSet));
     printLn();
-    
-    return;
-    
-    /*
-    
-    uint8_t stringFileSize[10];
-    uint8_t place = int_to_string(filesize, stringFileSize);
-    
-    print(stringFileSize, place + 1);
-    
-    printSpace(1);
-    
-    print(msgInBytes, sizeof(msgInBytes));
-    printLn();
-    
-    
-    // Check if the file already exists
-    if (fsFileExists(param, param_length) != 0) {
-        
-        print(msgAlreadyExists, sizeof(msgAlreadyExists));
-        printLn();
-        
-        return;
-    }
-    
-    if (fsFileCreate(param, param_length, filesize) == 0) {
-        
-        print(msgNoSpace, sizeof(msgNoSpace));
-        printLn();
-        
-    } else {
-        
-        print(msgFileCreated, sizeof(msgFileCreated));
-        printLn();
-        
-    }
-    
-    */
     
     return;
 }
