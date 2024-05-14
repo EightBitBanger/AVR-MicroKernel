@@ -36,7 +36,7 @@ void functionDIR(uint8_t* param, uint8_t param_length) {
             bus_read_io( &bus, fileAddress + n + 1, &filename[n] );
         
         print(filename, sizeof(filename));
-        printSpace(1);
+        printSpace(2);
         
         // File size
         union Pointer ptr;
@@ -46,9 +46,18 @@ void functionDIR(uint8_t* param, uint8_t param_length) {
         
         uint8_t filesizeString[10];
         
-        uint8_t place = int_to_string( ptr.address, filesizeString );
+        uint8_t len = int_to_string( ptr.address, filesizeString ) + 1;
         
-        print(filesizeString, place+1);
+        if (len > 6) 
+            len = 6;
+        
+        uint8_t offset = 6 - len;
+        
+        if (offset > 5) 
+            offset = 5;
+        
+        printSpace(offset);
+        print(filesizeString, len);
         
         printLn();
         continue;
