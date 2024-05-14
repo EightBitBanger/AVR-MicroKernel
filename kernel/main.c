@@ -158,13 +158,11 @@ int main(void) {
     
 #endif
     
-    _delay_ms(100);
-    
     printPrompt();
     
     while(1) {
         
-        consoleUpdate();
+        consoleRunShell();
         
     }
     

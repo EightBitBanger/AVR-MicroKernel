@@ -11,9 +11,9 @@
 
 #include <kernel/cstring.h>
 
-#include <kernel/fs/fs.h>
+#include <kernel/filesystem/fs.h>
 
-#include <kernel/console.h>
+#include <kernel/shell.h>
 
 #include <kernel/network/network.h>
 #include <kernel/network/router.h>
