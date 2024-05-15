@@ -37,6 +37,15 @@ struct Driver* keyboadDevice;
 #define CONSOLE_FUNCTION_NAME_LENGTH   10
 
 
+uint8_t msgDeviceNotReady[]    = "Device not ready";
+
+void printMessage(uint8_t index) {
+    
+    if (index == MSG_DEVICE_NOT_READY) print(msgDeviceNotReady, sizeof(msgDeviceNotReady));
+    
+    return;
+}
+
 
 struct ConsoleCommand {
     
@@ -504,15 +513,6 @@ void printPrompt(void) {
     console_position = console_prompt_length;
     
     displayDevice->write( 161, console_position );
-    
-    return;
-}
-
-uint8_t msgDeviceNotReady[]   = "Device not ready";
-
-void printMessage(uint8_t index) {
-    
-    if (index == 1) print(msgDeviceNotReady, sizeof(msgDeviceNotReady));
     
     return;
 }

@@ -9,6 +9,8 @@
 
 #include <kernel/cstring.h>
 
+#define  MSG_DEVICE_NOT_READY   1
+
 void consoleInitiate(void);
 
 void consoleRunShell(void);
