@@ -5,18 +5,27 @@
 
 #include <kernel/commands/fs/cap.h>
 
+uint8_t msgDeviceNotReady[]   = "Device not ready";
+uint8_t msgBytesTotal[]       = " bytes total";
+
 void functionCAP(uint8_t* param, uint8_t param_length) {
     
     uint32_t deviceCapacity = fsGetDeviceCapacity();
+    
+    if (deviceCapacity == 0) {
+        
+        print( msgDeviceNotReady, sizeof(msgDeviceNotReady) );
+        printLn();
+        
+        return;
+    }
     
     uint8_t integer[10];
     
     uint8_t place = int_to_string( deviceCapacity, integer);
     
-    uint8_t capacityMsg[] = " bytes total";
-    
     print( &integer[0], place + 1 );
-    print( &capacityMsg[0], sizeof(capacityMsg) );
+    print( &msgBytesTotal[0], sizeof(msgBytesTotal) );
     
     printLn();
     

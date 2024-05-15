@@ -129,10 +129,10 @@ int main(void) {
     
   #ifdef INCLUDE_KERNEL_APPLICATIONS
     
-    //registerCommandList();
-    //registerCommandDevice();
-    //registerCommandCLS();
-    //registerCommandEDIT();
+    registerCommandList();
+    registerCommandDevice();
+    registerCommandCLS();
+    registerCommandEDIT();
     
   #endif
     
@@ -146,13 +146,13 @@ int main(void) {
     
     registerCommandDIR();
     registerCommandCD();
-    //registerCommandCAP();
+    registerCommandCAP();
     registerCommandMK();
     registerCommandRM();
-    //registerCommandRN();
+    registerCommandRN();
     registerCommandATTRIB();
-    //registerCommandRepair();
-    //registerCommandFormat();
+    registerCommandRepair();
+    registerCommandFormat();
     
   #endif
     
