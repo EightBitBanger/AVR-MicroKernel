@@ -13,7 +13,7 @@
 
 #include <kernel/filesystem/fs.h>
 
-#include <kernel/shell.h>
+#include <kernel/console.h>
 
 #include <kernel/network/network.h>
 #include <kernel/network/router.h>
