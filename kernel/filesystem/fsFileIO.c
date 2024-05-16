@@ -37,8 +37,24 @@ uint8_t fsFileWrite(uint8_t index, uint8_t* buffer, uint8_t length) {
     bus.read_waitstate  = 4;
     bus.write_waitstate = 5;
     
-    for (uint32_t i=0; i < length; i++) 
-        bus_write_io_eeprom(&bus, fileBeginAddress + SECTOR_SIZE + i + 1, buffer[i]);
+    uint32_t sector = 0;
+    uint32_t sectorCounter = 0;
+    
+    for (uint32_t i=0; i < length; i++) {
+        
+        // Skip the sector marker byte
+        if (sectorCounter == (SECTOR_SIZE - 1)) {
+            sectorCounter=0;
+            sector++;
+        }
+        
+        bus_write_io_eeprom( &bus, fileBeginAddress + SECTOR_SIZE + sector + 1, buffer[i] );
+        
+        sectorCounter++;
+        sector++;
+        
+        continue;
+    }
     
     return 1;
 }
@@ -52,8 +68,24 @@ uint8_t fsFileRead(uint8_t index, uint8_t* buffer, uint8_t length) {
     bus.read_waitstate  = 4;
     bus.write_waitstate = 5;
     
-    for (uint32_t i=0; i < length; i++) 
-        bus_read_byte(&bus, fileBeginAddress + SECTOR_SIZE + i + 1, &buffer[i] );
+    uint32_t sector = 0;
+    uint32_t sectorCounter = 0;
+    
+    for (uint32_t i=0; i < length; i++) {
+        
+        // Skip the sector marker byte
+        if (sectorCounter == (SECTOR_SIZE - 1)) {
+            sectorCounter=0;
+            sector++;
+        }
+        
+        bus_read_byte( &bus, fileBeginAddress + SECTOR_SIZE + sector + 1, &buffer[i] );
+        
+        sectorCounter++;
+        sector++;
+        
+        continue;
+    }
     
     return ' ';
 }

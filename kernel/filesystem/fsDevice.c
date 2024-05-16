@@ -51,7 +51,6 @@ uint32_t fsGetDeviceCapacity(void) {
     
     struct Bus bus;
     bus.read_waitstate  = 4;
-    bus.write_waitstate = 5;
     
     uint8_t buffer[SECTOR_SIZE];
     

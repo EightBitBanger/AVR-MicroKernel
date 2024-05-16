@@ -35,6 +35,9 @@ void ConsoleSetBlinkRate(uint8_t rate);
 void ConsoleSetPrompt(uint8_t* prompt, uint8_t length);
 void ConsoleClearScreen(void);
 
+uint8_t ConsoleGetCursorPosition(void);
+uint8_t ConsoleGetCursorLine(void);
+
 uint8_t consoleWait(uint8_t key);
 
 #endif

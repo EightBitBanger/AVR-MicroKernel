@@ -457,6 +457,8 @@ void print(uint8_t* string, uint8_t length) {
     
     console_position += length - 1;
     
+    ConsoleSetCursorPosition(console_position);
+    
     return;
 }
 
@@ -580,3 +582,12 @@ void ConsoleClearScreen(void) {
     
     return;
 }
+
+uint8_t ConsoleGetCursorPosition(void) {
+    return console_position;
+}
+
+uint8_t ConsoleGetCursorLine(void) {
+    return console_line;
+}
+

@@ -14,6 +14,7 @@
   #include <kernel/commands/device.h>
   #include <kernel/commands/cls.h>
   #include <kernel/commands/edit.h>
+  #include <kernel/commands/asm.h>
   
 #endif
 
