@@ -22,8 +22,11 @@ void functionAsm(uint8_t* param, uint8_t param_length) {
     
     uint32_t currentFileAddress = 0;
     
-    uint8_t fileBuffer[1024];
-    for (uint16_t i=0; i < 1024; i++) 
+    uint8_t assemblyState = 0;
+    uint8_t assemblyAddress = 0;
+    
+    uint8_t fileBuffer[fileSize];
+    for (uint16_t i=0; i < fileSize; i++) 
         fileBuffer[i] = ' ';
     
     print(msgPromptString, sizeof(msgPromptString));
@@ -55,7 +58,41 @@ void functionAsm(uint8_t* param, uint8_t param_length) {
             if (asm_console_string[0] == 'q') 
                 break;
             
-            // Dump file in hex
+            // Write data to file
+            if (asm_console_string[0] == 'w') {
+                
+                fsFileWrite(index, fileBuffer, fileSize);
+                
+                uint8_t msgFileWritten[] = "File written";
+                
+                print(msgFileWritten, sizeof(msgFileWritten));
+                printLn();
+                
+            }
+            
+            // Set assembling address
+            if (asm_console_string[0] == 'a') {
+                asm_console_string[0] = ' ';
+                
+                // Set dump range
+                if (is_number(&asm_console_string[2]) & is_number(&asm_console_string[3])) {
+                    
+                    uint8_t address[3];
+                    
+                    address[0] = asm_console_string[2];
+                    address[1] = asm_console_string[3];
+                    address[2] = '0';
+                    
+                    uint8_t integer = string_get_int(address);
+                    
+                    assemblyAddress    = integer;
+                    
+                    currentFileAddress = integer;
+                    
+                }
+            }
+            
+            // Dump
             if (asm_console_string[0] == 'd') {
                 asm_console_string[0] = ' ';
                 
@@ -96,6 +133,24 @@ void functionAsm(uint8_t* param, uint8_t param_length) {
                 
             }
             
+            // Disassemble
+            if (asm_console_string[0] == 'u') {
+                asm_console_string[0] = ' ';
+                
+                uint8_t hexStringA[] = "mov ax, bx";
+                uint8_t hexStringB[] = "int 10";
+                uint8_t hexStringC[] = "int 20";
+                
+                print(hexStringA, sizeof(hexStringA));
+                printLn();
+                print(hexStringB, sizeof(hexStringB));
+                printLn();
+                print(hexStringC, sizeof(hexStringC));
+                printLn();
+                
+            }
+            
+            // Print the prompt line
             print(msgPromptString, sizeof(msgPromptString));
             
             console_position = 1;
