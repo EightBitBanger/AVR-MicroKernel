@@ -449,7 +449,7 @@ void functionAsm(uint8_t* param, uint8_t param_length) {
                     argB[1] = asm_console_string[8];
                 }
                 
-                // Arguments after a 3 digit opcode with a numeric arguments
+                // Arguments after a 3 digit opcode with a numeric argument
                 if ((is_number(&asm_console_string[4]) == 1) & (is_number(&asm_console_string[4]) == 1) & 
                     (is_number(&asm_console_string[6]) == 1) & (is_number(&asm_console_string[7]) == 1)) {
                     argA[0] = asm_console_string[4];
