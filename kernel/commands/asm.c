@@ -283,37 +283,48 @@ void functionAsm(uint8_t* param, uint8_t param_length) {
                         
                         // Unknown op-code
                         if (opCodeWasFound == 0) {
+                            
                             printc("???", 4);
+                            
                             currentFileAddress++;
+                            
+                        } else {
+                            
+                            currentFileAddress += opCodeWasFound;
+                            
+                            // Print the opcode arguments
+                            if (opCodeWasFound == 2) {
+                                
+                                uint8_t argA = fileBuffer[currentFileAddress - 1];
+                                
+                                uint8_t argumentChar[2] = {'a', 'x'};
+                                
+                                argumentChar[0] += argA;
+                                
+                                printSpace(1);
+                                print(argumentChar, 3);
+                                
+                            }
+                            
+                            if (opCodeWasFound == 3) {
+                                
+                                uint8_t argA = fileBuffer[currentFileAddress - 2];
+                                uint8_t argB = fileBuffer[currentFileAddress - 1];
+                                
+                                uint8_t argumentCharA[2] = {'a', 'x'};
+                                uint8_t argumentCharB[2] = {'a', 'x'};
+                                
+                                argumentCharA[0] += argA;
+                                argumentCharB[0] += argB;
+                                
+                                printSpace(1);
+                                print(argumentCharA, 3);
+                                printc(",", 2);
+                                print(argumentCharB, 3);
+                                
+                            }
+                            
                         }
-                        
-                        currentFileAddress += opCodeWasFound;
-                        
-                        // Print the opcode arguments
-                        if (opCodeWasFound == 2) {
-                            
-                            uint8_t argA = fileBuffer[currentFileAddress - 2];
-                            
-                            uint8_t argumentChar[] = {'a' + argA};
-                            
-                            print(argumentChar, 2);
-                            
-                        }
-                        
-                        if (opCodeWasFound == 3) {
-                            
-                            uint8_t argA = fileBuffer[currentFileAddress - 2];
-                            uint8_t argB = fileBuffer[currentFileAddress - 1];
-                            
-                            uint8_t argumentCharA[] = {'a' + argA};
-                            uint8_t argumentCharB[] = {'a' + argB};
-                            
-                            print(argumentCharA, 2);
-                            //printc(",", 2);
-                            print(argumentCharB, 2);
-                            
-                        }
-                        
                         
                         printLn();
                         
@@ -337,7 +348,7 @@ void functionAsm(uint8_t* param, uint8_t param_length) {
                 // Assembly prompt
                 
                 //
-                // Op-code / machine code translation
+                // Op-code to machine code translation for disassembly
                 //
                 
                 uint8_t opCode[4] = {asm_console_string[0], asm_console_string[1], asm_console_string[2], asm_console_string[3]};
@@ -350,12 +361,13 @@ void functionAsm(uint8_t* param, uint8_t param_length) {
                 if ((opCode[0] == 'a') & (opCode[1] == 'd') & (opCode[2] == 'd')) {fileBuffer[assemblyAddress] = 0x13; assemblyAddress += 1; argCount = 0;}
                 if ((opCode[0] == 's') & (opCode[1] == 'u') & (opCode[2] == 'b')) {fileBuffer[assemblyAddress] = 0x14; assemblyAddress += 1; argCount = 0;}
                 if ((opCode[0] == 'p') & (opCode[1] == 'o') & (opCode[2] == 'p')) {fileBuffer[assemblyAddress] = 0x5A; assemblyAddress += 2; argCount = 1;}
-                if ((opCode[0] == 'j') & (opCode[1] == 'm') & (opCode[2] == 'p')) {fileBuffer[assemblyAddress] = 0x5F; assemblyAddress += 5; argCount = 1;}
+                if ((opCode[0] == 'j') & (opCode[1] == 'm') & (opCode[2] == 'p')) {fileBuffer[assemblyAddress] = 0x5F; assemblyAddress += 5; argCount = 4;}
                 
                 if ((opCode[0] == 'p') & (opCode[1] == 'u') & (opCode[2] == 's') & (opCode[3] == 'h')) {fileBuffer[assemblyAddress] = 0x5C; assemblyAddress += 2; argCount = 1;}
                 
                 // Arguments
                 uint8_t argA[4] = {0, 0, 0, 0};
+                uint8_t argB[4] = {0, 0, 0, 0};
                 
                 // 4 digit opcodes
                 if ((is_letter(&asm_console_string[5]) == 1) & (is_letter(&asm_console_string[6]) == 1)) {
@@ -367,9 +379,10 @@ void functionAsm(uint8_t* param, uint8_t param_length) {
                 if ((is_letter(&asm_console_string[4]) == 1) & (is_letter(&asm_console_string[5]) == 1)) {
                     argA[0] = asm_console_string[4];
                     argA[1] = asm_console_string[5];
+                    argA[2] = asm_console_string[6];
+                    argA[3] = asm_console_string[7];
                 }
                 
-                uint8_t argB[4] = {0, 0, 0, 0};
                 if ((is_letter(&asm_console_string[7]) == 1) & (is_letter(&asm_console_string[8]) == 1)) {
                     argB[0] = asm_console_string[7];
                     argB[1] = asm_console_string[8];
@@ -377,7 +390,7 @@ void functionAsm(uint8_t* param, uint8_t param_length) {
                 
                 
                 //
-                // Apply the opcode arguments
+                // Disassemble the opcode arguments
                 //
                 
                 if (argCount == 1) {
@@ -388,7 +401,7 @@ void functionAsm(uint8_t* param, uint8_t param_length) {
                     if ((argA[0] == 'c') & (argA[1] == 'x')) regIndex = 2;
                     if ((argA[0] == 'd') & (argA[1] == 'x')) regIndex = 3;
                     
-                    fileBuffer[assemblyAddress - 1] = regIndex + '0';
+                    fileBuffer[assemblyAddress - 1] = regIndex;
                     
                 }
                 
@@ -406,8 +419,20 @@ void functionAsm(uint8_t* param, uint8_t param_length) {
                     if ((argB[0] == 'c') & (argB[1] == 'x')) regIndexB = 2;
                     if ((argB[0] == 'd') & (argB[1] == 'x')) regIndexB = 3;
                     
-                    fileBuffer[assemblyAddress - 2] = regIndexA + '0';
-                    fileBuffer[assemblyAddress - 1] = regIndexB + '0';
+                    fileBuffer[assemblyAddress - 2] = regIndexA;
+                    fileBuffer[assemblyAddress - 1] = regIndexB;
+                    
+                }
+                
+                if (argCount == 4) {
+                    union Pointer ptr;
+                    
+                    ptr.address = string_get_int_long(argA);
+                    
+                    fileBuffer[assemblyAddress - 4] = ptr.byte_t[0];
+                    fileBuffer[assemblyAddress - 3] = ptr.byte_t[1];
+                    fileBuffer[assemblyAddress - 2] = ptr.byte_t[2];
+                    fileBuffer[assemblyAddress - 1] = ptr.byte_t[3];
                     
                 }
                 
