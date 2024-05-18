@@ -294,7 +294,7 @@ void functionAsm(uint8_t* param, uint8_t param_length) {
                         
                         if (fileBuffer[currentFileAddress] == 0xFE) {printc("jmp", 4);  opCodeWasFound = 5;}
                         
-                        if (fileBuffer[currentFileAddress] == 0xCC) {printc("int", 4);  opCodeWasFound = 2;}
+                        if (fileBuffer[currentFileAddress] == 0xCC) {printc("int", 4);  opCodeWasFound = 2; specialOpcodeArgs = 1;}
                         
                         // Unknown op-code
                         if (opCodeWasFound == 0) {
@@ -314,17 +314,30 @@ void functionAsm(uint8_t* param, uint8_t param_length) {
                                 
                                 uint8_t argumentChar[2] = {'a', 'x'};
                                 
-                                argumentChar[0] += argA;
                                 
                                 printSpace(1);
-                                print(argumentChar, 3);
+                                
+                                if (specialOpcodeArgs == 1) {
+                                    
+                                    int_to_hex_string(argA, argumentChar);
+                                    
+                                    print(argumentChar, 3);
+                                    printChar('h');
+                                    
+                                } else {
+                                    
+                                    argumentChar[0] += argA;
+                                    
+                                    print(argumentChar, 3);
+                                    
+                                }
                                 
                             }
                             
                             if (opCodeWasFound == 3) {
                                 
-                                uint8_t argB = fileBuffer[currentFileAddress - 2];
-                                uint8_t argA = fileBuffer[currentFileAddress - 1];
+                                uint8_t argA = fileBuffer[currentFileAddress - 2];
+                                uint8_t argB = fileBuffer[currentFileAddress - 1];
                                 
                                 uint8_t argumentCharA[2] = {'a', 'x'};
                                 uint8_t argumentCharB[2] = {'a', 'x'};
@@ -338,13 +351,16 @@ void functionAsm(uint8_t* param, uint8_t param_length) {
                                 if (specialOpcodeArgs == 2) {
                                     
                                     int_to_hex_string(argB, argumentCharB);
-                                    printChar('&');
+                                    
+                                    print(argumentCharB, 3);
+                                    printChar('h');
                                     
                                 } else {
+                                    
                                     argumentCharB[0] += argB;
+                                    print(argumentCharB, 3);
+                                    
                                 }
-                                
-                                print(argumentCharB, 3);
                                 
                             }
                             
@@ -442,6 +458,7 @@ void functionAsm(uint8_t* param, uint8_t param_length) {
                 // Arguments
                 uint8_t argA[4] = {0, 0, 0, 0};
                 uint8_t argB[4] = {0, 0, 0, 0};
+                uint8_t argAIsHex = 0;
                 uint8_t argBIsHex = 0;
                 
                 // Arguments after a 4 digit opcode
@@ -459,6 +476,13 @@ void functionAsm(uint8_t* param, uint8_t param_length) {
                 if ((is_letter(&asm_console_string[7]) == 1) & (is_letter(&asm_console_string[8]) == 1)) {
                     argB[0] = asm_console_string[7];
                     argB[1] = asm_console_string[8];
+                }
+                
+                // Check hex
+                if ((is_hex(&asm_console_string[4]) == 1) & (is_hex(&asm_console_string[5]) == 1)) {
+                    argA[0] = asm_console_string[4];
+                    argA[1] = asm_console_string[5];
+                    argAIsHex = 1;
                 }
                 
                 if ((is_hex(&asm_console_string[7]) == 1) & (is_hex(&asm_console_string[8]) == 1)) {
@@ -483,18 +507,21 @@ void functionAsm(uint8_t* param, uint8_t param_length) {
                 
                 if (argCount == 1) {
                     uint8_t regIndex = 0;
-                    uint8_t isRegister = 0;
                     
-                    if ((argA[0] == 'a') & (argA[1] == 'x')) {regIndex = 0; isRegister = 1;}
-                    if ((argA[0] == 'b') & (argA[1] == 'x')) {regIndex = 1; isRegister = 1;}
-                    if ((argA[0] == 'c') & (argA[1] == 'x')) {regIndex = 2; isRegister = 1;}
-                    if ((argA[0] == 'd') & (argA[1] == 'x')) {regIndex = 3; isRegister = 1;}
+                    if ((argA[0] == 'a') & (argA[1] == 'x')) {regIndex = 0;}
+                    if ((argA[0] == 'b') & (argA[1] == 'x')) {regIndex = 1;}
+                    if ((argA[0] == 'c') & (argA[1] == 'x')) {regIndex = 2;}
+                    if ((argA[0] == 'd') & (argA[1] == 'x')) {regIndex = 3;}
                     
-                    if (isRegister == 1) {
+                    if (argAIsHex == 1) {
+                        uint8_t hexValFlip[2] = {argA[1], argA[0]};
                         
-                        fileBuffer[assemblyAddress - 1] = regIndex;
+                        uint8_t value = string_get_hex_char(hexValFlip);
                         
+                        regIndex = value;
                     }
+                    
+                    fileBuffer[assemblyAddress - 1] = regIndex;
                     
                 }
                 
@@ -524,8 +551,8 @@ void functionAsm(uint8_t* param, uint8_t param_length) {
                         regIndexB = value;
                     }
                     
-                    fileBuffer[assemblyAddress - 2] = regIndexB;
-                    fileBuffer[assemblyAddress - 1] = regIndexA;
+                    fileBuffer[assemblyAddress - 2] = regIndexA;
+                    fileBuffer[assemblyAddress - 1] = regIndexB;
                     
                 }
                 
