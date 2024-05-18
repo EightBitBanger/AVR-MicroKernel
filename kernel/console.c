@@ -331,7 +331,7 @@ void consoleRunShell(void) {
                 
                 fsFileRead(index, programBuffer, programSize);
                 
-                EmulateX4(programBuffer, programSize);
+                EmulateX4(programBuffer, programSize + 1);
                 
                 // Clear the console string
                 for (uint8_t i=0; i < CONSOLE_STRING_LENGTH; i++) 
@@ -509,9 +509,19 @@ void printChar(uint8_t character) {
     
     displayDevice->write( console_position + (20 * console_line), character );
     
-    ConsoleSetCursorPosition(console_position);
-    
     console_position++;
+    
+    if (console_position > 19) {
+        console_position = 0;
+        console_line++;
+    }
+    
+    if (console_line > 3) {
+        console_line = 3;
+        printLn();
+    }
+    
+    ConsoleSetCursorPosition(console_position);
     
     return;
 }
