@@ -325,8 +325,6 @@ void consoleRunShell(void) {
             // Execute the file
             if (programSize != 0) {
                 
-                printLn();
-                
                 // Fire up the emulator
                 uint8_t index = fsFileOpen(console_string, length - parameters_begin);
                 uint8_t programBuffer[1024];
@@ -338,6 +336,8 @@ void consoleRunShell(void) {
                 // Clear the console string
                 for (uint8_t i=0; i < CONSOLE_STRING_LENGTH; i++) 
                     console_string[i] = ' ';
+                
+                fsFileClose(index);
                 
                 printPrompt();
                 
