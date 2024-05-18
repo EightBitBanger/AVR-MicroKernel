@@ -462,6 +462,22 @@ void print(uint8_t* string, uint8_t length) {
     return;
 }
 
+void printc(char* string, uint8_t length) {
+    
+    for (uint8_t i=0; i < length - 1; i++) {
+        
+        displayDevice->write( console_position + (20 * console_line) + i, string[i] );
+        
+        continue;
+    }
+    
+    console_position += length - 1;
+    
+    ConsoleSetCursorPosition(console_position);
+    
+    return;
+}
+
 void printChar(uint8_t character) {
     
     displayDevice->write( console_position + (20 * console_line), character );

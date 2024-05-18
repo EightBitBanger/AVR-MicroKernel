@@ -21,6 +21,7 @@ uint8_t ConsoleGetRawChar(void);
 uint8_t ConsoleGetLastChar(void);
 
 void print(uint8_t* string, uint8_t length);
+void printc(char* string, uint8_t length);
 void printChar(uint8_t character);
 void printLn(void);
 void printSpace(uint8_t numberOfSpaces);
