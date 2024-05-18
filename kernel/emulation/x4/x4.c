@@ -1,4 +1,5 @@
 #include <avr/io.h>
+#include <kernel/delay.h>
 #include <kernel/kernel.h>
 
 #include <kernel/emulation/x4/x4.h>
@@ -48,8 +49,10 @@ void EmulateX4(uint8_t* programBuffer, uint32_t programSize) {
         uint8_t argC   = programBuffer[programCounter + 3];
         uint8_t argD   = programBuffer[programCounter + 4];
         
-        printInt( programCounter );
+        printInt( reg[0] );
         printLn();
+        
+        _delay_ms(100);
         
         // NOP
         if (opCode == 0x90) {

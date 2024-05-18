@@ -133,7 +133,7 @@ int main(void) {
     //registerCommandDevice();
     //registerCommandCLS();
     //registerCommandEDIT();
-    registerCommandAssembly();
+    //registerCommandAssembly();
     
   #endif
     
