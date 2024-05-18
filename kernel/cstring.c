@@ -1,25 +1,35 @@
 #include <kernel/cstring.h>
 
-int is_number(uint8_t* charPtr) {
+uint8_t is_number(uint8_t* charPtr) {
     if ((*charPtr >= 0x30) & (*charPtr <= 0x39))
         return 1;
     return 0;
 }
 
-int is_letter(uint8_t* charPtr) {
+uint8_t is_letter(uint8_t* charPtr) {
     if (is_uppercase(charPtr)) return 1;
     if (is_lowercase(charPtr)) return 1;
     return 0;
 }
 
+uint8_t is_hex(uint8_t* charPtr) {
+    if (is_letter(charPtr) == 1) 
+        lowercase(charPtr);
+    uint8_t checksOut = 0;
+    if (((*charPtr >= 'a') & (*charPtr <= 'f')) | 
+        ((*charPtr >= '0') & (*charPtr <= '9'))) 
+        checksOut = 1;
+    return checksOut;
+}
 
-int is_uppercase(uint8_t* charPtr) {
+
+uint8_t is_uppercase(uint8_t* charPtr) {
     if ((*charPtr >= 0x41) & (*charPtr <= 0x5a))
         return 1;
     return 0;
 }
 
-int is_lowercase(uint8_t* charPtr) {
+uint8_t is_lowercase(uint8_t* charPtr) {
     if ((*charPtr >= 0x61) & (*charPtr <= 0x7a))
         return 1;
     return 0;

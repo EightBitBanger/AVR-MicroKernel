@@ -323,25 +323,27 @@ void functionAsm(uint8_t* param, uint8_t param_length) {
                             
                             if (opCodeWasFound == 3) {
                                 
-                                uint8_t argA = fileBuffer[currentFileAddress - 2];
-                                uint8_t argB = fileBuffer[currentFileAddress - 1];
+                                uint8_t argB = fileBuffer[currentFileAddress - 2];
+                                uint8_t argA = fileBuffer[currentFileAddress - 1];
                                 
                                 uint8_t argumentCharA[2] = {'a', 'x'};
                                 uint8_t argumentCharB[2] = {'a', 'x'};
                                 
                                 argumentCharA[0] += argA;
                                 
+                                printSpace(1);
+                                print(argumentCharA, 3);
+                                printc(",", 2);
+                                
                                 if (specialOpcodeArgs == 2) {
                                     
                                     int_to_hex_string(argB, argumentCharB);
+                                    printChar('&');
                                     
                                 } else {
                                     argumentCharB[0] += argB;
                                 }
                                 
-                                printSpace(1);
-                                print(argumentCharA, 3);
-                                printc(",", 2);
                                 print(argumentCharB, 3);
                                 
                             }
@@ -387,7 +389,6 @@ void functionAsm(uint8_t* param, uint8_t param_length) {
                                 }
                                 
                                 printSpace(1);
-                                //printChar('&');
                                 print(intString, 5);
                                 
                             }
@@ -441,6 +442,7 @@ void functionAsm(uint8_t* param, uint8_t param_length) {
                 // Arguments
                 uint8_t argA[4] = {0, 0, 0, 0};
                 uint8_t argB[4] = {0, 0, 0, 0};
+                uint8_t argBIsHex = 0;
                 
                 // Arguments after a 4 digit opcode
                 if ((is_letter(&asm_console_string[5]) == 1) & (is_letter(&asm_console_string[6]) == 1)) {
@@ -457,6 +459,12 @@ void functionAsm(uint8_t* param, uint8_t param_length) {
                 if ((is_letter(&asm_console_string[7]) == 1) & (is_letter(&asm_console_string[8]) == 1)) {
                     argB[0] = asm_console_string[7];
                     argB[1] = asm_console_string[8];
+                }
+                
+                if ((is_hex(&asm_console_string[7]) == 1) & (is_hex(&asm_console_string[8]) == 1)) {
+                    argB[0] = asm_console_string[7];
+                    argB[1] = asm_console_string[8];
+                    argBIsHex = 1;
                 }
                 
                 // Arguments after a 3 digit opcode with a numeric argument
@@ -505,12 +513,13 @@ void functionAsm(uint8_t* param, uint8_t param_length) {
                     if ((argB[0] == 'd') & (argB[1] == 'x')) {regIndexB = 3;}
                     
                     // Not a register
-                    if (argB[1] != 'x') {
+                    if (argBIsHex == 1) {
                         
                         // Correct the opcode type
-                        if (fileBuffer[assemblyAddress] == 0x88) fileBuffer[assemblyAddress] = 0x89;
+                        if (fileBuffer[assemblyAddress - 3] == 0x88) fileBuffer[assemblyAddress - 3] = 0x89;
+                        uint8_t hexValFlip[2] = {argB[1], argB[0]};
                         
-                        uint8_t value = string_get_hex_char(argB);
+                        uint8_t value = string_get_hex_char(hexValFlip);
                         
                         regIndexB = value;
                     }
