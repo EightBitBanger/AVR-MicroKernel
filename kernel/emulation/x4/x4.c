@@ -49,13 +49,19 @@ void EmulateX4(uint8_t* programBuffer, uint32_t programSize) {
         uint8_t argD   = programBuffer[programCounter + 4];
         
         // NOP
-        if (opCode == 0x90) 
+        if (opCode == 0x90) {
+            
+            programCounter += 1;
+            
             continue;
+        }
         
         // MOV register into register
         if (opCode == 0x88) {
             
             reg[argA] = reg[argB];
+            
+            programCounter += 3;
             
             continue;
         }
@@ -65,6 +71,8 @@ void EmulateX4(uint8_t* programBuffer, uint32_t programSize) {
             
             reg[argA] = argB;
             
+            programCounter += 3;
+            
             continue;
         }
         
@@ -73,6 +81,8 @@ void EmulateX4(uint8_t* programBuffer, uint32_t programSize) {
             
             reg[argA]++;
             
+            programCounter += 3;
+            
             continue;
         }
         
@@ -80,6 +90,8 @@ void EmulateX4(uint8_t* programBuffer, uint32_t programSize) {
         if (opCode == 0xFC) {
             
             reg[argA]--;
+            
+            programCounter += 3;
             
             continue;
         }
@@ -94,6 +106,8 @@ void EmulateX4(uint8_t* programBuffer, uint32_t programSize) {
             
             reg[0] += reg[1];
             
+            programCounter += 1;
+            
             continue;
         }
         
@@ -101,6 +115,8 @@ void EmulateX4(uint8_t* programBuffer, uint32_t programSize) {
         if (opCode == 0x80) {
             
             reg[0] -= reg[1];
+            
+            programCounter += 1;
             
             continue;
         }
@@ -110,6 +126,8 @@ void EmulateX4(uint8_t* programBuffer, uint32_t programSize) {
             
             reg[0] = reg[1] * reg[2];
             
+            programCounter += 1;
+            
             continue;
         }
         
@@ -118,6 +136,8 @@ void EmulateX4(uint8_t* programBuffer, uint32_t programSize) {
         if (opCode == 0xF4) {
             
             //reg[argA] ;
+            
+            programCounter += 1;
             
             continue;
         }
@@ -133,6 +153,8 @@ void EmulateX4(uint8_t* programBuffer, uint32_t programSize) {
             reg[argA] = stack[stack_ptr];
             stack_ptr--;
             
+            programCounter += 2;
+            
             continue;
         }
         
@@ -141,6 +163,8 @@ void EmulateX4(uint8_t* programBuffer, uint32_t programSize) {
             
             stack[stack_ptr] = reg[argA];
             stack_ptr++;
+            
+            programCounter += 2;
             
             continue;
         }
@@ -151,10 +175,10 @@ void EmulateX4(uint8_t* programBuffer, uint32_t programSize) {
             
             union Pointer ptr;
             
-            ptr.byte_t[3] = argA;
-            ptr.byte_t[2] = argB;
-            ptr.byte_t[1] = argC;
-            ptr.byte_t[0] = argD;
+            ptr.byte_t[3] = argD;
+            ptr.byte_t[2] = argC;
+            ptr.byte_t[1] = argB;
+            ptr.byte_t[0] = argA;
             
             programCounter = ptr.address;
             
@@ -170,10 +194,18 @@ void EmulateX4(uint8_t* programBuffer, uint32_t programSize) {
             
             if (argA == 0x10) {
                 
-                printChar( reg[3] );
+                reg[5]++;
+                
+                printChar( reg[5] );
                 
             }
             
+            // Return control to the OS
+            if (argA == 0x20) {
+                return;
+            }
+            
+            programCounter += 2;
             continue;
         }
         

@@ -509,6 +509,8 @@ void printChar(uint8_t character) {
     
     displayDevice->write( console_position + (20 * console_line), character );
     
+    ConsoleSetCursorPosition(console_position);
+    
     console_position++;
     
     return;

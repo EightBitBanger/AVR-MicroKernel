@@ -513,6 +513,7 @@ void functionAsm(uint8_t* param, uint8_t param_length) {
                     if ((argA[0] == 'c') & (argA[1] == 'x')) {regIndex = 2;}
                     if ((argA[0] == 'd') & (argA[1] == 'x')) {regIndex = 3;}
                     
+                    // Not a register
                     if (argAIsHex == 1) {
                         uint8_t hexValFlip[2] = {argA[1], argA[0]};
                         
