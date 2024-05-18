@@ -20,6 +20,8 @@ uint8_t int_to_string(uint32_t number, uint8_t* destination_string);
 void int_to_hex_string(uint32_t integer, uint8_t* string);
 
 uint8_t string_get_int(uint8_t* string);
+uint32_t string_get_int_long(uint8_t* string);
+
 uint8_t string_get_hex_char(uint8_t* string);
 
 #endif

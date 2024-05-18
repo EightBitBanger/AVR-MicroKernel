@@ -28,10 +28,12 @@ int main(void) {
     // Allocate external memory
     //
     
+    /*
+    
     struct Bus memoryBus;
 	
 	memoryBus.read_waitstate  = 4;
-	memoryBus.write_waitstate = 1;
+	memoryBus.write_waitstate = 4;
 	
 	
     ConsoleSetBlinkRate(0);
@@ -45,11 +47,7 @@ int main(void) {
         
         bus_write_memory(&memoryBus, address, 0x55);
         
-        //_delay_us(1);
-        
         bus_read_memory(&memoryBus, address, &buffer);
-        
-        //_delay_us(1);
         
         if (buffer != 0x55) break;
         
@@ -79,6 +77,8 @@ int main(void) {
     print(byteFreeString, sizeof(byteFreeString));
     
     printLn();
+    
+    */
     
     ConsoleSetBlinkRate( CURSOR_BLINK_RATE );
     
@@ -132,7 +132,7 @@ int main(void) {
     //registerCommandList();
     //registerCommandDevice();
     //registerCommandCLS();
-    registerCommandEDIT();
+    //registerCommandEDIT();
     registerCommandAssembly();
     
   #endif
@@ -153,7 +153,7 @@ int main(void) {
     //registerCommandRN();
     //registerCommandATTRIB();
     //registerCommandRepair();
-    registerCommandFormat();
+    //registerCommandFormat();
     
   #endif
     

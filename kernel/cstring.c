@@ -133,6 +133,25 @@ uint8_t string_get_int(uint8_t* string) {
 	return integer;
 }
 
+uint32_t string_get_int_long(uint8_t* string) {
+	
+	uint32_t integer=0;
+	
+	if (is_number(&string[3])) {
+        integer += (string[3] - '0') * 1;
+	}
+	if (is_number(&string[2])) {
+        integer += (string[2] - '0') * 10;
+	}
+	if (is_number(&string[1])) {
+        integer += (string[1] - '0') * 100;
+	}
+	if (is_number(&string[0])) {
+        integer += (string[0] - '0') * 1000;
+	}
+	return integer;
+}
+
 uint8_t string_get_hex_char(uint8_t* string) {
 	
 	uint32_t value_a = 0;
