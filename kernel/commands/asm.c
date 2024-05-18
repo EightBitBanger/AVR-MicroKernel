@@ -324,6 +324,30 @@ void functionAsm(uint8_t* param, uint8_t param_length) {
                                 
                             }
                             
+                            if (opCodeWasFound == 5) {
+                                
+                                uint8_t argA[4];
+                                argA[0] = fileBuffer[currentFileAddress - 4];
+                                argA[1] = fileBuffer[currentFileAddress - 3];
+                                argA[2] = fileBuffer[currentFileAddress - 2];
+                                argA[3] = fileBuffer[currentFileAddress - 1];
+                                
+                                union Pointer ptr;
+                                ptr.byte_t[0] = argA[0];
+                                ptr.byte_t[1] = argA[1];
+                                ptr.byte_t[2] = argA[2];
+                                ptr.byte_t[3] = argA[3];
+                                
+                                
+                                uint8_t intString[10];
+                                uint8_t place = int_to_string(ptr.address, intString);
+                                
+                                printSpace(1);
+                                print(intString, place + 1);
+                                printChar('&');
+                                
+                            }
+                            
                         }
                         
                         printLn();
