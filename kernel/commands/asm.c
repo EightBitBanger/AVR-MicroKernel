@@ -276,9 +276,11 @@ void functionAsm(uint8_t* param, uint8_t param_length) {
                         // Interpret machine code into op-codes
                         //
                         uint8_t opCodeWasFound = 0;
+                        uint8_t specialOpcodeArgs = 0;
                         
                         if (fileBuffer[currentFileAddress] == 0x90) {printc("nop", 4);  opCodeWasFound = 1;}
                         if (fileBuffer[currentFileAddress] == 0x88) {printc("mov", 4);  opCodeWasFound = 3;}
+                        if (fileBuffer[currentFileAddress] == 0x89) {printc("mov", 4);  opCodeWasFound = 3; specialOpcodeArgs = 2;}
                         if (fileBuffer[currentFileAddress] == 0xFA) {printc("inc", 4);  opCodeWasFound = 2;}
                         if (fileBuffer[currentFileAddress] == 0xFC) {printc("dec", 4);  opCodeWasFound = 2;}
                         
@@ -328,7 +330,14 @@ void functionAsm(uint8_t* param, uint8_t param_length) {
                                 uint8_t argumentCharB[2] = {'a', 'x'};
                                 
                                 argumentCharA[0] += argA;
-                                argumentCharB[0] += argB;
+                                
+                                if (specialOpcodeArgs == 2) {
+                                    
+                                    int_to_hex_string(argB, argumentCharB);
+                                    
+                                } else {
+                                    argumentCharB[0] += argB;
+                                }
                                 
                                 printSpace(1);
                                 print(argumentCharA, 3);
@@ -444,26 +453,19 @@ void functionAsm(uint8_t* param, uint8_t param_length) {
                     argA[0] = asm_console_string[4];
                     argA[1] = asm_console_string[5];
                 }
+                
                 if ((is_letter(&asm_console_string[7]) == 1) & (is_letter(&asm_console_string[8]) == 1)) {
                     argB[0] = asm_console_string[7];
                     argB[1] = asm_console_string[8];
                 }
                 
                 // Arguments after a 3 digit opcode with a numeric argument
-                if ((is_number(&asm_console_string[4]) == 1) & (is_number(&asm_console_string[4]) == 1) & 
+                if ((is_number(&asm_console_string[4]) == 1) & (is_number(&asm_console_string[5]) == 1) & 
                     (is_number(&asm_console_string[6]) == 1) & (is_number(&asm_console_string[7]) == 1)) {
                     argA[0] = asm_console_string[4];
                     argA[1] = asm_console_string[5];
                     argA[2] = asm_console_string[6];
                     argA[3] = asm_console_string[7];
-                }
-                
-                if ((is_number(&asm_console_string[7]) == 1) & (is_number(&asm_console_string[8]) == 1) & 
-                    (is_number(&asm_console_string[9]) == 1) & (is_number(&asm_console_string[10]) == 1)) {
-                    argB[0] = asm_console_string[7];
-                    argB[1] = asm_console_string[8];
-                    argB[2] = asm_console_string[9];
-                    argB[3] = asm_console_string[10];
                 }
                 
                 
@@ -491,25 +493,30 @@ void functionAsm(uint8_t* param, uint8_t param_length) {
                 if (argCount == 2) {
                     uint8_t regIndexA = 0;
                     uint8_t regIndexB = 0;
-                    uint8_t isRegisterA = 0;
-                    uint8_t isRegisterB = 0;
                     
-                    if ((argA[0] == 'a') & (argA[1] == 'x')) {regIndexA = 0; isRegisterA = 1;}
-                    if ((argA[0] == 'b') & (argA[1] == 'x')) {regIndexA = 1; isRegisterA = 1;}
-                    if ((argA[0] == 'c') & (argA[1] == 'x')) {regIndexA = 2; isRegisterA = 1;}
-                    if ((argA[0] == 'd') & (argA[1] == 'x')) {regIndexA = 3; isRegisterA = 1;}
+                    if ((argA[0] == 'a') & (argA[1] == 'x')) {regIndexA = 0;}
+                    if ((argA[0] == 'b') & (argA[1] == 'x')) {regIndexA = 1;}
+                    if ((argA[0] == 'c') & (argA[1] == 'x')) {regIndexA = 2;}
+                    if ((argA[0] == 'd') & (argA[1] == 'x')) {regIndexA = 3;}
                     
-                    if ((argB[0] == 'a') & (argB[1] == 'x')) {regIndexB = 0; isRegisterB = 1;}
-                    if ((argB[0] == 'b') & (argB[1] == 'x')) {regIndexB = 1; isRegisterB = 1;}
-                    if ((argB[0] == 'c') & (argB[1] == 'x')) {regIndexB = 2; isRegisterB = 1;}
-                    if ((argB[0] == 'd') & (argB[1] == 'x')) {regIndexB = 3; isRegisterB = 1;}
+                    if ((argB[0] == 'a') & (argB[1] == 'x')) {regIndexB = 0;}
+                    if ((argB[0] == 'b') & (argB[1] == 'x')) {regIndexB = 1;}
+                    if ((argB[0] == 'c') & (argB[1] == 'x')) {regIndexB = 2;}
+                    if ((argB[0] == 'd') & (argB[1] == 'x')) {regIndexB = 3;}
                     
-                    if ((isRegisterA == 1) & (isRegisterB == 1)) {
+                    // Not a register
+                    if (argB[1] != 'x') {
                         
-                        fileBuffer[assemblyAddress - 2] = regIndexA;
-                        fileBuffer[assemblyAddress - 1] = regIndexB;
+                        // Correct the opcode type
+                        if (fileBuffer[assemblyAddress] == 0x88) fileBuffer[assemblyAddress] = 0x89;
                         
+                        uint8_t value = string_get_hex_char(argB);
+                        
+                        regIndexB = value;
                     }
+                    
+                    fileBuffer[assemblyAddress - 2] = regIndexB;
+                    fileBuffer[assemblyAddress - 1] = regIndexA;
                     
                 }
                 
