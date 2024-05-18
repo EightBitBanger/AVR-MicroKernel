@@ -69,10 +69,16 @@ void functionAsm(uint8_t* param, uint8_t param_length) {
                 if (asm_console_string[0] == 'w') {
                     
                     fsFileWrite(index, fileBuffer, fileSize);
+                    printInt( fileSize );
                     
-                    uint8_t msgFileWritten[] = "File written";
+                    if (fileSize == 1) {
+                        uint8_t msgFileWritten[] = "byte written";
+                        print(msgFileWritten, sizeof(msgFileWritten));
+                    } else {
+                        uint8_t msgFileWritten[] = "bytes written";
+                        print(msgFileWritten, sizeof(msgFileWritten));
+                    }
                     
-                    print(msgFileWritten, sizeof(msgFileWritten));
                     printLn();
                     
                 }
@@ -271,15 +277,22 @@ void functionAsm(uint8_t* param, uint8_t param_length) {
                         //
                         uint8_t opCodeWasFound = 0;
                         
-                        if (fileBuffer[currentFileAddress] == 0x20) {printc("nop", 4);  opCodeWasFound = 1;}
-                        if (fileBuffer[currentFileAddress] == 0x4A) {printc("mov", 4);  opCodeWasFound = 3;}
-                        if (fileBuffer[currentFileAddress] == 0x10) {printc("inc", 4);  opCodeWasFound = 2;}
-                        if (fileBuffer[currentFileAddress] == 0x11) {printc("dec", 4);  opCodeWasFound = 2;}
-                        if (fileBuffer[currentFileAddress] == 0x13) {printc("add", 4);  opCodeWasFound = 1;}
-                        if (fileBuffer[currentFileAddress] == 0x14) {printc("sub", 4);  opCodeWasFound = 1;}
-                        if (fileBuffer[currentFileAddress] == 0x5A) {printc("pop", 4);  opCodeWasFound = 2;}
-                        if (fileBuffer[currentFileAddress] == 0x5C) {printc("push", 5); opCodeWasFound = 2;}
-                        if (fileBuffer[currentFileAddress] == 0x5F) {printc("jmp", 4);  opCodeWasFound = 5;}
+                        if (fileBuffer[currentFileAddress] == 0x90) {printc("nop", 4);  opCodeWasFound = 1;}
+                        if (fileBuffer[currentFileAddress] == 0x88) {printc("mov", 4);  opCodeWasFound = 3;}
+                        if (fileBuffer[currentFileAddress] == 0xFA) {printc("inc", 4);  opCodeWasFound = 2;}
+                        if (fileBuffer[currentFileAddress] == 0xFC) {printc("dec", 4);  opCodeWasFound = 2;}
+                        
+                        if (fileBuffer[currentFileAddress] == 0x00) {printc("add", 4);  opCodeWasFound = 1;}
+                        if (fileBuffer[currentFileAddress] == 0x80) {printc("sub", 4);  opCodeWasFound = 1;}
+                        if (fileBuffer[currentFileAddress] == 0xF6) {printc("mul", 4);  opCodeWasFound = 1;}
+                        if (fileBuffer[currentFileAddress] == 0xF4) {printc("div", 4);  opCodeWasFound = 1;}
+                        
+                        if (fileBuffer[currentFileAddress] == 0x0F) {printc("pop", 4);  opCodeWasFound = 2;}
+                        if (fileBuffer[currentFileAddress] == 0xF0) {printc("push", 5); opCodeWasFound = 2;}
+                        
+                        if (fileBuffer[currentFileAddress] == 0xFE) {printc("jmp", 4);  opCodeWasFound = 5;}
+                        
+                        if (fileBuffer[currentFileAddress] == 0xCC) {printc("int", 4);  opCodeWasFound = 2;}
                         
                         // Unknown op-code
                         if (opCodeWasFound == 0) {
@@ -327,10 +340,10 @@ void functionAsm(uint8_t* param, uint8_t param_length) {
                             if (opCodeWasFound == 5) {
                                 
                                 uint8_t argA[4];
-                                argA[0] = fileBuffer[currentFileAddress - 4];
-                                argA[1] = fileBuffer[currentFileAddress - 3];
-                                argA[2] = fileBuffer[currentFileAddress - 2];
-                                argA[3] = fileBuffer[currentFileAddress - 1];
+                                argA[3] = fileBuffer[currentFileAddress - 4];
+                                argA[2] = fileBuffer[currentFileAddress - 3];
+                                argA[1] = fileBuffer[currentFileAddress - 2];
+                                argA[0] = fileBuffer[currentFileAddress - 1];
                                 
                                 union Pointer ptr;
                                 ptr.byte_t[0] = argA[0];
@@ -340,11 +353,33 @@ void functionAsm(uint8_t* param, uint8_t param_length) {
                                 
                                 
                                 uint8_t intString[10];
-                                uint8_t place = int_to_string(ptr.address, intString);
+                                
+                                for (uint8_t i=0; i < 10; i++) 
+                                    intString[i] = ' ';
+                                
+                                int_to_string(ptr.address, intString);
+                                
+                                for (uint8_t i=0; i < 4; i++) {
+                                    if (intString[0] == ' ') {
+                                        intString[0] = intString[1];
+                                        intString[1] = intString[2];
+                                        intString[2] = intString[3];
+                                        intString[3] = '0';
+                                    }
+                                }
+                                
+                                for (uint8_t i=0; i < 4; i++) {
+                                    if (intString[3] == ' ') {
+                                        intString[3] = intString[2];
+                                        intString[2] = intString[1];
+                                        intString[1] = intString[0];
+                                        intString[0] = '0';
+                                    }
+                                }
                                 
                                 printSpace(1);
-                                print(intString, place + 1);
-                                printChar('&');
+                                //printChar('&');
+                                print(intString, 5);
                                 
                             }
                             
@@ -378,38 +413,57 @@ void functionAsm(uint8_t* param, uint8_t param_length) {
                 uint8_t opCode[4] = {asm_console_string[0], asm_console_string[1], asm_console_string[2], asm_console_string[3]};
                 uint8_t argCount = 0;
                 
-                if ((opCode[0] == 'n') & (opCode[1] == 'o') & (opCode[2] == 'p')) {fileBuffer[assemblyAddress] = 0x20; assemblyAddress += 1; argCount = 0;}
-                if ((opCode[0] == 'm') & (opCode[1] == 'o') & (opCode[2] == 'v')) {fileBuffer[assemblyAddress] = 0x4A; assemblyAddress += 3; argCount = 2;}
-                if ((opCode[0] == 'i') & (opCode[1] == 'n') & (opCode[2] == 'c')) {fileBuffer[assemblyAddress] = 0x10; assemblyAddress += 2; argCount = 1;}
-                if ((opCode[0] == 'd') & (opCode[1] == 'e') & (opCode[2] == 'c')) {fileBuffer[assemblyAddress] = 0x11; assemblyAddress += 2; argCount = 1;}
-                if ((opCode[0] == 'a') & (opCode[1] == 'd') & (opCode[2] == 'd')) {fileBuffer[assemblyAddress] = 0x13; assemblyAddress += 1; argCount = 0;}
-                if ((opCode[0] == 's') & (opCode[1] == 'u') & (opCode[2] == 'b')) {fileBuffer[assemblyAddress] = 0x14; assemblyAddress += 1; argCount = 0;}
-                if ((opCode[0] == 'p') & (opCode[1] == 'o') & (opCode[2] == 'p')) {fileBuffer[assemblyAddress] = 0x5A; assemblyAddress += 2; argCount = 1;}
-                if ((opCode[0] == 'j') & (opCode[1] == 'm') & (opCode[2] == 'p')) {fileBuffer[assemblyAddress] = 0x5F; assemblyAddress += 5; argCount = 4;}
+                if ((opCode[0] == 'n') & (opCode[1] == 'o') & (opCode[2] == 'p')) {fileBuffer[assemblyAddress] = 0x90; assemblyAddress += 1; argCount = 0;}
+                if ((opCode[0] == 'm') & (opCode[1] == 'o') & (opCode[2] == 'v')) {fileBuffer[assemblyAddress] = 0x88; assemblyAddress += 3; argCount = 2;}
+                if ((opCode[0] == 'i') & (opCode[1] == 'n') & (opCode[2] == 'c')) {fileBuffer[assemblyAddress] = 0xFA; assemblyAddress += 2; argCount = 1;}
+                if ((opCode[0] == 'd') & (opCode[1] == 'e') & (opCode[2] == 'c')) {fileBuffer[assemblyAddress] = 0xFC; assemblyAddress += 2; argCount = 1;}
                 
-                if ((opCode[0] == 'p') & (opCode[1] == 'u') & (opCode[2] == 's') & (opCode[3] == 'h')) {fileBuffer[assemblyAddress] = 0x5C; assemblyAddress += 2; argCount = 1;}
+                if ((opCode[0] == 'a') & (opCode[1] == 'd') & (opCode[2] == 'd')) {fileBuffer[assemblyAddress] = 0x00; assemblyAddress += 1; argCount = 0;}
+                if ((opCode[0] == 's') & (opCode[1] == 'u') & (opCode[2] == 'b')) {fileBuffer[assemblyAddress] = 0x80; assemblyAddress += 1; argCount = 0;}
+                if ((opCode[0] == 'm') & (opCode[1] == 'u') & (opCode[2] == 'l')) {fileBuffer[assemblyAddress] = 0xF6; assemblyAddress += 1; argCount = 0;}
+                if ((opCode[0] == 'd') & (opCode[1] == 'i') & (opCode[2] == 'v')) {fileBuffer[assemblyAddress] = 0xF4; assemblyAddress += 1; argCount = 0;}
+                
+                if ((opCode[0] == 'p') & (opCode[1] == 'o') & (opCode[2] == 'p')) {fileBuffer[assemblyAddress] = 0x0F; assemblyAddress += 2; argCount = 1;}
+                if ((opCode[0] == 'p') & (opCode[1] == 'u') & (opCode[2] == 's') & (opCode[3] == 'h')) {fileBuffer[assemblyAddress] = 0xF0; assemblyAddress += 2; argCount = 1;}
+                
+                if ((opCode[0] == 'j') & (opCode[1] == 'm') & (opCode[2] == 'p')) {fileBuffer[assemblyAddress] = 0xFE; assemblyAddress += 5; argCount = 4;}
+                if ((opCode[0] == 'i') & (opCode[1] == 'n') & (opCode[2] == 't')) {fileBuffer[assemblyAddress] = 0xCC; assemblyAddress += 2; argCount = 1;}
                 
                 // Arguments
                 uint8_t argA[4] = {0, 0, 0, 0};
                 uint8_t argB[4] = {0, 0, 0, 0};
                 
-                // 4 digit opcodes
+                // Arguments after a 4 digit opcode
                 if ((is_letter(&asm_console_string[5]) == 1) & (is_letter(&asm_console_string[6]) == 1)) {
                     argA[0] = asm_console_string[5];
                     argA[1] = asm_console_string[6];
                 }
                 
-                // 3 digit opcodes
+                // Arguments after a 3 digit opcode
                 if ((is_letter(&asm_console_string[4]) == 1) & (is_letter(&asm_console_string[5]) == 1)) {
+                    argA[0] = asm_console_string[4];
+                    argA[1] = asm_console_string[5];
+                }
+                if ((is_letter(&asm_console_string[7]) == 1) & (is_letter(&asm_console_string[8]) == 1)) {
+                    argB[0] = asm_console_string[7];
+                    argB[1] = asm_console_string[8];
+                }
+                
+                // Arguments after a 3 digit opcode with a numeric arguments
+                if ((is_number(&asm_console_string[4]) == 1) & (is_number(&asm_console_string[4]) == 1) & 
+                    (is_number(&asm_console_string[6]) == 1) & (is_number(&asm_console_string[7]) == 1)) {
                     argA[0] = asm_console_string[4];
                     argA[1] = asm_console_string[5];
                     argA[2] = asm_console_string[6];
                     argA[3] = asm_console_string[7];
                 }
                 
-                if ((is_letter(&asm_console_string[7]) == 1) & (is_letter(&asm_console_string[8]) == 1)) {
+                if ((is_number(&asm_console_string[7]) == 1) & (is_number(&asm_console_string[8]) == 1) & 
+                    (is_number(&asm_console_string[9]) == 1) & (is_number(&asm_console_string[10]) == 1)) {
                     argB[0] = asm_console_string[7];
                     argB[1] = asm_console_string[8];
+                    argB[2] = asm_console_string[9];
+                    argB[3] = asm_console_string[10];
                 }
                 
                 
@@ -419,44 +473,56 @@ void functionAsm(uint8_t* param, uint8_t param_length) {
                 
                 if (argCount == 1) {
                     uint8_t regIndex = 0;
+                    uint8_t isRegister = 0;
                     
-                    if ((argA[0] == 'a') & (argA[1] == 'x')) regIndex = 0;
-                    if ((argA[0] == 'b') & (argA[1] == 'x')) regIndex = 1;
-                    if ((argA[0] == 'c') & (argA[1] == 'x')) regIndex = 2;
-                    if ((argA[0] == 'd') & (argA[1] == 'x')) regIndex = 3;
+                    if ((argA[0] == 'a') & (argA[1] == 'x')) {regIndex = 0; isRegister = 1;}
+                    if ((argA[0] == 'b') & (argA[1] == 'x')) {regIndex = 1; isRegister = 1;}
+                    if ((argA[0] == 'c') & (argA[1] == 'x')) {regIndex = 2; isRegister = 1;}
+                    if ((argA[0] == 'd') & (argA[1] == 'x')) {regIndex = 3; isRegister = 1;}
                     
-                    fileBuffer[assemblyAddress - 1] = regIndex;
+                    if (isRegister == 1) {
+                        
+                        fileBuffer[assemblyAddress - 1] = regIndex;
+                        
+                    }
                     
                 }
                 
                 if (argCount == 2) {
                     uint8_t regIndexA = 0;
                     uint8_t regIndexB = 0;
+                    uint8_t isRegisterA = 0;
+                    uint8_t isRegisterB = 0;
                     
-                    if ((argA[0] == 'a') & (argA[1] == 'x')) regIndexA = 0;
-                    if ((argA[0] == 'b') & (argA[1] == 'x')) regIndexA = 1;
-                    if ((argA[0] == 'c') & (argA[1] == 'x')) regIndexA = 2;
-                    if ((argA[0] == 'd') & (argA[1] == 'x')) regIndexA = 3;
+                    if ((argA[0] == 'a') & (argA[1] == 'x')) {regIndexA = 0; isRegisterA = 1;}
+                    if ((argA[0] == 'b') & (argA[1] == 'x')) {regIndexA = 1; isRegisterA = 1;}
+                    if ((argA[0] == 'c') & (argA[1] == 'x')) {regIndexA = 2; isRegisterA = 1;}
+                    if ((argA[0] == 'd') & (argA[1] == 'x')) {regIndexA = 3; isRegisterA = 1;}
                     
-                    if ((argB[0] == 'a') & (argB[1] == 'x')) regIndexB = 0;
-                    if ((argB[0] == 'b') & (argB[1] == 'x')) regIndexB = 1;
-                    if ((argB[0] == 'c') & (argB[1] == 'x')) regIndexB = 2;
-                    if ((argB[0] == 'd') & (argB[1] == 'x')) regIndexB = 3;
+                    if ((argB[0] == 'a') & (argB[1] == 'x')) {regIndexB = 0; isRegisterB = 1;}
+                    if ((argB[0] == 'b') & (argB[1] == 'x')) {regIndexB = 1; isRegisterB = 1;}
+                    if ((argB[0] == 'c') & (argB[1] == 'x')) {regIndexB = 2; isRegisterB = 1;}
+                    if ((argB[0] == 'd') & (argB[1] == 'x')) {regIndexB = 3; isRegisterB = 1;}
                     
-                    fileBuffer[assemblyAddress - 2] = regIndexA;
-                    fileBuffer[assemblyAddress - 1] = regIndexB;
+                    if ((isRegisterA == 1) & (isRegisterB == 1)) {
+                        
+                        fileBuffer[assemblyAddress - 2] = regIndexA;
+                        fileBuffer[assemblyAddress - 1] = regIndexB;
+                        
+                    }
                     
                 }
                 
                 if (argCount == 4) {
+                    
                     union Pointer ptr;
                     
                     ptr.address = string_get_int_long(argA);
                     
-                    fileBuffer[assemblyAddress - 4] = ptr.byte_t[0];
-                    fileBuffer[assemblyAddress - 3] = ptr.byte_t[1];
-                    fileBuffer[assemblyAddress - 2] = ptr.byte_t[2];
-                    fileBuffer[assemblyAddress - 1] = ptr.byte_t[3];
+                    fileBuffer[assemblyAddress - 4] = ptr.byte_t[3];
+                    fileBuffer[assemblyAddress - 3] = ptr.byte_t[2];
+                    fileBuffer[assemblyAddress - 2] = ptr.byte_t[1];
+                    fileBuffer[assemblyAddress - 1] = ptr.byte_t[0];
                     
                 }
                 
