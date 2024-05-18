@@ -320,30 +320,31 @@ void consoleRunShell(void) {
             }
             
             // Check executable file exists
-            uint8_t doesFileExists = fsFileExists(console_string, length - parameters_begin);
+            uint32_t programSize = fsFileExists(console_string, length - parameters_begin);
             
             // Execute the file
-            if (doesFileExists != 0) {
-                
-                //uint8_t executeProgram[] = "Executed";
-                //print( executeProgram, sizeof(executeProgram) );
+            if (programSize != 0) {
                 
                 printLn();
-                printPrompt();
                 
-                while (1) {
-                    
-                    continue;
-                }
+                // Fire up the emulator
+                uint8_t index = fsFileOpen(console_string, length - parameters_begin);
+                uint8_t programBuffer[1024];
+                
+                fsFileRead(index, programBuffer, programSize);
+                
+                EmulateX4(programBuffer, programSize);
                 
                 // Clear the console string
                 for (uint8_t i=0; i < CONSOLE_STRING_LENGTH; i++) 
                     console_string[i] = ' ';
                 
+                printPrompt();
+                
             }
             
             // Bad command for filename
-            if ((doesFileExists == 0) & (isRightFunction == 0) & (console_string_length > 0)) {
+            if ((programSize == 0) & (isRightFunction == 0) & (console_string_length > 0)) {
                 
                 // Save last entered command string
                 for (uint8_t i=0; i < console_string_length; i++) 
