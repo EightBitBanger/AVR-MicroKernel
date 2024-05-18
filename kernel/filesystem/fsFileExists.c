@@ -36,7 +36,7 @@ uint32_t fsFileExists(uint8_t* name, uint8_t nameLength) {
         uint8_t isFileFound = 0;
         
         // Check file name
-        for (uint8_t i=0; i < nameLength; i++) {
+        for (uint8_t i=0; i < FILE_NAME_LENGTH; i++) {
             
             uint8_t nameByte = 0;
             

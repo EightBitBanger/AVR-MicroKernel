@@ -323,23 +323,23 @@ void consoleRunShell(void) {
             uint8_t doesFileExists = fsFileExists(console_string, length - parameters_begin);
             
             // Execute the file
-            if (doesFileExists == 1) {
+            if (doesFileExists != 0) {
                 
-                uint8_t executeProgram[] = "Executed";
-                print( executeProgram, sizeof(executeProgram) );
+                //uint8_t executeProgram[] = "Executed";
+                //print( executeProgram, sizeof(executeProgram) );
                 
-                printPrompt();
                 printLn();
+                printPrompt();
                 
                 while (1) {
                     
+                    continue;
                 }
                 
                 // Clear the console string
                 for (uint8_t i=0; i < CONSOLE_STRING_LENGTH; i++) 
                     console_string[i] = ' ';
                 
-                return;
             }
             
             // Bad command for filename

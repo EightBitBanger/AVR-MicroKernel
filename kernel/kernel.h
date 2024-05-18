@@ -19,4 +19,6 @@
 #include <kernel/network/router.h>
 #include <kernel/network/server.h>
 
+#include <kernel/emulation/x4/x4.h>
+
 #endif
