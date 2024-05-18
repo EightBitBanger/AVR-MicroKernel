@@ -48,6 +48,9 @@ void EmulateX4(uint8_t* programBuffer, uint32_t programSize) {
         uint8_t argC   = programBuffer[programCounter + 3];
         uint8_t argD   = programBuffer[programCounter + 4];
         
+        printInt( programCounter );
+        printLn();
+        
         // NOP
         if (opCode == 0x90) {
             
@@ -175,16 +178,12 @@ void EmulateX4(uint8_t* programBuffer, uint32_t programSize) {
             
             union Pointer ptr;
             
-            ptr.byte_t[3] = argD;
-            ptr.byte_t[2] = argC;
-            ptr.byte_t[1] = argB;
-            ptr.byte_t[0] = argA;
+            ptr.byte_t[3] = argA;
+            ptr.byte_t[2] = argB;
+            ptr.byte_t[1] = argC;
+            ptr.byte_t[0] = argD;
             
-            //programCounter = ptr.address;
-            
-            printInt( ptr.address );
-            
-            programCounter += 5;
+            programCounter = ptr.address;
             
             continue;
         }
@@ -198,7 +197,7 @@ void EmulateX4(uint8_t* programBuffer, uint32_t programSize) {
             
             if (argA == 0x10) {
                 
-                printChar( reg[3] );
+                //printChar( reg[3] );
                 
             }
             
