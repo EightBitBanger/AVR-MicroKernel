@@ -37,7 +37,7 @@ void EmulateX4(uint8_t* programBuffer, uint32_t programSize) {
     
     // Temporary stack implementation
     uint8_t stack[100];
-    
+    uint32_t stack_ptr;
     
     
     while(1) {
@@ -61,7 +61,7 @@ void EmulateX4(uint8_t* programBuffer, uint32_t programSize) {
         }
         
         // MOV byte into register
-        if (programBuffer[0] == 0x89) {
+        if (opCode == 0x89) {
             
             reg[argA] = argB;
             
@@ -69,7 +69,7 @@ void EmulateX4(uint8_t* programBuffer, uint32_t programSize) {
         }
         
         // Increment register
-        if (programBuffer[0] == 0xFA) {
+        if (opCode == 0xFA) {
             
             reg[argA]++;
             
@@ -77,7 +77,7 @@ void EmulateX4(uint8_t* programBuffer, uint32_t programSize) {
         }
         
         // Decrement register
-        if (programBuffer[0] == 0xFC) {
+        if (opCode == 0xFC) {
             
             reg[argA]--;
             
@@ -90,7 +90,7 @@ void EmulateX4(uint8_t* programBuffer, uint32_t programSize) {
         //
         
         // Add bx into ax
-        if (programBuffer[0] == 0x00) {
+        if (opCode == 0x00) {
             
             reg[0] += reg[1];
             
@@ -98,7 +98,7 @@ void EmulateX4(uint8_t* programBuffer, uint32_t programSize) {
         }
         
         // Sub bx from ax
-        if (programBuffer[0] == 0x80) {
+        if (opCode == 0x80) {
             
             reg[0] -= reg[1];
             
@@ -106,7 +106,7 @@ void EmulateX4(uint8_t* programBuffer, uint32_t programSize) {
         }
         
         // Multiply bx and cx into ax
-        if (programBuffer[0] == 0xF6) {
+        if (opCode == 0xF6) {
             
             reg[0] = reg[1] * reg[2];
             
@@ -115,7 +115,7 @@ void EmulateX4(uint8_t* programBuffer, uint32_t programSize) {
         
         // Divide bx by cx into ax
         // Remainder into dx
-        if (programBuffer[0] == 0xF4) {
+        if (opCode == 0xF4) {
             
             //reg[argA] ;
             
@@ -128,7 +128,7 @@ void EmulateX4(uint8_t* programBuffer, uint32_t programSize) {
         //
         
         // POP from stack into a register
-        if (programBuffer[0] == 0x0F) {
+        if (opCode == 0x0F) {
             
             reg[argA] = stack[stack_ptr];
             stack_ptr--;
@@ -137,7 +137,7 @@ void EmulateX4(uint8_t* programBuffer, uint32_t programSize) {
         }
         
         // PUSH to stack from a register
-        if (programBuffer[0] == 0xF0) {
+        if (opCode == 0xF0) {
             
             stack[stack_ptr] = reg[argA];
             stack_ptr++;
@@ -147,21 +147,37 @@ void EmulateX4(uint8_t* programBuffer, uint32_t programSize) {
         
         
         // JUMP
-        if (programBuffer[0] == 0xFE) {
+        if (opCode == 0xFE) {
             
-            stack[stack_ptr] = reg[argA];
-            stack_ptr++;
+            union Pointer ptr;
+            
+            ptr.byte_t[3] = argA;
+            ptr.byte_t[2] = argB;
+            ptr.byte_t[1] = argC;
+            ptr.byte_t[0] = argD;
+            
+            programCounter = ptr.address;
             
             continue;
         }
         
         
+        //
+        // Software interrupt
+        //
         
-        0xFE  jmp
+        if (opCode == 0xCC) {
+            
+            if (argA == 0x10) {
+                
+                printChar( reg[3] );
+                
+            }
+            
+            continue;
+        }
         
-        0xCC  int
-        
-        programSize++;
+        programCounter++;
         
         continue;
     }
