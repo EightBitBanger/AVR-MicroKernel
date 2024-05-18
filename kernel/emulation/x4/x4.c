@@ -173,14 +173,18 @@ void EmulateX4(uint8_t* programBuffer, uint32_t programSize) {
         // JUMP
         if (opCode == 0xFE) {
             
-            //union Pointer ptr;
+            union Pointer ptr;
             
-            //ptr.byte_t[3] = argA;
-            //ptr.byte_t[2] = argB;
-            //ptr.byte_t[1] = argC;
-            //ptr.byte_t[0] = argD;
+            ptr.byte_t[3] = argD;
+            ptr.byte_t[2] = argC;
+            ptr.byte_t[1] = argB;
+            ptr.byte_t[0] = argA;
             
-            programCounter = 4;
+            //programCounter = ptr.address;
+            
+            printInt( ptr.address );
+            
+            programCounter += 5;
             
             continue;
         }
@@ -190,7 +194,7 @@ void EmulateX4(uint8_t* programBuffer, uint32_t programSize) {
         // Software interrupt
         //
         
-        if (opCode == 0xCC) {
+        if ((opCode == 0xCC) | (opCode == 0xCD)) {
             
             if (argA == 0x10) {
                 
