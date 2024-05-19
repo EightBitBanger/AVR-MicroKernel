@@ -17,6 +17,16 @@
 #define TASK_PRIORITY_REALTIME         1
 
 
+struct ProcessDescription {
+	
+	uint8_t  name[TASK_NAME_LENGTH_MAX];
+	uint8_t  type;
+	uint16_t priority;
+	uint16_t counter;
+	void   (*table)();
+	
+};
+
 struct ProcessDescriptorTable {
 	
 	uint8_t  name     [TASK_LIST_SIZE][TASK_NAME_LENGTH_MAX];
@@ -27,18 +37,20 @@ struct ProcessDescriptorTable {
 	
 };
 
-uint8_t task_create(uint8_t* name, uint8_t name_length, void(*task_ptr)(), uint16_t priority, uint8_t type);
+uint8_t TaskCreate(uint8_t* name, uint8_t name_length, void(*task_ptr)(), uint16_t priority, uint8_t type);
 
-uint8_t task_destroy(uint8_t index);
+uint8_t TaskDestroy(uint8_t index);
 
-uint8_t task_find(uint8_t* name, uint8_t name_length);
+uint8_t TaskFind(uint8_t* name, uint8_t name_length);
 
-uint8_t task_kill(uint8_t* name, uint8_t name_length);
+uint8_t TaskKill(uint8_t* name, uint8_t name_length);
+
+uint8_t GetProcInfo(uint8_t index, struct ProcessDescription* info);
 
 
-void schedulerInitiate(void);
-void schedulerStart(void);
-void schedulerStop(void);
+void schedulerInit(void);
+void SchedulerStart(void);
+void SchedulerStop(void);
 
 
 void _ISR_SCHEDULER_MAIN__(void);

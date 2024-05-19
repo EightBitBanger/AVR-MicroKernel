@@ -16,16 +16,17 @@ volatile uint8_t PID=0;
 uint8_t schedulerIsActive = 0;
 
 
-uint8_t task_create(uint8_t* name, uint8_t name_length, void(*task_ptr)(), uint16_t priority, uint8_t type) {
+uint8_t TaskCreate(uint8_t* name, uint8_t name_length, void(*task_ptr)(), uint16_t priority, uint8_t type) {
 	
 	if (name_length > TASK_NAME_LENGTH_MAX)
 		name_length = TASK_NAME_LENGTH_MAX;
 	
 	uint8_t index;
-	for (index=0; index < TASK_LIST_SIZE; index++)
-		if (proc_info.priority[index] == 0) break;
-	
-	if (index >= TASK_LIST_SIZE) return 0;
+	for (index=0; index < TASK_LIST_SIZE; index++) {
+		
+		if (proc_info.type[index] == TASK_TYPE_UNKNOWN) 
+            break;
+	}
 	
 	for (uint8_t a=0; a < name_length-1; a++)
 		proc_info.name[index][a] = name[a];
@@ -39,14 +40,14 @@ uint8_t task_create(uint8_t* name, uint8_t name_length, void(*task_ptr)(), uint1
 }
 
 
-uint8_t task_destroy(uint8_t index) {
+uint8_t TaskDestroy(uint8_t index) {
 	
 	uint8_t PID = index - 1;
 	
 	if (PID > TASK_LIST_SIZE) 
         return 0;
     
-	if (proc_info.name[PID][0] == ' ') 
+	if (proc_info.type[PID] == TASK_TYPE_UNKNOWN) 
         return 0;
 	
 	proc_info.type[PID]      = 0;
@@ -60,7 +61,7 @@ uint8_t task_destroy(uint8_t index) {
 	return 1;
 }
 
-uint8_t task_find(uint8_t* name, uint8_t name_length) {
+uint8_t TaskFind(uint8_t* name, uint8_t name_length) {
 	
 	if (name_length > TASK_NAME_LENGTH_MAX)
         name_length = TASK_NAME_LENGTH_MAX;
@@ -85,7 +86,7 @@ uint8_t task_find(uint8_t* name, uint8_t name_length) {
 }
 
 
-uint8_t task_kill(uint8_t* name, uint8_t name_length) {
+uint8_t TaskKill(uint8_t* name, uint8_t name_length) {
 	
 	if (name_length > TASK_NAME_LENGTH_MAX)
         name_length = TASK_NAME_LENGTH_MAX;
@@ -116,18 +117,34 @@ uint8_t task_kill(uint8_t* name, uint8_t name_length) {
 	return 0;
 }
 
+uint8_t GetProcInfo(uint8_t index, struct ProcessDescription* info) {
+	
+	if (proc_info.type[index] == TASK_TYPE_UNKNOWN) 
+        return 0;
+    
+	for (uint8_t i=0; i < TASK_NAME_LENGTH_MAX; i++) 
+        info->name[i] = proc_info.name[index][i];
+	
+	info->type     = proc_info.type[index];
+	info->priority = proc_info.priority[index];
+	info->counter  = proc_info.counter[index];
+	
+	return 1;
+}
+
+
 
 //
 // Interrupt service routines
 //
 
-void schedulerInitiate(void) {
+void schedulerInit(void) {
 	
 	for (uint8_t i=0; i < TASK_LIST_SIZE; i++) {
 		
 		proc_info.type[i]     = TASK_TYPE_UNKNOWN;
 		proc_info.priority[i] = TASK_PRIORITY_HALT;
-		proc_info.counter[i]  = 0x00;
+		proc_info.counter[i]  = 0;
 		proc_info.table[i]    = 0;
 		
 		for (uint8_t a=0; a < TASK_NAME_LENGTH_MAX; a++)
@@ -138,7 +155,7 @@ void schedulerInitiate(void) {
 }
 
 
-void schedulerStart(void) {
+void SchedulerStart(void) {
 	
 	if (schedulerIsActive == 1) 
         return;
@@ -160,7 +177,7 @@ void schedulerStart(void) {
 }
 
 
-void schedulerStop(void) {
+void SchedulerStop(void) {
 	
 	if (schedulerIsActive == 0) 
         return;

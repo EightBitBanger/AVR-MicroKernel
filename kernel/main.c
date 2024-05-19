@@ -1,14 +1,5 @@
 #include <kernel/main.h>
-
-void taskfunc(void) {
-    
-    printc("Asshole", 1);
-    printLn();
-    
-    return;
-}
-
-
+void dummyFunctionTest(void) {};
 
 int main(void) {
     
@@ -28,11 +19,9 @@ int main(void) {
 	// Initiate kernel sub systems
 	InitiateDeviceTable();
     
-    ntInitiate();         // Network support
-    
-    consoleInitiate();    // Command console shell
-    
-    schedulerInitiate();  // Scheduler/timer
+    ntInit();                     // Network support
+    schedulerInit();              // Scheduler sub system
+    consoleInit();                // Command console shell
     
     
     //
@@ -50,8 +39,8 @@ int main(void) {
     
     struct Bus memoryBus;
 	
-	memoryBus.read_waitstate  = 4;
-	memoryBus.write_waitstate = 4;
+	memoryBus.read_waitstate  = 5;
+	memoryBus.write_waitstate = 5;
 	
 	
     ConsoleSetBlinkRate(0);
@@ -104,7 +93,7 @@ int main(void) {
     
 #ifdef BOARD_RETRO_AVR_X4_REV1
     
-    uint16_t duration  = 200;
+    uint16_t duration  = 120;
     uint16_t frequency = 20000;
     
     spkBeep(duration, frequency);
@@ -181,18 +170,12 @@ int main(void) {
     
     // Launch the command console task
     uint8_t taskname[] = "command";
-    task_create(taskname, sizeof(taskname), consoleRunShell, TASK_PRIORITY_REALTIME, TASK_TYPE_SERVICE);
-    
-    
-    uint8_t testtaskname[] = "test";
-    
-    task_create(testtaskname, sizeof(testtaskname), taskfunc, TASK_PRIORITY_HALT, TASK_TYPE_USER);
-    
+    TaskCreate(taskname, sizeof(taskname), consoleRunShell, TASK_PRIORITY_REALTIME, TASK_TYPE_SERVICE);
     
     
     printPrompt();
     
-    schedulerStart();
+    SchedulerStart();
     
     while(1) {
         
@@ -201,7 +184,7 @@ int main(void) {
         continue;
     }
     
-    schedulerStop();
+    SchedulerStop();
     
     return 0;
 }

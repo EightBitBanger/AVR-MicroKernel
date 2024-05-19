@@ -87,7 +87,7 @@ uint8_t ntPacketClearAll(void) {
 // Low level networking functions
 //
 
-void ntInitiate(void) {
+void ntInit(void) {
     
     uint8_t nameNetwork[] = "network";
 	networkDevice = (struct Driver*)GetDriverByName( nameNetwork, sizeof(nameNetwork) );

@@ -41,7 +41,7 @@ uint8_t ntPacketReceive(struct NetworkPacket* packet, uint8_t clearOldPacket);
 uint8_t ntPacketClearAll(void);
 
 
-void ntInitiate(void);
+void ntInit(void);
 
 void ntSend(uint8_t* buffer, uint8_t bufferSize);
 

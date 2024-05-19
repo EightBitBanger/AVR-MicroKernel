@@ -40,13 +40,6 @@ struct Driver* keyboadDevice;
 
 uint8_t msgDeviceNotReady[]    = "Device not ready";
 
-void printMessage(uint8_t index) {
-    
-    if (index == MSG_DEVICE_NOT_READY) print(msgDeviceNotReady, sizeof(msgDeviceNotReady));
-    
-    return;
-}
-
 
 struct ConsoleCommand {
     
@@ -62,153 +55,9 @@ struct ConsoleCommand {
 struct ConsoleCommand CommandRegistry[CONSOLE_FUNCTION_TABLE_SIZE];
 
 
-uint8_t consoleWait(uint8_t key) {
-    
-#ifdef BOARD_RETRO_AVR_X4_REV1
-    keyboadDevice->read( 0x00001, &oldScanCodeLow );
-    keyboadDevice->read( 0x00000, &oldScanCodeHigh );
-#endif
-    
-#ifdef BOARD_RETROBOARD_REV2
-    keyboadDevice->read( 0x00000, &oldScanCodeLow );
-    keyboadDevice->read( 0x00001, &oldScanCodeHigh );
-#endif
-    
-    uint8_t currentChar = kbDecodeScanCode(oldScanCodeLow, oldScanCodeHigh);
-    currentChar = lastChar;
-    
-    ConsoleSetCursor(console_line, 0);
-    
-    while (currentChar == lastChar) {
-        
-#ifdef BOARD_RETRO_AVR_X4_REV1
-        keyboadDevice->read( 0x00001, &oldScanCodeLow );
-        keyboadDevice->read( 0x00000, &oldScanCodeHigh );
-#endif
-        
-#ifdef BOARD_RETROBOARD_REV2
-        keyboadDevice->read( 0x00000, &oldScanCodeLow );
-        keyboadDevice->read( 0x00001, &oldScanCodeHigh );
-#endif
-        
-        currentChar = kbDecodeScanCode(oldScanCodeLow, oldScanCodeHigh);
-        
-        if (currentChar == 0x00) 
-            lastChar = currentChar;
-        
-        continue;
-    }
-    
-    lastChar = currentChar;
-    
-    if (key == lastChar) 
-        return 1;
-    
-    return 0;
-}
-
-
-void consoleInitiate(void) {
-    
-    uint8_t nameKeyboard[] = "PS2";
-	keyboadDevice = (struct Driver*)GetDriverByName( nameKeyboard, sizeof(nameKeyboard) );
-	
-	uint8_t nameDisplay[] = "display";
-	displayDevice = (struct Driver*)GetDriverByName( nameDisplay, sizeof(nameDisplay) );
-	
-#ifdef BOARD_RETRO_AVR_X4_REV1
-    keyboadDevice->read( 0x00001, &oldScanCodeLow );
-    keyboadDevice->read( 0x00000, &oldScanCodeHigh );
-#endif
-    
-#ifdef BOARD_RETROBOARD_REV2
-    keyboadDevice->read( 0x00000, &oldScanCodeLow );
-    keyboadDevice->read( 0x00001, &oldScanCodeHigh );
-#endif
-    
-    lastChar = kbDecodeScanCode(oldScanCodeLow, oldScanCodeHigh);
-    
-    for (uint8_t i=0; i < CONSOLE_STRING_LENGTH; i++) 
-        console_string[i] = ' ';
-    
-    displayDevice->write( 163, 0x24 );
-	
-	for (uint8_t i=0; i < CONSOLE_FUNCTION_TABLE_SIZE; i++) {
-        
-        for (uint8_t n=0; n < CONSOLE_FUNCTION_NAME_LENGTH; n++) {
-            CommandRegistry[i].name[n] = ' ';
-        }
-        
-        CommandRegistry[i].function = nullptr;
-        
-	}
-	
-	uint8_t promptString[] = "A>";
-	
-	ConsoleSetPrompt( promptString, sizeof(promptString) );
-	
-	return;
-}
-
-uint8_t ConsoleGetRawChar(void) {
-    
-    uint8_t scanCodeLow  = 0;
-    uint8_t scanCodeHigh = 0;
-    
-#ifdef BOARD_RETRO_AVR_X4_REV1
-    keyboadDevice->read( 0x00001, &scanCodeLow );
-    keyboadDevice->read( 0x00000, &scanCodeHigh );
-#endif
-    
-#ifdef BOARD_RETROBOARD_REV2
-    keyboadDevice->read( 0x00000, &scanCodeLow );
-    keyboadDevice->read( 0x00001, &scanCodeHigh );
-#endif
-    
-    return kbDecodeScanCode(scanCodeLow, scanCodeHigh);
-}
-
-uint8_t ConsoleGetLastChar(void) {
-    
-    uint8_t scanCodeLow  = 0;
-    uint8_t scanCodeHigh = 0;
-    
-#ifdef BOARD_RETRO_AVR_X4_REV1
-    keyboadDevice->read( 0x00001, &scanCodeLow );
-    keyboadDevice->read( 0x00000, &scanCodeHigh );
-#endif
-    
-#ifdef BOARD_RETROBOARD_REV2
-    keyboadDevice->read( 0x00000, &scanCodeLow );
-    keyboadDevice->read( 0x00001, &scanCodeHigh );
-#endif
-    
-    if (oldScanCodeLow != scanCodeLow) lastChar = 0x00;
-    if (oldScanCodeHigh != scanCodeHigh) lastChar = 0x00;
-    
-    oldScanCodeLow  = scanCodeLow;
-    oldScanCodeHigh = scanCodeHigh;
-    
-    uint8_t scanCode = kbDecodeScanCode(scanCodeLow, scanCodeHigh);
-    
-    if (scanCode == 0x00) 
-        return 0x00;
-    
-    if (lastChar == scanCode) 
-        return 0x00;
-    
-    lastChar = scanCode;
-    
-    return lastChar;
-}
-
-void ConsoleClearKeyboardString(void) {
-    
-    for (uint8_t i=0; i < CONSOLE_STRING_LENGTH; i++) 
-        console_string[i] = ' ';
-    
-    return;
-}
+//
+// Console shell
+//
 
 void consoleRunShell(void) {
     
@@ -427,30 +276,15 @@ void consoleRunShell(void) {
 }
 
 
-uint8_t ConsoleRegisterCommand(uint8_t* name, uint8_t nameLength, void(*functionPtr)(uint8_t* string, uint8_t length)) {
+//
+// Print
+//
+
+void printMessage(uint8_t index) {
     
-    uint8_t index = 0;
-    for (uint8_t i=0; i < CONSOLE_FUNCTION_TABLE_SIZE; i++) {
-        
-        // Is set to a valid value
-        if ((is_letter( &CommandRegistry[i].name[0] ) == 1) | 
-            (is_number( &CommandRegistry[i].name[0] ) == 1))
-            continue;
-        
-        index = i;
-        
-        break;
-    }
+    if (index == MSG_DEVICE_NOT_READY) print(msgDeviceNotReady, sizeof(msgDeviceNotReady));
     
-    if (nameLength > CONSOLE_FUNCTION_NAME_LENGTH) 
-        nameLength = CONSOLE_FUNCTION_NAME_LENGTH;
-    
-    for (uint8_t i=0; i < nameLength - 1; i++) 
-        CommandRegistry[index].name[i] = name[i];
-    
-    CommandRegistry[index].function = functionPtr;
-	
-	return 1;
+    return;
 }
 
 
@@ -574,6 +408,188 @@ void printPrompt(void) {
     
     return;
 }
+
+//
+// Console
+//
+
+uint8_t ConsoleRegisterCommand(uint8_t* name, uint8_t nameLength, void(*functionPtr)(uint8_t* string, uint8_t length)) {
+    
+    uint8_t index = 0;
+    for (uint8_t i=0; i < CONSOLE_FUNCTION_TABLE_SIZE; i++) {
+        
+        // Is set to a valid value
+        if ((is_letter( &CommandRegistry[i].name[0] ) == 1) | 
+            (is_number( &CommandRegistry[i].name[0] ) == 1))
+            continue;
+        
+        index = i;
+        
+        break;
+    }
+    
+    if (nameLength > CONSOLE_FUNCTION_NAME_LENGTH) 
+        nameLength = CONSOLE_FUNCTION_NAME_LENGTH;
+    
+    for (uint8_t i=0; i < nameLength - 1; i++) 
+        CommandRegistry[index].name[i] = name[i];
+    
+    CommandRegistry[index].function = functionPtr;
+	
+	return 1;
+}
+
+void consoleInit(void) {
+    
+    uint8_t nameKeyboard[] = "PS2";
+	keyboadDevice = (struct Driver*)GetDriverByName( nameKeyboard, sizeof(nameKeyboard) );
+	
+	uint8_t nameDisplay[] = "display";
+	displayDevice = (struct Driver*)GetDriverByName( nameDisplay, sizeof(nameDisplay) );
+	
+#ifdef BOARD_RETRO_AVR_X4_REV1
+    keyboadDevice->read( 0x00001, &oldScanCodeLow );
+    keyboadDevice->read( 0x00000, &oldScanCodeHigh );
+#endif
+    
+#ifdef BOARD_RETROBOARD_REV2
+    keyboadDevice->read( 0x00000, &oldScanCodeLow );
+    keyboadDevice->read( 0x00001, &oldScanCodeHigh );
+#endif
+    
+    lastChar = kbDecodeScanCode(oldScanCodeLow, oldScanCodeHigh);
+    
+    for (uint8_t i=0; i < CONSOLE_STRING_LENGTH; i++) 
+        console_string[i] = ' ';
+    
+    displayDevice->write( 163, 0x24 );
+	
+	for (uint8_t i=0; i < CONSOLE_FUNCTION_TABLE_SIZE; i++) {
+        
+        for (uint8_t n=0; n < CONSOLE_FUNCTION_NAME_LENGTH; n++) {
+            CommandRegistry[i].name[n] = ' ';
+        }
+        
+        CommandRegistry[i].function = nullptr;
+        
+	}
+	
+	uint8_t promptString[] = "A>";
+	
+	ConsoleSetPrompt( promptString, sizeof(promptString) );
+	
+	return;
+}
+
+uint8_t ConsoleGetRawChar(void) {
+    
+    uint8_t scanCodeLow  = 0;
+    uint8_t scanCodeHigh = 0;
+    
+#ifdef BOARD_RETRO_AVR_X4_REV1
+    keyboadDevice->read( 0x00001, &scanCodeLow );
+    keyboadDevice->read( 0x00000, &scanCodeHigh );
+#endif
+    
+#ifdef BOARD_RETROBOARD_REV2
+    keyboadDevice->read( 0x00000, &scanCodeLow );
+    keyboadDevice->read( 0x00001, &scanCodeHigh );
+#endif
+    
+    return kbDecodeScanCode(scanCodeLow, scanCodeHigh);
+}
+
+uint8_t ConsoleGetLastChar(void) {
+    
+    uint8_t scanCodeLow  = 0;
+    uint8_t scanCodeHigh = 0;
+    
+#ifdef BOARD_RETRO_AVR_X4_REV1
+    keyboadDevice->read( 0x00001, &scanCodeLow );
+    keyboadDevice->read( 0x00000, &scanCodeHigh );
+#endif
+    
+#ifdef BOARD_RETROBOARD_REV2
+    keyboadDevice->read( 0x00000, &scanCodeLow );
+    keyboadDevice->read( 0x00001, &scanCodeHigh );
+#endif
+    
+    if (oldScanCodeLow != scanCodeLow) lastChar = 0x00;
+    if (oldScanCodeHigh != scanCodeHigh) lastChar = 0x00;
+    
+    oldScanCodeLow  = scanCodeLow;
+    oldScanCodeHigh = scanCodeHigh;
+    
+    uint8_t scanCode = kbDecodeScanCode(scanCodeLow, scanCodeHigh);
+    
+    if (scanCode == 0x00) 
+        return 0x00;
+    
+    if (lastChar == scanCode) 
+        return 0x00;
+    
+    lastChar = scanCode;
+    
+    return lastChar;
+}
+
+void ConsoleClearKeyboardString(void) {
+    
+    for (uint8_t i=0; i < CONSOLE_STRING_LENGTH; i++) 
+        console_string[i] = ' ';
+    
+    return;
+}
+
+uint8_t ConsoleWait(uint8_t key) {
+    
+#ifdef BOARD_RETRO_AVR_X4_REV1
+    keyboadDevice->read( 0x00001, &oldScanCodeLow );
+    keyboadDevice->read( 0x00000, &oldScanCodeHigh );
+#endif
+    
+#ifdef BOARD_RETROBOARD_REV2
+    keyboadDevice->read( 0x00000, &oldScanCodeLow );
+    keyboadDevice->read( 0x00001, &oldScanCodeHigh );
+#endif
+    
+    uint8_t currentChar = kbDecodeScanCode(oldScanCodeLow, oldScanCodeHigh);
+    currentChar = lastChar;
+    
+    ConsoleSetCursor(console_line, 0);
+    
+    while (currentChar == lastChar) {
+        
+#ifdef BOARD_RETRO_AVR_X4_REV1
+        keyboadDevice->read( 0x00001, &oldScanCodeLow );
+        keyboadDevice->read( 0x00000, &oldScanCodeHigh );
+#endif
+        
+#ifdef BOARD_RETROBOARD_REV2
+        keyboadDevice->read( 0x00000, &oldScanCodeLow );
+        keyboadDevice->read( 0x00001, &oldScanCodeHigh );
+#endif
+        
+        currentChar = kbDecodeScanCode(oldScanCodeLow, oldScanCodeHigh);
+        
+        if (currentChar == 0x00) 
+            lastChar = currentChar;
+        
+        continue;
+    }
+    
+    lastChar = currentChar;
+    
+    if (key == lastChar) 
+        return 1;
+    
+    return 0;
+}
+
+
+//
+// Console functionality
+//
 
 void ConsoleSetBlinkRate(uint8_t rate) {
     

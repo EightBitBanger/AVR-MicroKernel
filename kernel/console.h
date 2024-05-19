@@ -11,9 +11,9 @@
 
 #define  MSG_DEVICE_NOT_READY   1
 
-void consoleInitiate(void);
-
 void consoleRunShell(void);
+
+void consoleInit(void);
 
 uint8_t ConsoleRegisterCommand(uint8_t* name, uint8_t nameLength, void(*functionPtr)(uint8_t* string, uint8_t length));
 
@@ -40,6 +40,7 @@ void ConsoleClearScreen(void);
 uint8_t ConsoleGetCursorPosition(void);
 uint8_t ConsoleGetCursorLine(void);
 
-uint8_t consoleWait(uint8_t key);
+uint8_t ConsoleWait(uint8_t key);
+void ConsoleClearKeyboardString(void);
 
 #endif

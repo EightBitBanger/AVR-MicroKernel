@@ -34,7 +34,7 @@ void functionFORMAT(uint8_t* param, uint8_t param_length) {
     print(devicePressToContinue, sizeof(devicePressToContinue));
     printLn();
     
-    if (consoleWait('y') == 0) {
+    if (ConsoleWait('y') == 0) {
         return;
     }
     
