@@ -7,13 +7,14 @@
 #define TASK_TYPE_USER                 'u' // User task
 #define TASK_TYPE_SERVICE              's' // System service task
 #define TASK_TYPE_VOLATILE             'v' // Volatile task
+#define TASK_TYPE_UNKNOWN              0   // No type defined
 
 #define TASK_PRIORITY_HALT             0
-#define TASK_PRIORITY_BACKGROUND       8192
-#define TASK_PRIORITY_LOW              1024
-#define TASK_PRIORITY_NORMAL           256
-#define TASK_PRIORITY_HIGH             64
-#define TASK_PRIORITY_REALTIME         32
+#define TASK_PRIORITY_BACKGROUND       64
+#define TASK_PRIORITY_LOW              32
+#define TASK_PRIORITY_NORMAL           16
+#define TASK_PRIORITY_HIGH             8
+#define TASK_PRIORITY_REALTIME         1
 
 // Millisecond clock timer
 #define _CLOCK_TCCRxA        2
@@ -50,7 +51,5 @@ uint8_t task_kill(uint8_t* name, uint8_t name_length);
 void schedulerInitiate(void);
 void schedulerStart(void);
 void schedulerStop(void);
-
-void SchedulerUpdate(void);
 
 #endif

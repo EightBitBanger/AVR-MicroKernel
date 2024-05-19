@@ -110,68 +110,11 @@ uint8_t task_kill(uint8_t* name, uint8_t name_length) {
 // Interrupt service routines
 //
 
-void SchedulerUpdate(void) {
-	
-	if (schedulerIsActive == 0) 
-        return;
-    
-	for (uint8_t PID=0; PID < TASK_LIST_SIZE; PID++) {
-		
-		if (proc_info.priority[PID] == 0) 
-            continue;
-		
-		if (proc_info.counter[PID] >= proc_info.priority[PID]) {
-			
-			proc_info.counter[PID]=0;
-			
-			proc_info.table[PID]();
-			
-		} else {
-			
-			proc_info.counter[PID]++;
-			
-			continue;
-		}
-		
-		switch (proc_info.type[PID]) {
-			
-			case TASK_TYPE_VOLATILE: {
-				
-				for (uint8_t i=0; i < TASK_NAME_LENGTH_MAX; i++) 
-                    proc_info.name[PID][i] = 0x20;
-				
-				proc_info.type[PID]      = 0;
-				proc_info.priority[PID]  = 0;
-				proc_info.counter[PID]   = 0;
-				proc_info.table[PID]     = 0;
-				
-				break;
-			}
-			
-			case TASK_TYPE_SERVICE: {
-				
-				break;
-			}
-			
-			case TASK_TYPE_USER: {
-				
-				break;
-			}
-			
-			default: break;
-			
-		}
-		
-		
-	}
-	return;
-}
-
 void schedulerInitiate(void) {
 	
 	for (uint8_t i=0; i < TASK_LIST_SIZE; i++) {
-		proc_info.type[i]     = 0x00;
-		proc_info.priority[i] = 0x00;
+		proc_info.type[i]     = TASK_TYPE_UNKNOWN;
+		proc_info.priority[i] = TASK_PRIORITY_HALT;
 		proc_info.counter[i]  = 0x00;
 		proc_info.table[i]    = 0;
 		
@@ -227,15 +170,61 @@ void schedulerStop(void) {
 
 ISR (TIMER0_COMPA_vect) {
     
-    
-    
     return;
 }
 
 ISR (TIMER1_COMPA_vect) {
     
-    SchedulerUpdate();
-    
+	for (uint8_t PID=0; PID < TASK_LIST_SIZE; PID++) {
+		
+		if (proc_info.priority[PID] == TASK_PRIORITY_HALT) 
+            continue;
+		
+		if (proc_info.counter[PID] >= proc_info.priority[PID]) {
+			
+			proc_info.counter[PID]=0;
+			
+			proc_info.table[PID]();
+			
+		} else {
+			
+			proc_info.counter[PID]++;
+			
+			continue;
+		}
+		
+		switch (proc_info.type[PID]) {
+			
+			case TASK_TYPE_VOLATILE: {
+				
+				for (uint8_t i=0; i < TASK_NAME_LENGTH_MAX; i++) 
+                    proc_info.name[PID][i] = 0x20;
+				
+				proc_info.type[PID]      = 0;
+				proc_info.priority[PID]  = 0;
+				proc_info.counter[PID]   = 0;
+				proc_info.table[PID]     = 0;
+				
+				break;
+			}
+			
+			case TASK_TYPE_SERVICE: {
+				
+				break;
+			}
+			
+			case TASK_TYPE_USER: {
+				
+				break;
+			}
+			
+			default: break;
+			
+		}
+		
+		
+	}
+	
     return;
 }
 

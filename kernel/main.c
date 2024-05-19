@@ -19,20 +19,20 @@ int main(void) {
     // Allow board some time to stabilize
     _delay_ms(1800);
     
-    // Initiate device drivers here
+    // Device drivers
 	initiateDisplayDriver();      // 20x4 LCD Display
 	initiatePS2Driver();          // PS/2 Port
 	initiateNetworkDriver();      // UART Network Card
 	initiateSpeakerDriver();      // On-Board speaker
 	
-	// Initiate the kernel
+	// Initiate kernel sub systems
 	InitiateDeviceTable();
-    // Network layer
-    ntInitiate();
-    // Console
-    consoleInitiate();
-    // Scheduler
-    schedulerInitiate();
+    
+    ntInitiate();         // Network support
+    
+    consoleInitiate();    // Command console shell
+    
+    schedulerInitiate();  // Scheduler/timer
     
     
     //
@@ -177,17 +177,13 @@ int main(void) {
 #endif
     
     // Launch the command console task
-    uint8_t taskname[] = "command";
-    task_create(taskname, sizeof(taskname), consoleRunShell, TASK_PRIORITY_REALTIME, TASK_TYPE_SERVICE);
+    //uint8_t taskname[] = "command";
+    //task_create(taskname, sizeof(taskname), consoleRunShell, TASK_PRIORITY_REALTIME, TASK_TYPE_SERVICE);
     
     
-    uint8_t testtaskname[] = "test";
+    //uint8_t testtaskname[] = "test";
     
-    task_create(testtaskname, sizeof(testtaskname), taskfunc, TASK_PRIORITY_HALT, TASK_TYPE_USER);
-    
-    
-    
-    //task_kill(taskname, sizeof(taskname));
+    //task_create(testtaskname, sizeof(testtaskname), taskfunc, TASK_PRIORITY_HALT, TASK_TYPE_USER);
     
     
     
@@ -197,7 +193,7 @@ int main(void) {
     
     while(1) {
         
-        //SchedulerUpdate();
+        consoleRunShell();
         
     }
     
