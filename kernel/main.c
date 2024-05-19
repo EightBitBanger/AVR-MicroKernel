@@ -23,12 +23,18 @@ int main(void) {
     // Console
     consoleInitiate();
     
+    //
+    // Kernel version
+    
+    uint8_t kernelHelloWorldString[] = "kernel v0.0.1";
+    print(kernelHelloWorldString, sizeof(kernelHelloWorldString));
+    
+    ConsoleSetCursor(1, 0);
+    
     
     //
     // Allocate external memory
     //
-    
-    /*
     
     struct Bus memoryBus;
 	
@@ -57,7 +63,7 @@ int main(void) {
         
         counter = 0;
         
-        ConsoleSetCursor(0, 0);
+        ConsoleSetCursor(1, 0);
         
         uint8_t totalString[10];
         uint8_t place = int_to_string(address, totalString);
@@ -69,7 +75,7 @@ int main(void) {
     uint8_t totalString[10];
     uint8_t place = int_to_string(address, totalString);
     
-    ConsoleSetCursor(0, 0);
+    ConsoleSetCursor(1, 0);
     print(totalString, place + 1);
     printSpace(1);
     
@@ -77,8 +83,6 @@ int main(void) {
     print(byteFreeString, sizeof(byteFreeString));
     
     printLn();
-    
-    */
     
     ConsoleSetBlinkRate( CURSOR_BLINK_RATE );
     

@@ -437,6 +437,11 @@ void functionAsm(uint8_t* param, uint8_t param_length) {
                 console_line = ConsoleGetCursorLine();
                 ConsoleSetCursor(console_line, console_position);
                 
+                // Clear the old op codes
+                for (uint8_t i=0; i < 4; i++) {
+                    asm_console_string[i] = ' ';
+                }
+                
                 asm_console_string_length = 0;
                 
             } else {
@@ -649,6 +654,11 @@ void functionAsm(uint8_t* param, uint8_t param_length) {
                 
                 asm_console_string_length = 0;
                 
+            }
+            
+            // Clear the old op codes
+            for (uint8_t i=0; i < 4; i++) {
+                asm_console_string[i] = ' ';
             }
             
             continue;
