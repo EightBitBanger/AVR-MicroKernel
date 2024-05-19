@@ -213,8 +213,6 @@ void ConsoleClearKeyboardString(void) {
 
 void consoleRunShell(void) {
     
-    cli();
-    
     // Check the current scan code
     uint8_t scanCode = ConsoleGetLastChar();
     
@@ -425,8 +423,6 @@ void consoleRunShell(void) {
         }
         
     }
-    
-    sei();
     
     return;
 }

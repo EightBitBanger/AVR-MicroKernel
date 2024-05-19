@@ -6,7 +6,11 @@
 #include <kernel/scheduler.h>
 
 volatile struct ProcessDescriptorTable proc_info;
+
+volatile uint64_t timer_ms = 0;
+
 uint8_t schedulerIsActive = 0;
+
 
 uint8_t task_create(uint8_t* name, uint8_t name_length, void(*task_ptr)(), uint16_t priority, uint8_t type) {
 	
@@ -35,8 +39,11 @@ uint8_t task_destroy(uint8_t index) {
 	
 	uint8_t PID = index - 1;
 	
-	if (PID > TASK_LIST_SIZE) return 0;
-	if (proc_info.name[PID][0] == ' ') return 0;
+	if (PID > TASK_LIST_SIZE) 
+        return 0;
+    
+	if (proc_info.name[PID][0] == ' ') 
+        return 0;
 	
 	proc_info.type[PID]      = 0;
 	proc_info.priority[PID]  = 0;
@@ -113,6 +120,7 @@ uint8_t task_kill(uint8_t* name, uint8_t name_length) {
 void schedulerInitiate(void) {
 	
 	for (uint8_t i=0; i < TASK_LIST_SIZE; i++) {
+		
 		proc_info.type[i]     = TASK_TYPE_UNKNOWN;
 		proc_info.priority[i] = TASK_PRIORITY_HALT;
 		proc_info.counter[i]  = 0x00;
@@ -170,6 +178,8 @@ void schedulerStop(void) {
 
 ISR (TIMER0_COMPA_vect) {
     
+    timer_ms++;
+    
     return;
 }
 
@@ -184,8 +194,14 @@ ISR (TIMER1_COMPA_vect) {
 			
 			proc_info.counter[PID]=0;
 			
+			// Call the task function with no inturrupts
+			
+			cli();
+			
 			proc_info.table[PID]();
 			
+			sei();
+            
 		} else {
 			
 			proc_info.counter[PID]++;
@@ -198,7 +214,7 @@ ISR (TIMER1_COMPA_vect) {
 			case TASK_TYPE_VOLATILE: {
 				
 				for (uint8_t i=0; i < TASK_NAME_LENGTH_MAX; i++) 
-                    proc_info.name[PID][i] = 0x20;
+                    proc_info.name[PID][i] = ' ';
 				
 				proc_info.type[PID]      = 0;
 				proc_info.priority[PID]  = 0;
