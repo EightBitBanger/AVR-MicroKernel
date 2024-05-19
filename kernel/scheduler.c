@@ -35,7 +35,7 @@ uint8_t task_destroy(uint8_t index) {
 	uint8_t PID = index - 1;
 	
 	if (PID > TASK_LIST_SIZE) return 0;
-	if (proc_info.name[PID][0] == 0x20) return 0;
+	if (proc_info.name[PID][0] == ' ') return 0;
 	
 	proc_info.type[PID]      = 0;
 	proc_info.priority[PID]  = 0;
@@ -43,31 +43,68 @@ uint8_t task_destroy(uint8_t index) {
 	proc_info.table[PID]     = 0;
 	
 	for (uint8_t i=0; i < TASK_NAME_LENGTH_MAX; i++)
-		proc_info.name[PID][i] = 0x20;
+		proc_info.name[PID][i] = ' ';
 	
 	return 1;
 }
 
-uint8_t get_task_index(uint8_t* name, uint8_t name_length) {
+uint8_t task_find(uint8_t* name, uint8_t name_length) {
 	
 	if (name_length > TASK_NAME_LENGTH_MAX)
-	name_length = TASK_NAME_LENGTH_MAX;
+        name_length = TASK_NAME_LENGTH_MAX;
 	
 	uint8_t task_name[name_length];
 	for (uint8_t i=0; i < name_length-1; i++)
-	task_name[i] = name[i];
+        task_name[i] = name[i];
 	
-	for (uint8_t index=0; index< TASK_LIST_SIZE; index++) {
+	for (uint8_t index=0; index < TASK_LIST_SIZE; index++) {
 		
-		if (proc_info.name[index][0] == 0x20) continue;
+		if (proc_info.name[index][0] == ' ') continue;
 		
 		uint8_t list_task_name[name_length];
 		for (uint8_t i=0; i < name_length-1; i++)
-		list_task_name[i] = proc_info.name[index][i];
+            list_task_name[i] = proc_info.name[index][i];
 		
-		if (string_compare(task_name, list_task_name, name_length) == 1)
-		return (index + 1);
+		if (string_compare(task_name, list_task_name, TASK_NAME_LENGTH_MAX) == 1) {
+            
+            return (index + 1);
+        }
+        
+	}
+	
+	return 0;
+}
+
+
+uint8_t task_kill(uint8_t* name, uint8_t name_length) {
+	
+	if (name_length > TASK_NAME_LENGTH_MAX)
+        name_length = TASK_NAME_LENGTH_MAX;
+	
+	uint8_t task_name[name_length];
+	for (uint8_t i=0; i < name_length-1; i++)
+        task_name[i] = name[i];
+	
+	for (uint8_t index=0; index < TASK_LIST_SIZE; index++) {
 		
+		if (proc_info.name[index][0] == ' ') continue;
+		
+		uint8_t list_task_name[name_length];
+		for (uint8_t i=0; i < name_length-1; i++)
+            list_task_name[i] = proc_info.name[index][i];
+		
+		if (string_compare(task_name, list_task_name, TASK_NAME_LENGTH_MAX) == 1) {
+            
+            for (uint8_t i=0; i < TASK_NAME_LENGTH_MAX; i++) 
+                proc_info.name[index][i] = ' ';
+            
+            proc_info.counter[index] = 0;
+            proc_info.priority[index] = 0;
+            proc_info.type[index] = 0;
+            
+            return (index + 1);
+        }
+        
 	}
 	
 	return 0;

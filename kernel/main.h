@@ -15,6 +15,7 @@
   #include <kernel/commands/cls.h>
   #include <kernel/commands/edit.h>
   #include <kernel/commands/asm.h>
+  #include <kernel/commands/task.h>
   
 #endif
 

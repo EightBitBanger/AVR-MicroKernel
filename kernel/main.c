@@ -150,6 +150,7 @@ int main(void) {
     //registerCommandCLS();
     //registerCommandEDIT();
     registerCommandAssembly();
+    registerCommandTASK();
     
   #endif
     
@@ -177,12 +178,16 @@ int main(void) {
     
     // Launch the command console task
     uint8_t taskname[] = "command";
-    task_create(taskname, sizeof(taskname), consoleRunShell, TASK_PRIORITY_HIGH, TASK_TYPE_SERVICE);
+    task_create(taskname, sizeof(taskname), consoleRunShell, TASK_PRIORITY_REALTIME, TASK_TYPE_SERVICE);
     
     
     uint8_t testtaskname[] = "test";
     
-    task_create(testtaskname, sizeof(testtaskname), taskfunc, TASK_PRIORITY_LOW, TASK_TYPE_USER);
+    task_create(testtaskname, sizeof(testtaskname), taskfunc, TASK_PRIORITY_HALT, TASK_TYPE_USER);
+    
+    
+    
+    //task_kill(taskname, sizeof(taskname));
     
     
     
