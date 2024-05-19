@@ -177,8 +177,8 @@ int main(void) {
 #endif
     
     // Launch the command console task
-    //uint8_t taskname[] = "command";
-    //task_create(taskname, sizeof(taskname), consoleRunShell, TASK_PRIORITY_REALTIME, TASK_TYPE_SERVICE);
+    uint8_t taskname[] = "command";
+    task_create(taskname, sizeof(taskname), consoleRunShell, TASK_PRIORITY_REALTIME, TASK_TYPE_SERVICE);
     
     
     //uint8_t testtaskname[] = "test";
@@ -193,8 +193,9 @@ int main(void) {
     
     while(1) {
         
-        consoleRunShell();
+        //consoleRunShell();
         
+        continue;
     }
     
     schedulerStop();
