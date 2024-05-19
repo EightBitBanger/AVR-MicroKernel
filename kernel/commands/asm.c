@@ -281,7 +281,7 @@ void functionAsm(uint8_t* param, uint8_t param_length) {
                         if (fileBuffer[currentFileAddress] == 0x90) {printc("nop", 4);  opCodeWasFound = 1;}
                         if (fileBuffer[currentFileAddress] == 0x88) {printc("mov", 4);  opCodeWasFound = 3;}
                         if (fileBuffer[currentFileAddress] == 0x89) {printc("mov", 4);  opCodeWasFound = 3; specialOpcodeArgs = 2;}
-                        if (fileBuffer[currentFileAddress] == 0xFA) {printc("inc", 4);  opCodeWasFound = 2;}
+                        if (fileBuffer[currentFileAddress] == 0xFD) {printc("inc", 4);  opCodeWasFound = 2;}
                         if (fileBuffer[currentFileAddress] == 0xFC) {printc("dec", 4);  opCodeWasFound = 2;}
                         
                         if (fileBuffer[currentFileAddress] == 0x00) {printc("add", 4);  opCodeWasFound = 1;}
@@ -293,8 +293,13 @@ void functionAsm(uint8_t* param, uint8_t param_length) {
                         if (fileBuffer[currentFileAddress] == 0xF0) {printc("push", 5); opCodeWasFound = 2;}
                         
                         if (fileBuffer[currentFileAddress] == 0xFE) {printc("jmp", 4);  opCodeWasFound = 5;}
+                        if (fileBuffer[currentFileAddress] == 0x9A) {printc("call", 5);  opCodeWasFound = 5;}
                         
-                        if (fileBuffer[currentFileAddress] == 0xCC) {printc("int", 4);  opCodeWasFound = 2; specialOpcodeArgs = 1;}
+                        if (fileBuffer[currentFileAddress] == 0xCB) {printc("ret", 4);  opCodeWasFound = 1;}
+                        
+                        if ((fileBuffer[currentFileAddress] == 0xCC) | (fileBuffer[currentFileAddress] == 0xCC)) {printc("int", 4);  opCodeWasFound = 2; specialOpcodeArgs = 1;}
+                        if (fileBuffer[currentFileAddress] == 0xFA) {printc("cli", 4);  opCodeWasFound = 1;}
+                        if (fileBuffer[currentFileAddress] == 0xFB) {printc("sti", 4);  opCodeWasFound = 1;}
                         
                         // Unknown op-code
                         if (opCodeWasFound == 0) {
@@ -441,7 +446,7 @@ void functionAsm(uint8_t* param, uint8_t param_length) {
                 
                 if ((opCode[0] == 'n') & (opCode[1] == 'o') & (opCode[2] == 'p')) {fileBuffer[assemblyAddress] = 0x90; assemblyAddress += 1; argCount = 0;}
                 if ((opCode[0] == 'm') & (opCode[1] == 'o') & (opCode[2] == 'v')) {fileBuffer[assemblyAddress] = 0x88; assemblyAddress += 3; argCount = 2;}
-                if ((opCode[0] == 'i') & (opCode[1] == 'n') & (opCode[2] == 'c')) {fileBuffer[assemblyAddress] = 0xFA; assemblyAddress += 2; argCount = 1;}
+                if ((opCode[0] == 'i') & (opCode[1] == 'n') & (opCode[2] == 'c')) {fileBuffer[assemblyAddress] = 0xFD; assemblyAddress += 2; argCount = 1;}
                 if ((opCode[0] == 'd') & (opCode[1] == 'e') & (opCode[2] == 'c')) {fileBuffer[assemblyAddress] = 0xFC; assemblyAddress += 2; argCount = 1;}
                 
                 if ((opCode[0] == 'a') & (opCode[1] == 'd') & (opCode[2] == 'd')) {fileBuffer[assemblyAddress] = 0x00; assemblyAddress += 1; argCount = 0;}
@@ -453,7 +458,13 @@ void functionAsm(uint8_t* param, uint8_t param_length) {
                 if ((opCode[0] == 'p') & (opCode[1] == 'u') & (opCode[2] == 's') & (opCode[3] == 'h')) {fileBuffer[assemblyAddress] = 0xF0; assemblyAddress += 2; argCount = 1;}
                 
                 if ((opCode[0] == 'j') & (opCode[1] == 'm') & (opCode[2] == 'p')) {fileBuffer[assemblyAddress] = 0xFE; assemblyAddress += 5; argCount = 4;}
+                if ((opCode[0] == 'c') & (opCode[1] == 'a') & (opCode[2] == 'l') & (opCode[3] == 'l')) {fileBuffer[assemblyAddress] = 0x9A; assemblyAddress += 5; argCount = 4;}
+                
+                if ((opCode[0] == 'r') & (opCode[1] == 'e') & (opCode[2] == 't')) {fileBuffer[assemblyAddress] = 0xCB; assemblyAddress += 1; argCount = 0;}
+                
                 if ((opCode[0] == 'i') & (opCode[1] == 'n') & (opCode[2] == 't')) {fileBuffer[assemblyAddress] = 0xCC; assemblyAddress += 2; argCount = 1;}
+                if ((opCode[0] == 'c') & (opCode[1] == 'l') & (opCode[2] == 'i')) {fileBuffer[assemblyAddress] = 0xFA; assemblyAddress += 1; argCount = 0;}
+                if ((opCode[0] == 's') & (opCode[1] == 't') & (opCode[2] == 'i')) {fileBuffer[assemblyAddress] = 0xFB; assemblyAddress += 1; argCount = 0;}
                 
                 // Arguments
                 uint8_t argA[4] = {0, 0, 0, 0};
@@ -465,6 +476,15 @@ void functionAsm(uint8_t* param, uint8_t param_length) {
                 if ((is_letter(&asm_console_string[5]) == 1) & (is_letter(&asm_console_string[6]) == 1)) {
                     argA[0] = asm_console_string[5];
                     argA[1] = asm_console_string[6];
+                }
+                
+                // 4 digit opcode with numeric arguments
+                if ((is_number(&asm_console_string[5]) == 1) & (is_number(&asm_console_string[6]) == 1) & 
+                    (is_number(&asm_console_string[7]) == 1) & (is_number(&asm_console_string[8]) == 1)) {
+                    argA[0] = asm_console_string[5];
+                    argA[1] = asm_console_string[6];
+                    argA[2] = asm_console_string[7];
+                    argA[3] = asm_console_string[8];
                 }
                 
                 // Arguments after a 3 digit opcode
