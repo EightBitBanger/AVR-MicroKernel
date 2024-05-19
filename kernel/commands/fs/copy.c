@@ -5,7 +5,9 @@
 
 #include <kernel/commands/fs/copy.h>
 
-uint8_t msgFileCopied[]   = "File copied";
+uint8_t msgFileCopied[]       = "File copied";
+uint8_t msgSourceNotFound[]   = "Source not found";
+uint8_t msgCannotCopyFile[]   = "Cannot be copied";
 
 void functionCOPY(uint8_t* param, uint8_t param_length) {
     
@@ -16,8 +18,8 @@ void functionCOPY(uint8_t* param, uint8_t param_length) {
     uint8_t destNameLength   = 0;
     
     for (uint8_t i=0; i < FILE_NAME_LENGTH; i++) {
-        sourceFilename[i] = 0;
-        destFilename[i]   = 0;
+        sourceFilename[i] = ' ';
+        destFilename[i]   = ' ';
     }
     
     // Get filenames from params
@@ -34,33 +36,46 @@ void functionCOPY(uint8_t* param, uint8_t param_length) {
                 
                 filename_index = 1;
                 
-                sourceNameLength = i;
+                sourceNameLength = i + 1;
                 
                 continue;
             }
             
         } else {
             
+            destFilename[index] = param[i];
+            
+            destNameLength = i + 1;
+            
             if (destFilename[index] == ' ') 
                 break;
             
-            destFilename[index] = param[i];
-            
-            destNameLength = i;
-            
             index++;
+            
         }
         
     }
     
-    print(sourceFilename, sourceNameLength);
-    printLn();
+    // Check source file exists
+    if (fsFileExists(sourceFilename, sourceNameLength) == 0) {
+        
+        print(msgSourceNotFound, sizeof(msgSourceNotFound));
+        printLn();
+        
+        return;
+    }
     
-    print(destFilename, destNameLength);
-    printLn();
+    // Check if the destination exists
+    if (fsFileExists(destFilename, destNameLength) == 1) {
+        
+        print(msgCannotCopyFile, sizeof(msgCannotCopyFile));
+        printLn();
+        
+        return;
+    }
     
-    //print(msgFileCopied, sizeof(msgFileCopied));
-    //printLn();
+    print(msgFileCopied, sizeof(msgFileCopied));
+    printLn();
     
     return;
 }
