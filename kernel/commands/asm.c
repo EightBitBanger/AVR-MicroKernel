@@ -18,6 +18,10 @@ void functionAsm(uint8_t* param, uint8_t param_length) {
     uint8_t msgPromptString[]    = "-";
     
     uint8_t asm_console_string[40];
+    
+    for (uint8_t i; i < 40; i++) 
+        asm_console_string[i] = ' ';
+    
     uint8_t asm_console_string_length = 0;
     
     uint32_t currentFileAddress = 0;
@@ -182,9 +186,9 @@ void functionAsm(uint8_t* param, uint8_t param_length) {
                     uint8_t hexStringB[17];
                     uint8_t hexStringC[17];
                     
-                    hexStringA[9] = '-';
-                    hexStringB[9] = '-';
-                    hexStringC[9] = '-';
+                    hexStringA[8] = '-';
+                    hexStringB[8] = '-';
+                    hexStringC[8] = '-';
                     
                     for (uint8_t i=0; i < 4; i++) int_to_hex_string( fileBuffer[i + currentFileAddress], &hexStringA[i * 2] );
                     for (uint8_t i=0; i < 4; i++) int_to_hex_string( fileBuffer[i + 4  + currentFileAddress], &hexStringA[(i * 2) + 9] );
@@ -684,10 +688,24 @@ void functionAsm(uint8_t* param, uint8_t param_length) {
                 
             }
             
+            // Check to clear the old op codes
+            if (asm_console_string_length == 0) {
+                
+                for (uint8_t i=0; i < 4; i++) {
+                    asm_console_string[i] = ' ';
+                }
+                
+            }
+            
+            
             if (assemblyState == 0) {
+                
                 ConsoleSetCursorPosition(1);
+                
             } else {
+                
                 ConsoleSetCursorPosition(5);
+                
             }
             
             print(asm_console_string, asm_console_string_length + 1);
