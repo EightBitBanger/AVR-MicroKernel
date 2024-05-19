@@ -30,6 +30,7 @@
 #ifdef INCLUDE_FILE_SYSTEM_APPLICATIONS
   
   #include <kernel/commands/fs/dir.h>
+  #include <kernel/commands/fs/copy.h>
   #include <kernel/commands/fs/cd.h>
   #include <kernel/commands/fs/cap.h>
   #include <kernel/commands/fs/mk.h>

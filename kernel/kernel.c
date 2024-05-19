@@ -11,7 +11,7 @@
 #define INT_VECT_7  127
 
 #define INTERRUPT_VECTOR_TABLE_SIZE  8
-void defaultLandingFunction(uint8_t index) {printInt(index); printLn(); printPrompt(); _delay_ms(10);}
+void defaultLandingFunction(uint8_t index) {}
 
 void (*interrupt_vector_table[INTERRUPT_VECTOR_TABLE_SIZE])(uint8_t);
 
