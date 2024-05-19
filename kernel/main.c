@@ -144,24 +144,26 @@ int main(void) {
 #ifndef DONT_INCLUDE_CONSOLE_COMMANDS
     
   #ifdef INCLUDE_KERNEL_APPLICATIONS
-    
+    /*
     registerCommandList();
     registerCommandDevice();
     registerCommandCLS();
     registerCommandEDIT();
     registerCommandAssembly();
+    */
     registerCommandTASK();
     
   #endif
     
   #ifdef INCLUDE_NETWORK_APPLICATIONS
     
-    registerCommandNet();
+    //registerCommandNet();
     
   #endif
     
   #ifdef INCLUDE_FILE_SYSTEM_APPLICATIONS
     
+    /*
     registerCommandDIR();
     registerCommandCD();
     registerCommandCAP();
@@ -171,6 +173,7 @@ int main(void) {
     registerCommandATTRIB();
     registerCommandRepair();
     registerCommandFormat();
+    */
     
   #endif
     
@@ -193,7 +196,15 @@ int main(void) {
     
     while(1) {
         
-        //consoleRunShell();
+        continue;
+        
+        ClearInterruptFlag();
+        
+        consoleRunShell();
+        
+        SetInterruptFlag();
+        
+        _delay_us(40);
         
         continue;
     }

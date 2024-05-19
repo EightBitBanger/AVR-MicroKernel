@@ -146,7 +146,8 @@ void schedulerStart(void) {
 	ClearInterruptFlag();
 	
 	// Set the ISRs
-	SetInterruptServiceB( _ISR_SCHEDULER_MAIN__ );
+	SetInterruptServiceA( _ISR_SCHEDULER_MAIN__ );
+    SetInterruptServiceB( _ISR_SCHEDULER_TIMER__ );
     
     // Fire up the timer interrupt
 	TimerCounterStart();
@@ -174,65 +175,72 @@ void schedulerStop(void) {
 // Interrupt service routines
 //
 
+uint8_t PID=0; 
+
 void _ISR_SCHEDULER_MAIN__(void) {
     
-	for (uint8_t PID=0; PID < TASK_LIST_SIZE; PID++) {
+    if (PID >= TASK_LIST_SIZE) {
+        PID = 0;
+    }
+    
+	if (proc_info.priority[PID] == TASK_PRIORITY_HALT) {
+        PID++;
+        return;
+	}
+	
+	if (proc_info.counter[PID] >= proc_info.priority[PID]) {
 		
-		if (proc_info.priority[PID] == TASK_PRIORITY_HALT) 
-            continue;
+		proc_info.counter[PID]=0;
 		
-		if (proc_info.counter[PID] >= proc_info.priority[PID]) {
+		// Call the task function with no interrupts
+		
+		ClearInterruptFlag();
+		
+		proc_info.table[PID]();
+		
+		SetInterruptFlag();
+        
+	} else {
+		
+		proc_info.counter[PID]++;
+		
+		PID++;
+        
+		return;
+	}
+	
+	switch (proc_info.type[PID]) {
+		
+		case TASK_TYPE_VOLATILE: {
 			
-			proc_info.counter[PID]=0;
+			for (uint8_t i=0; i < TASK_NAME_LENGTH_MAX; i++) 
+                proc_info.name[PID][i] = ' ';
 			
-			// Call the task function with no interrupts
+			proc_info.type[PID]      = 0;
+			proc_info.priority[PID]  = 0;
+			proc_info.counter[PID]   = 0;
+			proc_info.table[PID]     = 0;
 			
-			ClearInterruptFlag();
-			
-			proc_info.table[PID]();
-			
-			SetInterruptFlag();
-            
-		} else {
-			
-			proc_info.counter[PID]++;
-			
-			continue;
+			break;
 		}
 		
-		switch (proc_info.type[PID]) {
+		case TASK_TYPE_SERVICE: {
 			
-			case TASK_TYPE_VOLATILE: {
-				
-				for (uint8_t i=0; i < TASK_NAME_LENGTH_MAX; i++) 
-                    proc_info.name[PID][i] = ' ';
-				
-				proc_info.type[PID]      = 0;
-				proc_info.priority[PID]  = 0;
-				proc_info.counter[PID]   = 0;
-				proc_info.table[PID]     = 0;
-				
-				break;
-			}
-			
-			case TASK_TYPE_SERVICE: {
-				
-				break;
-			}
-			
-			case TASK_TYPE_USER: {
-				
-				break;
-			}
-			
-			default: break;
-			
+			break;
 		}
 		
+		case TASK_TYPE_USER: {
+			
+			break;
+		}
+		
+		default: break;
 		
 	}
 	
-	return;
+	PID++;
+    
+    return;
 }
 
 
