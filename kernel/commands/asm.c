@@ -74,14 +74,10 @@ void functionAsm(uint8_t* param, uint8_t param_length) {
                     
                     uint8_t statusCode = EmulateX4( fileBuffer, fileSize);
                     
-                    //if (statusCode != 1) {
-                        
-                        uint8_t msgError[] = "error ";
-                        
-                        print(msgError, sizeof(msgError));
-                        printInt( statusCode );
-                        printLn();
-                    //}
+                    printc("Status ", 8);
+                    
+                    printInt( statusCode );
+                    printLn();
                     
                 }
                 
