@@ -72,12 +72,16 @@ void functionAsm(uint8_t* param, uint8_t param_length) {
                 // Run the program in memory
                 if (asm_console_string[0] == 'r') {
                     
-                    uint8_t statusCode = EmulateX4( fileBuffer, fileSize);
+                    uint8_t statusCode = EmulateX4( fileBuffer, fileSize );
                     
-                    printc("Status ", 8);
-                    
-                    printInt( statusCode );
-                    printLn();
+                    if (statusCode != 1) {
+                        
+                        uint8_t msgError[] = "error: ";
+                        
+                        print(msgError, sizeof(msgError));
+                        printInt( statusCode );
+                        printLn();
+                    }
                     
                 }
                 
@@ -89,15 +93,18 @@ void functionAsm(uint8_t* param, uint8_t param_length) {
                     
                     if (fileSize == 1) {
                         
-                        uint8_t msgFileWritten[] = "byte written";
-                        print(msgFileWritten, sizeof(msgFileWritten));
+                        uint8_t msgByte[] = "byte ";
+                        print(msgByte, sizeof(msgByte));
                         
                     } else {
                         
-                        uint8_t msgFileWritten[] = "bytes written";
-                        print(msgFileWritten, sizeof(msgFileWritten));
+                        uint8_t msgBytes[] = "bytes ";
+                        print(msgBytes, sizeof(msgBytes));
                         
                     }
+                    
+                    uint8_t msgWritten[] = "written";
+                    print(msgWritten, sizeof(msgWritten));
                     
                     printLn();
                     
