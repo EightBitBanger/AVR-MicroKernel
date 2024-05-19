@@ -1,4 +1,6 @@
 #include <avr/io.h>
+#include <avr/interrupt.h>
+
 #include <kernel/delay.h>
 
 #include <kernel/console.h>
@@ -211,6 +213,8 @@ void ConsoleClearKeyboardString(void) {
 
 void consoleRunShell(void) {
     
+    cli();
+    
     // Check the current scan code
     uint8_t scanCode = ConsoleGetLastChar();
     
@@ -421,6 +425,8 @@ void consoleRunShell(void) {
         }
         
     }
+    
+    sei();
     
     return;
 }

@@ -1,7 +1,5 @@
 #ifdef BOARD_RETRO_AVR_X4_REV1
 
-#include <avr/interrupt.h>
-
 // 0b10111111 DT/R
 // 0b11011111 IO/M
 // 0b11101111 Write
@@ -34,8 +32,6 @@ void bus_address_zero(void) {
 
 
 void bus_read_memory(struct Bus* bus, uint32_t address, uint8_t* buffer) {
-	
-	cli();
 	
     DDRA = 0xff; // Output for address
     
@@ -71,15 +67,11 @@ void bus_read_memory(struct Bus* bus, uint32_t address, uint8_t* buffer) {
     
     PORTB = 0b00011001; // Open latch LOW and MID
     
-    sei();
-    
     return;
 }
 
 
 void bus_write_memory(struct Bus* bus, uint32_t address, uint8_t byte) {
-	
-	cli();
 	
     DDRA = 0xff; // Output for address
     
@@ -112,8 +104,6 @@ void bus_write_memory(struct Bus* bus, uint32_t address, uint8_t byte) {
     
     PORTB = 0b00011001; // Open latch LOW and MID
     
-    sei();
-    
 	return;
 }
 
@@ -124,8 +114,6 @@ void bus_write_memory(struct Bus* bus, uint32_t address, uint8_t byte) {
 
 
 void bus_read_io(struct Bus* bus, uint32_t address, uint8_t* buffer) {
-	
-	cli();
 	
     DDRA = 0xff; // Output for address
     
@@ -161,15 +149,11 @@ void bus_read_io(struct Bus* bus, uint32_t address, uint8_t* buffer) {
     
     PORTB = 0b00011001; // Open latch LOW and MID
     
-    sei();
-    
     return;
 }
 
 
 void bus_write_io(struct Bus* bus, uint32_t address, uint8_t byte) {
-	
-	cli();
 	
     DDRA = 0xff; // Output for address
     
@@ -201,8 +185,6 @@ void bus_write_io(struct Bus* bus, uint32_t address, uint8_t byte) {
     PORTD = 0b11111111; // Release the bus
     
     PORTB = 0b00011001; // Open latch LOW and MID
-    
-    sei();
     
 	return;
 }
