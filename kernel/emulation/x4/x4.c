@@ -40,6 +40,8 @@ void EmulateX4(uint8_t* programBuffer, uint32_t programSize) {
     uint8_t stack[100];
     uint32_t stack_ptr;
     
+    uint8_t consoleWritten = 1;
+    
     
     while(1) {
         
@@ -48,11 +50,6 @@ void EmulateX4(uint8_t* programBuffer, uint32_t programSize) {
         uint8_t argB   = programBuffer[programCounter + 2];
         uint8_t argC   = programBuffer[programCounter + 3];
         uint8_t argD   = programBuffer[programCounter + 4];
-        
-        printInt( reg[0] );
-        printLn();
-        
-        _delay_ms(100);
         
         // NOP
         if (opCode == 0x90) {
@@ -87,7 +84,7 @@ void EmulateX4(uint8_t* programBuffer, uint32_t programSize) {
             
             reg[argA]++;
             
-            programCounter += 3;
+            programCounter += 2;
             
             continue;
         }
@@ -97,7 +94,7 @@ void EmulateX4(uint8_t* programBuffer, uint32_t programSize) {
             
             reg[argA]--;
             
-            programCounter += 3;
+            programCounter += 2;
             
             continue;
         }
@@ -200,12 +197,19 @@ void EmulateX4(uint8_t* programBuffer, uint32_t programSize) {
             
             if (argA == 0x10) {
                 
-                //printChar( reg[3] );
+                printChar( reg[3] );
                 
+                consoleWritten = 1;
             }
             
             // Return control to the OS
             if (argA == 0x20) {
+                
+                if (consoleWritten == 1) {
+                    
+                    printLn();
+                }
+                
                 return;
             }
             
