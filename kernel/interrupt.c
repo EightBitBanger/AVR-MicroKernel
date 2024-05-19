@@ -118,33 +118,21 @@ uint8_t SetHardwareInterruptServiceA(void (*service_ptr)()) {
 
 ISR (TIMER0_COMPA_vect) {
     
-    cli();
-    
     _timer_comp_a_ptr__();
-    
-    sei();
     
     return;
 }
 
 ISR (TIMER1_COMPA_vect) {
     
-    cli();
-    
     _timer_comp_b_ptr__();
-    
-    sei();
     
     return;
 }
 
 ISR (TIMER2_COMPA_vect) {
     
-    cli();
-    
     _timer_comp_c_ptr__();
-    
-    sei();
     
     return;
 }

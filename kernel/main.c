@@ -21,6 +21,7 @@ int main(void) {
     ntInit();                     // Network support
     schedulerInit();              // Scheduler sub system
     consoleInit();                // Command console shell
+    kernelVectorTableInit();      // Hardware interrupt vector table
     
     
     //

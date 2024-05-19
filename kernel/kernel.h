@@ -25,6 +25,7 @@
 
 #include <kernel/scheduler.h>
 
+void kernelVectorTableInit(void);
 
 void _ISR_hardware_service_routine(void);
 

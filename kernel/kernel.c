@@ -10,6 +10,22 @@
 #define INT_VECT_6  191
 #define INT_VECT_7  127
 
+#define INTERRUPT_VECTOR_TABLE_SIZE  8
+void defaultLandingFunction(uint8_t index) {printInt(index); printLn(); printPrompt(); _delay_ms(10);}
+
+void (*interrupt_vector_table[INTERRUPT_VECTOR_TABLE_SIZE])(uint8_t);
+
+void kernelVectorTableInit(void) {
+    
+    for (uint8_t i=0; i < INTERRUPT_VECTOR_TABLE_SIZE; i++) {
+        
+        interrupt_vector_table[i] = defaultLandingFunction;
+        
+    }
+    
+    return;
+}
+
 void _ISR_hardware_service_routine(void) {
     
     struct Bus bus;
@@ -19,14 +35,14 @@ void _ISR_hardware_service_routine(void) {
     
     bus_read_io(&bus, 0x00000, &iVect);
     
-    if (iVect == INT_VECT_0) {printc("1", 2); printLn(); printPrompt(); _delay_ms(10);}
-    if (iVect == INT_VECT_1) {printc("2", 2); printLn(); printPrompt(); _delay_ms(10);}
-    if (iVect == INT_VECT_2) {printc("3", 2); printLn(); printPrompt(); _delay_ms(10);}
-    if (iVect == INT_VECT_3) {printc("4", 2); printLn(); printPrompt(); _delay_ms(10);}
-    if (iVect == INT_VECT_4) {printc("5", 2); printLn(); printPrompt(); _delay_ms(10);}
-    if (iVect == INT_VECT_5) {printc("6", 2); printLn(); printPrompt(); _delay_ms(10);}
-    if (iVect == INT_VECT_6) {printc("7", 2); printLn(); printPrompt(); _delay_ms(10);}
-    if (iVect == INT_VECT_7) {printc("8", 2); printLn(); printPrompt(); _delay_ms(10);}
+    if (iVect == INT_VECT_0) {interrupt_vector_table[0](0);}
+    if (iVect == INT_VECT_1) {interrupt_vector_table[1](1);}
+    if (iVect == INT_VECT_2) {interrupt_vector_table[2](2);}
+    if (iVect == INT_VECT_3) {interrupt_vector_table[3](3);}
+    if (iVect == INT_VECT_4) {interrupt_vector_table[4](4);}
+    if (iVect == INT_VECT_5) {interrupt_vector_table[5](5);}
+    if (iVect == INT_VECT_6) {interrupt_vector_table[6](6);}
+    if (iVect == INT_VECT_7) {interrupt_vector_table[7](7);}
     
     return;
 }
