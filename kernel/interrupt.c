@@ -5,8 +5,9 @@
 
 void dummyFunction(void) {};
 
-void (*_timer_comp_a_ptr__)();
-void (*_timer_comp_b_ptr__)();
+void (*_timer_comp_a_ptr__)() = dummyFunction;
+void (*_timer_comp_b_ptr__)() = dummyFunction;
+void (*_timer_comp_c_ptr__)() = dummyFunction;
 
 
 void ClearInterruptFlag(void) {
@@ -23,13 +24,6 @@ void SetInterruptFlag(void) {
     return;
 }
 
-void InterruptInitiate(void) {
-    
-    _timer_comp_a_ptr__ = dummyFunction;
-    _timer_comp_b_ptr__ = dummyFunction;
-	
-	return;
-}
 
 void TimerCounterStart(void) {
     
@@ -77,6 +71,13 @@ uint8_t SetInterruptServiceB(void (*service_ptr)()) {
     return 1;
 }
 
+uint8_t SetInterruptServiceC(void (*service_ptr)()) {
+    
+    _timer_comp_c_ptr__ = service_ptr;
+    
+    return 1;
+}
+
 
 ISR (TIMER0_COMPA_vect) {
     
@@ -88,6 +89,13 @@ ISR (TIMER0_COMPA_vect) {
 ISR (TIMER1_COMPA_vect) {
     
     _timer_comp_b_ptr__();
+    
+    return;
+}
+
+ISR (TIMER2_COMPA_vect) {
+    
+    _timer_comp_c_ptr__();
     
     return;
 }

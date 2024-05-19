@@ -25,10 +25,14 @@ int main(void) {
 	initiateNetworkDriver();      // UART Network Card
 	initiateSpeakerDriver();      // On-Board speaker
 	
-    ntInitiate();                 // Network support
-    consoleInitiate();            // Command console shell
-    schedulerInitiate();          // Scheduler/timer
-    InterruptInitiate();          // Interrupt services
+	// Initiate kernel sub systems
+	InitiateDeviceTable();
+    
+    ntInitiate();         // Network support
+    
+    consoleInitiate();    // Command console shell
+    
+    schedulerInitiate();  // Scheduler/timer
     
     
     //
@@ -141,32 +145,32 @@ int main(void) {
     
   #ifdef INCLUDE_KERNEL_APPLICATIONS
     
-    //registerCommandList();
-    //registerCommandDevice();
-    //registerCommandCLS();
-    //registerCommandEDIT();
-    //registerCommandAssembly();
+    registerCommandList();
+    registerCommandDevice();
+    registerCommandCLS();
+    registerCommandEDIT();
+    registerCommandAssembly();
     registerCommandTASK();
     
   #endif
     
   #ifdef INCLUDE_NETWORK_APPLICATIONS
     
-    //registerCommandNet();
+    registerCommandNet();
     
   #endif
     
   #ifdef INCLUDE_FILE_SYSTEM_APPLICATIONS
     
-    //registerCommandDIR();
-    //registerCommandCD();
-    //registerCommandCAP();
-    //registerCommandMK();
-    //registerCommandRM();
-    //registerCommandRN();
-    //registerCommandATTRIB();
-    //registerCommandRepair();
-    //registerCommandFormat();
+    registerCommandDIR();
+    registerCommandCD();
+    registerCommandCAP();
+    registerCommandMK();
+    registerCommandRM();
+    registerCommandRN();
+    registerCommandATTRIB();
+    registerCommandRepair();
+    registerCommandFormat();
     
   #endif
     
@@ -177,13 +181,10 @@ int main(void) {
     task_create(taskname, sizeof(taskname), consoleRunShell, TASK_PRIORITY_REALTIME, TASK_TYPE_SERVICE);
     
     
-    //uint8_t testtaskname[] = "test";
+    uint8_t testtaskname[] = "test";
     
-    //task_create(testtaskname, sizeof(testtaskname), taskfunc, TASK_PRIORITY_HALT, TASK_TYPE_USER);
+    task_create(testtaskname, sizeof(testtaskname), taskfunc, TASK_PRIORITY_HALT, TASK_TYPE_USER);
     
-    // Set scheduler interrupt handlers
-    SetInterruptServiceA( _ISR_SchedulerTimer );
-    SetInterruptServiceB( _ISR_SchedulerTask );
     
     
     printPrompt();

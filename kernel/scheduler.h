@@ -28,9 +28,11 @@ struct ProcessDescriptorTable {
 };
 
 uint8_t task_create(uint8_t* name, uint8_t name_length, void(*task_ptr)(), uint16_t priority, uint8_t type);
+
 uint8_t task_destroy(uint8_t index);
 
 uint8_t task_find(uint8_t* name, uint8_t name_length);
+
 uint8_t task_kill(uint8_t* name, uint8_t name_length);
 
 
@@ -38,7 +40,8 @@ void schedulerInitiate(void);
 void schedulerStart(void);
 void schedulerStop(void);
 
-void _ISR_SchedulerTask(void);
-void _ISR_SchedulerTimer(void);
+
+void _ISR_SCHEDULER_MAIN__(void);
+void _ISR_SCHEDULER_TIMER__(void);
 
 #endif

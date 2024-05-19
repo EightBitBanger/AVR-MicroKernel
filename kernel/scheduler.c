@@ -135,8 +135,6 @@ void schedulerInitiate(void) {
 	return;
 }
 
-void _ISR_SchedulerTimer(void);
-void _ISR_SchedulerTask(void);
 
 void schedulerStart(void) {
 	
@@ -147,6 +145,10 @@ void schedulerStart(void) {
 	
 	ClearInterruptFlag();
 	
+	// Set the ISRs
+	SetInterruptServiceB( _ISR_SCHEDULER_MAIN__ );
+    
+    // Fire up the timer interrupt
 	TimerCounterStart();
 	
 	SetInterruptFlag();
@@ -169,17 +171,10 @@ void schedulerStop(void) {
 
 
 //
-// Scheduler service routines
+// Interrupt service routines
 //
 
-void _ISR_SchedulerTimer(void) {
-    
-    timer_ms++;
-    
-    return;
-}
-
-void _ISR_SchedulerTask(void) {
+void _ISR_SCHEDULER_MAIN__(void) {
     
 	for (uint8_t PID=0; PID < TASK_LIST_SIZE; PID++) {
 		
@@ -190,7 +185,7 @@ void _ISR_SchedulerTask(void) {
 			
 			proc_info.counter[PID]=0;
 			
-			// Call the task function with no inturrupts
+			// Call the task function with no interrupts
 			
 			ClearInterruptFlag();
 			
@@ -237,6 +232,14 @@ void _ISR_SchedulerTask(void) {
 		
 	}
 	
+	return;
+}
+
+
+void _ISR_SCHEDULER_TIMER__(void) {
+    
+    timer_ms++;
+    
     return;
 }
 

@@ -16,25 +16,20 @@
 
 // Timers / counters
 
-void InterruptInitiate(void);
-
 void TimerCounterStart(void);
-
 void TimerCounterStop(void);
 
 
 // Interrupts
 
 void SetInterruptFlag(void);
-
 void ClearInterruptFlag(void);
 
 
-// Interrupt services
+// Interrupt service routines
 
 uint8_t SetInterruptServiceA(void (*service_ptr)());
-
 uint8_t SetInterruptServiceB(void (*service_ptr)());
-
+uint8_t SetInterruptServiceC(void (*service_ptr)());
 
 #endif
