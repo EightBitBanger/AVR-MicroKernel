@@ -169,7 +169,8 @@ void SchedulerStart(void) {
     SetInterruptServiceB( _ISR_SCHEDULER_TIMER__ );
     
     // Fire up the timer interrupt
-	TimerCounterStart();
+	TimerCounterStartA();
+	TimerCounterStartB();
 	
 	SetInterruptFlag();
 	

@@ -9,6 +9,8 @@ void (*_timer_comp_a_ptr__)() = dummyFunction;
 void (*_timer_comp_b_ptr__)() = dummyFunction;
 void (*_timer_comp_c_ptr__)() = dummyFunction;
 
+void (*_external_a_ptr__)() = dummyFunction;
+
 
 void ClearInterruptFlag(void) {
     
@@ -25,7 +27,7 @@ void SetInterruptFlag(void) {
 }
 
 
-void TimerCounterStart(void) {
+void TimerCounterStartA(void) {
     
 	// Scheduler timer/counter
 	TCCR0A  = _SCHEDULER_TCCRxA;
@@ -33,6 +35,11 @@ void TimerCounterStart(void) {
 	TIMSK0  = _SCHEDULER_TIMSK;
 	OCR0A   = _SCHEDULER_OCR;
 	
+	return;
+}
+
+void TimerCounterStartB(void) {
+    
 	// Millisecond clock counter
 	TCCR1A  = _CLOCK_TCCRxA;
 	TCCR1B  = _CLOCK_TCCRxB;
@@ -96,6 +103,14 @@ ISR (TIMER1_COMPA_vect) {
 ISR (TIMER2_COMPA_vect) {
     
     _timer_comp_c_ptr__();
+    
+    return;
+}
+
+
+ISR (INT2_vect) {
+    
+    _external_a_ptr__();
     
     return;
 }

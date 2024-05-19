@@ -16,7 +16,9 @@
 
 // Timers / counters
 
-void TimerCounterStart(void);
+void TimerCounterStartA(void);
+void TimerCounterStartB(void);
+
 void TimerCounterStop(void);
 
 
