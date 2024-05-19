@@ -69,6 +69,22 @@ void functionAsm(uint8_t* param, uint8_t param_length) {
                 if (asm_console_string[0] == 'q') 
                     break;
                 
+                // Run the program in memory
+                if (asm_console_string[0] == 'r') {
+                    
+                    uint8_t statusCode = EmulateX4( fileBuffer, fileSize);
+                    
+                    //if (statusCode != 1) {
+                        
+                        uint8_t msgError[] = "error ";
+                        
+                        print(msgError, sizeof(msgError));
+                        printInt( statusCode );
+                        printLn();
+                    //}
+                    
+                }
+                
                 // Write data to file
                 if (asm_console_string[0] == 'w') {
                     
@@ -76,11 +92,15 @@ void functionAsm(uint8_t* param, uint8_t param_length) {
                     printInt( fileSize );
                     
                     if (fileSize == 1) {
+                        
                         uint8_t msgFileWritten[] = "byte written";
                         print(msgFileWritten, sizeof(msgFileWritten));
+                        
                     } else {
+                        
                         uint8_t msgFileWritten[] = "bytes written";
                         print(msgFileWritten, sizeof(msgFileWritten));
+                        
                     }
                     
                     printLn();

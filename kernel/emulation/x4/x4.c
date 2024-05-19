@@ -26,7 +26,7 @@
 0xCC  int   
 */
 
-void EmulateX4(uint8_t* programBuffer, uint32_t programSize) {
+uint8_t EmulateX4(uint8_t* programBuffer, uint32_t programSize) {
     
     //uint8_t executeProgram[] = "";
     //print( executeProgram, sizeof(executeProgram) );
@@ -216,7 +216,7 @@ void EmulateX4(uint8_t* programBuffer, uint32_t programSize) {
                     printLn();
                 }
                 
-                return;
+                return 1;
             }
             
             programCounter += 2;
@@ -228,6 +228,6 @@ void EmulateX4(uint8_t* programBuffer, uint32_t programSize) {
         continue;
     }
     
-    return;
+    return 0;
 }
 
