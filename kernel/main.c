@@ -2,8 +2,8 @@
 
 void taskfunc(void) {
     
-    printc("C", 1);
-    //printLn();
+    printc("Asshole", 1);
+    printLn();
     
     return;
 }
@@ -175,9 +175,16 @@ int main(void) {
     
 #endif
     
+    // Launch the command console task
     uint8_t taskname[] = "command";
-    
     task_create(taskname, sizeof(taskname), consoleRunShell, TASK_PRIORITY_HIGH, TASK_TYPE_SERVICE);
+    
+    
+    uint8_t testtaskname[] = "test";
+    
+    task_create(testtaskname, sizeof(testtaskname), taskfunc, TASK_PRIORITY_LOW, TASK_TYPE_USER);
+    
+    
     
     printPrompt();
     
