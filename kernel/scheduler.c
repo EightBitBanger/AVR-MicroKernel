@@ -168,11 +168,7 @@ void SchedulerStart(void) {
 	SetInterruptServiceA( _ISR_SCHEDULER_MAIN__ );
     SetInterruptServiceB( _ISR_SCHEDULER_TIMER__ );
     
-    // Fire up the timer interrupt
-	TimerCounterStartA();
-	TimerCounterStartB();
-	
-	SetInterruptFlag();
+    SetInterruptFlag();
 	
 	return;
 }
@@ -184,8 +180,6 @@ void SchedulerStop(void) {
         return;
     
 	schedulerIsActive = 0;
-	
-	TimerCounterStop();
 	
 	return;
 }

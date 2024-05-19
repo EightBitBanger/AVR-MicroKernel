@@ -27,7 +27,7 @@ void SetInterruptFlag(void) {
 }
 
 
-void TimerCounterStartA(void) {
+void InterruptStartScheduler(void) {
     
 	// Scheduler timer/counter
 	TCCR0A  = _SCHEDULER_TCCRxA;
@@ -38,7 +38,7 @@ void TimerCounterStartA(void) {
 	return;
 }
 
-void TimerCounterStartB(void) {
+void InterruptStartTimeCounter(void) {
     
 	// Millisecond clock counter
 	TCCR1A  = _CLOCK_TCCRxA;
@@ -49,12 +49,34 @@ void TimerCounterStartB(void) {
 	return;
 }
 
-void TimerCounterStop(void) {
+void InterruptStartHardware(void) {
     
-	TCCR0B  = 0;
+    EICRA = 0b00100000; // Enable INT2 falling edge
+    EIMSK = 0b00000100; // Enable INT2 mask
+    
+    return;
+}
+
+void InterruptStopScheduler(void) {
+    
+    TCCR0B  = 0;
+	
+	return;
+}
+
+void InterruptStopTimerCounter(void) {
+    
 	TCCR1B  = 0;
 	TCCR2B  = 0;
 	
+    return;
+}
+
+void InterruptStopHardware(void) {
+    
+    EICRA = 0b00000000;
+    EIMSK = 0b00000000;
+    
     return;
 }
 
@@ -81,6 +103,13 @@ uint8_t SetInterruptServiceB(void (*service_ptr)()) {
 uint8_t SetInterruptServiceC(void (*service_ptr)()) {
     
     _timer_comp_c_ptr__ = service_ptr;
+    
+    return 1;
+}
+
+uint8_t SetHardwareInterruptServiceA(void (*service_ptr)()) {
+    
+    _external_a_ptr__ = service_ptr;
     
     return 1;
 }

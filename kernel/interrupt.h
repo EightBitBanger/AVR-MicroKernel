@@ -16,10 +16,13 @@
 
 // Timers / counters
 
-void TimerCounterStartA(void);
-void TimerCounterStartB(void);
+void InterruptStartTimeCounter(void);
+void InterruptStartScheduler(void);
+void InterruptStartHardware(void);
 
-void TimerCounterStop(void);
+void InterruptStopTimerCounter(void);
+void InterruptStopScheduler(void);
+void InterruptStopHardware(void);
 
 
 // Interrupts
@@ -33,5 +36,9 @@ void ClearInterruptFlag(void);
 uint8_t SetInterruptServiceA(void (*service_ptr)());
 uint8_t SetInterruptServiceB(void (*service_ptr)());
 uint8_t SetInterruptServiceC(void (*service_ptr)());
+
+// Hardware interrupt service routines
+
+uint8_t SetHardwareInterruptServiceA(void (*service_ptr)());
 
 #endif

@@ -1,5 +1,4 @@
 #include <kernel/main.h>
-void dummyFunctionTest(void) {};
 
 int main(void) {
     
@@ -175,7 +174,18 @@ int main(void) {
     
     printPrompt();
     
+    // Enable hardware interrupts
+    //  Trigger on the HIGH to LOW transition of PIN2
+    InterruptStartHardware();
+    
+    SetHardwareInterruptServiceA( _ISR_hardware_service_routine );
+    
+    // Prepare the scheduler and its 
+    // associated hardware interrupts
     SchedulerStart();
+    
+    InterruptStartScheduler();
+    InterruptStartTimeCounter();
     
     while(1) {
         
@@ -183,6 +193,10 @@ int main(void) {
         
         continue;
     }
+    
+    InterruptStopTimerCounter();
+    InterruptStopScheduler();
+    InterruptStopHardware();
     
     SchedulerStop();
     

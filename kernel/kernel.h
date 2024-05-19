@@ -25,4 +25,8 @@
 
 #include <kernel/scheduler.h>
 
+
+void _ISR_hardware_service_routine(void);
+
+
 #endif
