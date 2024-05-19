@@ -14,6 +14,15 @@
 #define _SCHEDULER_OCR       1
 
 
+// Timers / counters
+
+void InterruptInitiate(void);
+
+void TimerCounterStart(void);
+
+void TimerCounterStop(void);
+
+
 // Interrupts
 
 void SetInterruptFlag(void);
@@ -21,11 +30,11 @@ void SetInterruptFlag(void);
 void ClearInterruptFlag(void);
 
 
-// Timers / counters
+// Interrupt services
 
-void TimerCounterStart(void);
+uint8_t SetInterruptServiceA(void (*service_ptr)());
 
-void TimerCounterStop(void);
+uint8_t SetInterruptServiceB(void (*service_ptr)());
 
 
 #endif

@@ -135,6 +135,8 @@ void schedulerInitiate(void) {
 	return;
 }
 
+void _ISR_SchedulerTimer(void);
+void _ISR_SchedulerTask(void);
 
 void schedulerStart(void) {
 	
@@ -166,17 +168,18 @@ void schedulerStop(void) {
 }
 
 
+//
+// Scheduler service routines
+//
 
-/*
-
-ISR (TIMER0_COMPA_vect) {
+void _ISR_SchedulerTimer(void) {
     
     timer_ms++;
     
     return;
 }
 
-ISR (TIMER1_COMPA_vect) {
+void _ISR_SchedulerTask(void) {
     
 	for (uint8_t PID=0; PID < TASK_LIST_SIZE; PID++) {
 		
@@ -237,4 +240,3 @@ ISR (TIMER1_COMPA_vect) {
     return;
 }
 
-*/

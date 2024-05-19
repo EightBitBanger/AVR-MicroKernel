@@ -25,14 +25,10 @@ int main(void) {
 	initiateNetworkDriver();      // UART Network Card
 	initiateSpeakerDriver();      // On-Board speaker
 	
-	// Initiate kernel sub systems
-	InitiateDeviceTable();
-    
-    ntInitiate();         // Network support
-    
-    consoleInitiate();    // Command console shell
-    
-    schedulerInitiate();  // Scheduler/timer
+    ntInitiate();                 // Network support
+    consoleInitiate();            // Command console shell
+    schedulerInitiate();          // Scheduler/timer
+    InterruptInitiate();          // Interrupt services
     
     
     //
@@ -185,6 +181,9 @@ int main(void) {
     
     //task_create(testtaskname, sizeof(testtaskname), taskfunc, TASK_PRIORITY_HALT, TASK_TYPE_USER);
     
+    // Set scheduler interrupt handlers
+    SetInterruptServiceA( _ISR_SchedulerTimer );
+    SetInterruptServiceB( _ISR_SchedulerTask );
     
     
     printPrompt();

@@ -23,12 +23,16 @@ void SetInterruptFlag(void) {
     return;
 }
 
-
-void TimerCounterStart(void) {
+void InterruptInitiate(void) {
     
     _timer_comp_a_ptr__ = dummyFunction;
     _timer_comp_b_ptr__ = dummyFunction;
 	
+	return;
+}
+
+void TimerCounterStart(void) {
+    
 	// Scheduler timer/counter
 	TCCR0A  = _SCHEDULER_TCCRxA;
 	TCCR0B  = _SCHEDULER_TCCRxB;
@@ -58,6 +62,21 @@ void TimerCounterStop(void) {
 //
 // Interrupt services
 //
+
+uint8_t SetInterruptServiceA(void (*service_ptr)()) {
+    
+    _timer_comp_a_ptr__ = service_ptr;
+    
+    return 1;
+}
+
+uint8_t SetInterruptServiceB(void (*service_ptr)()) {
+    
+    _timer_comp_b_ptr__ = service_ptr;
+    
+    return 1;
+}
+
 
 ISR (TIMER0_COMPA_vect) {
     
