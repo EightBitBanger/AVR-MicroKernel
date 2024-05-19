@@ -181,3 +181,16 @@ uint8_t string_get_hex_char(uint8_t* string) {
 	return value_a + (value_b * 16);
 }
 
+uint8_t string_compare(uint8_t* stringA, uint8_t* stringB, uint8_t length) {
+    
+    for (uint8_t i=0; i < length; i++) {
+        
+        if (stringA[i] != stringB[i]) 
+            return 0;
+        
+        continue;
+    }
+    
+    return 1;
+}
+

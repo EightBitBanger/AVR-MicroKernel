@@ -25,4 +25,7 @@ uint32_t string_get_int_long(uint8_t* string);
 
 uint8_t string_get_hex_char(uint8_t* string);
 
+// Standard
+uint8_t string_compare(uint8_t* stringA, uint8_t* stringB, uint8_t length);
+
 #endif

@@ -22,6 +22,9 @@ int main(void) {
     ntInitiate();
     // Console
     consoleInitiate();
+    // Scheduler
+    schedulerInitiate();
+    
     
     //
     // Kernel version
@@ -165,12 +168,17 @@ int main(void) {
     
     printPrompt();
     
+    schedulerStart();
+    
     while(1) {
         
         consoleRunShell();
         
+        SchedulerUpdate();
+        
     }
     
+    schedulerStop();
     
     return 0;
 }
