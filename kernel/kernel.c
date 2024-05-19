@@ -1,34 +1,32 @@
 #include <kernel/kernel.h>
+#include <kernel/delay.h>
+
+#define INT_VECT_0  254
+#define INT_VECT_1  253
+#define INT_VECT_2  251
+#define INT_VECT_3  247
+#define INT_VECT_4  239
+#define INT_VECT_5  223
+#define INT_VECT_6  191
+#define INT_VECT_7  127
 
 void _ISR_hardware_service_routine(void) {
     
     struct Bus bus;
-    bus.read_waitstate  = 2;
+    bus.read_waitstate  = 4;
     
-    uint8_t interruptVector = 0;
+    uint8_t iVect = 0;
     
-    bus_read_io(&bus, 0x00000, &interruptVector);
+    bus_read_io(&bus, 0x00000, &iVect);
     
-    if (interruptVector == 1)   printc("1", 4);
-    if (interruptVector == 2)   printc("2", 4);
-    if (interruptVector == 4)   printc("3", 4);
-    if (interruptVector == 8)   printc("4", 4);
-    if (interruptVector == 16)  printc("5", 4);
-    if (interruptVector == 32)  printc("6", 4);
-    if (interruptVector == 64)  printc("7", 4);
-    if (interruptVector == 128) printc("8", 4);
-    
-    uint8_t msgInt[] = "INT";
-    
-    printLn();
-    
-    print(msgInt, sizeof(msgInt));
-    
-    printLn();
-    
-    while(1) {
-        
-    }
+    if (iVect == INT_VECT_0) {printc("1", 2); printLn(); printPrompt(); _delay_ms(10);}
+    if (iVect == INT_VECT_1) {printc("2", 2); printLn(); printPrompt(); _delay_ms(10);}
+    if (iVect == INT_VECT_2) {printc("3", 2); printLn(); printPrompt(); _delay_ms(10);}
+    if (iVect == INT_VECT_3) {printc("4", 2); printLn(); printPrompt(); _delay_ms(10);}
+    if (iVect == INT_VECT_4) {printc("5", 2); printLn(); printPrompt(); _delay_ms(10);}
+    if (iVect == INT_VECT_5) {printc("6", 2); printLn(); printPrompt(); _delay_ms(10);}
+    if (iVect == INT_VECT_6) {printc("7", 2); printLn(); printPrompt(); _delay_ms(10);}
+    if (iVect == INT_VECT_7) {printc("8", 2); printLn(); printPrompt(); _delay_ms(10);}
     
     return;
 }

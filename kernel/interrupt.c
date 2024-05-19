@@ -29,7 +29,6 @@ void SetInterruptFlag(void) {
 
 void InterruptStartScheduler(void) {
     
-	// Scheduler timer/counter
 	TCCR0A  = _SCHEDULER_TCCRxA;
 	TCCR0B  = _SCHEDULER_TCCRxB;
 	TIMSK0  = _SCHEDULER_TIMSK;
@@ -40,7 +39,6 @@ void InterruptStartScheduler(void) {
 
 void InterruptStartTimeCounter(void) {
     
-	// Millisecond clock counter
 	TCCR1A  = _CLOCK_TCCRxA;
 	TCCR1B  = _CLOCK_TCCRxB;
 	TIMSK1  = _CLOCK_TIMSK;
@@ -83,7 +81,7 @@ void InterruptStopHardware(void) {
 
 
 //
-// Interrupt services
+// Interrupts
 //
 
 uint8_t SetInterruptServiceA(void (*service_ptr)()) {
@@ -114,24 +112,39 @@ uint8_t SetHardwareInterruptServiceA(void (*service_ptr)()) {
     return 1;
 }
 
+//
+// Interrupt service routines
+//
 
 ISR (TIMER0_COMPA_vect) {
     
+    cli();
+    
     _timer_comp_a_ptr__();
+    
+    sei();
     
     return;
 }
 
 ISR (TIMER1_COMPA_vect) {
     
+    cli();
+    
     _timer_comp_b_ptr__();
+    
+    sei();
     
     return;
 }
 
 ISR (TIMER2_COMPA_vect) {
     
+    cli();
+    
     _timer_comp_c_ptr__();
+    
+    sei();
     
     return;
 }
