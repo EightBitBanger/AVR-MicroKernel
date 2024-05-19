@@ -5,6 +5,8 @@
 
 #include <kernel/pointers.h>
 
+#include <kernel/interrupt.h>
+
 #include <kernel/bus/bus.h>
 #include <kernel/device/device.h>
 #include <kernel/driver/driver.h>

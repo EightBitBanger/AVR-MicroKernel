@@ -1,6 +1,8 @@
 #include <avr/io.h>
 #include <avr/interrupt.h>
 
+#include <kernel/interrupt.h>
+
 #include <kernel/cstring.h>
 
 #include <kernel/scheduler.h>
@@ -141,21 +143,11 @@ void schedulerStart(void) {
     
     schedulerIsActive = 1;
 	
-	cli();
+	ClearInterruptFlag();
 	
-	// Millisecond clock
-	TCCR1A  = _CLOCK_TCCRxA;
-	TCCR1B  = _CLOCK_TCCRxB;
-	TIMSK1  = _CLOCK_TIMSK;
-	OCR1A   = _CLOCK_OCR;
+	TimerCounterStart();
 	
-	// Scheduler
-	TCCR0A  = _SCHEDULER_TCCRxA;
-	TCCR0B  = _SCHEDULER_TCCRxB;
-	TIMSK0  = _SCHEDULER_TIMSK;
-	OCR0A   = _SCHEDULER_OCR;
-	
-	sei();
+	SetInterruptFlag();
 	
 	return;
 }
@@ -168,13 +160,14 @@ void schedulerStop(void) {
     
 	schedulerIsActive = 0;
 	
-	TCCR0B  = 0;
-	TCCR1B  = 0;
-	TCCR2B  = 0;
+	TimerCounterStop();
 	
 	return;
 }
 
+
+
+/*
 
 ISR (TIMER0_COMPA_vect) {
     
@@ -196,11 +189,11 @@ ISR (TIMER1_COMPA_vect) {
 			
 			// Call the task function with no inturrupts
 			
-			cli();
+			ClearInterruptFlag();
 			
 			proc_info.table[PID]();
 			
-			sei();
+			SetInterruptFlag();
             
 		} else {
 			
@@ -244,3 +237,4 @@ ISR (TIMER1_COMPA_vect) {
     return;
 }
 
+*/
