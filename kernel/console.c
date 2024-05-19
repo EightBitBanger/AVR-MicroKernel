@@ -203,220 +203,216 @@ uint8_t ConsoleGetLastChar(void) {
 
 void consoleRunShell(void) {
     
-    while(1) {
+    // Check the current scan code
+    uint8_t scanCode = ConsoleGetLastChar();
+    
+    //
+    // Function F3 - Repeat last command
+    //
+    
+    if (scanCode == 0xf3) {
         
-        // Check the current scan code
-        uint8_t scanCode = ConsoleGetLastChar();
+        console_string_length = console_string_length_old;
+        ConsoleSetCursorPosition(console_prompt_length);
         
-        //
-        // Function F3 - Repeat last command
-        //
-        
-        if (scanCode == 0xf3) {
-            
-            console_string_length = console_string_length_old;
-            ConsoleSetCursorPosition(console_prompt_length);
-            
-            for (uint8_t i=0; i < console_string_length; i++) {
-                console_string[i] = console_string_old[i];
-                printChar( console_string[i] );
-            }
-            
-            ConsoleSetCursorPosition( console_string_length + 2 );
-            
-            return;
+        for (uint8_t i=0; i < console_string_length; i++) {
+            console_string[i] = console_string_old[i];
+            printChar( console_string[i] );
         }
         
+        ConsoleSetCursorPosition( console_string_length + 2 );
         
-        //
-        // Backspace
-        //
+        return;
+    }
+    
+    
+    //
+    // Backspace
+    //
+    
+    if (scanCode == 0x01) {
         
-        if (scanCode == 0x01) {
+        if (console_string_length > 0) {
             
-            if (console_string_length > 0) {
+            if (console_position == 0) {
+                console_line--;
+                console_position = 20;
+            }
+            
+            // Remove last character from the console string
+            console_string[ console_string_length - 1 ] = ' ';
+            
+            // Remove the character from the display
+            displayDevice->write( console_position + (20 * console_line) - 1, ' ' );
+            
+            // Decrement the console string length
+            console_string_length--;
+            console_position--;
+            
+            ConsoleSetCursor(console_line, console_position);
+            
+        }
+        
+    }
+    
+    
+    //
+    // Return
+    //
+    
+    if (scanCode == 0x02) {
+        
+        printLn();
+        
+        uint8_t isRightFunction = 0;
+        uint8_t parameters_begin = 0;
+        
+        uint8_t length = console_string_length - parameters_begin;
+        
+        // Look up function name
+        for (uint8_t i=0; i < CONSOLE_FUNCTION_TABLE_SIZE; i++) {
+            
+            isRightFunction = 1;
+            
+            for (uint8_t n=0; n < CONSOLE_FUNCTION_NAME_LENGTH; n++) {
                 
-                if (console_position == 0) {
-                    console_line--;
-                    console_position = 20;
+                if (CommandRegistry[i].name[n] != console_string[n]) {
+                    
+                    isRightFunction = 0;
+                    
+                    break;
                 }
                 
-                // Remove last character from the console string
-                console_string[ console_string_length - 1 ] = ' ';
-                
-                // Remove the character from the display
-                displayDevice->write( console_position + (20 * console_line) - 1, ' ' );
-                
-                // Decrement the console string length
-                console_string_length--;
-                console_position--;
-                
-                ConsoleSetCursor(console_line, console_position);
-                
-            }
-            
-        }
-        
-        
-        //
-        // Return
-        //
-        
-        if (scanCode == 0x02) {
-            
-            printLn();
-            
-            uint8_t isRightFunction = 0;
-            uint8_t parameters_begin = 0;
-            
-            uint8_t length = console_string_length - parameters_begin;
-            
-            // Look up function name
-            for (uint8_t i=0; i < CONSOLE_FUNCTION_TABLE_SIZE; i++) {
-                
-                isRightFunction = 1;
-                
-                for (uint8_t n=0; n < CONSOLE_FUNCTION_NAME_LENGTH; n++) {
+                if (parameters_begin == 0) {
                     
-                    if (CommandRegistry[i].name[n] != console_string[n]) {
+                    if (CommandRegistry[i].name[n] == ' ') {
                         
-                        isRightFunction = 0;
+                        parameters_begin = n + 1;
                         
                         break;
                     }
                     
-                    if (parameters_begin == 0) {
-                        
-                        if (CommandRegistry[i].name[n] == ' ') {
-                            
-                            parameters_begin = n + 1;
-                            
-                            break;
-                        }
-                        
-                    }
-                    
                 }
                 
-                if (isRightFunction == 0)
-                    continue;
-                
-                // Save last entered command string
-                for (uint8_t i=0; i < console_string_length; i++) 
-                    console_string_old[i] = console_string[i];
-                console_string_length_old = console_string_length;
-                
-                console_string_length = 0;
-                
-                console_position = 0;
-                
-                // Run the function
-                if (CommandRegistry[i].function != nullptr) 
-                    CommandRegistry[i].function( &console_string[parameters_begin], length );
-                
-                printPrompt();
-                
-                break;
             }
             
-            // Check executable file exists
-            uint32_t programSize = fsFileExists(console_string, length - parameters_begin);
+            if (isRightFunction == 0)
+                continue;
             
-            // Execute the file
-            if (programSize != 0) {
-                
-                // Fire up the emulator
-                uint8_t index = fsFileOpen(console_string, length - parameters_begin);
-                uint8_t programBuffer[1024];
-                
-                fsFileRead(index, programBuffer, programSize);
-                
-                EmulateX4(programBuffer, programSize + 1);
-                
-                // Clear the console string
-                for (uint8_t i=0; i < CONSOLE_STRING_LENGTH; i++) 
-                    console_string[i] = ' ';
-                
-                fsFileClose(index);
-                
-                printPrompt();
-                
-            }
+            // Save last entered command string
+            for (uint8_t i=0; i < console_string_length; i++) 
+                console_string_old[i] = console_string[i];
+            console_string_length_old = console_string_length;
             
-            // Bad command for filename
-            if ((programSize == 0) & (isRightFunction == 0) & (console_string_length > 0)) {
-                
-                // Save last entered command string
-                for (uint8_t i=0; i < console_string_length; i++) 
-                    console_string_old[i] = console_string[i];
-                console_string_length_old = console_string_length;
-                
-                ConsoleSetCursor(console_line, 0);
-                
-                uint8_t badCommandOrFilename[] = "Bad cmd or filename";
-                print( badCommandOrFilename, sizeof(badCommandOrFilename) );
-                
-                printLn();
-                
-                printPrompt();
-                
-            }
+            console_string_length = 0;
+            
+            console_position = 0;
+            
+            // Run the function
+            if (CommandRegistry[i].function != nullptr) 
+                CommandRegistry[i].function( &console_string[parameters_begin], length );
+            
+            printPrompt();
+            
+            break;
+        }
+        
+        // Check executable file exists
+        uint32_t programSize = fsFileExists(console_string, length - parameters_begin);
+        
+        // Execute the file
+        if (programSize != 0) {
+            
+            // Fire up the emulator
+            uint8_t index = fsFileOpen(console_string, length - parameters_begin);
+            uint8_t programBuffer[1024];
+            
+            fsFileRead(index, programBuffer, programSize);
+            
+            EmulateX4(programBuffer, programSize + 1);
             
             // Clear the console string
             for (uint8_t i=0; i < CONSOLE_STRING_LENGTH; i++) 
                 console_string[i] = ' ';
             
-            console_string_length = 0;
+            fsFileClose(index);
+            
+            printPrompt();
             
         }
         
-        
-        //
-        // Add letter or number
-        //
-        
-        if (scanCode > 0x19) {
+        // Bad command for filename
+        if ((programSize == 0) & (isRightFunction == 0) & (console_string_length > 0)) {
             
-            if (console_string_length < CONSOLE_STRING_LENGTH) {
+            // Save last entered command string
+            for (uint8_t i=0; i < console_string_length; i++) 
+                console_string_old[i] = console_string[i];
+            console_string_length_old = console_string_length;
+            
+            ConsoleSetCursor(console_line, 0);
+            
+            uint8_t badCommandOrFilename[] = "Bad cmd or filename";
+            print( badCommandOrFilename, sizeof(badCommandOrFilename) );
+            
+            printLn();
+            
+            printPrompt();
+            
+        }
+        
+        // Clear the console string
+        for (uint8_t i=0; i < CONSOLE_STRING_LENGTH; i++) 
+            console_string[i] = ' ';
+        
+        console_string_length = 0;
+        
+    }
+    
+    
+    //
+    // Add letter or number
+    //
+    
+    if (scanCode > 0x19) {
+        
+        if (console_string_length < CONSOLE_STRING_LENGTH) {
+            
+            console_string[console_string_length] = scanCode;
+            
+            console_string_length++;
+            
+            
+            ConsoleSetCursor(console_line, console_position + 1);
+            console_position--;
+            
+            printChar( scanCode );
+            
+            if (console_position > 19) {
                 
-                console_string[console_string_length] = scanCode;
-                
-                console_string_length++;
-                
-                
-                ConsoleSetCursor(console_line, console_position + 1);
-                console_position--;
-                
-                printChar( scanCode );
-                
-                if (console_position > 19) {
+                if (console_line < 3) {
                     
-                    if (console_line < 3) {
-                        
-                        printLn();
-                        
-                        console_position = 0;
-                        
-                        ConsoleSetCursor(console_line, console_position);
-                        
-                    } else {
-                        
-                        ConsoleSetCursor(console_line, 0);
-                        
-                        console_position = 0;
-                        
-                        console_line = 3;
-                        
-                        ConsoleSetCursor(console_line, console_position);
-                        
-                        printLn();
-                        
-                    }
+                    printLn();
+                    
+                    console_position = 0;
+                    
+                    ConsoleSetCursor(console_line, console_position);
+                    
+                } else {
+                    
+                    ConsoleSetCursor(console_line, 0);
+                    
+                    console_position = 0;
+                    
+                    console_line = 3;
+                    
+                    ConsoleSetCursor(console_line, console_position);
+                    
+                    printLn();
                     
                 }
                 
-                
             }
+            
             
         }
         

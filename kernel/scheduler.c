@@ -143,7 +143,7 @@ void schedulerInitiate(void) {
 		proc_info.table[i]    = 0;
 		
 		for (uint8_t a=0; a < TASK_NAME_LENGTH_MAX; a++)
-            proc_info.name[i][a] = 0x20;
+            proc_info.name[i][a] = ' ';
 	}
 	
 	return;
@@ -157,6 +157,6 @@ void schedulerStart(void) {
 
 
 void schedulerStop(void) {
-	schedulerIsActive = 1;
+	schedulerIsActive = 0;
 	return;
 }

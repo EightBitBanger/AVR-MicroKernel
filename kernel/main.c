@@ -1,5 +1,14 @@
 #include <kernel/main.h>
 
+void taskfunc(void) {
+    
+    printc("C", 1);
+    //printLn();
+    
+    return;
+}
+
+
 
 int main(void) {
     
@@ -166,13 +175,15 @@ int main(void) {
     
 #endif
     
+    uint8_t taskname[] = "command";
+    
+    task_create(taskname, sizeof(taskname), consoleRunShell, TASK_PRIORITY_HIGH, TASK_TYPE_SERVICE);
+    
     printPrompt();
     
     schedulerStart();
     
     while(1) {
-        
-        consoleRunShell();
         
         SchedulerUpdate();
         
