@@ -196,15 +196,7 @@ int main(void) {
     
     while(1) {
         
-        continue;
-        
-        ClearInterruptFlag();
-        
-        consoleRunShell();
-        
-        SetInterruptFlag();
-        
-        _delay_us(40);
+        __asm__("nop");
         
         continue;
     }

@@ -11,6 +11,8 @@ volatile struct ProcessDescriptorTable proc_info;
 
 volatile uint64_t timer_ms = 0;
 
+volatile uint8_t PID=0; 
+
 uint8_t schedulerIsActive = 0;
 
 
@@ -175,8 +177,6 @@ void schedulerStop(void) {
 // Interrupt service routines
 //
 
-uint8_t PID=0; 
-
 void _ISR_SCHEDULER_MAIN__(void) {
     
     if (PID >= TASK_LIST_SIZE) {
@@ -184,7 +184,9 @@ void _ISR_SCHEDULER_MAIN__(void) {
     }
     
 	if (proc_info.priority[PID] == TASK_PRIORITY_HALT) {
+        
         PID++;
+        
         return;
 	}
 	
@@ -192,14 +194,10 @@ void _ISR_SCHEDULER_MAIN__(void) {
 		
 		proc_info.counter[PID]=0;
 		
-		// Call the task function with no interrupts
-		
-		ClearInterruptFlag();
+		// Call the task function pointer
 		
 		proc_info.table[PID]();
 		
-		SetInterruptFlag();
-        
 	} else {
 		
 		proc_info.counter[PID]++;
