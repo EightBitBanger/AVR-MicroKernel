@@ -178,9 +178,13 @@ void functionAsm(uint8_t* param, uint8_t param_length) {
                         
                     }
                     
-                    uint8_t hexStringA[] = "00000000-00000000";
-                    uint8_t hexStringB[] = "00000000-00000000";
-                    uint8_t hexStringC[] = "00000000-00000000";
+                    uint8_t hexStringA[17];
+                    uint8_t hexStringB[17];
+                    uint8_t hexStringC[17];
+                    
+                    hexStringA[9] = '-';
+                    hexStringB[9] = '-';
+                    hexStringC[9] = '-';
                     
                     for (uint8_t i=0; i < 4; i++) int_to_hex_string( fileBuffer[i + currentFileAddress], &hexStringA[i * 2] );
                     for (uint8_t i=0; i < 4; i++) int_to_hex_string( fileBuffer[i + 4  + currentFileAddress], &hexStringA[(i * 2) + 9] );
@@ -297,7 +301,9 @@ void functionAsm(uint8_t* param, uint8_t param_length) {
                         
                         if (fileBuffer[currentFileAddress] == 0xCB) {printc("ret", 4);  opCodeWasFound = 1;}
                         
-                        if ((fileBuffer[currentFileAddress] == 0xCC) | (fileBuffer[currentFileAddress] == 0xCC)) {printc("int", 4);  opCodeWasFound = 2; specialOpcodeArgs = 1;}
+                        if ((fileBuffer[currentFileAddress] == 0xCC) | 
+                            (fileBuffer[currentFileAddress] == 0xCC)) {printc("int", 4);  opCodeWasFound = 2; specialOpcodeArgs = 1;}
+                        
                         if (fileBuffer[currentFileAddress] == 0xFA) {printc("cli", 4);  opCodeWasFound = 1;}
                         if (fileBuffer[currentFileAddress] == 0xFB) {printc("sti", 4);  opCodeWasFound = 1;}
                         
