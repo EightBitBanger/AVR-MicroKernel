@@ -201,6 +201,14 @@ uint8_t ConsoleGetLastChar(void) {
     return lastChar;
 }
 
+void ConsoleClearKeyboardString(void) {
+    
+    for (uint8_t i=0; i < CONSOLE_STRING_LENGTH; i++) 
+        console_string[i] = ' ';
+    
+    return;
+}
+
 void consoleRunShell(void) {
     
     // Check the current scan code
@@ -267,8 +275,6 @@ void consoleRunShell(void) {
         uint8_t isRightFunction = 0;
         uint8_t parameters_begin = 0;
         
-        uint8_t length = console_string_length - parameters_begin;
-        
         // Look up function name
         for (uint8_t i=0; i < CONSOLE_FUNCTION_TABLE_SIZE; i++) {
             
@@ -304,36 +310,36 @@ void consoleRunShell(void) {
                 console_string_old[i] = console_string[i];
             console_string_length_old = console_string_length;
             
-            console_string_length = 0;
-            
             console_position = 0;
             
             // Run the function
             if (CommandRegistry[i].function != nullptr) 
-                CommandRegistry[i].function( &console_string[parameters_begin], length );
+                CommandRegistry[i].function( &console_string[parameters_begin], console_string_length - parameters_begin );
+            
+            console_string_length = 0;
             
             printPrompt();
+            
+            ConsoleClearKeyboardString();
             
             break;
         }
         
         // Check executable file exists
-        uint32_t programSize = fsFileExists(console_string, length - parameters_begin);
+        uint32_t programSize = fsFileExists(console_string, parameters_begin - 1);
         
         // Execute the file
         if (programSize != 0) {
             
             // Fire up the emulator
-            uint8_t index = fsFileOpen(console_string, length - parameters_begin);
+            uint8_t index = fsFileOpen(console_string, parameters_begin - 1);
             uint8_t programBuffer[1024];
             
             fsFileRead(index, programBuffer, programSize);
             
             EmulateX4(programBuffer, programSize + 1);
             
-            // Clear the console string
-            for (uint8_t i=0; i < CONSOLE_STRING_LENGTH; i++) 
-                console_string[i] = ' ';
+            ConsoleClearKeyboardString();
             
             fsFileClose(index);
             
@@ -360,9 +366,7 @@ void consoleRunShell(void) {
             
         }
         
-        // Clear the console string
-        for (uint8_t i=0; i < CONSOLE_STRING_LENGTH; i++) 
-            console_string[i] = ' ';
+        ConsoleClearKeyboardString();
         
         console_string_length = 0;
         

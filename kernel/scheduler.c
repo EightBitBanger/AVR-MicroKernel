@@ -1,4 +1,5 @@
 #include <avr/io.h>
+#include <avr/interrupt.h>
 
 #include <kernel/cstring.h>
 
@@ -53,19 +54,16 @@ uint8_t task_find(uint8_t* name, uint8_t name_length) {
 	if (name_length > TASK_NAME_LENGTH_MAX)
         name_length = TASK_NAME_LENGTH_MAX;
 	
-	uint8_t task_name[name_length];
-	for (uint8_t i=0; i < name_length-1; i++)
-        task_name[i] = name[i];
-	
 	for (uint8_t index=0; index < TASK_LIST_SIZE; index++) {
 		
-		if (proc_info.name[index][0] == ' ') continue;
+		if (proc_info.type[index] == 0x00) 
+            continue;
 		
-		uint8_t list_task_name[name_length];
-		for (uint8_t i=0; i < name_length-1; i++)
+		uint8_t list_task_name[TASK_NAME_LENGTH_MAX];
+		for (uint8_t i=0; i < TASK_NAME_LENGTH_MAX; i++)
             list_task_name[i] = proc_info.name[index][i];
 		
-		if (string_compare(task_name, list_task_name, TASK_NAME_LENGTH_MAX) == 1) {
+		if (string_compare(name, list_task_name, TASK_NAME_LENGTH_MAX) == 1) {
             
             return (index + 1);
         }
@@ -81,19 +79,16 @@ uint8_t task_kill(uint8_t* name, uint8_t name_length) {
 	if (name_length > TASK_NAME_LENGTH_MAX)
         name_length = TASK_NAME_LENGTH_MAX;
 	
-	uint8_t task_name[name_length];
-	for (uint8_t i=0; i < name_length-1; i++)
-        task_name[i] = name[i];
-	
 	for (uint8_t index=0; index < TASK_LIST_SIZE; index++) {
 		
-		if (proc_info.name[index][0] == ' ') continue;
+		if (proc_info.type[index] == 0x00) 
+            continue;
 		
-		uint8_t list_task_name[name_length];
-		for (uint8_t i=0; i < name_length-1; i++)
+		uint8_t list_task_name[TASK_NAME_LENGTH_MAX];
+		for (uint8_t i=0; i < TASK_NAME_LENGTH_MAX; i++)
             list_task_name[i] = proc_info.name[index][i];
 		
-		if (string_compare(task_name, list_task_name, TASK_NAME_LENGTH_MAX) == 1) {
+		if (string_compare(name, list_task_name, TASK_NAME_LENGTH_MAX) == 1) {
             
             for (uint8_t i=0; i < TASK_NAME_LENGTH_MAX; i++) 
                 proc_info.name[index][i] = ' ';
@@ -122,7 +117,8 @@ void SchedulerUpdate(void) {
     
 	for (uint8_t PID=0; PID < TASK_LIST_SIZE; PID++) {
 		
-		if (proc_info.priority[PID] == 0) continue;
+		if (proc_info.priority[PID] == 0) 
+            continue;
 		
 		if (proc_info.counter[PID] >= proc_info.priority[PID]) {
 			
@@ -188,12 +184,58 @@ void schedulerInitiate(void) {
 
 
 void schedulerStart(void) {
-	schedulerIsActive = 1;
+	
+	if (schedulerIsActive == 1) 
+        return;
+    
+    schedulerIsActive = 1;
+	
+	cli();
+	
+	// Millisecond clock
+	TCCR1A  = _CLOCK_TCCRxA;
+	TCCR1B  = _CLOCK_TCCRxB;
+	TIMSK1  = _CLOCK_TIMSK;
+	OCR1A   = _CLOCK_OCR;
+	
+	// Scheduler
+	TCCR0A  = _SCHEDULER_TCCRxA;
+	TCCR0B  = _SCHEDULER_TCCRxB;
+	TIMSK0  = _SCHEDULER_TIMSK;
+	OCR0A   = _SCHEDULER_OCR;
+	
+	sei();
+	
 	return;
 }
 
 
 void schedulerStop(void) {
+	
+	if (schedulerIsActive == 0) 
+        return;
+    
 	schedulerIsActive = 0;
+	
+	TCCR0B  = 0;
+	TCCR1B  = 0;
+	TCCR2B  = 0;
+	
 	return;
 }
+
+
+ISR (TIMER0_COMPA_vect) {
+    
+    
+    
+    return;
+}
+
+ISR (TIMER1_COMPA_vect) {
+    
+    SchedulerUpdate();
+    
+    return;
+}
+
