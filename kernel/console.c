@@ -173,16 +173,36 @@ void consoleRunShell(void) {
             break;
         }
         
-        // Check executable file exists
-        uint32_t programSize = fsGetFileSize(console_string, parameters_begin - 1);
+        // Get parameters
+        uint8_t filename[FILE_NAME_LENGTH];
+        for (uint8_t i=0; i < FILE_NAME_LENGTH; i++) 
+            filename[i] = ' ';
         
-        // Execute the file
-        if (fsFileExists(console_string, parameters_begin - 1) != 0) {
+        for (uint8_t i=0; i < 40; i++) {
             
-            print(console_string, parameters_begin + 1);
+            if (console_string[i] != ' ') 
+                continue;
+            
+            filename[i] = console_string[i];
+            
+            parameters_begin = i + 1;
+            break;
+        }
+        
+        // Check executable file exists
+        uint32_t programSize = fsGetFileSize(filename, FILE_NAME_LENGTH);
+        
+        if (programSize > 0) {
+            
+            print(filename, parameters_begin);
             printLn();
             
-            /*
+        }
+        
+        /*
+        
+        // Execute the file
+        if (fsFileExists(console_string, parameters_begin) != 0) {
             
             // Fire up the emulator
             uint8_t index = fsFileOpen(console_string, parameters_begin + 1);
@@ -196,7 +216,6 @@ void consoleRunShell(void) {
             
             fsFileClose(index);
             
-            */
             
             // Clear the console string
             ConsoleClearKeyboardString();
@@ -204,9 +223,12 @@ void consoleRunShell(void) {
             printPrompt();
             
         }
+        */
         
         //
         // Bad command or filename
+        
+        /*
         
         if ((programSize == 0) & (isRightFunction == 0) & (console_string_length > 0)) {
             
@@ -225,6 +247,8 @@ void consoleRunShell(void) {
             printPrompt();
             
         }
+        
+        */
         
         ConsoleClearKeyboardString();
         
