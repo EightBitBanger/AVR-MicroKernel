@@ -122,19 +122,6 @@ void consoleRunShell(void) {
         
         printLn();
         
-        /*
-        
-        print(console_string, console_string_length + 1);
-        printc("<", 2);
-        printLn();
-        
-        ConsoleClearKeyboardString();
-        console_string_length = 0;
-        
-        printPrompt();
-        
-        */
-        
         uint8_t isRightFunction = 0;
         uint8_t parameters_begin = 0;
         
@@ -186,55 +173,41 @@ void consoleRunShell(void) {
             break;
         }
         
-        if (isRightFunction == 0) {
-            
-            // Check executable file exists
-            
-            if (fsFileExists(console_string, parameters_begin + 1) != 0) {
-                
-                uint32_t programSize = fsGetFileSize(console_string, parameters_begin + 1);
-                
-                if (programSize == 0) 
-                print(console_string, console_string_length + 1);
-                printc("<", 2);
-                
-                printLn();
-                
-            }
-            
-        }
-        
-        /*
-        
         // Check executable file exists
-        uint32_t programSize = fsFileExists(console_string, parameters_begin + 1);
+        uint32_t programSize = fsGetFileSize(console_string, parameters_begin + 1);
         
         // Execute the file
-        if (programSize != 0) {
+        if (fsFileExists(console_string, parameters_begin + 1) != 0) {
             
             print(console_string, parameters_begin + 1);
-            printc("<", 2);
-            
             printLn();
             
+            /*
+            
             // Fire up the emulator
-            uint8_t index = fsFileOpen(console_string, parameters_begin - 1);
+            uint8_t index = fsFileOpen(console_string, parameters_begin + 1);
             uint8_t programBuffer[1024];
             
+            // Load the file
             fsFileRead(index, programBuffer, programSize);
             
+            // Emulate the code
             EmulateX4(programBuffer, programSize + 1);
             
-            ConsoleClearKeyboardString();
-            
             fsFileClose(index);
+            
+            */
+            
+            // Clear the console string
+            ConsoleClearKeyboardString();
             
             printPrompt();
             
         }
         
-        
+        //
         // Bad command or filename
+        
         if ((programSize == 0) & (isRightFunction == 0) & (console_string_length > 0)) {
             
             // Save last entered command string
@@ -252,8 +225,6 @@ void consoleRunShell(void) {
             printPrompt();
             
         }
-        
-        */
         
         ConsoleClearKeyboardString();
         
