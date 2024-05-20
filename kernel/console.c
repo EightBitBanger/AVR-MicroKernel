@@ -174,10 +174,10 @@ void consoleRunShell(void) {
         }
         
         // Check executable file exists
-        uint32_t programSize = fsGetFileSize(console_string, parameters_begin + 1);
+        uint32_t programSize = fsGetFileSize(console_string, parameters_begin - 1);
         
         // Execute the file
-        if (fsFileExists(console_string, parameters_begin + 1) != 0) {
+        if (fsFileExists(console_string, parameters_begin - 1) != 0) {
             
             print(console_string, parameters_begin + 1);
             printLn();
