@@ -178,12 +178,12 @@ void consoleRunShell(void) {
         for (uint8_t i=0; i < FILE_NAME_LENGTH; i++) 
             filename[i] = ' ';
         
-        for (uint8_t i=0; i < 40; i++) {
+        for (uint8_t i=0; i < FILE_NAME_LENGTH; i++) {
+            
+            filename[i] = console_string[i];
             
             if (console_string[i] != ' ') 
                 continue;
-            
-            filename[i] = console_string[i];
             
             parameters_begin = i + 1;
             break;
@@ -194,61 +194,54 @@ void consoleRunShell(void) {
         
         if (programSize > 0) {
             
-            print(filename, parameters_begin);
-            printLn();
+            // Execute the file
+            if (fsFileExists(filename, parameters_begin) != 0) {
+                
+                // Fire up the emulator
+                uint8_t index = fsFileOpen(filename, parameters_begin);
+                uint8_t programBuffer[1024];
+                
+                // Load the file
+                fsFileRead(index, programBuffer, programSize);
+                
+                // Emulate the code
+                EmulateX4(programBuffer, programSize + 1);
+                
+                fsFileClose(index);
+                
+                
+                // Clear the console string
+                ConsoleClearKeyboardString();
+                
+                printPrompt();
+                
+            }
+            
+        } else {
+            
+            //
+            // Bad command or filename
+            
+            if ((isRightFunction == 0) & (console_string_length > 0)) {
+                
+                // Save last entered command string
+                for (uint8_t i=0; i < console_string_length; i++) 
+                    console_string_old[i] = console_string[i];
+                console_string_length_old = console_string_length;
+                
+                ConsoleSetCursor(console_line, 0);
+                
+                uint8_t badCommandOrFilename[] = "Bad cmd or filename";
+                print( badCommandOrFilename, sizeof(badCommandOrFilename) );
+                
+                printLn();
+                
+                printPrompt();
+                
+            }
             
         }
         
-        /*
-        
-        // Execute the file
-        if (fsFileExists(console_string, parameters_begin) != 0) {
-            
-            // Fire up the emulator
-            uint8_t index = fsFileOpen(console_string, parameters_begin + 1);
-            uint8_t programBuffer[1024];
-            
-            // Load the file
-            fsFileRead(index, programBuffer, programSize);
-            
-            // Emulate the code
-            EmulateX4(programBuffer, programSize + 1);
-            
-            fsFileClose(index);
-            
-            
-            // Clear the console string
-            ConsoleClearKeyboardString();
-            
-            printPrompt();
-            
-        }
-        */
-        
-        //
-        // Bad command or filename
-        
-        /*
-        
-        if ((programSize == 0) & (isRightFunction == 0) & (console_string_length > 0)) {
-            
-            // Save last entered command string
-            for (uint8_t i=0; i < console_string_length; i++) 
-                console_string_old[i] = console_string[i];
-            console_string_length_old = console_string_length;
-            
-            ConsoleSetCursor(console_line, 0);
-            
-            uint8_t badCommandOrFilename[] = "Bad cmd or filename";
-            print( badCommandOrFilename, sizeof(badCommandOrFilename) );
-            
-            printLn();
-            
-            printPrompt();
-            
-        }
-        
-        */
         
         ConsoleClearKeyboardString();
         
