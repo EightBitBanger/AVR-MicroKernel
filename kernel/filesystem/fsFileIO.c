@@ -28,7 +28,7 @@ uint8_t fsFileClose(uint8_t index) {
     return 0;
 }
 
-uint8_t fsFileWrite(uint8_t index, uint8_t* buffer, uint8_t length) {
+uint8_t fsFileWrite(uint8_t index, uint8_t* buffer, uint32_t length) {
     
     if (fileBeginAddress == 0) 
         return 0;
@@ -59,7 +59,7 @@ uint8_t fsFileWrite(uint8_t index, uint8_t* buffer, uint8_t length) {
     return 1;
 }
 
-uint8_t fsFileRead(uint8_t index, uint8_t* buffer, uint8_t length) {
+uint8_t fsFileRead(uint8_t index, uint8_t* buffer, uint32_t length) {
     
     if (fileBeginAddress == 0) 
         return 0;

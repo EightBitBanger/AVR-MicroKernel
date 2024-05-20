@@ -21,6 +21,9 @@ uint32_t fsFileCreate(uint8_t* name, uint8_t nameLength, uint32_t fileSize) {
     
     uint32_t currentCapacity = fsGetDeviceCapacity() / SECTOR_SIZE;
     
+    if (fileSize > (SECTOR_SIZE * 8)) 
+        return 0;
+    
     // Calculate sectors required to fit the file
     uint32_t totalSectors=0;
 	for (uint32_t i=0; i < fileSize; i += (SECTOR_SIZE - 1)) 

@@ -35,6 +35,9 @@ void functionATTRIB(uint8_t* param, uint8_t param_length) {
         return;
     }
     
+    return;
+    
+    
     // Get current file attributes
     struct FSAttribute attributeCurrent;
     fsGetFileAttributes(filename, filenameLength, &attributeCurrent);
