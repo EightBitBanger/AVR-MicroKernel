@@ -122,6 +122,19 @@ void consoleRunShell(void) {
         
         printLn();
         
+        /*
+        
+        print(console_string, console_string_length + 1);
+        printc("<", 2);
+        printLn();
+        
+        ConsoleClearKeyboardString();
+        console_string_length = 0;
+        
+        printPrompt();
+        
+        */
+        
         uint8_t isRightFunction = 0;
         uint8_t parameters_begin = 0;
         
@@ -129,6 +142,7 @@ void consoleRunShell(void) {
         for (uint8_t i=0; i < CONSOLE_FUNCTION_TABLE_SIZE; i++) {
             
             isRightFunction = 1;
+            parameters_begin = 0;
             
             for (uint8_t n=0; n < CONSOLE_FUNCTION_NAME_LENGTH; n++) {
                 
@@ -139,15 +153,11 @@ void consoleRunShell(void) {
                     break;
                 }
                 
-                if (parameters_begin == 0) {
+                if (CommandRegistry[i].name[n] == ' ') {
                     
-                    if (CommandRegistry[i].name[n] == ' ') {
-                        
-                        parameters_begin = n + 1;
-                        
-                        break;
-                    }
+                    parameters_begin = n + 1;
                     
+                    break;
                 }
                 
             }
@@ -156,15 +166,16 @@ void consoleRunShell(void) {
                 continue;
             
             // Save last entered command string
-            for (uint8_t i=0; i < console_string_length; i++) 
-                console_string_old[i] = console_string[i];
+            for (uint8_t a=0; a <= console_string_length; a++) 
+                console_string_old[a] = console_string[a];
+            
             console_string_length_old = console_string_length;
             
             console_position = 0;
             
             // Run the function
             if (CommandRegistry[i].function != nullptr) 
-                CommandRegistry[i].function( &console_string[parameters_begin], console_string_length - parameters_begin );
+                CommandRegistry[i].function( &console_string[parameters_begin], (console_string_length + 1) - parameters_begin );
             
             console_string_length = 0;
             
@@ -175,11 +186,36 @@ void consoleRunShell(void) {
             break;
         }
         
+        if (isRightFunction == 0) {
+            
+            // Check executable file exists
+            
+            if (fsFileExists(console_string, parameters_begin + 1) != 0) {
+                
+                uint32_t programSize = fsGetFileSize(console_string, parameters_begin + 1);
+                
+                if (programSize == 0) 
+                print(console_string, console_string_length + 1);
+                printc("<", 2);
+                
+                printLn();
+                
+            }
+            
+        }
+        
+        /*
+        
         // Check executable file exists
-        uint32_t programSize = fsFileExists(console_string, parameters_begin - 1);
+        uint32_t programSize = fsFileExists(console_string, parameters_begin + 1);
         
         // Execute the file
         if (programSize != 0) {
+            
+            print(console_string, parameters_begin + 1);
+            printc("<", 2);
+            
+            printLn();
             
             // Fire up the emulator
             uint8_t index = fsFileOpen(console_string, parameters_begin - 1);
@@ -197,7 +233,8 @@ void consoleRunShell(void) {
             
         }
         
-        // Bad command for filename
+        
+        // Bad command or filename
         if ((programSize == 0) & (isRightFunction == 0) & (console_string_length > 0)) {
             
             // Save last entered command string
@@ -216,9 +253,13 @@ void consoleRunShell(void) {
             
         }
         
+        */
+        
         ConsoleClearKeyboardString();
         
         console_string_length = 0;
+        
+        printPrompt();
         
     }
     
