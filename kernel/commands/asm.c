@@ -4,6 +4,18 @@
 
 #include <kernel/commands/list.h>
 
+uint8_t msgPromptString[] = "-";
+
+uint8_t asm_console_string[40];
+
+uint8_t asm_console_string_length;
+
+uint32_t currentFileAddress;
+
+uint8_t assemblyState;
+uint32_t assemblyAddress;
+
+
 void functionAsm(uint8_t* param, uint8_t param_length) {
     
     if (fsFileExists(param, param_length) == 0) 
@@ -11,27 +23,27 @@ void functionAsm(uint8_t* param, uint8_t param_length) {
     
     uint32_t fileSize = fsGetFileSize(param, param_length);
     
-    uint8_t lastChar =  ConsoleGetRawChar();
+    uint8_t lastChar         = ConsoleGetRawChar();
     uint8_t console_position = ConsoleGetCursorPosition();
     uint8_t console_line     = ConsoleGetCursorLine();
     
-    uint8_t msgPromptString[]    = "-";
-    
-    uint8_t asm_console_string[40];
-    
-    for (uint8_t i; i < 40; i++) 
+    for (uint8_t i; i < 40; i++) {
         asm_console_string[i] = ' ';
+    }
     
-    uint8_t asm_console_string_length = 0;
+    asm_console_string_length = 0;
     
-    uint32_t currentFileAddress = 0;
+    currentFileAddress = 0;
     
-    uint8_t assemblyState = 0;
-    uint32_t assemblyAddress = 0;
+    assemblyState   = 0;
+    assemblyAddress = 0;
     
+    // File data buffer
     uint8_t fileBuffer[fileSize];
-    for (uint16_t i=0; i < fileSize; i++) 
+    
+    for (uint16_t i=0; i < fileSize; i++) {
         fileBuffer[i] = ' ';
+    }
     
     print(msgPromptString, sizeof(msgPromptString));
     
@@ -66,8 +78,9 @@ void functionAsm(uint8_t* param, uint8_t param_length) {
             if (assemblyState == 0) {
                 
                 // Quit
-                if (asm_console_string[0] == 'q') 
+                if (asm_console_string[0] == 'q') {
                     break;
+                }
                 
                 // Run the program in memory
                 if (asm_console_string[0] == 'r') {
@@ -737,9 +750,9 @@ void functionAsm(uint8_t* param, uint8_t param_length) {
         }
         
         // Escape exit
-        //if (lastChar == 0x07) {
-        //    break;
-        //}
+        if (lastChar == 0x07) {
+            return;
+        }
         
         // Place a character
         if (lastChar > 0x19) {

@@ -197,18 +197,31 @@ void consoleRunShell(void) {
             // Execute the file
             if (fsFileExists(filename, parameters_begin) != 0) {
                 
-                // Fire up the emulator
-                uint8_t index = fsFileOpen(filename, parameters_begin);
-                uint8_t programBuffer[1024];
+                struct FSAttribute attribute;
                 
-                // Load the file
-                fsFileRead(index, programBuffer, programSize);
+                fsGetFileAttributes(filename, parameters_begin, &attribute);
                 
-                // Emulate the code
-                EmulateX4(programBuffer, programSize + 1);
-                
-                fsFileClose(index);
-                
+                if (attribute.executable != 0) {
+                    
+                    // Fire up the emulator
+                    uint8_t index = fsFileOpen(filename, parameters_begin);
+                    uint8_t programBuffer[1024];
+                    
+                    // Load the file
+                    fsFileRead(index, programBuffer, programSize);
+                    
+                    // Emulate the code
+                    EmulateX4(programBuffer, programSize + 1);
+                    
+                    fsFileClose(index);
+                    
+                } else {
+                    
+                    // Non executable
+                    
+                    programSize = 0;
+                    
+                }
                 
                 // Clear the console string
                 ConsoleClearKeyboardString();
@@ -217,31 +230,28 @@ void consoleRunShell(void) {
                 
             }
             
-        } else {
-            
-            //
-            // Bad command or filename
-            
-            if ((isRightFunction == 0) & (console_string_length > 0)) {
-                
-                // Save last entered command string
-                for (uint8_t i=0; i < console_string_length; i++) 
-                    console_string_old[i] = console_string[i];
-                console_string_length_old = console_string_length;
-                
-                ConsoleSetCursor(console_line, 0);
-                
-                uint8_t badCommandOrFilename[] = "Bad cmd or filename";
-                print( badCommandOrFilename, sizeof(badCommandOrFilename) );
-                
-                printLn();
-                
-                printPrompt();
-                
-            }
-            
         }
         
+        //
+        // Bad command or filename
+        
+        if ((programSize == 0) & (isRightFunction == 0) & (console_string_length > 0)) {
+            
+            // Save last entered command string
+            for (uint8_t i=0; i < console_string_length; i++) 
+                console_string_old[i] = console_string[i];
+            console_string_length_old = console_string_length;
+            
+            ConsoleSetCursor(console_line, 0);
+            
+            uint8_t badCommandOrFilename[] = "Bad cmd or filename";
+            print( badCommandOrFilename, sizeof(badCommandOrFilename) );
+            
+            printLn();
+            
+            printPrompt();
+            
+        }
         
         ConsoleClearKeyboardString();
         
