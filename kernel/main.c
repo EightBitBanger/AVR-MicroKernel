@@ -118,6 +118,10 @@ int main(void) {
         break;
     }
     
+    // Drop the initial command prompt
+    //printPrompt();
+    /*
+    
 #ifdef NETWORK_APPLICATION_PACKET_ROUTER
     
     InitiateRouter();
@@ -168,13 +172,10 @@ int main(void) {
   #endif
     
 #endif
-    
+    */
     // Launch the command console task
     uint8_t taskname[] = "command";
     TaskCreate(taskname, sizeof(taskname), consoleRunShell, TASK_PRIORITY_REALTIME, TASK_TYPE_SERVICE);
-    
-    
-    printPrompt();
     
     // Enable hardware interrupts
     //  Trigger on the HIGH to LOW transition of PIN2
