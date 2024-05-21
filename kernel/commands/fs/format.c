@@ -91,7 +91,7 @@ void functionFORMAT(uint8_t* param, uint8_t param_length) {
             }
             
             pageCounter++;
-            if (pageCounter > 30) {
+            if (pageCounter > 31) {
                 pageCounter = 0;
                 bus_read_byte( &bus, 0, &dummy );
                 _delay_ms(10);

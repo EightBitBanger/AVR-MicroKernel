@@ -23,25 +23,14 @@ int main(void) {
     consoleInit();                // Command console shell
     kernelVectorTableInit();      // Hardware interrupt vector table
     
-    
-    //
-    // Kernel version
-    
-    uint8_t kernelHelloWorldString[] = "kernel v0.0.1";
-    print(kernelHelloWorldString, sizeof(kernelHelloWorldString));
-    
-    ConsoleSetCursor(1, 0);
-    
-    
     //
     // Allocate external memory
     //
     
     struct Bus memoryBus;
 	
-	memoryBus.read_waitstate  = 5;
-	memoryBus.write_waitstate = 5;
-	
+	memoryBus.read_waitstate  = 3;
+	memoryBus.write_waitstate = 1;
 	
     ConsoleSetBlinkRate(0);
     
@@ -58,17 +47,20 @@ int main(void) {
         
         if (buffer != 0x55) break;
         
+        if (counter == 0) {
+            
+            ConsoleSetCursor(0, 0);
+            
+            uint8_t totalString[10];
+            uint8_t place = int_to_string(address, totalString);
+            print(totalString, place + 1);
+            
+        }
+        
         counter++;
-        if (counter < 256) 
-            continue;
         
-        counter = 0;
-        
-        ConsoleSetCursor(1, 0);
-        
-        uint8_t totalString[10];
-        uint8_t place = int_to_string(address, totalString);
-        print(totalString, place + 1);
+        if (counter == 512) 
+            counter = 0;
         
         continue;
     }
@@ -76,7 +68,8 @@ int main(void) {
     uint8_t totalString[10];
     uint8_t place = int_to_string(address, totalString);
     
-    ConsoleSetCursor(1, 0);
+    ConsoleSetCursor(0, 0);
+    
     print(totalString, place + 1);
     printSpace(1);
     
@@ -99,28 +92,6 @@ int main(void) {
     spkBeep(duration, frequency);
     
 #endif
-    
-    //
-    // Find an active storage device to call the root directory
-    //
-    
-    for (uint8_t d=1; d <= NUMBER_OF_PERIPHERALS; d++) {
-        
-        fsSetCurrentDevice( d );
-        
-        if (fsCheckDeviceReady() == 0) 
-            continue;
-        
-        // Set the root directory
-        uint8_t prompt[] = {('A' + d), '>'};
-        ConsoleSetPrompt( prompt, sizeof(prompt) + 1 );
-        
-        break;
-    }
-    
-    // Drop the initial command prompt
-    //printPrompt();
-    /*
     
 #ifdef NETWORK_APPLICATION_PACKET_ROUTER
     
@@ -172,7 +143,38 @@ int main(void) {
   #endif
     
 #endif
-    */
+    
+    //
+    // Kernel version
+    ConsoleSetCursor(1, 0);
+    
+    uint8_t kernelHelloWorldString[] = "kernel v0.0.1";
+    print(kernelHelloWorldString, sizeof(kernelHelloWorldString));
+    printLn();
+    
+    
+    
+    //
+    // Find an active storage device to call the root directory
+    
+    for (uint8_t d=1; d <= NUMBER_OF_PERIPHERALS; d++) {
+        
+        fsSetCurrentDevice( d );
+        
+        if (fsCheckDeviceReady() == 0) 
+            continue;
+        
+        // Set the root directory
+        uint8_t prompt[] = {('A' + d), '>'};
+        ConsoleSetPrompt( prompt, sizeof(prompt) + 1 );
+        
+        // Drop the initial command prompt
+        printPrompt();
+        
+        break;
+    }
+    
+    
     // Launch the command console task
     uint8_t taskname[] = "command";
     TaskCreate(taskname, sizeof(taskname), consoleRunShell, TASK_PRIORITY_REALTIME, TASK_TYPE_SERVICE);

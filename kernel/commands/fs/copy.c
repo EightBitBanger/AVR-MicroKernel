@@ -26,7 +26,7 @@ void functionCOPY(uint8_t* param, uint8_t param_length) {
         destFilename[i]   = ' ';
     }
     
-    // Get filenames from params
+    // Get filenames from parameters
     uint8_t filename_index = 0;
     uint8_t index = 0;
     
