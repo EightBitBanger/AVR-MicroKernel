@@ -79,7 +79,7 @@ void functionCOPY(uint8_t* param, uint8_t param_length) {
     uint32_t sourceFileSize = fsGetFileSize(sourceFilename, sourceNameLength);
     
     uint8_t currentDevice     = fsGetCurrentDevice();
-    uint8_t destinationDevice = fsGetCurrentDevice();
+    uint8_t destinationDevice = currentDevice;
     
     // Check destination is a device letter
     if ((destFilename[0] >= 'a') & (destFilename[0] <= 'z') & (destFilename[1] == ' ')) {
@@ -105,7 +105,8 @@ void functionCOPY(uint8_t* param, uint8_t param_length) {
         // Destination is a filename
         
         // Check if the destination exists
-        if (fsFileExists(destFilename, destNameLength) != 0) {
+        uint32_t fileAddress = fsFileExists(destFilename, destNameLength);
+        if (fileAddress != 0) {
             
             print(msgCannotCopyFile, sizeof(msgCannotCopyFile));
             printLn();
@@ -114,9 +115,10 @@ void functionCOPY(uint8_t* param, uint8_t param_length) {
         }
         
         // Create destination file
-        uint32_t fileAddress = fsFileCreate(destFilename, destNameLength, sourceFileSize);
+        fileAddress = fsFileCreate(destFilename, destNameLength, sourceFileSize);
         
         if (fileAddress == 0) {
+            
             print(msgErrorCreatingFile, sizeof(msgErrorCreatingFile));
             printLn();
             
@@ -130,6 +132,9 @@ void functionCOPY(uint8_t* param, uint8_t param_length) {
     // Copy file contents
     fsSetCurrentDevice(currentDevice);
     
+    struct FSAttribute attributes;
+    fsGetFileAttributes(sourceFilename, sourceNameLength, &attributes);
+    
     uint8_t fileBuffer[sourceFileSize];
     
     uint8_t fileIndex = fsFileOpen(sourceFilename, sourceNameLength);
@@ -138,17 +143,14 @@ void functionCOPY(uint8_t* param, uint8_t param_length) {
     fsFileClose(fileIndex);
     
     
-    
-    
     // Transfer to new file
     fsSetCurrentDevice(destinationDevice);
+    fsSetFileAttributes(sourceFilename, sourceNameLength, &attributes);
     
-    fileIndex = fsFileOpen(destFilename, destNameLength);
+    fileIndex = fsFileOpen(sourceFilename, sourceNameLength);
     fsFileWrite(fileIndex, fileBuffer, sourceFileSize);
     
     fsFileClose(fileIndex);
-    
-    
     
     
     // Complete
