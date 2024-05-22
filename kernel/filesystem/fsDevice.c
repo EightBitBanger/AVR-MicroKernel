@@ -5,7 +5,14 @@
 
 #include <kernel/filesystem/fs.h>
 
+#define FS_DEVICE_TYPE_IO    0
+#define FS_DEVICE_TYPE_MEM   1
+
+
 uint32_t fs_device_address = 0;
+
+void(*fs_read_byte)(struct Bus, uint32_t, uint8_t*);
+void(*fs_write_byte)(struct Bus, uint32_t, uint8_t);
 
 
 void fsSetCurrentDevice(uint8_t device_index) {
