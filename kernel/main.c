@@ -29,7 +29,7 @@ int main(void) {
     
     struct Bus memoryBus;
 	
-	memoryBus.read_waitstate  = 3;
+	memoryBus.read_waitstate  = 5;
 	memoryBus.write_waitstate = 1;
 	
     ConsoleSetBlinkRate(0);
@@ -41,11 +41,23 @@ int main(void) {
     
     for (address=0x00000000; address < 0xffffffff; address++) {
         
+        // 0x55 test
         bus_write_memory(&memoryBus, address, 0x55);
         
         bus_read_memory(&memoryBus, address, &buffer);
         
-        if (buffer != 0x55) break;
+        if (buffer != 0x55) 
+            break;
+        
+        bus_write_memory(&memoryBus, address, 0xff);
+        
+        // 0xAA deeper test
+        //bus_write_memory(&memoryBus, address, 0xAA);
+        
+        //bus_read_memory(&memoryBus, address, &buffer);
+        
+        //if (buffer != 0xAA) 
+        //    break;
         
         if (counter == 0) {
             

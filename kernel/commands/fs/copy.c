@@ -10,6 +10,8 @@ uint8_t msgFileCopied[]         = "File copied";
 uint8_t msgSourceNotFound[]     = "File not found";
 uint8_t msgCannotCopyFile[]     = "Cannot be copied";
 uint8_t msgErrorCreatingFile[]  = "Cannot create file";
+uint8_t msgFileAccessError[]    = "File access error";
+uint8_t msgDestinationError[]   = "Destination error";
 
 void functionCOPY(uint8_t* param, uint8_t param_length) {
     
@@ -88,6 +90,15 @@ void functionCOPY(uint8_t* param, uint8_t param_length) {
         
         fsSetCurrentDevice(destinationDevice);
         
+        // Check file already exists on destination device
+        if (fsFileExists(sourceFilename, sourceNameLength) != 0) {
+            
+            print(msgDestinationError, sizeof(msgDestinationError));
+            printLn();
+            
+            return;
+        }
+            
         fsFileCreate(sourceFilename, sourceNameLength, sourceFileSize);
         
         for (uint8_t i=0; i < FILE_NAME_LENGTH; i++) 
@@ -122,7 +133,6 @@ void functionCOPY(uint8_t* param, uint8_t param_length) {
         
     }
     
-    
     // Copy file contents
     struct FSAttribute attributes;
     uint8_t fileBuffer[sourceFileSize];
@@ -133,11 +143,8 @@ void functionCOPY(uint8_t* param, uint8_t param_length) {
     uint8_t fileIndex = fsFileOpen(sourceFilename, sourceNameLength);
     
     if (fileIndex == 0) {
-        uint8_t msgFileError[] = "  File access errorA";
         
-        msgFileError[0] = destinationDevice + 'a';
-        
-        print(msgFileError, sizeof(msgFileError));
+        print(msgFileAccessError, sizeof(msgFileAccessError));
         printLn();
         
         return;
@@ -155,8 +162,8 @@ void functionCOPY(uint8_t* param, uint8_t param_length) {
     fileIndex = fsFileOpen(destFilename, destNameLength);
     
     if (fileIndex == 0) {
-        uint8_t msgFileError[] = "File access error B";
-        print(msgFileError, sizeof(msgFileError));
+        
+        print(msgFileAccessError, sizeof(msgFileAccessError));
         printLn();
         
     }
