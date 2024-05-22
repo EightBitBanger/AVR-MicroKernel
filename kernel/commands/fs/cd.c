@@ -13,6 +13,7 @@ void functionCD(uint8_t* param, uint8_t param_length) {
     
     if ((param[0] >= 'a') & (param[0] <= 'z')) {
         
+        fsSetDeviceTypeIO();
         fsSetCurrentDevice( param[0] - 'a' );
         
         deviceLocated = 1;
@@ -20,9 +21,13 @@ void functionCD(uint8_t* param, uint8_t param_length) {
     
     if ((param[0] == 'r') & (param[1] == 'o') & (param[2] == 'o') & (param[3] == 't')) {
         
+        fsSetDeviceTypeMEM();
         fsSetCurrentDevice( param[0] - 'A' );
         
-        deviceLocated = 1;
+        uint8_t PromptRoot[] = "root";
+        ConsoleSetPrompt(PromptRoot, sizeof(PromptRoot)+1);
+        
+        return;
     }
     
     if (deviceLocated == 0) {
@@ -32,6 +37,8 @@ void functionCD(uint8_t* param, uint8_t param_length) {
         
         return;
     }
+    
+    uppercase(&param[0]);
     
     uint8_t consolePrompt[2];
     consolePrompt[0] = param[0];
