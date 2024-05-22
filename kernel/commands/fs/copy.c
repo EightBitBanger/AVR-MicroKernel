@@ -95,11 +95,6 @@ void functionCOPY(uint8_t* param, uint8_t param_length) {
         
         destNameLength = sourceNameLength;
         
-        print(msgFileCopied, sizeof(msgFileCopied));
-        printLn();
-        
-        return;
-        
     } else {
         
         // Destination is a filename
@@ -128,16 +123,21 @@ void functionCOPY(uint8_t* param, uint8_t param_length) {
     }
     
     
-    
     // Copy file contents
-    fsSetCurrentDevice(currentDevice);
-    
     struct FSAttribute attributes;
-    fsGetFileAttributes(sourceFilename, sourceNameLength, &attributes);
-    
     uint8_t fileBuffer[sourceFileSize];
     
+    fsSetCurrentDevice(currentDevice);
+    fsGetFileAttributes(sourceFilename, sourceNameLength, &attributes);
+    
     uint8_t fileIndex = fsFileOpen(sourceFilename, sourceNameLength);
+    if (fileIndex == 0) {
+        uint8_t msgFileError[] = "File access error A";
+        print(msgFileError, sizeof(msgFileError));
+        printLn();
+        
+    }
+    
     fsFileRead(fileIndex, fileBuffer, sourceFileSize);
     
     fsFileClose(fileIndex);
@@ -145,15 +145,24 @@ void functionCOPY(uint8_t* param, uint8_t param_length) {
     
     // Transfer to new file
     fsSetCurrentDevice(destinationDevice);
-    fsSetFileAttributes(sourceFilename, sourceNameLength, &attributes);
+    fsSetFileAttributes(destFilename, destNameLength, &attributes);
     
-    fileIndex = fsFileOpen(sourceFilename, sourceNameLength);
+    fileIndex = fsFileOpen(destFilename, destNameLength);
+    if (fileIndex == 0) {
+        uint8_t msgFileError[] = "File access error B";
+        print(msgFileError, sizeof(msgFileError));
+        printLn();
+        
+    }
+    
     fsFileWrite(fileIndex, fileBuffer, sourceFileSize);
     
     fsFileClose(fileIndex);
     
     
     // Complete
+    fsSetCurrentDevice(currentDevice);
+    
     print(msgFileCopied, sizeof(msgFileCopied));
     printLn();
     
