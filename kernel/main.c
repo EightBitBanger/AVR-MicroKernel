@@ -109,15 +109,15 @@ int main(void) {
     
   #ifdef INCLUDE_KERNEL_APPLICATIONS
     
-    //registerCommandDevice();
+    registerCommandDevice();
     
-    //registerCommandEDIT();
-    //registerCommandAssembly();
+    registerCommandEDIT();
+    registerCommandAssembly();
     
     registerCommandList();
     registerCommandCLS();
     
-    //registerCommandTASK();
+    registerCommandTASK();
     
   #endif
     

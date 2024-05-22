@@ -78,8 +78,8 @@ void functionCOPY(uint8_t* param, uint8_t param_length) {
     // Get source file size
     uint32_t sourceFileSize = fsGetFileSize(sourceFilename, sourceNameLength);
     
-    uint8_t currentDevice     = fsGetCurrentDevice();
-    uint8_t destinationDevice = currentDevice;
+    uint32_t currentDevice     = (fsGetCurrentDevice() - 0x10000) / 0x10000;
+    uint32_t destinationDevice = currentDevice;
     
     // Check destination is a device letter
     if ((destFilename[0] >= 'a') & (destFilename[0] <= 'z') & (destFilename[1] == ' ')) {
@@ -131,11 +131,16 @@ void functionCOPY(uint8_t* param, uint8_t param_length) {
     fsGetFileAttributes(sourceFilename, sourceNameLength, &attributes);
     
     uint8_t fileIndex = fsFileOpen(sourceFilename, sourceNameLength);
+    
     if (fileIndex == 0) {
-        uint8_t msgFileError[] = "File access error A";
+        uint8_t msgFileError[] = "  File access errorA";
+        
+        msgFileError[0] = destinationDevice + 'a';
+        
         print(msgFileError, sizeof(msgFileError));
         printLn();
         
+        return;
     }
     
     fsFileRead(fileIndex, fileBuffer, sourceFileSize);
@@ -148,6 +153,7 @@ void functionCOPY(uint8_t* param, uint8_t param_length) {
     fsSetFileAttributes(destFilename, destNameLength, &attributes);
     
     fileIndex = fsFileOpen(destFilename, destNameLength);
+    
     if (fileIndex == 0) {
         uint8_t msgFileError[] = "File access error B";
         print(msgFileError, sizeof(msgFileError));
