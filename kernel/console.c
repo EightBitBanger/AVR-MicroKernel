@@ -121,6 +121,7 @@ void consoleRunShell(void) {
     if (scanCode == 0x02) {
         
         printLn();
+        ConsoleSetCursorPosition(0);
         
         uint8_t isRightFunction = 0;
         uint8_t parameters_begin = 0;

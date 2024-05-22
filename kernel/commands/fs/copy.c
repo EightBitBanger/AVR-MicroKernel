@@ -5,8 +5,6 @@
 
 #include <kernel/commands/fs/copy.h>
 
-#define FILE_BUFFER_SIZE   1024
-
 
 uint8_t msgFileCopied[]         = "File copied";
 uint8_t msgSourceNotFound[]     = "File not found";
@@ -61,6 +59,7 @@ void functionCOPY(uint8_t* param, uint8_t param_length) {
         
     }
     
+    
     //
     // Copy the file
     //
@@ -79,41 +78,78 @@ void functionCOPY(uint8_t* param, uint8_t param_length) {
     // Get source file size
     uint32_t sourceFileSize = fsGetFileSize(sourceFilename, sourceNameLength);
     
-    if (sourceFileSize > FILE_BUFFER_SIZE) 
-        sourceFileSize = FILE_BUFFER_SIZE;
+    uint8_t currentDevice     = fsGetCurrentDevice();
+    uint8_t destinationDevice = fsGetCurrentDevice();
     
-    // Check if the destination exists
-    if (fsFileExists(destFilename, destNameLength) != 0) {
+    // Check destination is a device letter
+    if ((destFilename[0] >= 'a') & (destFilename[0] <= 'z') & (destFilename[1] == ' ')) {
         
-        print(msgCannotCopyFile, sizeof(msgCannotCopyFile));
+        destinationDevice = destFilename[0] - 'a';
+        
+        fsSetCurrentDevice(destinationDevice);
+        
+        fsFileCreate(sourceFilename, sourceNameLength, sourceFileSize);
+        
+        for (uint8_t i=0; i < FILE_NAME_LENGTH; i++) 
+            destFilename[i] = sourceFilename[i];
+        
+        destNameLength = sourceNameLength;
+        
+        print(msgFileCopied, sizeof(msgFileCopied));
         printLn();
         
         return;
-    }
-    
-    // Create destination file
-    uint32_t fileAddress = fsFileCreate(destFilename, destNameLength, sourceFileSize);
-    
-    if (fileAddress == 0) {
-        print(msgErrorCreatingFile, sizeof(msgErrorCreatingFile));
-        printLn();
         
-        return;
+    } else {
+        
+        // Destination is a filename
+        
+        // Check if the destination exists
+        if (fsFileExists(destFilename, destNameLength) != 0) {
+            
+            print(msgCannotCopyFile, sizeof(msgCannotCopyFile));
+            printLn();
+            
+            return;
+        }
+        
+        // Create destination file
+        uint32_t fileAddress = fsFileCreate(destFilename, destNameLength, sourceFileSize);
+        
+        if (fileAddress == 0) {
+            print(msgErrorCreatingFile, sizeof(msgErrorCreatingFile));
+            printLn();
+            
+            return;
+        }
+        
     }
+    
+    
     
     // Copy file contents
-    uint8_t fileBuffer[FILE_BUFFER_SIZE];
+    fsSetCurrentDevice(currentDevice);
+    
+    uint8_t fileBuffer[sourceFileSize];
     
     uint8_t fileIndex = fsFileOpen(sourceFilename, sourceNameLength);
     fsFileRead(fileIndex, fileBuffer, sourceFileSize);
     
     fsFileClose(fileIndex);
     
+    
+    
+    
     // Transfer to new file
+    fsSetCurrentDevice(destinationDevice);
+    
     fileIndex = fsFileOpen(destFilename, destNameLength);
     fsFileWrite(fileIndex, fileBuffer, sourceFileSize);
     
     fsFileClose(fileIndex);
+    
+    
+    
     
     // Complete
     print(msgFileCopied, sizeof(msgFileCopied));
