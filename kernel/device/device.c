@@ -17,22 +17,20 @@ void InitiateDeviceTable(void) {
     // Clear the device table
     for (unsigned int d=0; d < DEVICE_TABLE_SIZE; d++) {
         
-        for (unsigned int i=0; i < DEVICE_NAME_LENGTH; i++) 
-            device_table[d].device_name[i] = ' ';
+        device_table[d].hardware_address = 0x00000;
         
         device_table[d].hardware_slot = 0;
         
         device_table[d].device_id = 0x00;
         
-        device_table[d].hardware_address = 0x00000;
-        device_table[d].firmware_address = 0x00000;
-        
+        for (unsigned int i=0; i < DEVICE_NAME_LENGTH; i++) 
+            device_table[d].device_name[i] = ' ';
     }
     
     struct Bus bus;
     
-    bus.read_waitstate  = 20;
-    bus.write_waitstate = 20;
+    bus.read_waitstate  = 10;
+    bus.write_waitstate = 10;
     
     // Check peripheral devices
     
@@ -46,8 +44,10 @@ void InitiateDeviceTable(void) {
         // Get device header
         uint8_t buffer[ 10 ];
         
-        for (unsigned int i=0; i < 10; i++) 
+        for (unsigned int i=0; i < 10; i++) {
             bus_read_byte(&bus, hardware_address + i, &buffer[i]);
+            _delay_us(1);
+        }
         
         // Reject device name
         if (is_letter( &buffer[1] ) == 0) 
