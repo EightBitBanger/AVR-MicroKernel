@@ -67,7 +67,7 @@ void functionDIR(uint8_t* param, uint8_t param_length) {
             uint8_t msgPressAnyKey[] = "Press any key...";
             print(msgPressAnyKey, sizeof(msgPressAnyKey));
             
-            ConsoleSetCursorPosition( sizeof(msgPressAnyKey) );
+            ConsoleSetCursorPosition( sizeof(msgPressAnyKey) - 1 );
             
             ConsoleWait(0);
             
@@ -79,7 +79,10 @@ void functionDIR(uint8_t* param, uint8_t param_length) {
             ConsoleSetCursorPosition(0);
             
             fileCount = 0;
+            
+            continue;
         }
+        
         fileCount++;
         
         continue;
