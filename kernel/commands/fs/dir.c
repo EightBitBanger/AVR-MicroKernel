@@ -10,6 +10,8 @@ void functionDIR(uint8_t* param, uint8_t param_length) {
     struct Bus bus;
     bus.read_waitstate  = 4;
     
+    uint8_t fileCount = 0;
+    
     for (uint32_t i=0; i < 0xffffffff; i++) {
         
         uint32_t fileAddress = fsFileFind(i);
@@ -60,6 +62,11 @@ void functionDIR(uint8_t* param, uint8_t param_length) {
         print(filesizeString, len);
         
         printLn();
+        if (fileCount > 1) {
+            ConsoleWait(0);
+        }
+        fileCount++;
+        
         continue;
     }
     

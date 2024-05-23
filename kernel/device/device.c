@@ -25,7 +25,6 @@ void InitiateDeviceTable(void) {
         device_table[d].device_id = 0x00;
         
         device_table[d].hardware_address = 0x00000;
-        device_table[d].firmware_address = 0x00000;
         
     }
     
