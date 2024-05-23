@@ -17,7 +17,7 @@ void functionRepair(uint8_t* param, uint8_t param_length) {
     uint32_t currentDevice = fsGetCurrentDevice();
     
     for (uint8_t i=0; i < SECTOR_SIZE; i++) 
-        bus_read_byte(&bus, currentDevice + i, &buffer[i]);
+        fs_read_byte(&bus, currentDevice + i, &buffer[i]);
     
     // Check header byte
     if (buffer[0] != 0x13) {
@@ -25,7 +25,7 @@ void functionRepair(uint8_t* param, uint8_t param_length) {
         uint8_t headerByte = 0x13;
         
         // Attempt to fix the header byte
-        bus_write_byte_eeprom(&bus, currentDevice, headerByte);
+        fs_write_byte(&bus, currentDevice, headerByte);
         
     }
     
@@ -35,8 +35,8 @@ void functionRepair(uint8_t* param, uint8_t param_length) {
         uint8_t deviceName[2] = {'f', 's'};
         
         // Attempt to fix the header byte
-        bus_write_byte_eeprom(&bus, currentDevice + 1, deviceName[0]);
-        bus_write_byte_eeprom(&bus, currentDevice + 2, deviceName[1]);
+        fs_write_byte(&bus, currentDevice + 1, deviceName[0]);
+        fs_write_byte(&bus, currentDevice + 2, deviceName[1]);
         
         
     }

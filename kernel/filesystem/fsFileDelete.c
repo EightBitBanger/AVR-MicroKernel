@@ -34,7 +34,7 @@ uint8_t fsFileDelete(uint8_t* name, uint8_t nameLength) {
             
             uint8_t nameByte = 0;
             
-            bus_read_byte(&bus, currentDevice + (sector * SECTOR_SIZE) + OFFSET_FILE_NAME + i, &nameByte);
+            fs_read_byte(&bus, currentDevice + (sector * SECTOR_SIZE) + OFFSET_FILE_NAME + i, &nameByte);
             
             if (name[i] != nameByte) {
                 isFileFound = 0;
@@ -61,7 +61,7 @@ uint8_t fsFileDelete(uint8_t* name, uint8_t nameLength) {
             
             // Get sector header byte
             uint8_t headerByte = 0x00;
-            bus_read_byte(&bus, currentDevice + (nextSector * SECTOR_SIZE), &headerByte);
+            fs_read_byte(&bus, currentDevice + (nextSector * SECTOR_SIZE), &headerByte);
             
             // Delete file header sector
             if (headerByte == 0x55) {
@@ -70,7 +70,7 @@ uint8_t fsFileDelete(uint8_t* name, uint8_t nameLength) {
                 if (isHeaderDeleted == 1) 
                     return 1;
                 
-                bus_write_byte_eeprom(&bus, currentDevice + (nextSector * SECTOR_SIZE), clearByte);
+                fs_write_byte(&bus, currentDevice + (nextSector * SECTOR_SIZE), clearByte);
                 
                 isHeaderDeleted = 1;
                 continue;
@@ -79,7 +79,7 @@ uint8_t fsFileDelete(uint8_t* name, uint8_t nameLength) {
             // Delete data sector
             if (headerByte == 0xff) {
                 
-                bus_write_byte_eeprom(&bus, currentDevice + (nextSector * SECTOR_SIZE), clearByte);
+                fs_write_byte(&bus, currentDevice + (nextSector * SECTOR_SIZE), clearByte);
                 
                 continue;
             }
@@ -87,7 +87,7 @@ uint8_t fsFileDelete(uint8_t* name, uint8_t nameLength) {
             // Delete end sector
             if (headerByte == 0xaa) {
                 
-                bus_write_byte_eeprom(&bus, currentDevice + (nextSector * SECTOR_SIZE), clearByte);
+                fs_write_byte(&bus, currentDevice + (nextSector * SECTOR_SIZE), clearByte);
                 
                 return 1;
             }

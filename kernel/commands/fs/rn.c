@@ -34,8 +34,6 @@ void functionRN(uint8_t* param, uint8_t param_length) {
         
     }
     
-    
-    
     fsFileRename(sourceName, sourceNameLen, targetName, targetNameLen);
     
     return;

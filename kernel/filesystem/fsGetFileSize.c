@@ -19,7 +19,7 @@ uint32_t fsGetFileSize(uint8_t* name, uint8_t nameLength) {
     union Pointer fileSize;
     
     for (uint8_t i=0; i < 4; i++) 
-        bus_read_byte( &bus, fileAddress + OFFSET_FILE_SIZE + i, &fileSize.byte_t[i]);
+        fs_read_byte( &bus, fileAddress + OFFSET_FILE_SIZE + i, &fileSize.byte_t[i]);
     
     return fileSize.address;
 }

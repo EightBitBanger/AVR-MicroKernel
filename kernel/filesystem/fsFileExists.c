@@ -40,7 +40,7 @@ uint32_t fsFileExists(uint8_t* name, uint8_t nameLength) {
             
             uint8_t nameByte = 0;
             
-            bus_read_byte(&bus, currentDevice + (sector * SECTOR_SIZE) + OFFSET_FILE_NAME + i, &nameByte);
+            fs_read_byte(&bus, currentDevice + (sector * SECTOR_SIZE) + OFFSET_FILE_NAME + i, &nameByte);
             
             if (name[i] != nameByte) {
                 isFileFound = 0;

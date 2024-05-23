@@ -48,7 +48,7 @@ uint8_t fsFileWrite(uint8_t index, uint8_t* buffer, uint32_t length) {
             sector++;
         }
         
-        bus_write_io_eeprom( &bus, fileBeginAddress + SECTOR_SIZE + sector + 1, buffer[i] );
+        fs_write_byte( &bus, fileBeginAddress + SECTOR_SIZE + sector + 1, buffer[i] );
         
         sectorCounter++;
         sector++;
@@ -79,7 +79,7 @@ uint8_t fsFileRead(uint8_t index, uint8_t* buffer, uint32_t length) {
             sector++;
         }
         
-        bus_read_byte( &bus, fileBeginAddress + SECTOR_SIZE + sector + 1, &buffer[i] );
+        fs_read_byte( &bus, fileBeginAddress + SECTOR_SIZE + sector + 1, &buffer[i] );
         
         sectorCounter++;
         sector++;

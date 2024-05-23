@@ -39,7 +39,7 @@ void functionFORMAT(uint8_t* param, uint8_t param_length) {
     }
     
     struct Bus bus;
-    bus.read_waitstate  = 4;
+    bus.read_waitstate  = 5;
     bus.write_waitstate = 5;
     
     uint32_t deviceCapacityBytes = (deviceCapacityCurrent * 1024);
@@ -62,7 +62,7 @@ void functionFORMAT(uint8_t* param, uint8_t param_length) {
     
     // Arbitrary read to trigger EEPROM cache flush
     uint8_t dummy;
-    bus_read_byte( &bus, 0, &dummy );
+    fs_read_byte( &bus, 0, &dummy );
     _delay_ms(10);
     
     uint8_t pageCounter = 0;
@@ -83,17 +83,17 @@ void functionFORMAT(uint8_t* param, uint8_t param_length) {
             sector++;
             
             if (sectorCounter < (SECTOR_SIZE - 1)) {
-                bus_write_byte( &bus, currentDevice + sector, ' ');
+                fs_write_byte( &bus, currentDevice + sector, ' ');
                 sectorCounter++;
             } else {
-                bus_write_byte( &bus, currentDevice + sector, 0x00);
+                fs_write_byte( &bus, currentDevice + sector, 0x00);
                 sectorCounter = 0;
             }
             
             pageCounter++;
             if (pageCounter > 31) {
                 pageCounter = 0;
-                bus_read_byte( &bus, 0, &dummy );
+                fs_read_byte( &bus, 0, &dummy );
                 _delay_ms(10);
             }
             
@@ -117,9 +117,9 @@ void functionFORMAT(uint8_t* param, uint8_t param_length) {
     _delay_ms(10);
     
     // Initiate first sector
-    bus_write_byte_eeprom( &bus, currentDevice    , 0x13 );
-    bus_write_byte_eeprom( &bus, currentDevice + 1, 'f' );
-    bus_write_byte_eeprom( &bus, currentDevice + 2, 's' );
+    fs_write_byte( &bus, currentDevice    , 0x13 );
+    fs_write_byte( &bus, currentDevice + 1, 'f' );
+    fs_write_byte( &bus, currentDevice + 2, 's' );
     
     // Device total capacity
     union Pointer deviceSize;
@@ -127,7 +127,7 @@ void functionFORMAT(uint8_t* param, uint8_t param_length) {
     deviceSize.address = deviceCapacityBytes;
     
     for (uint8_t i=0; i < 4; i++) 
-        bus_write_byte_eeprom( &bus, currentDevice + DEVICE_CAPACITY_OFFSET + i, deviceSize.byte_t[i] );
+        fs_write_byte( &bus, currentDevice + DEVICE_CAPACITY_OFFSET + i, deviceSize.byte_t[i] );
     
     ConsoleCursorEnable();
     

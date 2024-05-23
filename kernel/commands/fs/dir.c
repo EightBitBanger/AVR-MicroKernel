@@ -23,7 +23,7 @@ void functionDIR(uint8_t* param, uint8_t param_length) {
         uint8_t attributes[4] = {' ',' ',' ',' '};
         
         for (uint8_t a=0; a < 4; a++) 
-            bus_read_io( &bus, fileAddress + a + OFFSET_FILE_ATTRIBUTES + 1, &attributes[a] );
+            fs_read_byte( &bus, fileAddress + a + OFFSET_FILE_ATTRIBUTES + 1, &attributes[a] );
         
         print(attributes, 4);
         printSpace(1);
@@ -33,7 +33,7 @@ void functionDIR(uint8_t* param, uint8_t param_length) {
         uint8_t filename[10] = {' ',' ',' ',' ',' ',' ',' ',' ',' ',' '};
         
         for (uint8_t n=0; n < 10; n++) 
-            bus_read_io( &bus, fileAddress + n + 1, &filename[n] );
+            fs_read_byte( &bus, fileAddress + n + 1, &filename[n] );
         
         print(filename, sizeof(filename));
         printSpace(2);
@@ -42,7 +42,7 @@ void functionDIR(uint8_t* param, uint8_t param_length) {
         union Pointer ptr;
         
         for (uint8_t s=0; s < 4; s++) 
-            bus_read_io( &bus, fileAddress + s + OFFSET_FILE_SIZE, &ptr.byte_t[s] );
+            fs_read_byte( &bus, fileAddress + s + OFFSET_FILE_SIZE, &ptr.byte_t[s] );
         
         uint8_t filesizeString[10];
         

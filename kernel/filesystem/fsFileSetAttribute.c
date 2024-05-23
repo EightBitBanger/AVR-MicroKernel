@@ -23,7 +23,7 @@ uint8_t fsSetFileAttributes(uint8_t* name, uint8_t nameLength, struct FSAttribut
     if (attributes->writeable  != 0) attributeArray[3] = 'w';
     
     for (uint8_t i=0; i < 4; i++) {
-        bus_write_byte_eeprom( &bus, fileAddress + OFFSET_FILE_ATTRIBUTES + i, attributeArray[i] );
+        fs_write_byte( &bus, fileAddress + OFFSET_FILE_ATTRIBUTES + i, attributeArray[i] );
     }
     
 	return 1;

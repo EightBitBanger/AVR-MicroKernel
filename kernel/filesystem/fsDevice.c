@@ -16,7 +16,53 @@ uint32_t fs_device_address = 0;
 
 void fsInit(void) {
     
+    fsSetDeviceTypeMEM();
+    fsSetCurrentDevice(0xff);
+    
+    //
+    // Format RAMDISK sectors
+    //
+    
+    struct Bus bus;
+    bus.read_waitstate  = 5;
+    bus.write_waitstate = 5;
+    
+    uint32_t sector = 0;
+    uint32_t sectorCounter = 0;
+    
+    uint32_t deviceCapacityBytes = 8192;
+    
+    for (sector=1; sector < 8192; sector++) {
+        
+        if (sectorCounter < (SECTOR_SIZE - 1)) {
+            fs_write_byte( &bus, sector, ' ');
+            sectorCounter++;
+        } else {
+            fs_write_byte( &bus, sector, 0x00);
+            sectorCounter = 0;
+        }
+        
+        continue;
+    }
+    
+    //
+    // Initiate first sector
+    //
+    
+    fs_write_byte( &bus, fs_device_address    , 0x13 );
+    fs_write_byte( &bus, fs_device_address + 1, 'f' );
+    fs_write_byte( &bus, fs_device_address + 2, 's' );
+    
+    // Device total capacity
+    union Pointer deviceSize;
+    
+    deviceSize.address = deviceCapacityBytes;
+    
+    for (uint8_t i=0; i < 4; i++) 
+        fs_write_byte( &bus, fs_device_address + DEVICE_CAPACITY_OFFSET + i, deviceSize.byte_t[i] );
+    
     fsSetDeviceTypeIO();
+    fsSetCurrentDevice(0);
     
     return;
 }
@@ -46,14 +92,22 @@ void fsSetDeviceTypeIO(void) {
 void fsSetDeviceTypeMEM(void) {
     
     __fs_read_byte  = bus_read_memory;
-    __fs_write_byte = bus_write_memory_eeprom;
+    __fs_write_byte = bus_write_memory;
     
     return;
 }
 
 void fsSetCurrentDevice(uint8_t device_index) {
     
-    fs_device_address = PERIPHERAL_ADDRESS_BEGIN + (device_index * 0x10000);
+    if (device_index == 0xff) {
+        
+        fs_device_address = 0x00000;
+        
+    } else {
+        
+        fs_device_address = PERIPHERAL_ADDRESS_BEGIN + (device_index * 0x10000);
+        
+    }
     
     return;
 }

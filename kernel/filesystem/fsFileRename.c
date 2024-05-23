@@ -32,7 +32,7 @@ uint8_t fsFileRename(uint8_t* name, uint8_t nameLength, uint8_t* newName, uint8_
             
             uint8_t nameByte = 0;
             
-            bus_read_byte(&bus, currentDevice + (sector * SECTOR_SIZE) + OFFSET_FILE_NAME + i, &nameByte);
+            fs_read_byte(&bus, currentDevice + (sector * SECTOR_SIZE) + OFFSET_FILE_NAME + i, &nameByte);
             
             if (name[i] != nameByte) {
                 isFileFound = 0;
@@ -50,7 +50,7 @@ uint8_t fsFileRename(uint8_t* name, uint8_t nameLength, uint8_t* newName, uint8_
         
         // Replace the file name
         for (uint8_t i=0; i < newNameLength; i++) 
-            bus_write_byte_eeprom(&bus, currentDevice + (sector * SECTOR_SIZE) + OFFSET_FILE_NAME + i, newName[i]);
+            fs_write_byte(&bus, currentDevice + (sector * SECTOR_SIZE) + OFFSET_FILE_NAME + i, newName[i]);
         
 		return 1;
     }

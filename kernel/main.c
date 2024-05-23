@@ -18,10 +18,7 @@ int main(void) {
 	// Initiate kernel sub systems
 	InitiateDeviceTable();
     
-    ntInit();                     // Network support
-    schedulerInit();              // Scheduler sub system
     consoleInit();                // Command console shell
-    kernelVectorTableInit();      // Hardware interrupt vector table
     
     //
     // Allocate external memory
@@ -29,7 +26,7 @@ int main(void) {
     
     struct Bus memoryBus;
 	
-	memoryBus.read_waitstate  = 5;
+	memoryBus.read_waitstate  = 2;
 	memoryBus.write_waitstate = 1;
 	
     ConsoleSetBlinkRate(0);
@@ -39,6 +36,8 @@ int main(void) {
     
     uint8_t buffer=0;
     
+    uint8_t retry = 0;
+    
     for (address=0x00000000; address < 0xffffffff; address++) {
         
         // 0x55 test
@@ -46,10 +45,19 @@ int main(void) {
         
         bus_read_memory(&memoryBus, address, &buffer);
         
-        if (buffer != 0x55) 
-            break;
+        if (buffer != 0x55) {
+            
+            if (retry > 7) 
+                break;
+            
+            retry++;
+            
+        } else {
+            
+            retry = 0;
+            
+        }
         
-        bus_write_memory(&memoryBus, address, 0xff);
         
         // 0xAA deeper test
         //bus_write_memory(&memoryBus, address, 0xAA);
@@ -93,7 +101,7 @@ int main(void) {
     ConsoleSetBlinkRate( CURSOR_BLINK_RATE );
     
     //
-    // Speaker beep if available
+    // Speaker beep
     //
     
 #ifdef BOARD_RETRO_AVR_X4_REV1
@@ -121,44 +129,51 @@ int main(void) {
     
   #ifdef INCLUDE_KERNEL_APPLICATIONS
     
-    //registerCommandDevice();
+    registerCommandDevice();
     
-    //registerCommandEDIT();
-    //registerCommandAssembly();
+    registerCommandEDIT();
+    registerCommandAssembly();
     
-    //registerCommandList();
-    //registerCommandCLS();
+    registerCommandList();
+    registerCommandCLS();
     
-    //registerCommandTASK();
+    registerCommandTASK();
     
   #endif
     
   #ifdef INCLUDE_NETWORK_APPLICATIONS
     
-    //registerCommandNet();
+    registerCommandNet();
     
   #endif
     
   #ifdef INCLUDE_FILE_SYSTEM_APPLICATIONS
     
-    //registerCommandDIR();
-    //registerCommandCOPY();
-    //registerCommandCD();
+    registerCommandDIR();
+    registerCommandCOPY();
+    registerCommandCD();
     
-    //registerCommandCAP();
-    //registerCommandMK();
-    //registerCommandRM();
-    //registerCommandRN();
-    //registerCommandATTRIB();
-    //registerCommandRepair();
-    //registerCommandFormat();
+    registerCommandCAP();
+    registerCommandMK();
+    registerCommandRM();
+    registerCommandRN();
+    registerCommandATTRIB();
+    registerCommandRepair();
+    registerCommandFormat();
     
   #endif
     
 #endif
     
     //
-    // Kernel version
+    // Boot the kernel
+    // 
+    
+    kernelVectorTableInit();      // Hardware interrupt vector table
+    schedulerInit();              // Scheduler sub system
+    fsInit();                     // File system
+    ntInit();                     // Network support
+    
     ConsoleSetCursor(1, 0);
     
     uint8_t kernelHelloWorldString[] = "kernel v0.0.1";

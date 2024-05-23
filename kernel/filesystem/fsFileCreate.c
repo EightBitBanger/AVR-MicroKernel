@@ -37,7 +37,7 @@ uint32_t fsFileCreate(uint8_t* name, uint8_t nameLength, uint32_t fileSize) {
         
         // Get sector header byte
         uint8_t headerByte=0;
-        bus_read_byte(&bus, currentDevice + (sector * SECTOR_SIZE), &headerByte);
+        fs_read_byte(&bus, currentDevice + (sector * SECTOR_SIZE), &headerByte);
         
         //// Find an empty sector
         if (fsGetDeviceHeaderByte( sector * SECTOR_SIZE ) != 0x00) 
@@ -48,7 +48,7 @@ uint32_t fsFileCreate(uint8_t* name, uint8_t nameLength, uint32_t fileSize) {
             
             // Get sector header byte
             uint8_t headerByte = 0;
-            bus_read_byte(&bus, currentDevice + (nextSector * SECTOR_SIZE), &headerByte);
+            fs_read_byte(&bus, currentDevice + (nextSector * SECTOR_SIZE), &headerByte);
             
             if (fsGetDeviceHeaderByte( nextSector * SECTOR_SIZE ) == 0x00) {
                 
@@ -77,34 +77,34 @@ uint32_t fsFileCreate(uint8_t* name, uint8_t nameLength, uint32_t fileSize) {
         // Mark following sectors as taken
         
         for (uint32_t i = 0; i <= totalSectors; i++) 
-            bus_write_byte_eeprom(&bus, fileTargetAddress + (i * SECTOR_SIZE), 0xff);
+            fs_write_byte(&bus, fileTargetAddress + (i * SECTOR_SIZE), 0xff);
         
         // Mark the end of file sector
-        bus_write_byte_eeprom(&bus, fileTargetAddress + (totalSectors * SECTOR_SIZE), 0xaa);
+        fs_write_byte(&bus, fileTargetAddress + (totalSectors * SECTOR_SIZE), 0xaa);
         
 		// Mark the first sector
         uint8_t fileStartbyte = 0x55; // File start byte is 0x55
-		bus_write_byte_eeprom(&bus, fileTargetAddress, fileStartbyte);
+		fs_write_byte(&bus, fileTargetAddress, fileStartbyte);
 		
 		// Blank the file name
 		for (uint8_t i=0; i < 10; i++) 
-            bus_write_byte_eeprom( &bus,  fileTargetAddress + i + OFFSET_FILE_NAME, ' ' );
+            fs_write_byte( &bus,  fileTargetAddress + i + OFFSET_FILE_NAME, ' ' );
         
 		// Write file name
 		for (uint8_t i=0; i < nameLength; i++) 
-            bus_write_byte_eeprom( &bus, fileTargetAddress + i + OFFSET_FILE_NAME, name[i] );
+            fs_write_byte( &bus, fileTargetAddress + i + OFFSET_FILE_NAME, name[i] );
         
         // Set file size
         union Pointer sizePtr;
         sizePtr.address = fileSize;
         
         for (uint8_t i=0; i < 4; i++) 
-            bus_write_byte_eeprom( &bus, fileTargetAddress + i + OFFSET_FILE_SIZE, sizePtr.byte_t[i] );
+            fs_write_byte( &bus, fileTargetAddress + i + OFFSET_FILE_SIZE, sizePtr.byte_t[i] );
         
         // Write file attributes
         uint8_t attributes[4] = {' ', ' ', 'r', 'w'};
         for (uint8_t i=0; i < 4; i++) 
-            bus_write_byte_eeprom( &bus, fileTargetAddress + i + OFFSET_FILE_ATTRIBUTES, attributes[i] );
+            fs_write_byte( &bus, fileTargetAddress + i + OFFSET_FILE_ATTRIBUTES, attributes[i] );
         
         return fileTargetAddress;
     }
