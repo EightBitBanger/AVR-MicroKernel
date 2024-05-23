@@ -73,7 +73,7 @@ void functionDIR(uint8_t* param, uint8_t param_length) {
             
             ConsoleSetCursorPosition(0);
             
-            for (uint8_t i=0; i < sizeof(msgPressAnyKey); i++) 
+            for (uint8_t a=0; a < sizeof(msgPressAnyKey); a++) 
                 printChar(' ');
             
             ConsoleSetCursorPosition(0);

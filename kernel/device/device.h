@@ -34,7 +34,7 @@ struct Device {
     // Hardware address offset from "hardware_address"
     // pointing to the initialization firmware 
     // if any is available. 0 = No firmware
-    //uint32_t firmware_address;
+    uint32_t firmware_address;
     
 };
 

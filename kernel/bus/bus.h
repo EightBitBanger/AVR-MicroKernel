@@ -7,6 +7,11 @@ struct Bus {
     
     uint16_t write_waitstate;
     
+    uint8_t bus_type;
+    
+    void(*read)(uint32_t address, uint8_t* buffer);
+    void(*write)(uint32_t address, uint8_t buffer);
+    
 };
 
 
