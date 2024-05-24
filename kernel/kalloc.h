@@ -10,6 +10,7 @@ struct Allocator {
 };
 
 
+void AllocateExternalMemory(void);
 
 
 #endif

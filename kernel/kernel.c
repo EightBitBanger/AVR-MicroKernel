@@ -15,6 +15,31 @@ void defaultLandingFunction(uint8_t index) {}
 
 void (*interrupt_vector_table[INTERRUPT_VECTOR_TABLE_SIZE])(uint8_t);
 
+void kInit(void) {
+    
+    // Enumerate available hardware devices
+    for (uint8_t d=1; d <= NUMBER_OF_PERIPHERALS; d++) {
+        
+        fsSetCurrentDevice( d );
+        
+        if (fsCheckDeviceReady() == 0) 
+            continue;
+        
+        fsSetCurrentDevice( 0xff );
+        
+        // Set the root directory
+        uint8_t filename[] = "storage0";
+        filename[8] = '0' + d;
+        fsFileCreate(filename, sizeof(filename), 20);
+        
+        continue;
+    }
+    
+    fsSetCurrentDevice( 0xff );
+    
+    return;
+}
+
 void kernelVectorTableInit(void) {
     
     for (uint8_t i=0; i < INTERRUPT_VECTOR_TABLE_SIZE; i++) {

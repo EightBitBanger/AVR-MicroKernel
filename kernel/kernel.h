@@ -3,6 +3,8 @@
 
 #include <avr/io.h>
 
+#include <kernel/kalloc.h>
+
 #include <kernel/pointers.h>
 
 #include <kernel/interrupt.h>
@@ -24,6 +26,8 @@
 #include <kernel/emulation/x4/x4.h>
 
 #include <kernel/scheduler.h>
+
+void kInit(void);
 
 void kernelVectorTableInit(void);
 

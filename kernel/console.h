@@ -10,6 +10,7 @@
 #include <kernel/cstring.h>
 
 #define  MSG_DEVICE_NOT_READY   1
+#define  MSG_DEVICE_NOT_FOUND   2
 
 void consoleRunShell(void);
 
@@ -27,7 +28,6 @@ void printChar(uint8_t character);
 void printLn(void);
 void printSpace(uint8_t numberOfSpaces);
 void printPrompt(void);
-void printMessage(uint8_t index);
 
 void ConsoleSetCursor(uint8_t line, uint8_t position);
 void ConsoleCursorEnable(void);

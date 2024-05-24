@@ -10,11 +10,14 @@
 // Included console commands
 #ifdef INCLUDE_KERNEL_APPLICATIONS
   
+  // Text editor
+  #include <kernel/commands/edit.h>
+  // Basic assembler
+  #include <kernel/commands/asm.h>
+  
   #include <kernel/commands/list.h>
   #include <kernel/commands/device.h>
   #include <kernel/commands/cls.h>
-  #include <kernel/commands/edit.h>
-  #include <kernel/commands/asm.h>
   #include <kernel/commands/task.h>
   
 #endif

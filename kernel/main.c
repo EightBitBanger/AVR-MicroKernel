@@ -24,81 +24,7 @@ int main(void) {
     // Allocate external memory
     //
     
-    struct Bus memoryBus;
-	
-	memoryBus.read_waitstate  = 2;
-	memoryBus.write_waitstate = 1;
-	
-    ConsoleSetBlinkRate(0);
-    
-    uint16_t counter=0;
-    uint32_t address=0;
-    
-    uint8_t buffer=0;
-    
-    uint8_t retry = 0;
-    
-    for (address=0x00000000; address < 0xffffffff; address++) {
-        
-        // 0x55 test
-        bus_write_memory(&memoryBus, address, 0x55);
-        
-        bus_read_memory(&memoryBus, address, &buffer);
-        
-        if (buffer != 0x55) {
-            
-            if (retry > 7) 
-                break;
-            
-            retry++;
-            
-        } else {
-            
-            retry = 0;
-            
-        }
-        
-        
-        // 0xAA deeper test
-        //bus_write_memory(&memoryBus, address, 0xAA);
-        
-        //bus_read_memory(&memoryBus, address, &buffer);
-        
-        //if (buffer != 0xAA) 
-        //    break;
-        
-        if (counter == 0) {
-            
-            ConsoleSetCursor(0, 0);
-            
-            uint8_t totalString[10];
-            uint8_t place = int_to_string(address, totalString);
-            print(totalString, place + 1);
-            
-        }
-        
-        counter++;
-        
-        if (counter == 512) 
-            counter = 0;
-        
-        continue;
-    }
-    
-    uint8_t totalString[10];
-    uint8_t place = int_to_string(address, totalString);
-    
-    ConsoleSetCursor(0, 0);
-    
-    print(totalString, place + 1);
-    printSpace(1);
-    
-    uint8_t byteFreeString[] = "bytes free";
-    print(byteFreeString, sizeof(byteFreeString));
-    
-    printLn();
-    
-    ConsoleSetBlinkRate( CURSOR_BLINK_RATE );
+    AllocateExternalMemory();
     
     //
     // Speaker beep
@@ -130,14 +56,14 @@ int main(void) {
   #ifdef INCLUDE_KERNEL_APPLICATIONS
     
     //registerCommandDevice();
+    //registerCommandCAP();
+    //registerCommandList();
+    //registerCommandTASK();
     
-    //registerCommandEDIT();
+    registerCommandEDIT();
     //registerCommandAssembly();
     
-    //registerCommandList();
     //registerCommandCLS();
-    
-    //registerCommandTASK();
     
   #endif
     
@@ -153,9 +79,8 @@ int main(void) {
     //registerCommandCOPY();
     registerCommandCD();
     
-    //registerCommandCAP();
     registerCommandMK();
-    //registerCommandRM();
+    registerCommandRM();
     //registerCommandRN();
     //registerCommandATTRIB();
     //registerCommandRepair();
@@ -173,7 +98,9 @@ int main(void) {
     schedulerInit();              // Scheduler sub system
     fsInit();                     // File system
     ntInit();                     // Network support
+    kInit();                      // Setup the kernel environment
     
+    ConsoleSetBlinkRate( CURSOR_BLINK_RATE );
     ConsoleSetCursor(1, 0);
     
     uint8_t kernelHelloWorldString[] = "kernel v0.0.1";
@@ -185,27 +112,25 @@ int main(void) {
     //
     // Find an active storage device to call the root directory
     
-    for (uint8_t d=1; d <= NUMBER_OF_PERIPHERALS; d++) {
-        
-        fsSetCurrentDevice( d );
-        
-        if (fsCheckDeviceReady() == 0) 
-            continue;
-        
-        // Set the root directory
-        uint8_t prompt[] = {('A' + d), '>'};
-        ConsoleSetPrompt( prompt, sizeof(prompt) + 1 );
-        
-        // Drop the initial command prompt
-        printPrompt();
-        
-        break;
-    }
+    fsSetCurrentDevice( 0xff );
+    fsSetDeviceTypeMEM();
     
+    uint8_t prompt[] = "root>";
+    ConsoleSetPrompt( prompt, sizeof(prompt) );
     
-    // Launch the command console task
+    // Drop the initial command prompt
+    printPrompt();
+    
+    //
+    // Launch system tasks
+    
+    // Command console
     uint8_t taskname[] = "command";
     TaskCreate(taskname, sizeof(taskname), consoleRunShell, TASK_PRIORITY_REALTIME, TASK_TYPE_SERVICE);
+    
+    
+    //
+    // Hardware/software interrupt handling
     
     // Enable hardware interrupts
     //  Trigger on the HIGH to LOW transition of PIN2

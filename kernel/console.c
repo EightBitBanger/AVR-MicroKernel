@@ -38,9 +38,6 @@ struct Driver* keyboadDevice;
 #define CONSOLE_FUNCTION_NAME_LENGTH   10
 
 
-uint8_t msgDeviceNotReady[]    = "Device not ready";
-
-
 struct ConsoleCommand {
     
     uint8_t name[CONSOLE_FUNCTION_NAME_LENGTH];
@@ -317,16 +314,8 @@ void consoleRunShell(void) {
 
 
 //
-// Print
+// Print general purpose
 //
-
-void printMessage(uint8_t index) {
-    
-    if (index == MSG_DEVICE_NOT_READY) print(msgDeviceNotReady, sizeof(msgDeviceNotReady));
-    
-    return;
-}
-
 
 void print(uint8_t* string, uint8_t length) {
     
@@ -595,8 +584,6 @@ uint8_t ConsoleWait(uint8_t key) {
     
     uint8_t currentChar = kbDecodeScanCode(oldScanCodeLow, oldScanCodeHigh);
     currentChar = lastChar;
-    
-    ConsoleSetCursor(console_line, 0);
     
     while (currentChar == lastChar) {
         
