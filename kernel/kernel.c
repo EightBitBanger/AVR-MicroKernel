@@ -20,17 +20,26 @@ void kInit(void) {
     // Enumerate available hardware devices
     for (uint8_t d=1; d <= NUMBER_OF_PERIPHERALS; d++) {
         
+        fsSetDeviceTypeIO();
         fsSetCurrentDevice( d );
         
         if (fsCheckDeviceReady() == 0) 
             continue;
         
+        fsSetDeviceTypeMEM();
         fsSetCurrentDevice( 0xff );
         
         // Set the root directory
-        uint8_t filename[] = "storage0";
-        filename[8] = '0' + d;
+        uint8_t filename[] = "st0";
+        filename[2] = '0' + d;
         fsFileCreate(filename, sizeof(filename), 20);
+        
+        uint8_t index;
+        index = fsFileOpen(filename, sizeof(filename));
+        uint8_t lineA[] = "A                  Z";
+        
+        fsFileWrite(index, lineA, sizeof(lineA));
+        fsFileClose(index);
         
         continue;
     }
