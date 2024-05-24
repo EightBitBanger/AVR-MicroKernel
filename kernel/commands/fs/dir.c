@@ -93,7 +93,7 @@ void functionDIR(uint8_t* param, uint8_t param_length) {
 
 void registerCommandDIR(void) {
     
-    uint8_t dirCommandName[] = "dir";
+    uint8_t dirCommandName[] = "ls";
     
     ConsoleRegisterCommand(dirCommandName, sizeof(dirCommandName), functionDIR);
     

@@ -5,6 +5,11 @@
 
 #include <kernel/commands/edit.h>
 
+uint8_t msgFileNotFoundEdittor[] = "File not found";
+uint8_t msgSaved[]               = "Saved";
+uint8_t msgSaveQuit[]            = "(S)ave / (Q)uit?";
+uint8_t msgBytes[]               = "bytes";
+
 void functionEDIT(uint8_t* param, uint8_t param_length) {
     
     // File state
@@ -32,11 +37,6 @@ void functionEDIT(uint8_t* param, uint8_t param_length) {
     if (filename_length < 1) 
         return;
     
-    // Editor buffer
-    uint8_t textBuffer[1024];
-    for (uint16_t i=0; i < 1024; i++) 
-        textBuffer[i] = ' ';
-    
     // Cursor state
     uint8_t lastChar = ConsoleGetLastChar();
     uint8_t cursorPos  = 0;
@@ -50,12 +50,16 @@ void functionEDIT(uint8_t* param, uint8_t param_length) {
     
     if (fileAddressBegin == 0) {
         
-        uint8_t msgFileNotFound[] = "File not found";
-        print( msgFileNotFound, sizeof(msgFileNotFound) );
+        print( msgFileNotFoundEdittor, sizeof(msgFileNotFoundEdittor) );
         printLn();
         
         return;
     }
+    
+    // Editor buffer
+    uint8_t textBuffer[fileSize];
+    for (uint16_t i=0; i < fileSize; i++) 
+        textBuffer[i] = ' ';
     
     // Load the file
     fsFileRead(index, textBuffer, fileSize);
@@ -81,9 +85,18 @@ void functionEDIT(uint8_t* param, uint8_t param_length) {
             
             ConsoleClearScreen();
             
-            uint8_t msgSaveQuit[] = "(S)ave / (Q)uit?";
-            ConsoleSetCursor(1, 0);
+            ConsoleSetCursor(0, 0);
+            
             print(msgSaveQuit, sizeof(msgSaveQuit));
+            
+            ConsoleSetCursor(2, 0);
+            
+            print(filename, filename_length + 1);
+            
+            ConsoleSetCursor(3, 0);
+            printInt(fileSize);
+            
+            print(msgBytes, sizeof(msgBytes));
             
             ConsoleSetBlinkRate(0);
             
@@ -103,8 +116,7 @@ void functionEDIT(uint8_t* param, uint8_t param_length) {
                     // Save file data
                     fsFileWrite(index, textBuffer, fileSize);
                     
-                    uint8_t msgSaved[] = "Saved";
-                    ConsoleSetCursor(3, 0);
+                    ConsoleSetCursor(3, 15);
                     print(msgSaved, sizeof(msgSaved));
                     
                 }
@@ -124,7 +136,7 @@ void functionEDIT(uint8_t* param, uint8_t param_length) {
                 
                 // Escape
                 if (lastChar == 0x07) 
-                    answere = 3;
+                    answere = 2;
                 
                 continue;
             }
@@ -132,6 +144,7 @@ void functionEDIT(uint8_t* param, uint8_t param_length) {
             // Quit the application
             if (answere == 2) {
                 
+                ConsoleClearScreen();
             }
             
             ConsoleSetBlinkRate(CURSOR_BLINK_RATE);
@@ -210,17 +223,18 @@ void functionEDIT(uint8_t* param, uint8_t param_length) {
         //
         // Place character
         
-        if (lastChar > 0x19) {
+        if ((lastChar > 0x19) ) {
+            
+            uint8_t pos = cursorPos + (cursorLine * 20);
+            
+            if (pos <= fileSize) 
+                textBuffer[pos] = lastChar;
             
             if (cursorPos < 19) {
-                
-                textBuffer[cursorPos + (cursorLine * 20)] = lastChar;
                 
                 cursorPos++;
                 
             } else {
-                
-                textBuffer[cursorPos + (cursorLine * 20)] = lastChar;
                 
                 if (cursorLine < 3) {
                     cursorPos = 0;
@@ -235,11 +249,8 @@ void functionEDIT(uint8_t* param, uint8_t param_length) {
         //
         // Draw the text buffer
         ConsoleSetCursor(0, 0);
-        for (uint8_t i=0; i < 4; i++) {
-            
-            print( &textBuffer[20 * i], 21 );
-            
-        }
+        
+        print( textBuffer, fileSize );
         
         ConsoleSetCursor(cursorLine, cursorPos);
         

@@ -6,6 +6,7 @@
 #include <kernel/commands/fs/cap.h>
 
 uint8_t msgBytesTotal[]       = " bytes total";
+uint8_t msgDeviceNotReady[]   = "Device not ready";
 
 void functionCAP(uint8_t* param, uint8_t param_length) {
     
@@ -13,7 +14,7 @@ void functionCAP(uint8_t* param, uint8_t param_length) {
     
     if (deviceCapacity == 0) {
         
-        printMessage( MSG_DEVICE_NOT_READY );
+        print(msgDeviceNotReady, sizeof(msgDeviceNotReady));
         printLn();
         
         return;
