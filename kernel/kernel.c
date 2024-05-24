@@ -31,14 +31,14 @@ void kInit(void) {
         
         // Set the root directory
         uint8_t filename[] = "st0";
-        filename[2] = '0' + d;
-        fsFileCreate(filename, sizeof(filename), 20);
+        filename[2] = '0' + (d - 1);
+        fsFileCreate(filename, sizeof(filename) - 1, 20);
         
         uint8_t index;
-        index = fsFileOpen(filename, sizeof(filename));
-        uint8_t lineA[] = "A                  Z";
+        index = fsFileOpen(filename, sizeof(filename)-1);
+        uint8_t lineA[] = "A                XYZ";
         
-        fsFileWrite(index, lineA, sizeof(lineA));
+        fsFileWrite(index, lineA, sizeof(lineA) + 2);
         fsFileClose(index);
         
         continue;
