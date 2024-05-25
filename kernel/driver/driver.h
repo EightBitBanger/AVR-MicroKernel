@@ -6,7 +6,7 @@
 
 #include <kernel/cstring.h>
 
-#define DRIVER_REGISTRY_SIZE   24
+#define DRIVER_REGISTRY_SIZE   8
 
 
 struct Driver {
