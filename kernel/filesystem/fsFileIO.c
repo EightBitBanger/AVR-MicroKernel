@@ -8,6 +8,8 @@
 uint32_t fileBeginAddress = 0;
 uint32_t fileSize = 0;
 
+uint32_t fileSeek = 0;
+
 
 uint8_t fsFileOpen(uint8_t* name, uint8_t nameLength) {
     
@@ -15,13 +17,26 @@ uint8_t fsFileOpen(uint8_t* name, uint8_t nameLength) {
     
     if (fileBeginAddress != 0) {
         
-        fileSize = fsGetFileSize(name, nameLength);
+        fileSize = fsGetFileSize(name, nameLength) + 1;
+        
+        fileSeek = 0;
         
         return 1;
     }
     
     fileSize = 0;
     return 0;
+}
+
+uint8_t fsFileSeekGet(void) {
+    return fileSeek;
+}
+
+uint8_t fsFileSeekSet(uint8_t position) {
+    if (position > fileSize) 
+        return 0;
+    fileSeek = position;
+    return 1;
 }
 
 uint8_t fsFileClose(uint8_t index) {
@@ -47,8 +62,8 @@ uint8_t fsFileWrite(uint8_t index, uint8_t* buffer, uint32_t length) {
     uint32_t sector = 0;
     uint32_t sectorCounter = 0;
     
-    //if (length > fileSize) 
-    //    return 0;
+    if (length > (fileSize + 1)) 
+        return 0;
     
     for (uint32_t i=0; i < length; i++) {
         
@@ -58,10 +73,15 @@ uint8_t fsFileWrite(uint8_t index, uint8_t* buffer, uint32_t length) {
             sector++;
         }
         
-        fs_write_byte( &bus, fileBeginAddress + SECTOR_SIZE + sector + 1, buffer[i] );
+        uint32_t positionOffset = fileBeginAddress + SECTOR_SIZE + sector + 1;
+        
+        fs_write_byte( &bus, positionOffset, buffer[i] );
         
         sectorCounter++;
         sector++;
+        
+        //if (buffer[i] == '\0') 
+        //    break;
         
         continue;
     }
@@ -81,7 +101,7 @@ uint8_t fsFileRead(uint8_t index, uint8_t* buffer, uint32_t length) {
     uint32_t sector = 0;
     uint32_t sectorCounter = 0;
     
-    if (length > fileSize) 
+    if (length > (fileSize + 1)) 
         return 0;
     
     for (uint32_t i=0; i < length; i++) {
@@ -92,13 +112,20 @@ uint8_t fsFileRead(uint8_t index, uint8_t* buffer, uint32_t length) {
             sector++;
         }
         
-        fs_read_byte( &bus, fileBeginAddress + SECTOR_SIZE + sector + 1, &buffer[i] );
+        uint32_t positionOffset = fileBeginAddress + SECTOR_SIZE + sector + 1;
+        
+        fs_read_byte( &bus, positionOffset, &buffer[i] );
         
         sectorCounter++;
         sector++;
         
+        if (buffer[i] == '\0') 
+            break;
+        
         continue;
     }
+    
+    buffer[length] = '\0';
     
     return ' ';
 }
