@@ -14,7 +14,6 @@ void functionNet(uint8_t* param, uint8_t param_length) {
     uint8_t msgReplyFrom[]        = "Reply from ";
     uint8_t msgNoHostResponce[]   = "Cannot reach host";
     uint8_t msgRequestTimedOut[]  = "Request timed out";
-    uint8_t msgNoMessages[]       = "Empty";
     
     // Lower case the string
     for (uint8_t i=0; i < 4; i++) 

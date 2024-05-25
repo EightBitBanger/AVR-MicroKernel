@@ -250,7 +250,7 @@ void functionEDIT(uint8_t* param, uint8_t param_length) {
         // Draw the text buffer
         ConsoleSetCursor(0, 0);
         
-        print( textBuffer, fileSize );
+        print( textBuffer, fileSize + 1 );
         
         ConsoleSetCursor(cursorLine, cursorPos);
         
