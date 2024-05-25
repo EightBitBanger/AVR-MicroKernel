@@ -183,25 +183,36 @@ void functionEDIT(uint8_t* param, uint8_t param_length) {
         // Backspace
         if (lastChar == 0x01) {
             
+            // Shift back the text line
+            uint8_t* textLine = 0;
+            if (cursorLine == 0) textLine = textLineA;
+            if (cursorLine == 1) textLine = textLineB;
+            if (cursorLine == 2) textLine = textLineC;
+            if (cursorLine == 3) textLine = textLineD;
+            
             if (cursorPos > 0) {
+                
+                // Find EOL
+                uint8_t posEOL = 0;
                 
                 cursorPos--;
                 
-            } else {
+                for (uint8_t i=0; i < 21; i++) {
+                    
+                    posEOL = i;
+                    
+                    if (textLine[i] == '\n') 
+                        break;
+                }
                 
-                if (cursorLine > 0) {
+                for (uint8_t i=cursorPos; i < posEOL; i++) {
+                    textLine[i] = textLine[i + 1];
                     
-                    cursorLine--;
-                    
-                    cursorPos = 19;
-                    
+                    if (i == 0) 
+                        break;
                 }
                 
             }
-            
-            ConsoleSetCursor(cursorLine, cursorPos);
-            
-            textBuffer[cursorPos + (cursorLine * 20)] = ' ';
             
         }
         
@@ -347,8 +358,6 @@ void functionEDIT(uint8_t* param, uint8_t param_length) {
         // Draw the text buffer
         ConsoleSetCursor(0, 0);
         
-        //printk( textBuffer );
-        
         for (uint8_t i=0; i < 4; i++) {
             uint8_t* textLine = textLineA;
             
@@ -358,8 +367,12 @@ void functionEDIT(uint8_t* param, uint8_t param_length) {
             if (i == 3) textLine = textLineD;
             
             for (uint8_t p=0; p <= 21; p++) {
-                if (textLine[p] == '\n') 
+                
+                if (textLine[p] == '\n') {
+                    printChar(0);
                     break;
+                }
+                
                 printChar( textLine[p] );
             }
             
