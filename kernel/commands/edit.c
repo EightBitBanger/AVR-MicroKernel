@@ -61,6 +61,9 @@ void functionEDIT(uint8_t* param, uint8_t param_length) {
     for (uint16_t i=0; i < fileSize; i++) 
         textBuffer[i] = ' ';
     
+    // Null terminate the string
+    textBuffer[fileSize] = '\0';
+    
     // Load the file
     fsFileRead(index, textBuffer, fileSize);
     
@@ -250,7 +253,7 @@ void functionEDIT(uint8_t* param, uint8_t param_length) {
         // Draw the text buffer
         ConsoleSetCursor(0, 0);
         
-        print( textBuffer, fileSize + 1 );
+        printk( textBuffer );
         
         ConsoleSetCursor(cursorLine, cursorPos);
         

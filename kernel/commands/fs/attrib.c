@@ -45,13 +45,15 @@ void functionATTRIB(uint8_t* param, uint8_t param_length) {
     attribute.readable    = attributeCurrent.readable;
     attribute.writeable   = attributeCurrent.writeable;
     
-    if ((param[filenameLength+1] == '-') & (param[filenameLength + 2] == 'x')) attribute.executable = 0;
-    if ((param[filenameLength+1] == '-') & (param[filenameLength + 2] == 'r')) attribute.readable   = 0;
-    if ((param[filenameLength+1] == '-') & (param[filenameLength + 2] == 'w')) attribute.writeable  = 0;
+    // Remove
+    if ((param[filenameLength + 1] == '-') & (param[filenameLength + 2] == 'x')) attribute.executable = 0;
+    if ((param[filenameLength + 1] == '-') & (param[filenameLength + 2] == 'r')) attribute.readable   = 0;
+    if ((param[filenameLength + 1] == '-') & (param[filenameLength + 2] == 'w')) attribute.writeable  = 0;
     
-    if (param[filenameLength+1] == 'x') attribute.executable = 1;
-    if (param[filenameLength+1] == 'r') attribute.readable   = 1;
-    if (param[filenameLength+1] == 'w') attribute.writeable  = 1;
+    // Add
+    if ((param[filenameLength + 1] == '+') & (param[filenameLength + 2] == 'x')) attribute.executable = 1;
+    if ((param[filenameLength + 1] == '+') & (param[filenameLength + 2] == 'r')) attribute.readable   = 1;
+    if ((param[filenameLength + 1] == '+') & (param[filenameLength + 2] == 'w')) attribute.writeable  = 1;
     
     // Apply file attributes if any changes are made
     uint8_t isChanged = 0;

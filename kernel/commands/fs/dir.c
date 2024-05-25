@@ -62,28 +62,32 @@ void functionDIR(uint8_t* param, uint8_t param_length) {
         print(filesizeString, len);
         
         printLn();
-        if (fileCount > 1) {
-            
-            uint8_t msgPressAnyKey[] = "Press any key...";
-            print(msgPressAnyKey, sizeof(msgPressAnyKey));
-            
-            ConsoleSetCursorPosition( sizeof(msgPressAnyKey) - 1 );
-            
-            ConsoleWait(0);
-            
-            ConsoleSetCursorPosition(0);
-            
-            for (uint8_t a=0; a < sizeof(msgPressAnyKey); a++) 
-                printChar(' ');
-            
-            ConsoleSetCursorPosition(0);
-            
-            fileCount = 0;
-            
-            continue;
-        }
         
-        fileCount++;
+        if ((param[0] == '-') & (param[1] == 'p')) {
+            
+            if (fileCount > 1) {
+                
+                uint8_t msgPressAnyKey[] = "Press any key...";
+                print(msgPressAnyKey, sizeof(msgPressAnyKey));
+                
+                ConsoleSetCursorPosition( sizeof(msgPressAnyKey) - 1 );
+                
+                ConsoleWait(0);
+                
+                ConsoleSetCursorPosition(0);
+                
+                for (uint8_t a=0; a < sizeof(msgPressAnyKey); a++) 
+                    printChar(' ');
+                
+                ConsoleSetCursorPosition(0);
+                
+                fileCount = 0;
+                
+                continue;
+            }
+            
+            fileCount++;
+        }
         
         continue;
     }
