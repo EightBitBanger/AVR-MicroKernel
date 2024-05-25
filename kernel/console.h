@@ -21,6 +21,7 @@ uint8_t ConsoleRegisterCommand(uint8_t* name, uint8_t nameLength, void(*function
 uint8_t ConsoleGetRawChar(void);
 uint8_t ConsoleGetLastChar(void);
 
+void printk(uint8_t* string);
 void print(uint8_t* string, uint8_t length);
 void printInt(uint32_t integer);
 void printc(char* string, uint8_t length);

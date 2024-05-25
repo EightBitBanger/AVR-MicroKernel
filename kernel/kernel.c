@@ -36,9 +36,10 @@ void kInit(void) {
         
         uint8_t index;
         index = fsFileOpen(filename, sizeof(filename)-1);
-        uint8_t lineA[] = "A                  ZA                  ZA                  ZA                  Z";
+        uint8_t lineA[] = "Line one\nLine two\ntest line of text\nstring of text";
         
-        fsFileWrite(index, lineA, sizeof(lineA) + 2);
+        fsFileWrite(index, lineA, sizeof(lineA));
+        
         fsFileClose(index);
         
         continue;

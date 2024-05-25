@@ -55,13 +55,13 @@ int main(void) {
     
   #ifdef INCLUDE_KERNEL_APPLICATIONS
     
-    //registerCommandDevice();
-    //registerCommandCAP();
-    //registerCommandList();
-    //registerCommandTASK();
+    registerCommandDevice();
+    registerCommandCAP();
+    registerCommandList();
+    registerCommandTASK();
     
     registerCommandEDIT();
-    //registerCommandAssembly();
+    registerCommandAssembly();
     
     registerCommandCLS();
     
@@ -69,7 +69,7 @@ int main(void) {
     
   #ifdef INCLUDE_NETWORK_APPLICATIONS
     
-    //registerCommandNet();
+    registerCommandNet();
     
   #endif
     

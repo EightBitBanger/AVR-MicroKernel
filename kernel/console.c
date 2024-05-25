@@ -372,6 +372,47 @@ void consoleRunShell(void) {
 // Print general purpose
 //
 
+void printk(uint8_t* string) {
+    
+    uint8_t pos = 0;
+    uint8_t line = 0;
+    
+    for (uint16_t i=0; i < 1024; i++) {
+        
+        // Null terminate
+        if (string[i] == '\0') {
+            return;
+        }
+        
+        // New line
+        if (string[i] == '\n') {
+            
+            if (line < 3) {
+                line++;
+                displayDevice->write( 160, line);
+            } else {
+                // Otherwise shift the frame down
+                displayDevice->write( 169, 0x01);
+                _delay_ms(40);
+            }
+            
+            pos = 0;
+            
+            continue;
+        }
+        
+        displayDevice->write( pos + (20 * line), string[i] );
+        
+        pos++;
+        
+        continue;
+    }
+    
+    ConsoleSetCursor(console_line, console_position);
+    
+    return;
+}
+
 void print(uint8_t* string, uint8_t length) {
     
     for (uint8_t i=0; i < length - 1; i++) {
@@ -394,11 +435,22 @@ void printInt(uint32_t integer) {
     
     uint8_t place = int_to_string(integer, string);
     
-    for (uint8_t i=0; i < place; i++) {
+    // Zero special case
+    if (integer == 0) {
         
-        displayDevice->write( console_position + (20 * console_line) + i, string[i] );
+        printChar('0');
         
-        continue;
+        return;
+        
+    } else {
+        
+        for (uint8_t i=0; i < place; i++) {
+            
+            displayDevice->write( console_position + (20 * console_line) + i, string[i] );
+            
+            continue;
+        }
+        
     }
     
     console_position += place;
