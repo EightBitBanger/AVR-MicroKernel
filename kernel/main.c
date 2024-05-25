@@ -60,7 +60,7 @@ int main(void) {
     //registerCommandList();
     //registerCommandTASK();
     
-    registerCommandEDIT();
+    //registerCommandEDIT();
     //registerCommandAssembly();
     
     //registerCommandCLS();
@@ -75,12 +75,12 @@ int main(void) {
     
   #ifdef INCLUDE_FILE_SYSTEM_APPLICATIONS
     
-    registerCommandDIR();
+    //registerCommandDIR();
     //registerCommandCOPY();
-    registerCommandCD();
+    //registerCommandCD();
     
-    registerCommandMK();
-    registerCommandRM();
+    //registerCommandMK();
+    //registerCommandRM();
     //registerCommandRN();
     //registerCommandATTRIB();
     //registerCommandRepair();
@@ -98,11 +98,12 @@ int main(void) {
     schedulerInit();              // Scheduler sub system
     fsInit();                     // File system
     ntInit();                     // Network support
-    kInit();                      // Setup the kernel environment
+    //kInit();                      // Setup the kernel environment
     
     ConsoleSetBlinkRate( CURSOR_BLINK_RATE );
     ConsoleSetCursor(1, 0);
     
+    // Version
     uint8_t kernelHelloWorldString[] = "kernel v0.0.1";
     print(kernelHelloWorldString, sizeof(kernelHelloWorldString));
     printLn();
