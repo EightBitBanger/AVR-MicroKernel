@@ -55,36 +55,36 @@ int main(void) {
     
   #ifdef INCLUDE_KERNEL_APPLICATIONS
     
-    registerCommandDevice();
-    registerCommandCAP();
+    //registerCommandDevice();
+    //registerCommandCAP();
     registerCommandList();
-    registerCommandTASK();
+    //registerCommandTASK();
     
     registerCommandEDIT();
-    registerCommandAssembly();
+    //registerCommandAssembly();
     
-    registerCommandCLS();
+    //registerCommandCLS();
     
   #endif
     
   #ifdef INCLUDE_NETWORK_APPLICATIONS
     
-    registerCommandNet();
+    //registerCommandNet();
     
   #endif
     
   #ifdef INCLUDE_FILE_SYSTEM_APPLICATIONS
     
-    registerCommandDIR();
-    registerCommandCOPY();
-    registerCommandCD();
+    //registerCommandDIR();
+    //registerCommandCOPY();
+    //registerCommandCD();
     
-    registerCommandMK();
-    registerCommandRM();
-    registerCommandRN();
-    registerCommandATTRIB();
-    registerCommandRepair();
-    registerCommandFormat();
+    //registerCommandMK();
+    //registerCommandRM();
+    //registerCommandRN();
+    //registerCommandATTRIB();
+    //registerCommandRepair();
+    //registerCommandFormat();
     
   #endif
     

@@ -36,7 +36,7 @@ void kInit(void) {
         
         uint8_t index;
         index = fsFileOpen(filename, sizeof(filename)-1);
-        uint8_t lineA[] = "Line one\nLine two\ntest line of text\nstring of text";
+        uint8_t lineA[] = "Line one\nLine two\ntest line of text\nstring of text\n\0";
         
         fsFileWrite(index, lineA, sizeof(lineA));
         
