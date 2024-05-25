@@ -32,11 +32,11 @@ void kInit(void) {
         // Set the root directory
         uint8_t filename[] = "st0";
         filename[2] = '0' + (d - 1);
-        fsFileCreate(filename, sizeof(filename)-1, 20);
+        fsFileCreate(filename, sizeof(filename)-1, 80);
         
         uint8_t index;
         index = fsFileOpen(filename, sizeof(filename)-1);
-        uint8_t lineA[] = "01234567890123456789";
+        uint8_t lineA[] = "A                  ZA                  ZA                  ZA                  Z";
         
         fsFileWrite(index, lineA, sizeof(lineA) + 2);
         fsFileClose(index);

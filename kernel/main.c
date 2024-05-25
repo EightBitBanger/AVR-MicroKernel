@@ -7,7 +7,7 @@ int main(void) {
     bus_address_zero();
     
     // Allow board some time to stabilize
-    _delay_ms(1800);
+    _delay_ms(1500);
     
     // Device drivers
 	initiateDisplayDriver();      // 20x4 LCD Display
@@ -60,10 +60,10 @@ int main(void) {
     //registerCommandList();
     //registerCommandTASK();
     
-    //registerCommandEDIT();
+    registerCommandEDIT();
     //registerCommandAssembly();
     
-    //registerCommandCLS();
+    registerCommandCLS();
     
   #endif
     
@@ -75,16 +75,16 @@ int main(void) {
     
   #ifdef INCLUDE_FILE_SYSTEM_APPLICATIONS
     
-    //registerCommandDIR();
-    //registerCommandCOPY();
-    //registerCommandCD();
+    registerCommandDIR();
+    registerCommandCOPY();
+    registerCommandCD();
     
-    //registerCommandMK();
-    //registerCommandRM();
-    //registerCommandRN();
-    //registerCommandATTRIB();
-    //registerCommandRepair();
-    //registerCommandFormat();
+    registerCommandMK();
+    registerCommandRM();
+    registerCommandRN();
+    registerCommandATTRIB();
+    registerCommandRepair();
+    registerCommandFormat();
     
   #endif
     
@@ -98,20 +98,32 @@ int main(void) {
     schedulerInit();              // Scheduler sub system
     fsInit();                     // File system
     ntInit();                     // Network support
-    //kInit();                      // Setup the kernel environment
+    kInit();                      // Setup the kernel environment
     
     ConsoleSetBlinkRate( CURSOR_BLINK_RATE );
     ConsoleSetCursor(1, 0);
     
     // Version
-    uint8_t kernelHelloWorldString[] = "kernel v0.0.1";
+    uint8_t kernelHelloWorldString[] = "kernel";
     print(kernelHelloWorldString, sizeof(kernelHelloWorldString));
+    
+    uint8_t versionMajor = 20;
+    uint8_t versionMinor = 1;
+    uint8_t versionPatch = 100;
+    
+    printSpace(1);
+    printChar('v');
+    printInt(versionMajor);
+    printChar('.');
+    printInt(versionMinor);
+    printChar('.');
+    printInt(versionPatch);
     printLn();
     
     
     
     //
-    // Find an active storage device to call the root directory
+    // Start in the root directory
     
     fsSetCurrentDevice( 0xff );
     fsSetDeviceTypeMEM();

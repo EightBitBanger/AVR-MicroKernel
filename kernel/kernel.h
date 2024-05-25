@@ -3,6 +3,8 @@
 
 #include <avr/io.h>
 
+#include <kernel/version.h>
+
 #include <kernel/kalloc.h>
 
 #include <kernel/pointers.h>
