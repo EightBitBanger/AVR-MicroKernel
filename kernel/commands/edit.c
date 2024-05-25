@@ -57,10 +57,10 @@ void functionEDIT(uint8_t* param, uint8_t param_length) {
     }
     
     // Editor buffer
-    uint8_t textLineA[20];
-    uint8_t textLineB[20];
-    uint8_t textLineC[20];
-    uint8_t textLineD[20];
+    uint8_t textLineA[30];
+    uint8_t textLineB[30];
+    uint8_t textLineC[30];
+    uint8_t textLineD[30];
     
     for (uint8_t i=0; i < 20; i++) {
         textLineA[i] = ' ';
@@ -358,13 +358,13 @@ void functionEDIT(uint8_t* param, uint8_t param_length) {
         
         //printk( textBuffer );
         
-        print(textLineA, sizeof(textLineA));
+        print(textLineA, 21);
         printLn();
-        print(textLineB, sizeof(textLineB));
+        print(textLineB, 21);
         printLn();
-        print(textLineC, sizeof(textLineC));
+        print(textLineC, 21);
         printLn();
-        print(textLineD, sizeof(textLineD));
+        print(textLineD, 21);
         
         ConsoleSetCursor(cursorLine, cursorPos);
         
