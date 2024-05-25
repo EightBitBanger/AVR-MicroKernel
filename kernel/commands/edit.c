@@ -57,10 +57,10 @@ void functionEDIT(uint8_t* param, uint8_t param_length) {
     }
     
     // Editor buffer
-    uint8_t textLineA[30];
-    uint8_t textLineB[30];
-    uint8_t textLineC[30];
-    uint8_t textLineD[30];
+    uint8_t textLineA[35];
+    uint8_t textLineB[35];
+    uint8_t textLineC[35];
+    uint8_t textLineD[35];
     
     for (uint8_t i=0; i < 20; i++) {
         textLineA[i] = ' ';
@@ -242,12 +242,15 @@ void functionEDIT(uint8_t* param, uint8_t param_length) {
                 
             }
             
-            if (cursorLine == 0) textLineA[cursorPos] = lastChar;
-            if (cursorLine == 1) textLineB[cursorPos] = lastChar;
-            if (cursorLine == 2) textLineC[cursorPos] = lastChar;
-            if (cursorLine == 3) textLineD[cursorPos] = lastChar;
+            if ((textLineA[20] != '\n') & (cursorLine == 0)) textLineA[cursorPos] = lastChar;
+            if ((textLineB[20] != '\n') & (cursorLine == 1)) textLineB[cursorPos] = lastChar;
+            if ((textLineC[20] != '\n') & (cursorLine == 2)) textLineC[cursorPos] = lastChar;
+            if ((textLineD[20] != '\n') & (cursorLine == 3)) textLineD[cursorPos] = lastChar;
             
             cursorPos++;
+            
+            if (cursorPos > 20) 
+                cursorPos = 20;
             
         }
         
