@@ -5,12 +5,12 @@
 
 #include <kernel/commands/edit.h>
 
-uint8_t msgFileNotFoundEdittor[] = "File not found";
-uint8_t msgSaved[]               = "Saved";
-uint8_t msgSaveQuit[]            = "(S)ave / (Q)uit?";
-uint8_t msgBytes[]               = "bytes";
-
 void functionEDIT(uint8_t* param, uint8_t param_length) {
+    
+    uint8_t msgFileNotFoundEdittor[] = "File not found";
+    uint8_t msgSaved[]               = "Saved";
+    uint8_t msgSaveQuit[]            = "(S)ave / (Q)uit?";
+    uint8_t msgBytes[]               = "bytes";
     
     // File state
     uint8_t filename[10];

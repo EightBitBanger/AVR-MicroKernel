@@ -7,12 +7,12 @@
 
 uint32_t filesize = 20;
 
-uint8_t msgInBytes[]       = "bytes";
-uint8_t msgFileCreated[]   = "File created";
-uint8_t msgNoSpace[]       = "No space available";
-uint8_t msgAlreadyExists[] = "File already exists";
-
 void functionMK(uint8_t* param, uint8_t param_length) {
+    
+    uint8_t msgInBytes[]       = "bytes";
+    uint8_t msgFileCreated[]   = "File created";
+    uint8_t msgNoSpace[]       = "No space available";
+    uint8_t msgAlreadyExists[] = "File already exists";
     
     // File size
     if ((param[0] == 's') & (param[1] == 'z')) {

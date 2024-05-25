@@ -8,17 +8,15 @@
 uint8_t clientAddress[2] = {24, 0};
 uint8_t targetAddress[2] = {0x80, 0x80};
 
-uint8_t msgConnected[]        = "Connected to host";
-uint8_t msgReplyFrom[]        = "Reply from ";
-uint8_t msgNoHostResponce[]   = "Cannot reach host";
-uint8_t msgRequestTimedOut[]  = "Request timed out";
-uint8_t msgNoMessages[]       = "Empty";
-
-
 void functionNet(uint8_t* param, uint8_t param_length) {
     
-    // Lower case the string
+    uint8_t msgConnected[]        = "Connected to host";
+    uint8_t msgReplyFrom[]        = "Reply from ";
+    uint8_t msgNoHostResponce[]   = "Cannot reach host";
+    uint8_t msgRequestTimedOut[]  = "Request timed out";
+    uint8_t msgNoMessages[]       = "Empty";
     
+    // Lower case the string
     for (uint8_t i=0; i < 4; i++) 
         lowercase( &param[i] );
     

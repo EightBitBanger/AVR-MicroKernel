@@ -7,8 +7,6 @@
 uint8_t page = 0;
 uint8_t mode = 0;
 
-extern uint8_t console_position;
-
 void functionList(uint8_t* param, uint8_t param_length) {
     
     if (is_number(&param[0]) == 1) {
@@ -57,7 +55,6 @@ void functionList(uint8_t* param, uint8_t param_length) {
             int_to_hex_string( buffer[i], &hex[0] );
             
             print(hex, sizeof(hex) + 1);
-            //console_position--;
             
             if ((i == 9) | (i == 19))
                 printLn();

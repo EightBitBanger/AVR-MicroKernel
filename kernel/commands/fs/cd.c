@@ -4,10 +4,10 @@
 
 #include <kernel/commands/fs/cap.h>
 
-uint8_t msgDeviceError[] = "Device not ready";
-
 
 void functionCD(uint8_t* param, uint8_t param_length) {
+    
+    uint8_t msgDeviceError[] = "Device not ready";
     
     uint8_t deviceLocated = 0;
     

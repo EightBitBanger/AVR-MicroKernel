@@ -5,11 +5,11 @@
 
 #include <kernel/commands/task.h>
 
-uint8_t msgTaskFound[]     = "Task stopped";
-uint8_t msgTaskNotFound[]  = "Task not found";
-
 
 void functionTASK(uint8_t* param, uint8_t param_length) {
+    
+    uint8_t msgTaskFound[]     = "Task stopped";
+    uint8_t msgTaskNotFound[]  = "Task not found";
     
     lowercase(&param[0]);
     

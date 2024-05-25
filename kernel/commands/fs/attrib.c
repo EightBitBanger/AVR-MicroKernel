@@ -5,11 +5,10 @@
 
 #include <kernel/commands/fs/attrib.h>
 
-uint8_t msgFileNotFound[]     = "File not found";
-uint8_t msgAttributeSet[]     = "File attribute set";
-uint8_t msgAttributeNotSet[]  = "Error setting attribute";
-
 void functionATTRIB(uint8_t* param, uint8_t param_length) {
+    
+    uint8_t msgFileNotFound[]     = "File not found";
+    uint8_t msgAttributeNotSet[]  = "Error setting attribute";
     
     // Get the file name
     uint8_t filename[10];

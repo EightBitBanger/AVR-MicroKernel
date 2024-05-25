@@ -4,19 +4,18 @@
 
 #include <kernel/commands/list.h>
 
-uint8_t msgPromptString[] = "-";
-
-uint8_t asm_console_string[40];
-
-uint8_t asm_console_string_length;
-
-uint32_t currentFileAddress;
-
-uint8_t assemblyState;
-uint32_t assemblyAddress;
-
-
 void functionAsm(uint8_t* param, uint8_t param_length) {
+    
+    uint8_t msgPromptString[] = "-";
+    
+    uint8_t asm_console_string[40];
+    
+    uint8_t asm_console_string_length;
+    
+    uint32_t currentFileAddress;
+    
+    uint8_t assemblyState;
+    uint32_t assemblyAddress;
     
     if (fsFileExists(param, param_length) == 0) 
         return;

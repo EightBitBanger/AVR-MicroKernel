@@ -5,15 +5,14 @@
 
 #include <kernel/commands/fs/copy.h>
 
-
-uint8_t msgFileCopied[]         = "File copied";
-uint8_t msgSourceNotFound[]     = "File not found";
-uint8_t msgCannotCopyFile[]     = "Cannot be copied";
-uint8_t msgErrorCreatingFile[]  = "Cannot create file";
-uint8_t msgFileAccessError[]    = "File access error";
-uint8_t msgDestinationError[]   = "Destination error";
-
 void functionCOPY(uint8_t* param, uint8_t param_length) {
+    
+    uint8_t msgFileCopied[]         = "File copied";
+    uint8_t msgSourceNotFound[]     = "File not found";
+    uint8_t msgCannotCopyFile[]     = "Cannot be copied";
+    uint8_t msgErrorCreatingFile[]  = "Cannot create file";
+    uint8_t msgFileAccessError[]    = "File access error";
+    uint8_t msgDestinationError[]   = "Destination error";
     
     uint8_t sourceFilename[FILE_NAME_LENGTH];
     uint8_t destFilename[FILE_NAME_LENGTH];
