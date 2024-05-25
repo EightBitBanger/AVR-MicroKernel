@@ -107,9 +107,9 @@ int main(void) {
     uint8_t kernelHelloWorldString[] = "kernel";
     print(kernelHelloWorldString, sizeof(kernelHelloWorldString));
     
-    uint8_t versionMajor = 20;
-    uint8_t versionMinor = 1;
-    uint8_t versionPatch = 100;
+    uint8_t versionMajor = _KERNEL_VERSION_MAJOR__;
+    uint8_t versionMinor = _KERNEL_VERSION_MINOR__;
+    uint8_t versionPatch = _KERNEL_VERSION_PATCH__;
     
     printSpace(1);
     printChar('v');

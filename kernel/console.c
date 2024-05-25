@@ -401,7 +401,7 @@ void printInt(uint32_t integer) {
         continue;
     }
     
-    console_position += place + 1;
+    console_position += place;
     
     ConsoleSetCursorPosition(console_position);
     
