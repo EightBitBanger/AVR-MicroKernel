@@ -218,6 +218,30 @@ void functionEDIT(uint8_t* param, uint8_t param_length) {
         
         if ((lastChar > 0x19) ) {
             
+            // Shift down the EOL character
+            if (cursorLine == 0) {
+                
+                uint8_t posEOL = 0;
+                
+                for (uint8_t i=0; i < 20; i++) {
+                    posEOL = i;
+                    if (textLineA[i] == '\n') 
+                        break;
+                }
+                
+                for (uint8_t i=posEOL; i >= 0; i--) {
+                    textLineA[cursorPos + i + 1] = textLineA[cursorPos + i];
+                    
+                    //if (textLineA[cursorPos + i] == '\n') {
+                    //    break;
+                    //}
+                    
+                    if (i == 0) 
+                        break;
+                }
+                
+            }
+            
             if (cursorLine == 0) textLineA[cursorPos] = lastChar;
             if (cursorLine == 1) textLineB[cursorPos] = lastChar;
             if (cursorLine == 2) textLineC[cursorPos] = lastChar;
