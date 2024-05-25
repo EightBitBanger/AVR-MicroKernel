@@ -57,15 +57,54 @@ void functionEDIT(uint8_t* param, uint8_t param_length) {
     }
     
     // Editor buffer
+    uint8_t textLineA[20];
+    uint8_t textLineB[20];
+    uint8_t textLineC[20];
+    uint8_t textLineD[20];
+    
+    for (uint8_t i=0; i < 20; i++) {
+        textLineA[i] = ' ';
+        textLineB[i] = ' ';
+        textLineC[i] = ' ';
+        textLineD[i] = ' ';
+    }
+    
+    // Null terminate the string
     uint8_t textBuffer[fileSize];
     for (uint16_t i=0; i < fileSize; i++) 
         textBuffer[i] = ' ';
     
-    // Null terminate the string
-    textBuffer[fileSize] = '\0';
-    
     // Load the file
     fsFileRead(index, textBuffer, fileSize);
+    
+    // Split file text into lines
+    
+    uint8_t line     = 0;
+    uint8_t position = 0;
+    
+    for (uint8_t i=0; i < fileSize; i++) {
+        
+        if (line > 3) 
+            break;
+        
+        if (line == 0) textLineA[position] = textBuffer[i];
+        if (line == 1) textLineB[position] = textBuffer[i];
+        if (line == 2) textLineC[position] = textBuffer[i];
+        if (line == 3) textLineD[position] = textBuffer[i];
+        
+        if (textBuffer[i] == '\n') {
+            line++;
+            position = 0;
+        } else {
+            
+            position++;
+            if (position > 20) {
+                line++;
+                position = 0;
+            }
+        }
+    }
+    
     
     ConsoleClearScreen();
     
@@ -80,78 +119,6 @@ void functionEDIT(uint8_t* param, uint8_t param_length) {
             continue;
         
         lastChar = currentChar;
-        
-        // Escape exit
-        if (lastChar == 0x07) {
-            
-            // Save/Quit/Cancel menu option
-            
-            ConsoleClearScreen();
-            
-            ConsoleSetCursor(0, 0);
-            
-            print(msgSaveQuit, sizeof(msgSaveQuit));
-            
-            ConsoleSetCursor(2, 0);
-            
-            print(filename, filename_length + 1);
-            
-            ConsoleSetCursor(3, 0);
-            printInt(fileSize);
-            
-            print(msgBytes, sizeof(msgBytes));
-            
-            ConsoleSetBlinkRate(0);
-            
-            uint8_t answere = 0;
-            while (answere == 0) {
-                
-                currentChar = ConsoleGetRawChar();
-                
-                if (lastChar == currentChar) 
-                    continue;
-                
-                lastChar = currentChar;
-                
-                // Save
-                if (lastChar == 's') {
-                    
-                    // Save file data
-                    fsFileWrite(index, textBuffer, fileSize);
-                    
-                    ConsoleSetCursor(3, 15);
-                    print(msgSaved, sizeof(msgSaved));
-                    
-                }
-                
-                // Quit
-                if (lastChar == 'q') {
-                    
-                    ConsoleClearScreen();
-                    ConsoleSetCursor(0, 0);
-                    
-                    lastChar = ConsoleGetLastChar();
-                    
-                    ConsoleSetBlinkRate(CURSOR_BLINK_RATE);
-                    
-                    return;
-                }
-                
-                // Escape
-                if (lastChar == 0x07) 
-                    answere = 2;
-                
-                continue;
-            }
-            
-            // Quit the application
-            if (answere == 2) {
-                
-                ConsoleClearScreen();
-            }
-            
-            ConsoleSetBlinkRate(CURSOR_BLINK_RATE);
-        }
         
         // Cursor down
         if (lastChar == 0x04) {
@@ -191,6 +158,29 @@ void functionEDIT(uint8_t* param, uint8_t param_length) {
             }
         }
         
+        // Check EOL
+        uint8_t lineEOL = 0;
+        if (cursorLine == 0) {
+            for (uint8_t i=20; i > 0; i--) 
+                if (textLineA[i] == '\n') {lineEOL = i; break;}
+            if (cursorPos > lineEOL) cursorPos = lineEOL;
+        }
+        if (cursorLine == 1) {
+            for (uint8_t i=20; i > 0; i--) 
+                if (textLineB[i] == '\n') {lineEOL = i; break;}
+            if (cursorPos > lineEOL) cursorPos = lineEOL;
+        }
+        if (cursorLine == 2) {
+            for (uint8_t i=20; i > 0; i--) 
+                if (textLineC[i] == '\n') {lineEOL = i; break;}
+            if (cursorPos > lineEOL) cursorPos = lineEOL;
+        }
+        if (cursorLine == 3) {
+            for (uint8_t i=20; i > 0; i--) 
+                if (textLineD[i] == '\n') {lineEOL = i; break;}
+            if (cursorPos > lineEOL) cursorPos = lineEOL;
+        }
+        
         // Delete
         if (lastChar == 0x10) {
             
@@ -228,24 +218,113 @@ void functionEDIT(uint8_t* param, uint8_t param_length) {
         
         if ((lastChar > 0x19) ) {
             
-            uint8_t pos = cursorPos + (cursorLine * 20);
+            if (cursorLine == 0) textLineA[cursorPos] = lastChar;
+            if (cursorLine == 1) textLineB[cursorPos] = lastChar;
+            if (cursorLine == 2) textLineC[cursorPos] = lastChar;
+            if (cursorLine == 3) textLineD[cursorPos] = lastChar;
             
-            if (pos <= fileSize) 
-                textBuffer[pos] = lastChar;
+            cursorPos++;
             
-            if (cursorPos < 19) {
+        }
+        
+        
+        // Escape exit
+        if (lastChar == 0x07) {
+            
+            // Save/Quit/Cancel menu option
+            
+            ConsoleClearScreen();
+            
+            ConsoleSetCursor(0, 0);
+            
+            print(msgSaveQuit, sizeof(msgSaveQuit));
+            
+            ConsoleSetCursor(2, 0);
+            
+            print(filename, filename_length + 1);
+            
+            ConsoleSetCursor(3, 0);
+            printInt( fileSize );
+            
+            print(msgBytes, sizeof(msgBytes));
+            
+            ConsoleSetBlinkRate(0);
+            
+            uint8_t answere = 0;
+            while (answere == 0) {
                 
-                cursorPos++;
+                currentChar = ConsoleGetRawChar();
                 
-            } else {
+                if (lastChar == currentChar) 
+                    continue;
                 
-                if (cursorLine < 3) {
-                    cursorPos = 0;
-                    cursorLine++;
+                lastChar = currentChar;
+                
+                // Save
+                if (lastChar == 's') {
+                    
+                    uint8_t saveBuffer[fileSize];
+                    
+                    for (uint16_t i=0; i < fileSize; i++) 
+                        saveBuffer[i] = ' ';
+                    uint8_t saveIndex = 0;
+                    
+                    for (uint8_t i=0; i < 20; i++) {
+                        saveBuffer[saveIndex] = textLineA[i];
+                        saveIndex++;
+                        if (textLineA[i] == '\n') break;
+                    }
+                    for (uint8_t i=0; i < 20; i++) {
+                        saveBuffer[saveIndex] = textLineB[i];
+                        saveIndex++;
+                        if (textLineB[i] == '\n') break;
+                    }
+                    for (uint8_t i=0; i < 20; i++) {
+                        saveBuffer[saveIndex] = textLineC[i];
+                        saveIndex++;
+                        if (textLineC[i] == '\n') break;
+                    }
+                    for (uint8_t i=0; i < 20; i++) {
+                        saveBuffer[saveIndex] = textLineD[i];
+                        saveIndex++;
+                        if (textLineD[i] == '\n') break;
+                    }
+                    
+                    // Save file data
+                    fsFileWrite(index, saveBuffer, fileSize);
+                    
+                    ConsoleSetCursor(3, 15);
+                    print(msgSaved, sizeof(msgSaved));
+                    
                 }
                 
+                // Quit
+                if (lastChar == 'q') {
+                    
+                    ConsoleClearScreen();
+                    ConsoleSetCursor(0, 0);
+                    
+                    lastChar = ConsoleGetLastChar();
+                    
+                    ConsoleSetBlinkRate(CURSOR_BLINK_RATE);
+                    
+                    return;
+                }
+                
+                // Escape
+                if (lastChar == 0x07) 
+                    answere = 2;
+                
+                continue;
             }
             
+            // Quit the application
+            if (answere == 2) {
+                
+                ConsoleClearScreen();
+            }
+            
+            ConsoleSetBlinkRate(CURSOR_BLINK_RATE);
         }
         
         
@@ -253,7 +332,15 @@ void functionEDIT(uint8_t* param, uint8_t param_length) {
         // Draw the text buffer
         ConsoleSetCursor(0, 0);
         
-        printk( textBuffer );
+        //printk( textBuffer );
+        
+        print(textLineA, sizeof(textLineA));
+        printLn();
+        print(textLineB, sizeof(textLineB));
+        printLn();
+        print(textLineC, sizeof(textLineC));
+        printLn();
+        print(textLineD, sizeof(textLineD));
         
         ConsoleSetCursor(cursorLine, cursorPos);
         
