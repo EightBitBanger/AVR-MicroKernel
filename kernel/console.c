@@ -27,6 +27,8 @@ uint8_t oldScanCodeHigh = 0;
 
 uint8_t lastChar = 0x00;
 
+uint8_t shiftState = 0;
+
 uint8_t console_prompt[8];
 uint8_t console_prompt_length = 1;
 
@@ -60,6 +62,20 @@ void consoleRunShell(void) {
     
     // Check the current scan code
     uint8_t scanCode = ConsoleGetLastChar();
+    
+    //
+    // Shift state
+    //
+    
+    // Shift pressed
+    if (scanCode == 0x11) {
+        shiftState = 1;
+    }
+    
+    // Shift released
+    if (scanCode == 0x12) {
+        shiftState = 0;
+    }
     
     //
     // Function F3 - Repeat last command
@@ -267,6 +283,45 @@ void consoleRunShell(void) {
     if (scanCode > 0x19) {
         
         if (console_string_length < CONSOLE_STRING_LENGTH) {
+            
+            if (shiftState == 1) {
+                
+                if (is_letter(&scanCode) == 1) {
+                    
+                    scanCode -= 0x20;
+                    
+                } else {
+                    
+                    if ((scanCode == '[') | (scanCode == ']')) scanCode += 0x20;
+                    
+                    if (scanCode == 0x3B) scanCode--;
+                    
+                    if (scanCode == '-')  scanCode = '_';
+                    if (scanCode == '=')  scanCode = '+';
+                    if (scanCode == '\\') scanCode = '|';
+                    if (scanCode == 0x27) scanCode = 0x22;
+                    if (scanCode == ',')  scanCode = '<';
+                    if (scanCode == '.')  scanCode = '>';
+                    if (scanCode == '/')  scanCode = '?';
+                    
+                }
+                
+                if (is_number(&scanCode) == 1) {
+                    
+                    if (scanCode == '0') scanCode = ')';
+                    if (scanCode == '1') scanCode = '!';
+                    if (scanCode == '2') scanCode = '@';
+                    if (scanCode == '3') scanCode = '#';
+                    if (scanCode == '4') scanCode = '$';
+                    if (scanCode == '5') scanCode = '%';
+                    if (scanCode == '6') scanCode = '^';
+                    if (scanCode == '7') scanCode = '&';
+                    if (scanCode == '8') scanCode = '*';
+                    if (scanCode == '9') scanCode = '(';
+                    
+                }
+                
+            }
             
             console_string[console_string_length] = scanCode;
             
