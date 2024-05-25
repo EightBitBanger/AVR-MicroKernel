@@ -7,7 +7,7 @@ int main(void) {
     bus_address_zero();
     
     // Allow board some time to stabilize
-    _delay_ms(1500);
+    _delay_ms(1000);
     
     // Device drivers
 	initiateDisplayDriver();      // 20x4 LCD Display
@@ -24,7 +24,7 @@ int main(void) {
     // Allocate external memory
     //
     
-    AllocateExternalMemory();
+    //AllocateExternalMemory();
     
     //
     // Speaker beep
@@ -32,10 +32,10 @@ int main(void) {
     
 #ifdef BOARD_RETRO_AVR_X4_REV1
     
-    uint16_t duration  = 120;
-    uint16_t frequency = 20000;
+    //uint16_t duration  = 120;
+    //uint16_t frequency = 20000;
     
-    spkBeep(duration, frequency);
+    //spkBeep(duration, frequency);
     
 #endif
     
@@ -57,7 +57,7 @@ int main(void) {
     
     //registerCommandDevice();
     //registerCommandCAP();
-    registerCommandList();
+    //registerCommandList();
     //registerCommandTASK();
     
     registerCommandEDIT();
