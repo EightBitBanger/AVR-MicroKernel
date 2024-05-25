@@ -66,12 +66,27 @@ uint8_t kbDecodeScanCode(uint8_t scancode_low, uint8_t scancode_high) {
     
 #ifdef BOARD_RETRO_AVR_X4_REV1
     
-	if ( (scancode_low == 0x19)|(scancode_low == 0x99)|(scancode_low == 0x49)|(scancode_low == 0x89)|(scancode_low == 0x09)|(scancode_low == 0x59)|(scancode_low == 0xD9) ) {
-		if (scancode_high == 0xc4) {return 0x11;} // Left shift pressed
+	if ((scancode_low == 0x19) | 
+        (scancode_low == 0x99) | 
+        (scancode_low == 0x49) | 
+        (scancode_low == 0x89) | 
+        (scancode_low == 0x09) | 
+        (scancode_low == 0x59) | 
+        (scancode_low == 0xC9) | 
+        (scancode_low == 0x09) | 
+        (scancode_low == 0xD9)) {
+		if (scancode_high == 0x23) {return 0x11;} // Left shift pressed
 	}
 	
-	if ( (scancode_low == 0x1A)|(scancode_low == 0x9A)|(scancode_low == 0x4A)|(scancode_low == 0x8A)|(scancode_low == 0x0A)|(scancode_low == 0xA5)|(scancode_low == 0xDA) ) {
-		if (scancode_high == 0xd6) {return 0x11;} // Right shift pressed
+	if ((scancode_low == 0x1A) | 
+        (scancode_low == 0x9A) | 
+        (scancode_low == 0x4A) | 
+        (scancode_low == 0x8A) | 
+        (scancode_low == 0x0A) | 
+        (scancode_low == 0x5A) | 
+        (scancode_low == 0xCA) | 
+        (scancode_low == 0xDA)) {
+		if (scancode_high == 0x6b) {return 0x11;} // Right shift pressed
 	}
 	
 	if (scancode_low == 0xFB) {
