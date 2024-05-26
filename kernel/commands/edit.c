@@ -36,6 +36,8 @@ void functionEDIT(uint8_t* param, uint8_t param_length) {
     if (filename_length < 1) 
         return;
     
+    uint8_t activeLines = 1;
+    
     // Cursor state
     uint8_t lastChar = ConsoleGetLastChar();
     uint8_t cursorPos  = 0;
@@ -107,6 +109,8 @@ void functionEDIT(uint8_t* param, uint8_t param_length) {
             
             numberOfChars = 0;
             
+            activeLines++;
+            
         } else {
             
             // Add a character to the line
@@ -142,7 +146,8 @@ void functionEDIT(uint8_t* param, uint8_t param_length) {
         
         // Cursor down
         if (lastChar == 0x04) {
-            if (cursorLine < 3)
+            
+            if (((cursorLine+1) < activeLines) & (cursorLine < 3)) 
                 cursorLine++;
             
         }
@@ -416,6 +421,7 @@ void functionEDIT(uint8_t* param, uint8_t param_length) {
                     break;
                 
                 if ((textLine[p] == '\0') | (textLine[p] == '\n')) {
+                    
                     endPoint = 1;
                     
                     if (p < 19) {
@@ -424,6 +430,7 @@ void functionEDIT(uint8_t* param, uint8_t param_length) {
                         if (textLine[p] == '\0') printChar('#');
                         
                     }
+                    
                     continue;
                 }
                 
