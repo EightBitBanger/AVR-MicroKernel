@@ -62,7 +62,7 @@ void functionEDIT(uint8_t* param, uint8_t param_length) {
     uint8_t textLineC[40];
     uint8_t textLineD[40];
     
-    for (uint8_t i=0; i < 20; i++) {
+    for (uint8_t i=0; i < 21; i++) {
         textLineA[i] = ' ';
         textLineB[i] = ' ';
         textLineC[i] = ' ';
@@ -173,15 +173,10 @@ void functionEDIT(uint8_t* param, uint8_t param_length) {
         if (cursorPos > lineEOL) cursorPos = lineEOL;
         
         
-        // Delete
-        if (lastChar == 0x10) {
-            
-            textBuffer[cursorPos + (cursorLine * 20)] = ' ';
-            
-        }
-        
+        //
         // Backspace
-        if (lastChar == 0x01) {
+        
+        if ((lastChar == 0x10) | (lastChar == 0x01)) {
             
             // Shift back the text line
             uint8_t* textLine = 0;
@@ -192,38 +187,27 @@ void functionEDIT(uint8_t* param, uint8_t param_length) {
             
             if (textLine[0] != '\n') {
                 
+                textLine[21] = ' ';
+                
                 // Find EOL
                 uint8_t posEOL = 0;
                 
-                if (cursorPos > 0) 
-                    cursorPos--;
-                
-                for (uint8_t i=0; i < 21; i++) {
+                if (cursorPos > 0) {
                     
-                    posEOL = i;
+                    // Non backspacing
+                    if (lastChar != 0x10) 
+                        cursorPos--;
                     
-                    if (textLine[i] == '\n') 
-                        break;
-                }
-                
-                for (uint8_t i=cursorPos; i < posEOL; i++) {
-                    textLine[i] = textLine[i + 1];
-                    
-                }
-
-                // Remove trailing \n characters
-                uint8_t endFound=0;
-                for (uint8_t i=0; i < 21; i++) {
-                    
-                    if (endFound == 0) {
+                    for (uint8_t i=0; i < 21; i++) {
                         
-                        if (textLine[i] == '\n') {
-                            endFound = 1;
-                        }
+                        posEOL = i;
                         
-                    } else {
-                        
-                        textLine[i] = '#';
+                        if (textLine[i] == '\n') 
+                            break;
+                    }
+                    
+                    for (uint8_t i=cursorPos; i < posEOL; i++) {
+                        textLine[i] = textLine[i + 1];
                         
                     }
                     
@@ -233,30 +217,33 @@ void functionEDIT(uint8_t* param, uint8_t param_length) {
             
         }
         
+        
         //
         // Place character
         
         if ((lastChar > 0x19) ) {
             
-            // Shift down the EOL character
-            uint8_t* textLine = 0;
+            uint8_t* textLine = textLineA;
             if (cursorLine == 0) textLine = textLineA;
             if (cursorLine == 1) textLine = textLineB;
             if (cursorLine == 2) textLine = textLineC;
             if (cursorLine == 3) textLine = textLineD;
             
-            if (textLine[20] != '\n') {
-                
-                // Find EOL
-                uint8_t posEOL = 0;
-                
-                for (uint8_t i=0; i <= 20; i++) {
-                    posEOL = i;
-                    if (textLine[i] == '\n') 
-                        break;
-                }
+            // Shift down the EOL character
+            
+            // Find EOL
+            uint8_t posEOL = 0;
+            
+            for (uint8_t i=0; i < 21; i++) {
+                posEOL = i;
+                if (textLine[i] == '\n') 
+                    break;
+            }
+            
+            if (posEOL < 19) {
                 
                 for (uint8_t i=posEOL; i >= 0; i--) {
+                    
                     textLine[cursorPos + i + 1] = textLine[cursorPos + i];
                     
                     if (i == 0) 
@@ -265,18 +252,23 @@ void functionEDIT(uint8_t* param, uint8_t param_length) {
                 
             }
             
-            if ((textLineA[21] != '\n') & (cursorLine == 0)) {textLineA[cursorPos] = lastChar; cursorPos++;}
-            if ((textLineB[21] != '\n') & (cursorLine == 1)) {textLineB[cursorPos] = lastChar; cursorPos++;}
-            if ((textLineC[21] != '\n') & (cursorLine == 2)) {textLineC[cursorPos] = lastChar; cursorPos++;}
-            if ((textLineD[21] != '\n') & (cursorLine == 3)) {textLineD[cursorPos] = lastChar; cursorPos++;}
             
-            if (cursorPos > 19) 
-                cursorPos = 19;
+            
+            // Apply the new character
+            if (cursorPos < 20) {
+                
+                textLine[cursorPos] = lastChar;
+                
+                cursorPos++;
+                
+            }
             
         }
         
         
-        // Escape exit
+        //
+        // Escape exit menu
+        
         if (lastChar == 0x07) {
             
             // Save/Quit/Cancel menu option
@@ -385,23 +377,24 @@ void functionEDIT(uint8_t* param, uint8_t param_length) {
             
             uint8_t endPoint = 0;
             
-            for (uint8_t p=0; p <= 21; p++) {
+            for (uint8_t p=0; p < 20; p++) {
                 
-                if (endPoint == 1) {
-                    
-                    printChar(' ');
-                    
-                    if (p > 19) 
-                        break;
-                    
-                    continue;
-                }
+                if (endPoint == 1) 
+                    break;
                 
                 if (textLine[p] == '\n') {
-                    
-                    printChar(0);
-                    
                     endPoint = 1;
+                    
+                    // Remove trailing new line characters
+                    for (uint8_t t=p; t < 21; t++) {
+                        
+                        textLine[t] = ' ';
+                        
+                    }
+                    
+                    if (p < 19) 
+                        printChar('<');
+                    
                     continue;
                 }
                 
