@@ -101,7 +101,6 @@ int main(void) {
     kInit();                      // Setup the kernel environment
     
     ConsoleSetBlinkRate( CURSOR_BLINK_RATE );
-    ConsoleSetCursor(1, 0);
     
     // Version
     uint8_t kernelHelloWorldString[] = "kernel";
