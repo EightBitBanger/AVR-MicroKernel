@@ -87,7 +87,7 @@ void functionEDIT(uint8_t* param, uint8_t param_length) {
     uint8_t line             = 0;
     uint8_t position         = 0;
     
-    uint8_t flagEOF   = 0;
+    //uint8_t flagEOF   = 0;
     
     
     ConsoleClearScreen();
@@ -118,14 +118,14 @@ void functionEDIT(uint8_t* param, uint8_t param_length) {
             if (pageNumber > 0) {
                 for (uint16_t i=0; i < fileSize; i++) {
                     
+                    /*
+                    // Check end of file
                     if (i < fileSize-1) {
-                        
                         flagEOF = 0;
-                        
                     } else {
-                        
                         flagEOF = 1;
                     }
+                    */
                     
                     if (textBuffer[i] != '\n') 
                         continue;
