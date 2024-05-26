@@ -82,6 +82,8 @@ int main(void) {
     registerCommandMK();
     registerCommandRM();
     registerCommandRN();
+    registerCommandMKDIR();
+    
     //registerCommandATTRIB();
     //registerCommandRepair();
     //registerCommandFormat();

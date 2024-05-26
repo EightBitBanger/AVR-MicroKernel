@@ -714,10 +714,7 @@ uint8_t ConsoleWait(uint8_t key) {
     
     lastChar = currentChar;
     
-    if ((key == lastChar) & (key > 0)) 
-        return 1;
-    
-    return 0;
+    return lastChar;
 }
 
 

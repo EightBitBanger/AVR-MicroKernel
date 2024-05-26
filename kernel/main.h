@@ -40,6 +40,8 @@
   #include <kernel/commands/fs/rm.h>
   #include <kernel/commands/fs/rn.h>
   
+  #include <kernel/commands/fs/mkdir.h>
+  
   #include <kernel/commands/fs/attrib.h>
   
   #include <kernel/commands/fs/repair.h>
