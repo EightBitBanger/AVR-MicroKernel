@@ -195,7 +195,8 @@ void functionEDIT(uint8_t* param, uint8_t param_length) {
                 // Find EOL
                 uint8_t posEOL = 0;
                 
-                cursorPos--;
+                if (cursorPos > 0) 
+                    cursorPos--;
                 
                 for (uint8_t i=0; i < 21; i++) {
                     
@@ -222,7 +223,7 @@ void functionEDIT(uint8_t* param, uint8_t param_length) {
                         
                     } else {
                         
-                        textLine[i] = ' ';
+                        textLine[i] = '#';
                         
                     }
                     
@@ -382,11 +383,26 @@ void functionEDIT(uint8_t* param, uint8_t param_length) {
             if (i == 2) textLine = textLineC;
             if (i == 3) textLine = textLineD;
             
+            uint8_t endPoint = 0;
+            
             for (uint8_t p=0; p <= 21; p++) {
                 
+                if (endPoint == 1) {
+                    
+                    printChar(' ');
+                    
+                    if (p > 19) 
+                        break;
+                    
+                    continue;
+                }
+                
                 if (textLine[p] == '\n') {
+                    
                     printChar(0);
-                    break;
+                    
+                    endPoint = 1;
+                    continue;
                 }
                 
                 printChar( textLine[p] );
