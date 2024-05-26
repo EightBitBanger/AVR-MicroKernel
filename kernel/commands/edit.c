@@ -68,10 +68,19 @@ void functionEDIT(uint8_t* param, uint8_t param_length) {
         textLineD[i] = ' ';
     }
     
-    // Null terminate the string
-    uint8_t textBuffer[fileSize];
-    for (uint16_t i=0; i < fileSize; i++) 
+    uint8_t textBuffer[fileSize + 10];
+    for (uint16_t i=0; i < fileSize + 10; i++) {
         textBuffer[i] = ' ';
+        
+        if (i > fileSize) {
+            textBuffer[i] = '\n';
+        }
+        
+        if (i > (fileSize + 7)) {
+            textBuffer[i] = '\0';
+        }
+        
+    }
     
     // Load the file
     fsFileRead(index, textBuffer, fileSize);
@@ -83,9 +92,6 @@ void functionEDIT(uint8_t* param, uint8_t param_length) {
     
     for (uint8_t i=0; i < fileSize; i++) {
         
-        if (textBuffer[i] == '\0') 
-            break;
-        
         if (line > 3) 
             break;
         
@@ -95,13 +101,24 @@ void functionEDIT(uint8_t* param, uint8_t param_length) {
         if (line == 3) textLineD[position] = textBuffer[i];
         
         if (textBuffer[i] == '\n') {
+            
+            if (textBuffer[i + 1] == '\0') {
+                
+                break;
+            }
+            
             line++;
+            
             position = 0;
+            
         } else {
             
             position++;
+            
             if (position > 20) {
+                
                 line++;
+                
                 position = 0;
             }
         }
