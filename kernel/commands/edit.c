@@ -79,16 +79,15 @@ void functionEDIT(uint8_t* param, uint8_t param_length) {
     // Load the file
     fsFileRead(index, textBuffer, fileSize);
     
-    uint8_t doUpdateFrame  = 0;
+    uint8_t doUpdateFrame  = 1;
     uint8_t doLoadPage     = 1;
-    uint8_t pageNumber     = 1;
-    uint8_t currentPage    = 0;
+    uint16_t pageNumber     = 0;
+    uint16_t pageOffset     = 0;
     
     uint8_t line             = 0;
     uint8_t position         = 0;
-    uint8_t numberOfNewLines = 0;
-    uint8_t numberOfChars    = 0;
     
+    uint8_t flagEOF   = 0;
     
     
     ConsoleClearScreen();
@@ -98,23 +97,59 @@ void functionEDIT(uint8_t* param, uint8_t param_length) {
     uint8_t isActive = 1;
     while (isActive) {
         
-        uint8_t currentChar = ConsoleGetRawChar();
-        
         //
         // Page loader
         
         if (doLoadPage == 1) {
             
-            doLoadPage  = 0;
-            currentPage = 0;
+            doLoadPage = 0;
             
-            line             = 0;
-            position         = 0;
-            numberOfNewLines = 0;
-            numberOfChars    = 0;
+            line       = 0;
+            position   = 0;
+            
+            activeLines = 0;
+            
+            uint16_t pageCount = 0;
+            
+            if (pageNumber > 0) {
+                for (uint16_t i=0; i < fileSize; i++) {
+                    
+                    flagEOF = 0;
+                    
+                    if (textBuffer[i] != '\n') 
+                        continue;
+                    
+                    if (pageCount == pageNumber) {
+                        
+                        pageOffset = i + 1;
+                        
+                        break;
+                        
+                    } else {
+                        
+                        if (i < fileSize-1) {
+                            
+                            pageCount++;
+                            
+                        } else {
+                            
+                            flagEOF = 1;
+                            
+                            break;
+                        }
+                        
+                    }
+                    
+                }
+                
+            } else {
+                
+                pageOffset = 0;
+                
+            }
             
             // Split file text into lines
-            for (uint8_t i=0; i < fileSize; i++) {
+            for (uint16_t i=pageOffset; i < fileSize; i++) {
                 
                 if (line > 3) 
                     break;
@@ -129,27 +164,14 @@ void functionEDIT(uint8_t* param, uint8_t param_length) {
                 
                 if (textBuffer[i] == '\n') {
                     
-                    // Skip to page number
-                    if (currentPage < pageNumber) {
-                        
-                        currentPage++;
-                        
-                        continue;
-                    }
-                    
                     textLine[position] = '\n';
                     
                     // New line
                     
-                    numberOfNewLines++;
-                    
                     line++;
+                    activeLines++;
                     
                     position = 0;
-                    
-                    numberOfChars = 0;
-                    
-                    activeLines++;
                     
                 } else {
                     
@@ -163,8 +185,6 @@ void functionEDIT(uint8_t* param, uint8_t param_length) {
                     // Add a character to the line
                     
                     position++;
-                    
-                    numberOfChars++;
                     
                     if (position > 19) {
                         
@@ -206,30 +226,76 @@ void functionEDIT(uint8_t* param, uint8_t param_length) {
         }
         
         
-        //
-        // Check incoming character
         
-        if ((lastChar == currentChar) & (doUpdateFrame == 0)) 
+        
+        //
+        // Draw the text buffer
+        if (doUpdateFrame == 1) {
+            
+            doUpdateFrame = 0;
+            
+            ConsoleSetCursor(0, 0);
+            
+            for (uint8_t i=0; i < 4; i++) {
+                uint8_t* textLine = textLineA;
+                
+                if (i == 0) textLine = textLineA;
+                if (i == 1) textLine = textLineB;
+                if (i == 2) textLine = textLineC;
+                if (i == 3) textLine = textLineD;
+                
+                for (uint8_t p=0; p < 20; p++) {
+                    
+                    if ((textLine[p] == '\0') | (textLine[p] == '\n')) {
+                        
+                        if (enableLineEnding == 1) {
+                            if (p < 19) {
+                                
+                                if (textLine[p] == '\n') printChar('<');
+                                if (textLine[p] == '\0') printChar('#');
+                                
+                            }
+                        }
+                        
+                        printSpace(20 - p);
+                        
+                        break;
+                    }
+                    
+                    printChar( textLine[p] );
+                }
+                
+                if (i < 3) printLn();
+                
+                
+            }
+            
+            ConsoleSetCursor(cursorLine, cursorPos);
+        }
+        
+        uint8_t currentChar = ConsoleGetRawChar();
+        
+        // Check incoming character
+        if (lastChar == currentChar) 
             continue;
         
         lastChar = currentChar;
         
         
-        
         // Page down
-        if (lastChar == '-') {
+        if (lastChar == 0xF5) {
             
             doLoadPage = 1;
             doUpdateFrame = 1;
             
-            if (pageNumber > 0) 
-                pageNumber--;
+            if (flagEOF == 0) 
+                if (pageNumber > 0) 
+                    pageNumber--;
             
-            continue;
         }
         
         // Page up
-        if (lastChar == '=') {
+        if (lastChar == 0xF6) {
             
             doLoadPage = 1;
             doUpdateFrame = 1;
@@ -237,15 +303,14 @@ void functionEDIT(uint8_t* param, uint8_t param_length) {
             if (pageNumber < 20) 
                 pageNumber++;
             
-            continue;
         }
-        
         
         // Toggle line ending characters
         if (lastChar == 0xF1) {
             
             enableLineEnding = !enableLineEnding;
             
+            doUpdateFrame = 1;
         }
         
         // Cursor down
@@ -254,6 +319,7 @@ void functionEDIT(uint8_t* param, uint8_t param_length) {
             if (((cursorLine+1) < activeLines) & (cursorLine < 3)) 
                 cursorLine++;
             
+            doUpdateFrame = 1;
         }
         
         // Cursor left
@@ -266,13 +332,14 @@ void functionEDIT(uint8_t* param, uint8_t param_length) {
                     cursorLine--;
                 }
             }
+            doUpdateFrame = 1;
         }
         
         // Cursor up
         if (lastChar == 0x03) {
             if (cursorLine > 0) 
                 cursorLine--;
-            
+            doUpdateFrame = 1;
         }
         
         // Cursor right
@@ -285,9 +352,10 @@ void functionEDIT(uint8_t* param, uint8_t param_length) {
                     cursorLine++;
                 }
             }
+            doUpdateFrame = 1;
         }
         
-        // Check EOL
+        // Check cursor EOL
         uint8_t lineEOL = 0;
         
         uint8_t* textLineEOL = textLineA;
@@ -353,6 +421,7 @@ void functionEDIT(uint8_t* param, uint8_t param_length) {
                 
             }
             
+            doUpdateFrame = 1;
         }
         
         
@@ -400,6 +469,7 @@ void functionEDIT(uint8_t* param, uint8_t param_length) {
                 
             }
             
+            doUpdateFrame = 1;
         }
         
         
@@ -504,49 +574,11 @@ void functionEDIT(uint8_t* param, uint8_t param_length) {
                 ConsoleClearScreen();
             }
             
+            doUpdateFrame = 1;
+            
             ConsoleSetBlinkRate(CURSOR_BLINK_RATE);
         }
         
-        
-        //
-        // Draw the text buffer
-        ConsoleSetCursor(0, 0);
-        
-        for (uint8_t i=0; i < 4; i++) {
-            uint8_t* textLine = textLineA;
-            
-            if (i == 0) textLine = textLineA;
-            if (i == 1) textLine = textLineB;
-            if (i == 2) textLine = textLineC;
-            if (i == 3) textLine = textLineD;
-            
-            for (uint8_t p=0; p < 20; p++) {
-                
-                if ((textLine[p] == '\0') | (textLine[p] == '\n')) {
-                    
-                    if (enableLineEnding == 1) {
-                        if (p < 19) {
-                            
-                            if (textLine[p] == '\n') printChar('<');
-                            if (textLine[p] == '\0') printChar('#');
-                            
-                        }
-                    }
-                    
-                    printSpace(20 - p);
-                    
-                    break;
-                }
-                
-                printChar( textLine[p] );
-            }
-            
-            if (i < 3) printLn();
-            
-            
-        }
-        
-        ConsoleSetCursor(cursorLine, cursorPos);
         
         continue;
     }
