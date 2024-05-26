@@ -101,10 +101,12 @@ void fsSetCurrentDevice(uint8_t device_index) {
     
     if (device_index == 0xff) {
         
+        fsSetDeviceTypeMEM();
         fs_device_address = 0x00000;
         
     } else {
         
+        fsSetDeviceTypeIO();
         fs_device_address = PERIPHERAL_ADDRESS_BEGIN + (device_index * 0x10000);
         
     }

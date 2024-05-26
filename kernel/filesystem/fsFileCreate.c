@@ -6,7 +6,7 @@
 #include <kernel/filesystem/fs.h>
 
 
-uint32_t fsFileCreate(uint8_t* name, uint8_t nameLength, uint32_t fileSize) {
+uint32_t fsFileCreate(uint8_t* name, uint8_t nameLength, uint32_t fileSize, uint8_t subType) {
     
     if (fsFileExists(name, nameLength) != 0) 
         return 0;
@@ -102,7 +102,7 @@ uint32_t fsFileCreate(uint8_t* name, uint8_t nameLength, uint32_t fileSize) {
             fs_write_byte( &bus, fileTargetAddress + i + OFFSET_FILE_SIZE, sizePtr.byte_t[i] );
         
         // Write file attributes
-        uint8_t attributes[4] = {' ', ' ', 'r', 'w'};
+        uint8_t attributes[4] = {subType, ' ', 'r', 'w'};
         for (uint8_t i=0; i < 4; i++) 
             fs_write_byte( &bus, fileTargetAddress + i + OFFSET_FILE_ATTRIBUTES, attributes[i] );
         
