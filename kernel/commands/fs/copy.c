@@ -13,6 +13,7 @@ void functionCOPY(uint8_t* param, uint8_t param_length) {
     uint8_t msgErrorCreatingFile[]  = "Cannot create file";
     uint8_t msgFileAccessError[]    = "File access error";
     uint8_t msgDestinationError[]   = "Destination error";
+    uint8_t msgBadName[]            = "Invalid filename";
     
     uint8_t sourceFilename[FILE_NAME_LENGTH];
     uint8_t destFilename[FILE_NAME_LENGTH];
@@ -60,6 +61,14 @@ void functionCOPY(uint8_t* param, uint8_t param_length) {
         
     }
     
+    // Check filenames
+    if (((destNameLength - 2) < 1) | 
+        (destFilename[0] == ' ')) {
+        
+        print(msgBadName, sizeof(msgBadName));
+        printLn();
+        return;
+    }
     
     //
     // Copy the file

@@ -13,6 +13,7 @@ void functionMK(uint8_t* param, uint8_t param_length) {
     uint8_t msgFileCreated[]   = "File created";
     uint8_t msgNoSpace[]       = "No space available";
     uint8_t msgAlreadyExists[] = "File already exists";
+    uint8_t msgBadName[]       = "Invalid filename";
     
     // File size
     if ((param[0] == 's') & (param[1] == 'z')) {
@@ -49,6 +50,11 @@ void functionMK(uint8_t* param, uint8_t param_length) {
         printLn();
         
         return;
+    }
+    
+    if (param[0] == ' ') {
+        print(msgBadName, sizeof(msgBadName));
+        printLn();
     }
     
     // Check if the file already exists
