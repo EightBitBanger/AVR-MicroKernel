@@ -79,15 +79,15 @@ void functionEDIT(uint8_t* param, uint8_t param_length) {
     // Load the file
     fsFileRead(index, textBuffer, fileSize);
     
-    // Split file text into lines
+    uint8_t doUpdateFrame  = 0;
+    uint8_t doLoadPage     = 1;
+    uint8_t pageNumber     = 1;
+    uint8_t currentPage    = 0;
     
-    uint8_t doLoadPage = 1;
-    uint8_t pageNumber = 0;
-    
-    uint8_t line     = 0;
-    uint8_t position = 0;
-    uint8_t numberOfNewLines=0;
-    uint8_t numberOfChars = 0;
+    uint8_t line             = 0;
+    uint8_t position         = 0;
+    uint8_t numberOfNewLines = 0;
+    uint8_t numberOfChars    = 0;
     
     
     
@@ -100,15 +100,20 @@ void functionEDIT(uint8_t* param, uint8_t param_length) {
         
         uint8_t currentChar = ConsoleGetRawChar();
         
-        if (lastChar == currentChar) 
-            continue;
-        
-        lastChar = currentChar;
+        //
+        // Page loader
         
         if (doLoadPage == 1) {
             
-            doLoadPage = 0;
+            doLoadPage  = 0;
+            currentPage = 0;
             
+            line             = 0;
+            position         = 0;
+            numberOfNewLines = 0;
+            numberOfChars    = 0;
+            
+            // Split file text into lines
             for (uint8_t i=0; i < fileSize; i++) {
                 
                 if (line > 3) 
@@ -125,8 +130,12 @@ void functionEDIT(uint8_t* param, uint8_t param_length) {
                 if (textBuffer[i] == '\n') {
                     
                     // Skip to page number
-                    if (i < pageNumber) 
+                    if (currentPage < pageNumber) {
+                        
+                        currentPage++;
+                        
                         continue;
+                    }
                     
                     textLine[position] = '\n';
                     
@@ -196,7 +205,43 @@ void functionEDIT(uint8_t* param, uint8_t param_length) {
             
         }
         
-        // Cursor down
+        
+        //
+        // Check incoming character
+        
+        if ((lastChar == currentChar) & (doUpdateFrame == 0)) 
+            continue;
+        
+        lastChar = currentChar;
+        
+        
+        
+        // Page down
+        if (lastChar == '-') {
+            
+            doLoadPage = 1;
+            doUpdateFrame = 1;
+            
+            if (pageNumber > 0) 
+                pageNumber--;
+            
+            continue;
+        }
+        
+        // Page up
+        if (lastChar == '=') {
+            
+            doLoadPage = 1;
+            doUpdateFrame = 1;
+            
+            if (pageNumber < 20) 
+                pageNumber++;
+            
+            continue;
+        }
+        
+        
+        // Toggle line ending characters
         if (lastChar == 0xF1) {
             
             enableLineEnding = !enableLineEnding;
