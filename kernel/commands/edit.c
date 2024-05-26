@@ -69,16 +69,8 @@ void functionEDIT(uint8_t* param, uint8_t param_length) {
     }
     
     uint8_t textBuffer[fileSize];
-    
-    for (uint16_t i=0; i < fileSize + 4; i++) 
+    for (uint16_t i=0; i < fileSize; i++) 
         textBuffer[i] = ' ';
-    
-    // Add end of file markers
-    for (uint16_t i=fileSize - 5; i <= fileSize; i++) {
-        textBuffer[i] = '\n';
-    }
-    
-    textBuffer[fileSize] = '\0';
     
     // Load the file
     fsFileRead(index, textBuffer, fileSize);
@@ -87,38 +79,49 @@ void functionEDIT(uint8_t* param, uint8_t param_length) {
     
     uint8_t line     = 0;
     uint8_t position = 0;
+    uint8_t numberOfNewLines=0;
+    uint8_t numberOfChars = 0;
     
     for (uint8_t i=0; i < fileSize; i++) {
         
         if (line > 3) 
             break;
         
-        if (line == 0) textLineA[position] = textBuffer[i];
-        if (line == 1) textLineB[position] = textBuffer[i];
-        if (line == 2) textLineC[position] = textBuffer[i];
-        if (line == 3) textLineD[position] = textBuffer[i];
+        uint8_t* textLine = textLineA;
+        if (line == 0) textLine = textLineA;
+        if (line == 1) textLine = textLineB;
+        if (line == 2) textLine = textLineC;
+        if (line == 3) textLine = textLineD;
+        
+        textLine[position] = textBuffer[i];
         
         if (textBuffer[i] == '\n') {
             
-            if (textBuffer[i + 1] == '\0') {
-                
-                break;
-            }
+            // New line
+            
+            numberOfNewLines++;
             
             line++;
             
             position = 0;
             
+            numberOfChars = 0;
+            
         } else {
+            
+            // Add a character to the line
             
             position++;
             
-            if (position > 20) {
+            numberOfChars++;
+            
+            if (position > 19) {
                 
                 line++;
                 
                 position = 0;
             }
+            
         }
     }
     
@@ -412,12 +415,15 @@ void functionEDIT(uint8_t* param, uint8_t param_length) {
                 if (endPoint == 1) 
                     break;
                 
-                if (textLine[p] == '\n') {
+                if ((textLine[p] == '\0') | (textLine[p] == '\n')) {
                     endPoint = 1;
                     
-                    if (p < 19) 
-                        printChar('<');
-                    
+                    if (p < 19) {
+                        
+                        if (textLine[p] == '\n') printChar('<');
+                        if (textLine[p] == '\0') printChar('#');
+                        
+                    }
                     continue;
                 }
                 
