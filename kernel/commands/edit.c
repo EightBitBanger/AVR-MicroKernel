@@ -83,6 +83,9 @@ void functionEDIT(uint8_t* param, uint8_t param_length) {
     
     for (uint8_t i=0; i < fileSize; i++) {
         
+        if (textBuffer[i] == '\0') 
+            break;
+        
         if (line > 3) 
             break;
         
