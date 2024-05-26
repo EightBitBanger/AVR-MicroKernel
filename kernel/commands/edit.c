@@ -69,15 +69,27 @@ void functionEDIT(uint8_t* param, uint8_t param_length) {
     }
     
     uint8_t textBuffer[fileSize + 10];
+    
+    // Add end of file marker
     for (uint16_t i=0; i < fileSize + 10; i++) {
-        textBuffer[i] = ' ';
+        
         
         if (i > fileSize) {
-            textBuffer[i] = '\n';
-        }
-        
-        if (i > (fileSize + 7)) {
-            textBuffer[i] = '\0';
+            
+            if (i < (fileSize + 5)) {
+                
+                textBuffer[i] = '\n';
+                
+            } else {
+                
+                textBuffer[i] = '\0';
+                
+            }
+            
+        } else {
+            
+            textBuffer[i] = ' ';
+            
         }
         
     }
