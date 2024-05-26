@@ -10,7 +10,6 @@ void functionEDIT(uint8_t* param, uint8_t param_length) {
     uint8_t msgFileNotFoundEdittor[] = "File not found";
     uint8_t msgSaved[]               = "Saved";
     uint8_t msgSaveQuit[]            = "(S)ave / (Q)uit?";
-    uint8_t msgBytes[]               = "bytes";
     
     // File state
     uint8_t filename[10];
@@ -167,8 +166,13 @@ void functionEDIT(uint8_t* param, uint8_t param_length) {
         if (cursorLine == 2) textLineEOL = textLineC;
         if (cursorLine == 3) textLineEOL = textLineD;
         
-        for (uint8_t i=20; i > 0; i--) 
-            if (textLineEOL[i] == '\n') {lineEOL = i; break;}
+        for (uint8_t i=0; i < 21; i++) {
+            
+            if (textLineEOL[i] == '\n') {
+                lineEOL = i;
+                break;
+            }
+        }
         
         if (cursorPos > lineEOL) cursorPos = lineEOL;
         
@@ -255,7 +259,7 @@ void functionEDIT(uint8_t* param, uint8_t param_length) {
             
             
             // Apply the new character
-            if (cursorPos < 20) {
+            if (cursorPos < 19) {
                 
                 textLine[cursorPos] = lastChar;
                 
@@ -268,25 +272,33 @@ void functionEDIT(uint8_t* param, uint8_t param_length) {
         
         //
         // Escape exit menu
+        // Save/Quit/Cancel menu option
         
         if (lastChar == 0x07) {
             
-            // Save/Quit/Cancel menu option
-            
             ConsoleClearScreen();
             
+            // Filename
             ConsoleSetCursor(0, 0);
+            print(filename, filename_length + 1);
+            
+            // File size
+            if (fileSize > 99) {
+                printSpace(12);
+            } else {
+                printSpace(13);
+            }
+            printInt( fileSize );
+            printChar('B');
+            
+            // Divider line
+            ConsoleSetCursor(1, 0);
+            for (uint8_t i=0; i < 20; i++) 
+                printChar('=');
             
             print(msgSaveQuit, sizeof(msgSaveQuit));
             
-            ConsoleSetCursor(2, 0);
             
-            print(filename, filename_length + 1);
-            
-            ConsoleSetCursor(3, 0);
-            printInt( fileSize );
-            
-            print(msgBytes, sizeof(msgBytes));
             
             ConsoleSetBlinkRate(0);
             
@@ -384,13 +396,6 @@ void functionEDIT(uint8_t* param, uint8_t param_length) {
                 
                 if (textLine[p] == '\n') {
                     endPoint = 1;
-                    
-                    // Remove trailing new line characters
-                    for (uint8_t t=p; t < 21; t++) {
-                        
-                        textLine[t] = ' ';
-                        
-                    }
                     
                     if (p < 19) 
                         printChar('<');
