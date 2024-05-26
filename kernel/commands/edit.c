@@ -111,10 +111,21 @@ void functionEDIT(uint8_t* param, uint8_t param_length) {
             
             uint16_t pageCount = 0;
             
+            
+            //
+            // Get the current page offset
+            
             if (pageNumber > 0) {
                 for (uint16_t i=0; i < fileSize; i++) {
                     
-                    flagEOF = 0;
+                    if (i < fileSize-1) {
+                        
+                        flagEOF = 0;
+                        
+                    } else {
+                        
+                        flagEOF = 1;
+                    }
                     
                     if (textBuffer[i] != '\n') 
                         continue;
@@ -131,11 +142,6 @@ void functionEDIT(uint8_t* param, uint8_t param_length) {
                             
                             pageCount++;
                             
-                        } else {
-                            
-                            flagEOF = 1;
-                            
-                            break;
                         }
                         
                     }
@@ -282,28 +288,33 @@ void functionEDIT(uint8_t* param, uint8_t param_length) {
         lastChar = currentChar;
         
         
-        // Page down
+        /*
+        
+        // Page up
         if (lastChar == 0xF5) {
             
             doLoadPage = 1;
             doUpdateFrame = 1;
             
-            if (flagEOF == 0) 
-                if (pageNumber > 0) 
-                    pageNumber--;
+            if (pageNumber > 0) 
+                pageNumber--;
             
         }
         
-        // Page up
+        // Page down
         if (lastChar == 0xF6) {
             
             doLoadPage = 1;
             doUpdateFrame = 1;
             
-            if (pageNumber < 20) 
-                pageNumber++;
+            if (flagEOF == 0) 
+                if (pageNumber < 20) 
+                    pageNumber++;
             
         }
+        
+        */
+        
         
         // Toggle line ending characters
         if (lastChar == 0xF1) {
@@ -521,7 +532,8 @@ void functionEDIT(uint8_t* param, uint8_t param_length) {
                     uint8_t saveBuffer[fileSize];
                     
                     for (uint16_t i=0; i < fileSize; i++) 
-                        saveBuffer[i] = ' ';
+                        saveBuffer[i] = textBuffer[i];
+                    
                     uint8_t saveIndex = 0;
                     
                     for (uint8_t i=0; i < 4; i++) {
