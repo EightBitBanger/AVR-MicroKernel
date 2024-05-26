@@ -82,6 +82,7 @@ void functionEDIT(uint8_t* param, uint8_t param_length) {
     // Split file text into lines
     
     uint8_t doLoadPage = 1;
+    uint8_t pageNumber = 0;
     
     uint8_t line     = 0;
     uint8_t position = 0;
@@ -108,7 +109,7 @@ void functionEDIT(uint8_t* param, uint8_t param_length) {
             
             doLoadPage = 0;
             
-            for (uint8_t i=20; i < fileSize; i++) {
+            for (uint8_t i=0; i < fileSize; i++) {
                 
                 if (line > 3) 
                     break;
@@ -122,6 +123,10 @@ void functionEDIT(uint8_t* param, uint8_t param_length) {
                 textLine[position] = textBuffer[i];
                 
                 if (textBuffer[i] == '\n') {
+                    
+                    // Skip to page number
+                    if (i < pageNumber) 
+                        continue;
                     
                     textLine[position] = '\n';
                     
