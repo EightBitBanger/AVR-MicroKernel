@@ -13,20 +13,16 @@ void functionCD(uint8_t* param, uint8_t param_length) {
     
     if ((param[0] >= 'a') & (param[0] <= 'z')) {
         
-        fsSetDeviceTypeIO();
-        
         fsSetCurrentDevice( param[0] - 'a' );
         
         deviceLocated = 1;
     }
     
-    if ((param[0] == 'r') & (param[1] == 'o') & (param[2] == 'o') & (param[3] == 't')) {
-        
-        fsSetDeviceTypeMEM();
+    if ((param[0] == '/') & (param[1] == ' ')) {
         
         fsSetCurrentDevice( 0xff );
         
-        uint8_t PromptRoot[] = "root>";
+        uint8_t PromptRoot[] = "/>";
         ConsoleSetPrompt(PromptRoot, sizeof(PromptRoot));
         
         return;

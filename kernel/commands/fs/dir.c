@@ -5,7 +5,7 @@
 
 #include <kernel/commands/fs/dir.h>
 
-void functionDIR(uint8_t* param, uint8_t param_length) {
+void functionLS(uint8_t* param, uint8_t param_length) {
     
     struct Bus bus;
     bus.read_waitstate  = 4;
@@ -30,9 +30,10 @@ void functionDIR(uint8_t* param, uint8_t param_length) {
         print(attributes, 4);
         printSpace(1);
         
-        
         // Filename
-        uint8_t filename[10] = {' ',' ',' ',' ',' ',' ',' ',' ',' ',' '};
+        uint8_t filename[10];
+        for (uint8_t n=0; n < 10; n++) 
+            filename[n] = ' ';
         
         for (uint8_t n=0; n < 10; n++) 
             fs_read_byte( &bus, fileAddress + n + 1, &filename[n] );
@@ -41,25 +42,36 @@ void functionDIR(uint8_t* param, uint8_t param_length) {
         printSpace(2);
         
         // File size
-        union Pointer ptr;
-        
-        for (uint8_t s=0; s < 4; s++) 
-            fs_read_byte( &bus, fileAddress + s + OFFSET_FILE_SIZE, &ptr.byte_t[s] );
-        
-        uint8_t filesizeString[10];
-        
-        uint8_t len = int_to_string( ptr.address, filesizeString ) + 1;
-        
-        if (len > 6) 
-            len = 6;
-        
-        uint8_t offset = 6 - len;
-        
-        if (offset > 5) 
-            offset = 5;
-        
-        printSpace(offset);
-        print(filesizeString, len);
+        if (attributes[0] != 'D') {
+            
+            union Pointer ptr;
+            
+            for (uint8_t s=0; s < 4; s++) 
+                fs_read_byte( &bus, fileAddress + s + OFFSET_FILE_SIZE, &ptr.byte_t[s] );
+            
+            uint8_t filesizeString[10];
+            
+            uint8_t len = int_to_string( ptr.address, filesizeString ) + 1;
+            
+            if (len > 6) 
+                len = 6;
+            
+            uint8_t offset = 6 - len;
+            
+            if (offset > 5) 
+                offset = 5;
+            
+            printSpace(offset);
+            print(filesizeString, len);
+            
+        } else {
+            
+            // Directory listing
+            
+            uint8_t msgDirectoryListing[] = "<DIR>";
+            print(msgDirectoryListing, sizeof(msgDirectoryListing));
+            
+        }
         
         printLn();
         
@@ -72,7 +84,7 @@ void functionDIR(uint8_t* param, uint8_t param_length) {
                 
                 ConsoleSetCursorPosition( sizeof(msgPressAnyKey) - 1 );
                 
-                ConsoleWait(0);
+                uint8_t keypress = ConsoleWait(0);
                 
                 ConsoleSetCursorPosition(0);
                 
@@ -82,6 +94,9 @@ void functionDIR(uint8_t* param, uint8_t param_length) {
                 ConsoleSetCursorPosition(0);
                 
                 fileCount = 0;
+                
+                if (keypress == 'c') 
+                    return;
                 
                 continue;
             }
@@ -95,11 +110,11 @@ void functionDIR(uint8_t* param, uint8_t param_length) {
     return;
 }
 
-void registerCommandDIR(void) {
+void registerCommandLS(void) {
     
-    uint8_t dirCommandName[] = "ls";
+    uint8_t lsCommandName[] = "ls";
     
-    ConsoleRegisterCommand(dirCommandName, sizeof(dirCommandName), functionDIR);
+    ConsoleRegisterCommand(lsCommandName, sizeof(lsCommandName), functionLS);
     
     return;
 }

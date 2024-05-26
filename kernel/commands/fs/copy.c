@@ -9,7 +9,6 @@ void functionCOPY(uint8_t* param, uint8_t param_length) {
     
     uint8_t msgFileCopied[]         = "File copied";
     uint8_t msgSourceNotFound[]     = "File not found";
-    uint8_t msgCannotCopyFile[]     = "Cannot be copied";
     uint8_t msgErrorCreatingFile[]  = "Cannot create file";
     uint8_t msgFileAccessError[]    = "File access error";
     uint8_t msgDestinationError[]   = "Destination error";
@@ -20,6 +19,8 @@ void functionCOPY(uint8_t* param, uint8_t param_length) {
     
     uint8_t sourceNameLength = 0;
     uint8_t destNameLength   = 0;
+    
+    uint8_t destNameIsSource = 0;
     
     for (uint8_t i=0; i < FILE_NAME_LENGTH; i++) {
         sourceFilename[i] = ' ';
@@ -88,58 +89,82 @@ void functionCOPY(uint8_t* param, uint8_t param_length) {
     // Get source file size
     uint32_t sourceFileSize = fsGetFileSize(sourceFilename, sourceNameLength);
     
-    uint32_t currentDevice     = (fsGetCurrentDevice() - 0x10000) / 0x10000;
-    uint32_t destinationDevice = currentDevice;
+    uint32_t sourceDevice = fsGetCurrentDevice();
     
-    // Check destination is a device letter
-    if ((destFilename[0] >= 'a') & (destFilename[0] <= 'z') & (destFilename[1] == ' ')) {
+    uint32_t currentDevice     = 0;
+    uint32_t destinationDevice = 0;
+    
+    if (sourceDevice == 0x00000) {
         
-        destinationDevice = destFilename[0] - 'a';
+        currentDevice     = 0xff;
         
-        fsSetCurrentDevice(destinationDevice);
+        destinationDevice = 0xff;
         
-        // Check file already exists on destination device
-        if (fsFileExists(sourceFilename, sourceNameLength) != 0) {
+    } else {
+        
+        currentDevice = (sourceDevice - 0x10000) / 0x10000;
+        
+        destinationDevice = currentDevice;
+    }
+    
+    if (destFilename[0] == '/') {
+        
+        // Destination is the local system root
+        
+        fsSetCurrentDevice( 0xff );
+        
+        destinationDevice = 0xff;
+        
+        destNameIsSource = 1;
+        
+    } else {
+        
+        // Destination is a peripheral device
+        if ((destFilename[0] >= 'a') & 
+            (destFilename[0] <= 'z') & 
+            (destFilename[1] == ':')) {
             
-            print(msgDestinationError, sizeof(msgDestinationError));
-            printLn();
+            destinationDevice = destFilename[0] - 'a';
             
-            return;
+            fsSetCurrentDevice( destinationDevice );
+            
+            destNameIsSource = 1;
         }
-            
-        fsFileCreate(sourceFilename, sourceNameLength, sourceFileSize);
+        
+    }
+    
+    // Destination name is the source name
+    if (destNameIsSource == 1) {
         
         for (uint8_t i=0; i < FILE_NAME_LENGTH; i++) 
             destFilename[i] = sourceFilename[i];
         
         destNameLength = sourceNameLength;
-        
-    } else {
-        
-        // Destination is a filename
-        
-        // Check if the destination exists
-        uint32_t fileAddress = fsFileExists(destFilename, destNameLength);
-        if (fileAddress != 0) {
-            
-            print(msgCannotCopyFile, sizeof(msgCannotCopyFile));
-            printLn();
-            
-            return;
-        }
-        
-        // Create destination file
-        fileAddress = fsFileCreate(destFilename, destNameLength, sourceFileSize);
-        
-        if (fileAddress == 0) {
-            
-            print(msgErrorCreatingFile, sizeof(msgErrorCreatingFile));
-            printLn();
-            
-            return;
-        }
-        
     }
+    
+    
+    // Check file already exists on destination device
+    if (fsFileExists(destFilename, destNameLength) != 0) {
+        
+        print(msgDestinationError, sizeof(msgDestinationError));
+        printLn();
+        
+        fsSetCurrentDevice(currentDevice);
+        return;
+    }
+    
+    // Create the file
+    if (fsFileCreate(destFilename, destNameLength, sourceFileSize, ' ') == 0) {
+        
+        print(msgErrorCreatingFile, sizeof(msgErrorCreatingFile));
+        printLn();
+        
+        fsSetCurrentDevice(currentDevice);
+        return;
+    }
+    
+    
+    
     
     // Copy file contents
     struct FSAttribute attributes;
@@ -155,6 +180,7 @@ void functionCOPY(uint8_t* param, uint8_t param_length) {
         print(msgFileAccessError, sizeof(msgFileAccessError));
         printLn();
         
+        fsSetCurrentDevice(currentDevice);
         return;
     }
     

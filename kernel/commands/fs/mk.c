@@ -55,6 +55,7 @@ void functionMK(uint8_t* param, uint8_t param_length) {
     if (param[0] == ' ') {
         print(msgBadName, sizeof(msgBadName));
         printLn();
+        return;
     }
     
     // Check if the file already exists
@@ -66,7 +67,7 @@ void functionMK(uint8_t* param, uint8_t param_length) {
         return;
     }
     
-    if (fsFileCreate(param, param_length, filesize) == 0) {
+    if (fsFileCreate(param, param_length, filesize, ' ') == 0) {
         
         print(msgNoSpace, sizeof(msgNoSpace));
         printLn();
