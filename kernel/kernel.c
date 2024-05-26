@@ -36,7 +36,7 @@ void kInit(void) {
         
         uint8_t index;
         index = fsFileOpen(filename, sizeof(filename)-1);
-        uint8_t lineA[] = "stringA\nstringB\nstringC\nstringD\n\0";
+        uint8_t lineA[] = "ld=drvsys\n\0";
         
         fsFileWrite(index, lineA, sizeof(lineA));
         
