@@ -36,6 +36,8 @@ void functionEDIT(uint8_t* param, uint8_t param_length) {
     if (filename_length < 1) 
         return;
     
+    uint8_t enableLineEnding = 0;
+    
     uint8_t activeLines = 0;
     
     // Cursor state
@@ -79,88 +81,13 @@ void functionEDIT(uint8_t* param, uint8_t param_length) {
     
     // Split file text into lines
     
+    uint8_t doLoadPage = 1;
+    
     uint8_t line     = 0;
     uint8_t position = 0;
     uint8_t numberOfNewLines=0;
     uint8_t numberOfChars = 0;
     
-    for (uint8_t i=0; i < fileSize; i++) {
-        
-        if (line > 3) 
-            break;
-        
-        uint8_t* textLine = textLineA;
-        if (line == 0) textLine = textLineA;
-        if (line == 1) textLine = textLineB;
-        if (line == 2) textLine = textLineC;
-        if (line == 3) textLine = textLineD;
-        
-        textLine[position] = textBuffer[i];
-        
-        if (textBuffer[i] == '\n') {
-            
-            textLine[position] = '\n';
-            
-            // New line
-            
-            numberOfNewLines++;
-            
-            line++;
-            
-            position = 0;
-            
-            numberOfChars = 0;
-            
-            activeLines++;
-            
-        } else {
-            
-            if (textBuffer[i] == '\0') {
-                
-                textLine[position] = '\n';
-                
-                continue;
-            }
-            
-            // Add a character to the line
-            
-            position++;
-            
-            numberOfChars++;
-            
-            if (position > 19) {
-                
-                line++;
-                
-                position = 0;
-            }
-            
-        }
-    }
-    
-    // Check line count
-    if (activeLines == 3) {
-        textLineD[0] = '\n';
-        activeLines = 4;
-    }
-    if (activeLines == 2) {
-        textLineC[0] = '\n';
-        textLineD[0] = '\n';
-        activeLines = 4;
-    }
-    if (activeLines == 1) {
-        textLineB[0] = '\n';
-        textLineC[0] = '\n';
-        textLineD[0] = '\n';
-        activeLines = 4;
-    }
-    if (activeLines == 0) {
-        textLineA[0] = '\n';
-        textLineB[0] = '\n';
-        textLineC[0] = '\n';
-        textLineD[0] = '\n';
-        activeLines = 4;
-    }
     
     
     ConsoleClearScreen();
@@ -176,6 +103,100 @@ void functionEDIT(uint8_t* param, uint8_t param_length) {
             continue;
         
         lastChar = currentChar;
+        
+        if (doLoadPage == 1) {
+            
+            doLoadPage = 0;
+            
+            for (uint8_t i=20; i < fileSize; i++) {
+                
+                if (line > 3) 
+                    break;
+                
+                uint8_t* textLine = textLineA;
+                if (line == 0) textLine = textLineA;
+                if (line == 1) textLine = textLineB;
+                if (line == 2) textLine = textLineC;
+                if (line == 3) textLine = textLineD;
+                
+                textLine[position] = textBuffer[i];
+                
+                if (textBuffer[i] == '\n') {
+                    
+                    textLine[position] = '\n';
+                    
+                    // New line
+                    
+                    numberOfNewLines++;
+                    
+                    line++;
+                    
+                    position = 0;
+                    
+                    numberOfChars = 0;
+                    
+                    activeLines++;
+                    
+                } else {
+                    
+                    if (textBuffer[i] == '\0') {
+                        
+                        textLine[position] = '\n';
+                        
+                        continue;
+                    }
+                    
+                    // Add a character to the line
+                    
+                    position++;
+                    
+                    numberOfChars++;
+                    
+                    if (position > 19) {
+                        
+                        line++;
+                        
+                        position = 0;
+                    }
+                    
+                }
+            }
+            
+            // Check line count
+            if (activeLines == 3) {
+                textLineD[0] = '\n';
+                activeLines = 4;
+            }
+            
+            if (activeLines == 2) {
+                textLineC[0] = '\n';
+                textLineD[0] = '\n';
+                activeLines = 4;
+            }
+            
+            if (activeLines == 1) {
+                textLineB[0] = '\n';
+                textLineC[0] = '\n';
+                textLineD[0] = '\n';
+                activeLines = 4;
+            }
+            
+            if (activeLines == 0) {
+                textLineA[0] = '\n';
+                textLineB[0] = '\n';
+                textLineC[0] = '\n';
+                textLineD[0] = '\n';
+                activeLines = 4;
+            }
+            
+        }
+        
+        // Cursor down
+        if (lastChar == 0xF1) {
+            
+            enableLineEnding = !enableLineEnding;
+            
+        }
         
         // Cursor down
         if (lastChar == 0x04) {
@@ -288,7 +309,7 @@ void functionEDIT(uint8_t* param, uint8_t param_length) {
         //
         // Place character
         
-        if ((lastChar > 0x19) ) {
+        if ((lastChar > 0x19) & (lastChar < 0xF0)) {
             
             uint8_t* textLine = textLineA;
             if (cursorLine == 0) textLine = textLineA;
@@ -317,10 +338,6 @@ void functionEDIT(uint8_t* param, uint8_t param_length) {
                         break;
                 }
                 
-            } else {
-                
-                textLine[0] = '\n';
-                
             }
             
             // Apply the new character
@@ -328,7 +345,8 @@ void functionEDIT(uint8_t* param, uint8_t param_length) {
                 
                 textLine[cursorPos] = lastChar;
                 
-                cursorPos++;
+                if (posEOL < 19) 
+                    cursorPos++;
                 
             }
             
@@ -456,12 +474,16 @@ void functionEDIT(uint8_t* param, uint8_t param_length) {
                 
                 if ((textLine[p] == '\0') | (textLine[p] == '\n')) {
                     
-                    if (p < 19) {
-                        
-                        if (textLine[p] == '\n') printChar('<');
-                        if (textLine[p] == '\0') printChar('#');
-                        
+                    if (enableLineEnding == 1) {
+                        if (p < 19) {
+                            
+                            if (textLine[p] == '\n') printChar('<');
+                            if (textLine[p] == '\0') printChar('#');
+                            
+                        }
                     }
+                    
+                    printSpace(20 - p);
                     
                     break;
                 }
