@@ -57,10 +57,10 @@ int main(void) {
     
     //registerCommandDevice();
     //registerCommandCAP();
-    //registerCommandList();
+    registerCommandList();
     //registerCommandTASK();
     
-    registerCommandEDIT();
+    //registerCommandEDIT();
     //registerCommandAssembly();
     
     //registerCommandCLS();
@@ -75,13 +75,13 @@ int main(void) {
     
   #ifdef INCLUDE_FILE_SYSTEM_APPLICATIONS
     
-    //registerCommandDIR();
-    //registerCommandCOPY();
-    //registerCommandCD();
+    registerCommandLS();
+    registerCommandCOPY();
+    registerCommandCD();
     
-    //registerCommandMK();
-    //registerCommandRM();
-    //registerCommandRN();
+    registerCommandMK();
+    registerCommandRM();
+    registerCommandRN();
     //registerCommandATTRIB();
     //registerCommandRepair();
     //registerCommandFormat();
@@ -125,9 +125,8 @@ int main(void) {
     // Start in the root directory
     
     fsSetCurrentDevice( 0xff );
-    fsSetDeviceTypeMEM();
     
-    uint8_t prompt[] = "root>";
+    uint8_t prompt[] = "/>";
     ConsoleSetPrompt( prompt, sizeof(prompt) );
     
     // Drop the initial command prompt
