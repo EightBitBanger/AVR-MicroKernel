@@ -68,31 +68,17 @@ void functionEDIT(uint8_t* param, uint8_t param_length) {
         textLineD[i] = ' ';
     }
     
-    uint8_t textBuffer[fileSize + 10];
+    uint8_t textBuffer[fileSize];
     
-    // Add end of file marker
-    for (uint16_t i=0; i < fileSize + 10; i++) {
-        
-        
-        if (i > fileSize) {
-            
-            if (i < (fileSize + 5)) {
-                
-                textBuffer[i] = '\n';
-                
-            } else {
-                
-                textBuffer[i] = '\0';
-                
-            }
-            
-        } else {
-            
-            textBuffer[i] = ' ';
-            
-        }
-        
+    for (uint16_t i=0; i < fileSize + 4; i++) 
+        textBuffer[i] = ' ';
+    
+    // Add end of file markers
+    for (uint16_t i=fileSize - 5; i <= fileSize; i++) {
+        textBuffer[i] = '\n';
     }
+    
+    textBuffer[fileSize] = '\0';
     
     // Load the file
     fsFileRead(index, textBuffer, fileSize);
