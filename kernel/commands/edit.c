@@ -196,7 +196,7 @@ void functionEDIT(uint8_t* param, uint8_t param_length) {
                 // Find EOL
                 uint8_t posEOL = 0;
                 
-                if (cursorPos > 0) {
+                if ((cursorPos > 0) | (lastChar == 0x10)) {
                     
                     // Non backspacing
                     if (lastChar != 0x10) 
@@ -284,12 +284,12 @@ void functionEDIT(uint8_t* param, uint8_t param_length) {
             
             // File size
             if (fileSize > 99) {
-                printSpace(12);
-            } else {
                 printSpace(13);
+            } else {
+                printSpace(14);
             }
             printInt( fileSize );
-            printChar('B');
+            printChar('b');
             
             // Divider line
             ConsoleSetCursor(1, 0);
