@@ -51,9 +51,9 @@ void functionATTRIB(uint8_t* param, uint8_t param_length) {
     if ((param[filenameLength + 1] == '-') & (param[filenameLength + 2] == 'w')) attribute.writeable  = 0;
     
     // Add
-    if ((param[filenameLength + 1] == '+') & (param[filenameLength + 2] == 'x')) attribute.executable = 1;
-    if ((param[filenameLength + 1] == '+') & (param[filenameLength + 2] == 'r')) attribute.readable   = 1;
-    if ((param[filenameLength + 1] == '+') & (param[filenameLength + 2] == 'w')) attribute.writeable  = 1;
+    if ((param[filenameLength + 1] == '+') & (param[filenameLength + 2] == 'x')) attribute.executable = 'x';
+    if ((param[filenameLength + 1] == '+') & (param[filenameLength + 2] == 'r')) attribute.readable   = 'r';
+    if ((param[filenameLength + 1] == '+') & (param[filenameLength + 2] == 'w')) attribute.writeable  = 'w';
     
     // Apply file attributes if any changes are made
     uint8_t isChanged = 0;
@@ -73,9 +73,12 @@ void functionATTRIB(uint8_t* param, uint8_t param_length) {
         
     }
     
-    if (attribute.executable == 1) {printChar('x');} else {printSpace(1);}
-    if (attribute.readable   == 1) {printChar('r');} else {printSpace(1);}
-    if (attribute.writeable  == 1) {printChar('w');} else {printSpace(1);}
+    if (attribute.executable != 0) {printChar('x');} else {printSpace(1);}
+    if (attribute.readable   != 0) {printChar('r');} else {printSpace(1);}
+    if (attribute.writeable  != 0) {printChar('w');} else {printSpace(1);}
+    
+    printSpace(1);
+    print(param, param_length);
     
     printLn();
     

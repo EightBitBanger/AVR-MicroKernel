@@ -9,6 +9,7 @@ void functionCD(uint8_t* param, uint8_t param_length) {
     
     uint8_t msgDeviceError[]        = "Device not ready";
     uint8_t msgDirectoryNotFound[]  = "Directory not found";
+    uint8_t msgNotDirectory[]       = "Not a directory";
     
     uint8_t deviceLocated = 0;
     
@@ -37,16 +38,34 @@ void functionCD(uint8_t* param, uint8_t param_length) {
         
         if ((param[0] >= 'a') & (param[0] <= 'z')) {
             
-            if (fsFileExists(param, param_length) != 0) {
+            if (param_length > FILE_NAME_LENGTH) 
+                param_length = FILE_NAME_LENGTH;
+            
+            if (fsFileExists(param, param_length-1) != 0) {
                 
-                uint8_t PromptRoot[param_length + 1];
+                struct FSAttribute attribute;
+                fsGetFileAttributes(param, param_length-1, &attribute);
                 
-                for (uint8_t i=0; i < param_length; i++)
-                    PromptRoot[i] = param[i];
-                
-                PromptRoot[param_length - 1] = '>';
-                
-                ConsoleSetPrompt(PromptRoot, sizeof(PromptRoot));
+                // Check directory attribute
+                if (attribute.type == 'd') {
+                    
+                    uint8_t PromptRoot[FILE_NAME_LENGTH + 1];
+                    
+                    fsWorkingDirectorySet(param, param_length);
+                    
+                    for (uint8_t i=0; i <= param_length; i++)
+                        PromptRoot[i] = param[i];
+                    
+                    PromptRoot[param_length - 1] = '>';
+                    
+                    ConsoleSetPrompt(PromptRoot, param_length + 1);
+                    
+                } else {
+                    
+                    print(msgNotDirectory, sizeof(msgNotDirectory));
+                    printLn();
+                    
+                }
                 
             } else {
                 
