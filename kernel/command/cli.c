@@ -369,7 +369,7 @@ void consoleRunShell(void) {
 
 
 //
-// Print general purpose
+// Print string with null termination
 //
 
 void printk(uint8_t* string) {
