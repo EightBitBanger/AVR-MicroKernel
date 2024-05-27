@@ -41,8 +41,7 @@ void initiatePS2Driver(void) {
 	keyboardDriver->interface.read_waitstate  = 10;
 	keyboardDriver->interface.write_waitstate = 10;
     
-	// Initiate member functions
-	
+    
     keyboardDriver->read  = __read_ps2_device;
     keyboardDriver->write = __write_ps2_device;
     
