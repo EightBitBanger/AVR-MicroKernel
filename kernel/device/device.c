@@ -35,7 +35,9 @@ void InitiateDeviceTable(void) {
     bus.read_waitstate  = 20;
     bus.write_waitstate = 20;
     
+    //
     // Check peripheral devices
+    //
     
     unsigned int index=0;
     
@@ -63,6 +65,8 @@ void InitiateDeviceTable(void) {
         
         device_table[index].hardware_address = hardware_address;
         
+        device_table[index].firmware_address = 0;
+        
         device_table[index].hardware_slot = d + '1';
         
         device_table[index].device_id = buffer[0];
@@ -74,18 +78,27 @@ void InitiateDeviceTable(void) {
         continue;
     }
     
+    
+    //
     // Link the hardware to the device drivers
+    //
     
     for (unsigned int i=0; i < GetNumberOfDrivers(); i++) {
         
         for (unsigned int d=0; d < DEVICE_TABLE_SIZE; d++) {
             
-            struct Device* registryEntry = (struct Device*)GetDriverByIndex(i);
+            // Get the device from the driver
+            struct Device* driverDevice = (struct Device*)GetDriverByIndex(i);
             
-            if (registryEntry->device_id != device_table[d].device_id) 
+            // Check hardware IDs
+            if (driverDevice->device_id != device_table[d].device_id) 
                 continue;
             
-            registryEntry->hardware_address = device_table[d].hardware_address;
+            // Link the hardware addresses
+            driverDevice->hardware_slot     = device_table[d].hardware_slot;
+            
+            driverDevice->hardware_address  = device_table[d].hardware_address;
+            driverDevice->firmware_address  = device_table[d].firmware_address;
             
             break;
         }
