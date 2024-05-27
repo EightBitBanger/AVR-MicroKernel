@@ -79,10 +79,11 @@ int main(void) {
     //registerCommandCOPY();
     registerCommandCD();
     
-    //registerCommandMK();
-    //registerCommandRM();
+    registerCommandMK();
+    registerCommandRM();
     //registerCommandRN();
     registerCommandMKDIR();
+    registerCommandRMDIR();
     
     //registerCommandATTRIB();
     //registerCommandRepair();

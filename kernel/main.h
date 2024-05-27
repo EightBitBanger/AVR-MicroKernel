@@ -41,6 +41,7 @@
   #include <kernel/command/rn/rn.h>
   
   #include <kernel/command/mkdir/mkdir.h>
+  #include <kernel/command/rmdir/rmdir.h>
   
   #include <kernel/command/attrib/attrib.h>
   
