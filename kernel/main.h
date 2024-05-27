@@ -3,7 +3,7 @@
 
 #include <kernel/delay.h>
 
-#include <kernel/board.h>
+#include <kernel/configuration.h>
 
 #include <kernel/kernel.h>
 
