@@ -32,8 +32,7 @@ void initiateDisplayDriver(void) {
 	displayDriver->interface.read_waitstate  = 10;
 	displayDriver->interface.write_waitstate = 10;
     
-	// Initiate member functions
-	
+    
     displayDriver->read  = __read_display_device;
     displayDriver->write = __write_display_device;
     

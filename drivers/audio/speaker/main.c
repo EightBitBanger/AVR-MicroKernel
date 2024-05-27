@@ -32,8 +32,7 @@ void initiateSpeakerDriver(void) {
 	speakerDriver->interface.read_waitstate  = 1000;
 	speakerDriver->interface.write_waitstate = 1000;
     
-	// Initiate member functions
-	
+    
     speakerDriver->read  = __read_speaker_device;
     speakerDriver->write = __write_speaker_device;
     

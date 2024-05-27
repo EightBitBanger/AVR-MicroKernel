@@ -14,8 +14,6 @@ struct SpeakerDeviceDriver {
     
     struct Bus interface;
     
-    // Driver functions
-    
     void(*read)(uint32_t address, uint8_t* buffer);
     void(*write)(uint32_t address, uint8_t buffer);
     
