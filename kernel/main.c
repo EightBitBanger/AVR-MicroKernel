@@ -24,7 +24,11 @@ int main(void) {
     // Allocate external memory
     //
     
+#ifdef _KERNEL_ALLOCATE_EXTERNAL_MEMORY__
+    
     AllocateExternalMemory();
+    
+#endif
     
     //
     // Speaker beep
@@ -61,7 +65,7 @@ int main(void) {
     //registerCommandTASK();
     
     //registerCommandEDIT();
-    //registerCommandAssembly();
+    registerCommandAssembly();
     
     //registerCommandCLS();
     
@@ -76,12 +80,12 @@ int main(void) {
   #ifdef INCLUDE_FILE_SYSTEM_APPLICATIONS
     
     registerCommandLS();
-    //registerCommandCOPY();
+    registerCommandCOPY();
     registerCommandCD();
     
     registerCommandMK();
     registerCommandRM();
-    //registerCommandRN();
+    registerCommandRN();
     registerCommandMKDIR();
     registerCommandRMDIR();
     
@@ -103,6 +107,8 @@ int main(void) {
     ntInit();                     // Network support
     kInit();                      // Setup the kernel environment
     
+#ifdef _KERNEL_PRINT_VERSION_INFORMATION__
+    
     ConsoleSetBlinkRate( CURSOR_BLINK_RATE );
     
     // Version
@@ -122,6 +128,7 @@ int main(void) {
     printInt(versionPatch);
     printLn();
     
+#endif
     
     
     //

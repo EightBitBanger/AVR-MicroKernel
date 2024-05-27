@@ -12,7 +12,7 @@
   
   // Text editor
   #include <kernel/command/edit/edit.h>
-  // Basic assembler
+  // Assembler
   #include <kernel/command/asm/asm.h>
   
   #include <kernel/command/list/list.h>

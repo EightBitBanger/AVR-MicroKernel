@@ -7,6 +7,8 @@
 
 void AllocateExternalMemory(void) {
     
+#ifdef _KERNEL_ALLOCATE_EXTERNAL_MEMORY__
+    
     struct Bus memoryBus;
 	
 	memoryBus.read_waitstate  = 2;
@@ -71,6 +73,8 @@ void AllocateExternalMemory(void) {
     print(byteFreeString, sizeof(byteFreeString));
     
     printLn();
+    
+#endif
     
     return;
 }
