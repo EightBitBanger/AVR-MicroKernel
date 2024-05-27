@@ -266,9 +266,9 @@ void functionAsm(uint8_t* param, uint8_t param_length) {
                         
                     }
                     
+                    // Print the lines
                     for (uint8_t i=0; i < 3; i++) {
                         
-                        // Drop an assembly prompt
                         uint8_t assemblyAddressString[4];
                         
                         assemblyAddressString[0] = ' ';
@@ -315,9 +315,21 @@ void functionAsm(uint8_t* param, uint8_t param_length) {
                         
                         asm_console_string_length = 0;
                         
+                        // Check end of file
+                        if (currentFileAddress >= fileSize) {
+                            
+                            uint8_t msgEndOfFile[] = "[EOF]";
+                            print(msgEndOfFile, sizeof(msgEndOfFile));
+                            
+                            printLn();
+                            
+                            break;
+                        }
+                        
                         //
                         // Interpret machine code into op-codes
                         //
+                        
                         uint8_t opCodeWasFound = 0;
                         uint8_t specialOpcodeArgs = 0;
                         

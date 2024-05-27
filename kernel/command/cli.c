@@ -29,7 +29,7 @@ uint8_t lastChar = 0x00;
 
 uint8_t shiftState = 0;
 
-uint8_t console_prompt[FILE_NAME_LENGTH];
+uint8_t console_prompt[10];
 uint8_t console_prompt_length = 1;
 
 uint8_t cursor_blink_rate = 35;
@@ -323,13 +323,10 @@ void consoleRunShell(void) {
                 
             }
             
+            // Print the character
             console_string[console_string_length] = scanCode;
-            
+            console_position = (console_prompt_length + console_string_length) - 1;
             console_string_length++;
-            
-            
-            ConsoleSetCursor(console_line, console_position + 1);
-            console_position--;
             
             printChar( scanCode );
             
@@ -540,7 +537,7 @@ void printPrompt(void) {
     
     console_position = console_prompt_length;
     
-    displayDevice->write( 161, console_position );
+    displayDevice->write( 161, console_position - 1 );
     
     return;
 }
@@ -610,9 +607,9 @@ void consoleInit(void) {
         
 	}
 	
-	uint8_t promptString[] = "A>";
+	uint8_t promptDeviceString[] = "A>";
 	
-	ConsoleSetPrompt( promptString, sizeof(promptString) );
+	ConsoleSetPrompt( promptDeviceString, sizeof(promptDeviceString) );
 	
 	return;
 }
@@ -768,7 +765,7 @@ void ConsoleCursorDisable(void) {
 
 void ConsoleSetPrompt(uint8_t* prompt, uint8_t length) {
     
-    for (uint8_t i=0; i <= length; i++) 
+    for (uint8_t i=0; i < length; i++) 
         console_prompt[i] = prompt[i];
     
     console_prompt_length = length;
