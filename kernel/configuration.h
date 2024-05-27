@@ -2,6 +2,12 @@
 // Hardware configuration
 
 // --------------------------------------------
+// Compilation options
+
+#define _KERNEL_ALLOCATE_EXTERNAL_MEMORY__
+#define _KERNEL_PRINT_VERSION_INFORMATION__
+
+// --------------------------------------------
 // Kernel console application function sets
 
 //#define DONT_INCLUDE_CONSOLE_COMMANDS
