@@ -8,9 +8,12 @@
 void functionLS(uint8_t* param, uint8_t param_length) {
     
     struct Bus bus;
-    bus.read_waitstate  = 4;
+    bus.read_waitstate = 5;
     
     uint8_t fileCount = 0;
+    
+    uint16_t numberOfFiles = 0;
+    uint16_t numberOfDirs  = 0;
     
     for (uint32_t i=0; i < 0xffffffff; i++) {
         
@@ -27,10 +30,10 @@ void functionLS(uint8_t* param, uint8_t param_length) {
         for (uint8_t a=0; a < 4; a++) 
             fs_read_byte( &bus, fileAddress + a + OFFSET_FILE_ATTRIBUTES, &attributes[a] );
         
-        print(&attributes[1], 4);
+        print(&attributes[0], 4);
         printSpace(1);
         
-        // Filename
+        // Name
         uint8_t filename[10];
         for (uint8_t n=0; n < 10; n++) 
             filename[n] = ' ';
@@ -42,12 +45,14 @@ void functionLS(uint8_t* param, uint8_t param_length) {
         printSpace(1);
         
         // Check is directory
-        if (attributes[0] == 'd') {
+        if (attributes[3] == 'd') {
             
             // Directory listing
             
             uint8_t msgDirectoryListing[] = "<DIR>";
             print(msgDirectoryListing, sizeof(msgDirectoryListing));
+            
+            numberOfDirs++;
             
         } else {
             
@@ -72,6 +77,8 @@ void functionLS(uint8_t* param, uint8_t param_length) {
             
             printSpace(offset);
             print(filesizeString, len);
+            
+            numberOfFiles++;
             
         }
         
@@ -108,6 +115,20 @@ void functionLS(uint8_t* param, uint8_t param_length) {
         
         continue;
     }
+    
+    // File count
+    //uint16_t total = numberOfFiles + numberOfDirs;
+    //printSpace(2);
+    //printInt(total);
+    //printSpace(1);
+    
+    //uint8_t msgOneFile[] = "File";
+    //print(msgOneFile, sizeof(msgOneFile));
+    
+    //if (total != 1) 
+    //    printChar('s');
+    
+    //printLn();
     
     return;
 }
