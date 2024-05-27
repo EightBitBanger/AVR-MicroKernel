@@ -1,9 +1,4 @@
-#include <avr/io.h>
-#include <kernel/delay.h>
-
 #include <kernel/kernel.h>
-
-#include <kernel/fs/fs.h>
 
 #ifdef KERNEL_FILESYSTEM_BASE_FS
 
@@ -58,7 +53,7 @@ uint8_t fsFileWrite(uint8_t index, uint8_t* buffer, uint32_t length) {
         return 0;
     
     struct Bus bus;
-    bus.read_waitstate  = 4;
+    bus.read_waitstate  = 5;
     bus.write_waitstate = 5;
     
     uint32_t sector = 0;
@@ -97,7 +92,7 @@ uint8_t fsFileRead(uint8_t index, uint8_t* buffer, uint32_t length) {
         return 0;
     
     struct Bus bus;
-    bus.read_waitstate  = 4;
+    bus.read_waitstate  = 5;
     bus.write_waitstate = 5;
     
     uint32_t sector = 0;

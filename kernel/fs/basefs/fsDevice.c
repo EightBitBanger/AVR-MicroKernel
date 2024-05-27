@@ -1,9 +1,4 @@
-#include <avr/io.h>
-#include <kernel/delay.h>
-
 #include <kernel/kernel.h>
-
-#include <kernel/fs/fs.h>
 
 #ifdef KERNEL_FILESYSTEM_BASE_FS
 
@@ -15,6 +10,9 @@ void(*__fs_write_byte)(struct Bus*, uint32_t, uint8_t);
 
 
 uint32_t fs_device_address = 0;
+
+uint8_t  fs_working_directory[FILE_NAME_LENGTH];
+uint8_t  fs_working_directory_length = 0;
 
 void fsInit(void) {
     
@@ -33,6 +31,11 @@ void fsInit(void) {
     uint32_t sectorCounter = 0;
     
     uint32_t deviceCapacityBytes = 8192;
+    
+    for (uint8_t i=0; i < FILE_NAME_LENGTH; i++) 
+        fs_working_directory[i] = ' ';
+    
+    fs_working_directory_length = 0;
     
     for (sector=1; sector < 8192; sector++) {
         
@@ -81,6 +84,34 @@ void fs_write_byte(struct Bus* bus, uint32_t address, uint8_t byte) {
     __fs_write_byte(bus, address, byte);
     
     return;
+}
+
+void fsWorkingDirectoryClear(void) {
+    for (uint8_t i=0; i < FILE_NAME_LENGTH; i++) 
+        fs_working_directory[i] = ' ';
+    
+    fs_working_directory_length = 0;
+    
+    return;
+}
+
+void fsWorkingDirectorySet(uint8_t* directoryName, uint8_t nameLength) {
+    
+    fsWorkingDirectoryClear();
+    
+    for (uint8_t i=0; i < nameLength; i++) 
+        fs_working_directory[i] = directoryName[i];
+    
+    fs_working_directory_length = nameLength;
+    return;
+}
+
+uint8_t fsWorkingDirectoryGet(uint8_t* directoryName) {
+    
+    for (uint8_t i=0; i < fs_working_directory_length; i++) 
+        directoryName[i] = fs_working_directory[i];
+    
+    return fs_working_directory_length;
 }
 
 void fsSetDeviceTypeIO(void) {
@@ -140,7 +171,7 @@ uint8_t fsGetDeviceHeaderByte(uint32_t address_offset) {
     uint8_t headerByte = 0;
     
     struct Bus bus;
-    bus.read_waitstate  = 4;
+    bus.read_waitstate = 5;
     
     fs_read_byte(&bus, fs_device_address + address_offset, &headerByte);
     
@@ -151,7 +182,7 @@ uint8_t fsGetDeviceHeaderByte(uint32_t address_offset) {
 uint32_t fsGetDeviceCapacity(void) {
     
     struct Bus bus;
-    bus.read_waitstate  = 4;
+    bus.read_waitstate = 5;
     
     uint8_t buffer[SECTOR_SIZE];
     

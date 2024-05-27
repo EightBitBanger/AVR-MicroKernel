@@ -6,8 +6,6 @@
 
 #define KERNEL_FILESYSTEM_BASE_FS
 
-
-
 // Capacities
 
 #define CAPACITY_32K      256
@@ -38,6 +36,7 @@ struct FSAttribute {
     uint8_t executable;
     uint8_t readable;
     uint8_t writeable;
+    uint8_t type;
     
 };
 
@@ -47,6 +46,14 @@ void fsInit(void);
 void fs_write_byte(struct Bus* bus, uint32_t address, uint8_t byte);
 
 void fs_read_byte(struct Bus* bus, uint32_t address, uint8_t* buffer);
+
+// Current working directory
+
+void fsWorkingDirectoryClear(void);
+
+void fsWorkingDirectorySet(uint8_t* directoryName, uint8_t nameLength);
+
+uint8_t fsWorkingDirectoryGet(uint8_t* directoryName);
 
 
 // Device context

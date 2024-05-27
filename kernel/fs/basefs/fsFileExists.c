@@ -1,16 +1,11 @@
-#include <avr/io.h>
-#include <kernel/delay.h>
-
 #include <kernel/kernel.h>
-
-#include <kernel/fs/fs.h>
 
 #ifdef KERNEL_FILESYSTEM_BASE_FS
 
 uint32_t fsFileExists(uint8_t* name, uint8_t nameLength) {
     
     struct Bus bus;
-    bus.read_waitstate = 4;
+    bus.read_waitstate = 5;
     
     uint32_t currentDevice = fsGetCurrentDevice();
     

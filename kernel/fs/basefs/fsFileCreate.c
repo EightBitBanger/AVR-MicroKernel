@@ -1,9 +1,4 @@
-#include <avr/io.h>
-#include <kernel/delay.h>
-
 #include <kernel/kernel.h>
-
-#include <kernel/fs/fs.h>
 
 #ifdef KERNEL_FILESYSTEM_BASE_FS
 
@@ -13,7 +8,7 @@ uint32_t fsFileCreate(uint8_t* name, uint8_t nameLength, uint32_t fileSize, uint
         return 0;
     
     struct Bus bus;
-    bus.read_waitstate = 4;
+    bus.read_waitstate = 5;
     
     uint32_t freeSectorCount = 0;
     uint32_t fileTargetAddress = 0;
@@ -103,7 +98,7 @@ uint32_t fsFileCreate(uint8_t* name, uint8_t nameLength, uint32_t fileSize, uint
             fs_write_byte( &bus, fileTargetAddress + i + OFFSET_FILE_SIZE, sizePtr.byte_t[i] );
         
         // Write file attributes
-        uint8_t attributes[4] = {subType, ' ', 'r', 'w'};
+        uint8_t attributes[4] = {' ', 'r', 'w', subType};
         for (uint8_t i=0; i < 4; i++) 
             fs_write_byte( &bus, fileTargetAddress + i + OFFSET_FILE_ATTRIBUTES, attributes[i] );
         

@@ -1,9 +1,4 @@
-#include <avr/io.h>
-#include <kernel/delay.h>
-
 #include <kernel/kernel.h>
-
-#include <kernel/fs/fs.h>
 
 #ifdef KERNEL_FILESYSTEM_BASE_FS
 
