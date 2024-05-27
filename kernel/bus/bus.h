@@ -1,8 +1,8 @@
 #ifndef __BUS_INTERFACE_
 #define __BUS_INTERFACE_
 
-//
-// Target board/device selection
+// ------------------------------------
+// Target board selection
 //
 
 #define  BOARD_RETRO_AVR_X4_REV1
@@ -10,6 +10,13 @@
 
 
 
+/// Zero the control logic IO port.
+void bus_control_zero(void);
+
+/// Zero the address bus IO ports.
+void bus_address_zero(void);
+
+/// General purpose bus interface
 struct Bus {
     
     uint16_t read_waitstate;
@@ -19,13 +26,6 @@ struct Bus {
     uint8_t bus_type;
     
 };
-
-/// Zero the control logic IO port.
-void bus_control_zero(void);
-
-/// Zero the address bus IO ports.
-void bus_address_zero(void);
-
 
 /// Read a byte from an address using the given bus.
 void bus_read_byte(struct Bus* bus, uint32_t address, uint8_t* buffer);
