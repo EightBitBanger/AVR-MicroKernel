@@ -29,7 +29,7 @@ uint8_t lastChar = 0x00;
 
 uint8_t shiftState = 0;
 
-uint8_t console_prompt[8];
+uint8_t console_prompt[FILE_NAME_LENGTH];
 uint8_t console_prompt_length = 1;
 
 uint8_t cursor_blink_rate = 35;
@@ -535,7 +535,7 @@ void printSpace(uint8_t numberOfSpaces) {
 void printPrompt(void) {
     
     // Print a prompt char
-    for (uint8_t i=0; i < console_prompt_length; i++) 
+    for (uint8_t i=0; i < console_prompt_length - 1; i++) 
         displayDevice->write( (20 * console_line) + i, console_prompt[i] );
     
     console_position = console_prompt_length;
@@ -768,10 +768,10 @@ void ConsoleCursorDisable(void) {
 
 void ConsoleSetPrompt(uint8_t* prompt, uint8_t length) {
     
-    for (uint8_t i=0; i < length; i++) 
+    for (uint8_t i=0; i <= length; i++) 
         console_prompt[i] = prompt[i];
     
-    console_prompt_length = length - 1;
+    console_prompt_length = length;
     
     return;
 }

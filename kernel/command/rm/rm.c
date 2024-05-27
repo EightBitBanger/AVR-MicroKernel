@@ -6,7 +6,7 @@
 
 void functionRM(uint8_t* param, uint8_t param_length) {
     
-    if (fsFileDelete(param, param_length) == 1) {
+    if (fsFileDelete(param, param_length-1) == 1) {
         
         uint8_t msgTest[] = "File removed";
         print(msgTest, sizeof(msgTest));
