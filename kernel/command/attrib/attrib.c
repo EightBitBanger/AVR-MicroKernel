@@ -63,7 +63,7 @@ void functionATTRIB(uint8_t* param, uint8_t param_length) {
     
     if (isChanged == 1) {
         
-        if (fsSetFileAttributes(filename, filenameLength-1, &attribute) == 0) {
+        if (fsSetFileAttributes(filename, filenameLength, &attribute) == 0) {
             
             print(msgAttributeNotSet, sizeof(msgAttributeNotSet));
             printLn();
@@ -73,9 +73,9 @@ void functionATTRIB(uint8_t* param, uint8_t param_length) {
         
     }
     
-    if (attribute.executable != 0) {printChar('x');} else {printSpace(1);}
-    if (attribute.readable   != 0) {printChar('r');} else {printSpace(1);}
-    if (attribute.writeable  != 0) {printChar('w');} else {printSpace(1);}
+    if (attribute.executable != 0) {printChar( attribute.executable );} else {printSpace(1);}
+    if (attribute.readable   != 0) {printChar( attribute.readable   );} else {printSpace(1);}
+    if (attribute.writeable  != 0) {printChar( attribute.writeable  );} else {printSpace(1);}
     
     printSpace(1);
     print(param, param_length);
