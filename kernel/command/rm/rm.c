@@ -6,16 +6,45 @@
 
 void functionRM(uint8_t* param, uint8_t param_length) {
     
+    uint8_t msgFileNotFound[]      = "File not found";
+    uint8_t msgFileAccessDenied[]  = "Access denied";
+    uint8_t msgFileRemoved[]       = "File removed";
+    
+    
+    if (fsFileExists(param, param_length-1) == 0) {
+        
+        print(msgFileNotFound, sizeof(msgFileNotFound));
+        printLn();
+        
+        return;
+    }
+    
+    // Check directory attribute
+    struct FSAttribute attribute;
+    if (fsGetFileAttributes(param, param_length-1, &attribute) == 0) {
+        
+        print(msgFileAccessDenied, sizeof(msgFileAccessDenied));
+        printLn();
+        
+        return;
+    }
+    
+    if (attribute.type == 'd') {
+        
+        print(msgFileNotFound, sizeof(msgFileNotFound));
+        printLn();
+        
+        return;
+    }
+    
     if (fsFileDelete(param, param_length-1) == 1) {
         
-        uint8_t msgTest[] = "File removed";
-        print(msgTest, sizeof(msgTest));
+        print(msgFileRemoved, sizeof(msgFileRemoved));
         printLn();
         
     } else {
         
-        uint8_t msgTest[] = "File not found";
-        print(msgTest, sizeof(msgTest));
+        print(msgFileAccessDenied, sizeof(msgFileAccessDenied));
         printLn();
         
     }

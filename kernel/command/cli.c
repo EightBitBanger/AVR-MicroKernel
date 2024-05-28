@@ -225,7 +225,7 @@ void consoleRunShell(void) {
                     fsFileRead(index, programBuffer, programSize);
                     
                     // Emulate the code
-                    EmulateX4(programBuffer, programSize + 1);
+                    EmulateX4(programBuffer, programSize);
                     
                     fsFileClose(index);
                     
