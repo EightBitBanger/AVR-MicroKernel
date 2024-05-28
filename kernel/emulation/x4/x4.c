@@ -202,7 +202,7 @@ uint8_t EmulateX4(uint8_t* programBuffer, uint32_t programSize) {
         
         if ((opCode == 0xCC) | (opCode == 0xCD)) {
             
-            // Display interrupt
+            // Display control interrupt routine
             if (argA == 0x10) {
                 printChar( reg[3] );
                 consoleWritten = 1;
@@ -211,10 +211,8 @@ uint8_t EmulateX4(uint8_t* programBuffer, uint32_t programSize) {
             // Return control to the OS
             if (argA == 0x20) {
                 
-                if (consoleWritten == 1) {
-                    
+                if (consoleWritten == 1) 
                     printLn();
-                }
                 
                 return 1;
             }
@@ -225,8 +223,15 @@ uint8_t EmulateX4(uint8_t* programBuffer, uint32_t programSize) {
         
         programCounter++;
         
+        // End of the line!
+        if (programCounter >= programSize) 
+            break;
+        
         continue;
     }
+    
+    if (consoleWritten == 1) 
+        printLn();
     
     return 0;
 }
