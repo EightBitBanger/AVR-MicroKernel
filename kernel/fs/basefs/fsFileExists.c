@@ -29,30 +29,16 @@ uint32_t fsFileExists(uint8_t* name, uint8_t nameLength) {
         if (fsGetDeviceHeaderByte( sector * SECTOR_SIZE ) != 0x55) 
             continue;
         
-        uint8_t isFileFound = 0;
+        // Get filename from the device
+        uint8_t filenameCheck[FILE_NAME_LENGTH];
         
-        // Check file name
-        for (uint8_t i=0; i < nameLength; i++) {
-            
-            uint8_t nameByte = 0;
-            
-            fs_read_byte(&bus, currentDevice + (sector * SECTOR_SIZE) + OFFSET_FILE_NAME + i, &nameByte);
-            
-            if (name[i] != nameByte) {
-                isFileFound = 0;
-                break;
-            }
-            
-            isFileFound = 1;
-            
-            continue;
-        }
+        for (uint8_t i=0; i < FILE_NAME_LENGTH; i++) 
+            fs_read_byte(&bus, currentDevice + (sector * SECTOR_SIZE) + OFFSET_FILE_NAME + i, &filenameCheck[i]);
         
-        // Check next file
-        if (isFileFound == 0) 
-            continue;
+        if (StringCompare(name, nameLength, filenameCheck, FILE_NAME_LENGTH) == 1) 
+            return currentDevice + (sector * SECTOR_SIZE);
         
-		return currentDevice + (sector * SECTOR_SIZE);
+        continue;
     }
     
     return 0;
