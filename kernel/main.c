@@ -65,7 +65,7 @@ int main(void) {
     //registerCommandTASK();
     
     //registerCommandEDIT();
-    registerCommandAssembly();
+    //registerCommandAssembly();
     
     //registerCommandCLS();
     
@@ -89,7 +89,7 @@ int main(void) {
     registerCommandMKDIR();
     registerCommandRMDIR();
     
-    //registerCommandATTRIB();
+    registerCommandATTRIB();
     //registerCommandRepair();
     //registerCommandFormat();
     

@@ -181,14 +181,22 @@ uint8_t string_get_hex_char(uint8_t* string) {
 	return value_a + (value_b * 16);
 }
 
-uint8_t string_compare(uint8_t* stringA, uint8_t* stringB, uint8_t length) {
+uint8_t StringCompare(uint8_t* stringA, uint8_t lengthA, uint8_t* stringB, uint8_t lengthB) {
     
-    for (uint8_t i=0; i < length; i++) {
-        
-        if (stringA[i] != stringB[i]) 
+    uint8_t strA[10];
+    uint8_t strB[10];
+    
+    for (uint8_t i=0; i < 10; i++) {
+        strA[i] = ' ';
+        strB[i] = ' ';
+    }
+    
+    for (uint8_t i=0; i < lengthA; i++) strA[i] = stringA[i];
+    for (uint8_t i=0; i < lengthB; i++) strB[i] = stringB[i];
+    
+    for (uint8_t i=0; i < 10; i++) {
+        if (strA[i] != strB[i]) 
             return 0;
-        
-        continue;
     }
     
     return 1;

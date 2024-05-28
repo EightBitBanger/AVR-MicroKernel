@@ -30,8 +30,8 @@ void kInit(void) {
         fsSetCurrentDevice( 0xff );
         
         // Set the root directory
-        uint8_t filename[] = "storage0";
-        filename[7] = '0' + (deviceIndex);
+        uint8_t filename[] = "dev0";
+        filename[3] = '0' + (deviceIndex);
         deviceIndex++;
         
         fsFileCreate(filename, sizeof(filename)-1, 80, ' ');

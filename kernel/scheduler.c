@@ -75,7 +75,7 @@ uint8_t TaskFind(uint8_t* name, uint8_t name_length) {
 		for (uint8_t i=0; i < TASK_NAME_LENGTH_MAX; i++)
             list_task_name[i] = proc_info.name[index][i];
 		
-		if (string_compare(name, list_task_name, TASK_NAME_LENGTH_MAX) == 1) {
+		if (StringCompare(name, name_length, list_task_name, TASK_NAME_LENGTH_MAX) == 1) {
             
             return (index + 1);
         }
@@ -100,7 +100,7 @@ uint8_t TaskKill(uint8_t* name, uint8_t name_length) {
 		for (uint8_t i=0; i < TASK_NAME_LENGTH_MAX; i++)
             list_task_name[i] = proc_info.name[index][i];
 		
-		if (string_compare(name, list_task_name, TASK_NAME_LENGTH_MAX) == 1) {
+		if (StringCompare(name, name_length, list_task_name, TASK_NAME_LENGTH_MAX) == 1) {
             
             for (uint8_t i=0; i < TASK_NAME_LENGTH_MAX; i++) 
                 proc_info.name[index][i] = ' ';
