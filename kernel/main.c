@@ -80,16 +80,16 @@ int main(void) {
   #ifdef INCLUDE_FILE_SYSTEM_APPLICATIONS
     
     registerCommandLS();
-    //registerCommandCOPY();
+    registerCommandCOPY();
     registerCommandCD();
     
     //registerCommandMK();
     //registerCommandRM();
     //registerCommandRN();
     registerCommandMKDIR();
-    registerCommandRMDIR();
+    //registerCommandRMDIR();
     
-    registerCommandATTRIB();
+    //registerCommandATTRIB();
     //registerCommandRepair();
     //registerCommandFormat();
     
@@ -136,6 +136,8 @@ int main(void) {
     
     fsSetCurrentDevice( 0xff );
     
+    fsWorkingDirectoryClear();
+    
     uint8_t prompt[] = "/>";
     ConsoleSetPrompt( prompt, sizeof(prompt) );
     
@@ -155,7 +157,7 @@ int main(void) {
     
     // Enable hardware interrupts
     //  Trigger on the HIGH to LOW transition of PIN2
-    InterruptStartHardware();
+    //InterruptStartHardware();
     
     SetHardwareInterruptServiceA( _ISR_hardware_service_routine );
     
