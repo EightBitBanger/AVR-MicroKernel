@@ -29,7 +29,7 @@ uint8_t lastChar = 0x00;
 
 uint8_t shiftState = 0;
 
-uint8_t console_prompt[10];
+uint8_t console_prompt[16];
 uint8_t console_prompt_length = 1;
 
 uint8_t cursor_blink_rate = 35;
@@ -531,7 +531,7 @@ void printSpace(uint8_t numberOfSpaces) {
 
 void printPrompt(void) {
     
-    // Print a prompt char
+    // Print prompt string
     for (uint8_t i=0; i < console_prompt_length - 1; i++) 
         displayDevice->write( (20 * console_line) + i, console_prompt[i] );
     

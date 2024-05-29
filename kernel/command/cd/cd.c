@@ -11,16 +11,18 @@ void functionCD(uint8_t* param, uint8_t param_length) {
     uint8_t msgDirectoryNotFound[]  = "Directory not found";
     uint8_t msgNotDirectory[]       = "Not a directory";
     
-    uint8_t deviceLocated = 0;
-    
     //
     // Change device letter
+    //
     
-    if (((param[0] >= 'a') & (param[0] <= 'z')) & 
-        ((param[1] == ' ') | (param[1] == ':'))) {
+    // The letter represents the hardware address 
+    // offset pointing to the device on the system bus
+    
+    if ((param[0] >= 'a') & (param[0] <= 'z') & (param[1] == ':')) {
         
-        fsSetCurrentDevice( param[0] - 'a' );
+        uint8_t deviceLetter = param[0] - 'a';
         
+        fsSetCurrentDevice( deviceLetter );
         uppercase(&param[0]);
         
         uint8_t consolePrompt[2];
@@ -29,74 +31,117 @@ void functionCD(uint8_t* param, uint8_t param_length) {
         
         ConsoleSetPrompt(consolePrompt, 3);
         
-        deviceLocated = 1;
+        fsSetRootDirectory(param[0]);
         
-    } else {
+        fsWorkingDirectoryClear();
         
-        //
-        // Change to a directory
+        return;
+    }
+    
+    
+    //
+    // Drop down the parent directory
+    //
+    
+    if ((param[0] == '.') & (param[1] == '.') & (param[2] == ' ')) {
         
-        if ((param[0] >= 'a') & (param[0] <= 'z')) {
+        uint8_t PromptRoot[] = " >";
+        
+        PromptRoot[0] = fsGetRootDirectory();
+        
+        ConsoleSetPrompt(PromptRoot, 3);
+        
+        fsWorkingDirectoryClear();
+        
+        return;
+    }
+    
+    
+    //
+    // Change to system root
+    //
+    
+    if ((param[0] == '/') & ((param[1] == ' ') | (param[1] == ':'))) {
+        
+        fsSetCurrentDevice( 0xff );
+        fsSetRootDirectory('/');
+        
+        uint8_t PromptBase[] = "/>";
+        ConsoleSetPrompt(PromptBase, sizeof(PromptBase));
+        
+        fsWorkingDirectoryClear();
+        
+        return;
+    }
+    
+    
+    //
+    // Change to a directory
+    //
+    
+    if ((param[0] >= 'a') & (param[0] <= 'z')) {
+        
+        if (fsFileExists(param, param_length-1) != 0) {
             
-            if (param_length > FILE_NAME_LENGTH) 
-                param_length = FILE_NAME_LENGTH;
+            struct FSAttribute attribute;
+            fsGetFileAttributes(param, param_length-1, &attribute);
             
-            if (fsFileExists(param, param_length-1) != 0) {
+            // Check directory attribute
+            if (attribute.type == 'd') {
                 
-                struct FSAttribute attribute;
-                fsGetFileAttributes(param, param_length-1, &attribute);
+                // Check device
                 
-                // Check directory attribute
-                if (attribute.type == 'd') {
+                if (fsCheckDeviceReady() == 0) {
                     
-                    uint8_t PromptRoot[FILE_NAME_LENGTH + 1];
+                    print(msgDeviceError, sizeof(msgDeviceError));
+                    printLn();
                     
-                    fsWorkingDirectorySet(param, param_length);
+                    return;
+                }
+                
+                uint8_t PromptDir[20];
+                
+                fsWorkingDirectorySet(param, param_length);
+                
+                // Check root directory preamble
+                if (fsGetRootDirectory() == '/') {
                     
-                    for (uint8_t i=0; i <= param_length; i++)
-                        PromptRoot[i] = param[i];
+                    for (uint8_t i=0; i < param_length + 1; i++) 
+                        PromptDir[i + 1] = param[i];
                     
-                    PromptRoot[param_length - 1] = '>';
+                    PromptDir[param_length] = '>';
                     
-                    ConsoleSetPrompt(PromptRoot, param_length + 1);
+                    PromptDir[0] = '/';
+                    
+                    ConsoleSetPrompt(PromptDir, param_length + 2);
                     
                 } else {
                     
-                    print(msgNotDirectory, sizeof(msgNotDirectory));
-                    printLn();
+                    for (uint8_t i=0; i < param_length + 1; i++) 
+                        PromptDir[i + 2] = param[i];
+                    
+                    PromptDir[param_length + 1] = '>';
+                    
+                    PromptDir[0] = fsGetRootDirectory();
+                    PromptDir[1] = '/';
+                    
+                    ConsoleSetPrompt(PromptDir, param_length + 3);
                     
                 }
                 
             } else {
                 
-                print(msgDirectoryNotFound, sizeof(msgDirectoryNotFound));
+                print(msgNotDirectory, sizeof(msgNotDirectory));
                 printLn();
                 
             }
             
-            deviceLocated = 1;
+        } else {
+            
+            print(msgDirectoryNotFound, sizeof(msgDirectoryNotFound));
+            printLn();
             
         }
-        
-    }
-    
-    //
-    // Change root device
-    
-    if ((param[0] == '/') & ((param[1] == ' ') | (param[1] == ':'))) {
-        
-        fsSetCurrentDevice( 0xff );
-        
-        uint8_t PromptRoot[] = "/>";
-        ConsoleSetPrompt(PromptRoot, sizeof(PromptRoot));
-        
-        deviceLocated = 1;
-    }
-    
-    if (deviceLocated == 0) {
-        
-        print(msgDeviceError, sizeof(msgDeviceError));
-        printLn();
         
         return;
     }

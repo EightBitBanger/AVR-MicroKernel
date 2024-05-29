@@ -8,12 +8,66 @@
 void functionLS(uint8_t* param, uint8_t param_length) {
     
     struct Bus bus;
-    bus.read_waitstate = 5;
+    bus.read_waitstate  = 5;
+    bus.write_waitstate = 5;
     
     uint8_t fileCount = 0;
     
     uint16_t numberOfFiles = 0;
     uint16_t numberOfDirs  = 0;
+    
+    
+    //
+    // List directory contents
+    //
+    
+    uint8_t workingDir[10];
+    fsWorkingDirectoryGet(workingDir);
+    uint8_t workingDirectoryLength = fsWorkingDirectoryGetLength();
+    
+    if ((workingDirectoryLength > 0) & (workingDir[0] != ' ')) {
+        
+        uint8_t workingDirectory[20];
+        uint8_t workingDirectoryLength = fsWorkingDirectoryGet(workingDirectory);
+        
+        // Check if the current working directory is valid
+        uint32_t fileAddress = fsFileExists(workingDirectory, workingDirectoryLength-1);
+		if (fileAddress == 0) {
+            
+            uint8_t msgDirectoryError[] = "Invalid directory";
+            
+            print(msgDirectoryError, sizeof(msgDirectoryError));
+            printLn();
+            
+            return;
+		}
+		
+        // Get number of items in the directory
+        
+        union Pointer directorySize;
+        for (uint8_t i=0; i < 4; i++) 
+            fs_read_byte( &bus, fileAddress + i + OFFSET_DIRECTORY_SIZE, &directorySize.byte_t[i] );
+        
+        //directorySize.address;
+        
+        // Print the contents
+        //for (uint16_t i=0; i < ) {
+            
+            uint8_t msgDURRR[] = "  items";
+            
+            msgDURRR[0] = directorySize.address + '0';
+            
+            print(msgDURRR, sizeof(msgDURRR));
+            printLn();
+        //}
+        
+        return;
+    }
+    
+    
+    //
+    // List device root contents
+    //
     
     for (uint32_t i=0; i < 0xffffffff; i++) {
         
@@ -23,6 +77,13 @@ void functionLS(uint8_t* param, uint8_t param_length) {
             break;
         
         // List the file
+        
+        // Check if the file is claimed by a directory
+        uint8_t flagClaimed = 0;
+		fs_read_byte(&bus, fileAddress + OFFSET_DIRECTORY_FLAG, &flagClaimed);
+		
+		if (flagClaimed != 0) 
+            continue;
         
         // Attributes
         uint8_t attributes[4] = {' ',' ',' ',' '};
@@ -56,8 +117,10 @@ void functionLS(uint8_t* param, uint8_t param_length) {
             
         } else {
             
-            // File size
+            // File listing
             
+            
+            // Size in bytes
             union Pointer ptr;
             
             for (uint8_t s=0; s < 4; s++) 
