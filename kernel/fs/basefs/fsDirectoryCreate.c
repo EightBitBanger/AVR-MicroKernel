@@ -1,5 +1,31 @@
 #include <kernel/kernel.h>
 
+
+uint32_t fsDirectoryCreate(uint8_t* name, uint8_t nameLength, uint32_t fileSize) {
+    
+    uint32_t fileAddress = fsFileCreate(name, nameLength, fileSize, 'd');
+    
+    if (fileAddress == 0) 
+        return 0;
+    
+    struct Bus bus;
+    bus.read_waitstate = 5;
+    
+    // Zero the directory size
+    union Pointer dirSzPtr;
+    dirSzPtr.address = 0;
+    
+    for (uint8_t i=0; i < 4; i++) 
+        fs_write_byte( &bus, fileAddress + i + OFFSET_DIRECTORY_SIZE, dirSzPtr.byte_t[i] );
+    
+    // Zero the directory flag
+    uint8_t dirFlag = 0;
+    fs_write_byte( &bus, fileAddress + OFFSET_DIRECTORY_FLAG, dirFlag );
+    
+    return fileAddress;
+}
+
+/*
 uint32_t fsFileCreate(uint8_t* name, uint8_t nameLength, uint32_t fileSize, uint8_t subType) {
     
     if (fsFileExists(name, nameLength) != 0) 
@@ -118,3 +144,4 @@ uint32_t fsFileCreate(uint8_t* name, uint8_t nameLength, uint32_t fileSize, uint
     
     return 0;
 }
+*/

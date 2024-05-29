@@ -1,7 +1,5 @@
 #include <kernel/kernel.h>
 
-#ifdef KERNEL_FILESYSTEM_BASE_FS
-
 uint32_t fsGetFileSize(uint8_t* name, uint8_t nameLength) {
     
     uint32_t fileAddress = fsFileExists(name, nameLength);
@@ -19,6 +17,3 @@ uint32_t fsGetFileSize(uint8_t* name, uint8_t nameLength) {
     
     return fileSize.address;
 }
-
-
-#endif

@@ -1,7 +1,5 @@
 #include <kernel/kernel.h>
 
-#ifdef KERNEL_FILESYSTEM_BASE_FS
-
 uint32_t fsFileExists(uint8_t* name, uint8_t nameLength) {
     
     struct Bus bus;
@@ -43,5 +41,3 @@ uint32_t fsFileExists(uint8_t* name, uint8_t nameLength) {
     
     return 0;
 }
-
-#endif

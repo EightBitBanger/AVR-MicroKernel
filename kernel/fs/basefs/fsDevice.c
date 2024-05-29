@@ -1,7 +1,5 @@
 #include <kernel/kernel.h>
 
-#ifdef KERNEL_FILESYSTEM_BASE_FS
-
 #define FS_DEVICE_TYPE_IO    0
 #define FS_DEVICE_TYPE_MEM   1
 
@@ -10,6 +8,8 @@ void(*__fs_write_byte)(struct Bus*, uint32_t, uint8_t);
 
 
 uint32_t fs_device_address = 0;
+
+uint8_t  fs_device_root = '/';
 
 uint8_t  fs_working_directory[FILE_NAME_LENGTH];
 uint8_t  fs_working_directory_length = 0;
@@ -86,6 +86,20 @@ void fs_write_byte(struct Bus* bus, uint32_t address, uint8_t byte) {
     return;
 }
 
+
+void fsSetRootDirectory(uint8_t device) {
+    
+    fs_device_root = device;
+    
+    return;
+}
+
+uint8_t fsGetRootDirectory(void) {
+    
+    return fs_device_root;
+}
+
+
 void fsWorkingDirectoryClear(void) {
     for (uint8_t i=0; i < FILE_NAME_LENGTH; i++) 
         fs_working_directory[i] = ' ';
@@ -99,6 +113,9 @@ void fsWorkingDirectorySet(uint8_t* directoryName, uint8_t nameLength) {
     
     fsWorkingDirectoryClear();
     
+    if (nameLength > FILE_NAME_LENGTH) 
+        nameLength = FILE_NAME_LENGTH;
+    
     for (uint8_t i=0; i < nameLength; i++) 
         fs_working_directory[i] = directoryName[i];
     
@@ -110,6 +127,11 @@ uint8_t fsWorkingDirectoryGet(uint8_t* directoryName) {
     
     for (uint8_t i=0; i < fs_working_directory_length; i++) 
         directoryName[i] = fs_working_directory[i];
+    
+    return fs_working_directory_length;
+}
+
+uint8_t fsWorkingDirectoryGetLength(void) {
     
     return fs_working_directory_length;
 }
@@ -160,10 +182,10 @@ uint8_t fsCheckDeviceReady(void) {
     deviceHeader[0] = fsGetDeviceHeaderByte(1);
     deviceHeader[1] = fsGetDeviceHeaderByte(2);
     
-    if ((deviceHeader[0] != 'f') | (deviceHeader[1] != 's')) 
-        return 0;
+    if ((deviceHeader[0] == 'f') & (deviceHeader[1] == 's')) 
+        return 1;
     
-    return 1;
+    return 0;
 }
 
 
@@ -206,5 +228,3 @@ uint32_t fsGetDeviceCapacity(void) {
     
     return sizePointer.address;
 }
-
-#endif

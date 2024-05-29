@@ -1,5 +1,13 @@
 #include <kernel/kernel.h>
 
+
+uint32_t fsDirectoryDelete(uint8_t* name, uint8_t nameLength) {
+    
+    return 1;
+}
+
+/*
+
 uint8_t fsFileDelete(uint8_t* name, uint8_t nameLength) {
     
     if (fsFileExists(name, nameLength) == 0) 
@@ -94,3 +102,4 @@ uint8_t fsFileDelete(uint8_t* name, uint8_t nameLength) {
     
     return 0;
 }
+*/

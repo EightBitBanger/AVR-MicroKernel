@@ -1,5 +1,12 @@
 #include <kernel/kernel.h>
 
+
+uint32_t fsDirectorySetNumberOfFiles(uint8_t* name, uint8_t nameLength, uint32_t numberOfFiles) {
+    
+    return 1;
+}
+
+/*
 uint32_t fileBeginAddress = 0;
 uint32_t fileSize = 0;
 
@@ -124,3 +131,4 @@ uint8_t fsFileRead(uint8_t index, uint8_t* buffer, uint32_t length) {
     
     return ' ';
 }
+*/

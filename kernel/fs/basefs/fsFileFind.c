@@ -1,7 +1,5 @@
 #include <kernel/kernel.h>
 
-#ifdef KERNEL_FILESYSTEM_BASE_FS
-
 uint32_t fsFileFind(uint32_t index) {
     
     uint32_t currentDevice = fsGetCurrentDevice();
@@ -38,5 +36,3 @@ uint32_t fsFileFind(uint32_t index) {
     
     return 0;
 }
-
-#endif

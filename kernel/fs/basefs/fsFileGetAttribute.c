@@ -1,7 +1,5 @@
 #include <kernel/kernel.h>
 
-#ifdef KERNEL_FILESYSTEM_BASE_FS
-
 uint8_t fsGetFileAttributes(uint8_t* name, uint8_t nameLength, struct FSAttribute* attributes) {
     
     uint32_t fileAddress = fsFileExists(name, nameLength);
@@ -25,5 +23,3 @@ uint8_t fsGetFileAttributes(uint8_t* name, uint8_t nameLength, struct FSAttribut
     
     return 1;
 }
-
-#endif

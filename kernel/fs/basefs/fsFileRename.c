@@ -1,7 +1,5 @@
 #include <kernel/kernel.h>
 
-#ifdef KERNEL_FILESYSTEM_BASE_FS
-
 uint8_t fsFileRename(uint8_t* name, uint8_t nameLength, uint8_t* newName, uint8_t newNameLength) {
     
     if (fsFileExists(name, nameLength) == 0) 
@@ -53,5 +51,3 @@ uint8_t fsFileRename(uint8_t* name, uint8_t nameLength, uint8_t* newName, uint8_
     
     return 0;
 }
-
-#endif

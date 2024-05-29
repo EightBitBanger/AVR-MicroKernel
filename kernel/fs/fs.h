@@ -25,6 +25,8 @@
 #define OFFSET_FILE_NAME          1
 #define OFFSET_FILE_SIZE          11
 #define OFFSET_FILE_ATTRIBUTES    15
+#define OFFSET_DIRECTORY_SIZE     19
+#define OFFSET_DIRECTORY_FLAG     23
 
 #define FILE_ATTRIBUTE_FILETYPE   15
 #define FILE_ATTRIBUTE_READ       16
@@ -55,8 +57,14 @@ void fsWorkingDirectorySet(uint8_t* directoryName, uint8_t nameLength);
 
 uint8_t fsWorkingDirectoryGet(uint8_t* directoryName);
 
+uint8_t fsWorkingDirectoryGetLength(void);
+
 
 // Device context
+
+uint8_t fsGetRootDirectory(void);
+
+void fsSetRootDirectory(uint8_t device);
 
 void fsSetDeviceTypeIO(void);
 
@@ -72,7 +80,7 @@ uint32_t fsGetCurrentDevice(void);
 
 uint8_t fsCheckDeviceReady(void);
 
-// File manipulation
+// File
 
 uint32_t fsFileCreate(uint8_t* name, uint8_t nameLength, uint32_t fileSize, uint8_t subType);
 
@@ -104,9 +112,9 @@ uint8_t fsFileWrite(uint8_t index, uint8_t* buffer, uint32_t length);
 
 uint8_t fsFileRead(uint8_t index, uint8_t* buffer, uint32_t length);
 
+// Directory
+uint32_t fsDirectoryCreate(uint8_t* name, uint8_t nameLength, uint32_t fileSize);
 
-// Special
-
-void fsListDirectory(void);
+uint32_t fsDirectoryDelete(uint8_t* name, uint8_t nameLength);
 
 #endif
