@@ -46,75 +46,55 @@ struct FSAttribute {
 void fsInit(void);
 
 void fs_write_byte(struct Bus* bus, uint32_t address, uint8_t byte);
-
 void fs_read_byte(struct Bus* bus, uint32_t address, uint8_t* buffer);
 
 // Current working directory
 
 void fsWorkingDirectoryClear(void);
-
 void fsWorkingDirectorySet(uint8_t* directoryName, uint8_t nameLength);
-
 uint8_t fsWorkingDirectoryGet(uint8_t* directoryName);
-
 uint8_t fsWorkingDirectoryGetLength(void);
 
 
 // Device context
 
 uint8_t fsGetRootDirectory(void);
-
 void fsSetRootDirectory(uint8_t device);
 
 void fsSetDeviceTypeIO(void);
-
 void fsSetDeviceTypeMEM(void);
 
 void fsSetCurrentDevice(uint8_t device_index);
-
 uint8_t fsGetDeviceHeaderByte(uint32_t address_offset);
-
 uint32_t fsGetDeviceCapacity(void);
-
 uint32_t fsGetCurrentDevice(void);
-
 uint8_t fsCheckDeviceReady(void);
 
 // File
 
 uint32_t fsFileCreate(uint8_t* name, uint8_t nameLength, uint32_t fileSize, uint8_t subType);
-
 uint8_t fsFileDelete(uint8_t* name, uint8_t nameLength);
-
 uint32_t fsFileExists(uint8_t* name, uint8_t nameLength);
-
 uint32_t fsFileFind(uint32_t index);
-
 uint8_t fsFileRename(uint8_t* name, uint8_t nameLength, uint8_t* newName, uint8_t newNameLength);
-
 uint32_t fsGetFileSize(uint8_t* name, uint8_t nameLength);
-
 uint8_t fsGetFileAttributes(uint8_t* name, uint8_t nameLength, struct FSAttribute* attributes);
-
 uint8_t fsSetFileAttributes(uint8_t* name, uint8_t nameLength, struct FSAttribute* attributes);
 
 // File IO
 
 uint8_t fsFileOpen(uint8_t* name, uint8_t nameLength);
-
 uint8_t fsFileSeekGet(void);
-
 uint8_t fsFileSeekSet(uint8_t position);
-
 uint8_t fsFileClose(uint8_t index);
-
 uint8_t fsFileWrite(uint8_t index, uint8_t* buffer, uint32_t length);
-
 uint8_t fsFileRead(uint8_t index, uint8_t* buffer, uint32_t length);
 
 // Directory
 uint32_t fsDirectoryCreate(uint8_t* name, uint8_t nameLength, uint32_t fileSize);
-
 uint32_t fsDirectoryDelete(uint8_t* name, uint8_t nameLength);
+
+uint8_t fsDirectorySetNumberOfFiles(uint8_t* name, uint8_t nameLength, uint32_t numberOfFiles);
+uint32_t fsDirectoryGetNumberOfFiles(uint8_t* name, uint8_t nameLength);
 
 #endif
