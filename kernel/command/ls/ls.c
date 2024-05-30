@@ -21,14 +21,10 @@ void functionLS(uint8_t* param, uint8_t param_length) {
     // List directory contents
     //
     
-    uint8_t workingDir[10];
-    fsWorkingDirectoryGet(workingDir);
-    uint8_t workingDirectoryLength = fsWorkingDirectoryGetLength();
+    uint8_t workingDirectory[20];
+    uint8_t workingDirectoryLength = fsGetWorkingDirectory(workingDirectory);
     
-    if ((workingDirectoryLength > 0) & (workingDir[0] != ' ')) {
-        
-        uint8_t workingDirectory[20];
-        uint8_t workingDirectoryLength = fsWorkingDirectoryGet(workingDirectory);
+    if ((workingDirectoryLength > 0) & (workingDirectory[0] != ' ')) {
         
         // Check if the current working directory is valid
         uint32_t fileAddress = fsFileExists(workingDirectory, workingDirectoryLength-1);
@@ -42,24 +38,46 @@ void functionLS(uint8_t* param, uint8_t param_length) {
             return;
 		}
 		
-        // Get number of items in the directory
+		uint8_t directorySize = fsGetFileSize(workingDirectory, workingDirectoryLength-1);
         
-        union Pointer directorySize;
-        for (uint8_t i=0; i < 4; i++) 
-            fs_read_byte( &bus, fileAddress + i + OFFSET_DIRECTORY_SIZE, &directorySize.byte_t[i] );
+        uint8_t numberOfFiles = fsDirectoryGetNumberOfFiles(workingDirectory, workingDirectoryLength-1);
         
-        //directorySize.address;
-        
-        // Print the contents
-        //for (uint16_t i=0; i < ) {
+        if (numberOfFiles > 0) {
             
-            uint8_t msgDURRR[] = "  items";
+            //uint8_t directoryFlag = fsDirectoryGetFlag(workingDirectory, workingDirectoryLength-1);
             
-            msgDURRR[0] = directorySize.address + '0';
+            uint8_t index = fsFileOpen(workingDirectory, workingDirectoryLength-1);
             
-            print(msgDURRR, sizeof(msgDURRR));
-            printLn();
-        //}
+            uint8_t bufferDir[directorySize];
+            fsFileRead(index, bufferDir, directorySize);
+            
+            fsFileClose(index);
+            
+            for (uint8_t i=1; i <= numberOfFiles; i++) {
+                
+                // Get file address offset
+                union Pointer fileAddressPtr;
+                
+                for (uint8_t p=0; p < 4; p++) 
+                    fileAddressPtr.byte_t[p] = bufferDir[(numberOfFiles * 4) + p];
+                
+                // Name
+                uint8_t filename[10];
+                for (uint8_t n=0; n < 10; n++) 
+                    filename[n] = ' ';
+                
+                for (uint8_t n=0; n < 10; n++) 
+                    fs_read_byte( &bus, fileAddressPtr.address + n + 1, &filename[n] );
+                
+                print(filename, sizeof(filename) + 1);
+                //printSpace(1);
+                
+                printLn();
+                
+                continue;
+            }
+            
+        }
         
         return;
     }
