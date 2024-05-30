@@ -100,7 +100,7 @@ uint8_t fsGetRootDirectory(void) {
 }
 
 
-void fsWorkingDirectoryClear(void) {
+void fsClearWorkingDirectory(void) {
     for (uint8_t i=0; i < FILE_NAME_LENGTH; i++) 
         fs_working_directory[i] = ' ';
     
@@ -109,9 +109,9 @@ void fsWorkingDirectoryClear(void) {
     return;
 }
 
-void fsWorkingDirectorySet(uint8_t* directoryName, uint8_t nameLength) {
+void fsSetWorkingDirectory(uint8_t* directoryName, uint8_t nameLength) {
     
-    fsWorkingDirectoryClear();
+    fsClearWorkingDirectory();
     
     if (nameLength > FILE_NAME_LENGTH) 
         nameLength = FILE_NAME_LENGTH;
@@ -123,7 +123,7 @@ void fsWorkingDirectorySet(uint8_t* directoryName, uint8_t nameLength) {
     return;
 }
 
-uint8_t fsWorkingDirectoryGet(uint8_t* directoryName) {
+uint8_t fsGetWorkingDirectory(uint8_t* directoryName) {
     
     for (uint8_t i=0; i < fs_working_directory_length; i++) 
         directoryName[i] = fs_working_directory[i];
@@ -131,7 +131,7 @@ uint8_t fsWorkingDirectoryGet(uint8_t* directoryName) {
     return fs_working_directory_length;
 }
 
-uint8_t fsWorkingDirectoryGetLength(void) {
+uint8_t fsGetWorkingDirectoryLength(void) {
     
     return fs_working_directory_length;
 }

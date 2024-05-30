@@ -50,10 +50,10 @@ void fs_read_byte(struct Bus* bus, uint32_t address, uint8_t* buffer);
 
 // Current working directory
 
-void fsWorkingDirectoryClear(void);
-void fsWorkingDirectorySet(uint8_t* directoryName, uint8_t nameLength);
-uint8_t fsWorkingDirectoryGet(uint8_t* directoryName);
-uint8_t fsWorkingDirectoryGetLength(void);
+void fsClearWorkingDirectory(void);
+void fsSetWorkingDirectory(uint8_t* directoryName, uint8_t nameLength);
+uint8_t fsGetWorkingDirectory(uint8_t* directoryName);
+uint8_t fsGetWorkingDirectoryLength(void);
 
 
 // Device context
@@ -91,10 +91,14 @@ uint8_t fsFileWrite(uint8_t index, uint8_t* buffer, uint32_t length);
 uint8_t fsFileRead(uint8_t index, uint8_t* buffer, uint32_t length);
 
 // Directory
+
 uint32_t fsDirectoryCreate(uint8_t* name, uint8_t nameLength, uint32_t fileSize);
 uint32_t fsDirectoryDelete(uint8_t* name, uint8_t nameLength);
 
-uint8_t fsDirectorySetNumberOfFiles(uint8_t* name, uint8_t nameLength, uint32_t numberOfFiles);
 uint32_t fsDirectoryGetNumberOfFiles(uint8_t* name, uint8_t nameLength);
+uint8_t fsDirectorySetNumberOfFiles(uint8_t* name, uint8_t nameLength, uint32_t numberOfFiles);
+
+uint8_t fsDirectorySetFlag(uint8_t* name, uint8_t nameLength, uint8_t flag);
+uint8_t fsDirectoryGetFlag(uint8_t* name, uint8_t nameLength);
 
 #endif

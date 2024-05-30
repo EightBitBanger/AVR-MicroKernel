@@ -27,6 +27,16 @@ uint32_t fsFileCreate(uint8_t* name, uint8_t nameLength, uint32_t fileSize, uint
 	if (totalSectors == 0) 
 		totalSectors = 1;
 	
+	// Get working directory
+	uint8_t workingDirectory[20];
+    uint8_t workingDirectoryLength = fsGetWorkingDirectory(workingDirectory);
+    
+    uint32_t directoryAddress = 0;
+	
+	if ((workingDirectoryLength > 0) & (workingDirectory[0] != ' ')) 
+        directoryAddress = fsFileExists(workingDirectory, workingDirectoryLength-1);
+	
+	
 	// Find free sectors
     for (uint32_t sector=1; sector < currentCapacity; sector++) {
         
@@ -101,17 +111,46 @@ uint32_t fsFileCreate(uint8_t* name, uint8_t nameLength, uint32_t fileSize, uint
             fs_write_byte( &bus, fileTargetAddress + i + OFFSET_FILE_ATTRIBUTES, attributes[i] );
         
         // Zero the directory size
-        // Even if its not a directory
         union Pointer dirSzPtr;
         dirSzPtr.address = 0;
         
         for (uint8_t i=0; i < 4; i++) 
             fs_write_byte( &bus, fileTargetAddress + i + OFFSET_DIRECTORY_SIZE, dirSzPtr.byte_t[i] );
         
-        // FLAG Claimed by a directory
-        // Indicate the file/directory is in the root
+        // Check file claimed by a directory
         uint8_t flagClaimed = 0;
-		fs_write_byte(&bus, fileTargetAddress + OFFSET_DIRECTORY_FLAG, flagClaimed);
+        
+        if (directoryAddress != 0) {
+            flagClaimed = 1;
+            
+            // Increment the directory file counter
+            uint8_t numberOfFiles = fsDirectoryGetNumberOfFiles(workingDirectory, workingDirectoryLength-1);
+            numberOfFiles++;
+            fsDirectorySetNumberOfFiles(workingDirectory, workingDirectoryLength-1, numberOfFiles);
+            
+            // Add file reference to the directory
+            
+            uint8_t directorySize = fsGetFileSize(workingDirectory, workingDirectoryLength-1);
+            
+            uint8_t index = fsFileOpen(workingDirectory, workingDirectoryLength-1);
+            
+            uint8_t bufferRefs[directorySize];
+            
+            fsFileRead(index, bufferRefs, directorySize);
+            
+            union Pointer fileAddressPtr;
+            fileAddressPtr.address = fileTargetAddress;
+            
+            for (uint8_t i=0; i < 4; i++) 
+                bufferRefs[(numberOfFiles * 4) + i] = fileAddressPtr.byte_t[i];
+            
+            fsFileWrite(index, bufferRefs, directorySize);
+            
+            fsFileClose(index);
+        }
+        
+        // FLAG Claimed by a directory
+        fs_write_byte(&bus, fileTargetAddress + OFFSET_DIRECTORY_FLAG, flagClaimed);
 		
         return fileTargetAddress;
     }
