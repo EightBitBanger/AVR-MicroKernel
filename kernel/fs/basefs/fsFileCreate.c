@@ -123,10 +123,7 @@ uint32_t fsFileCreate(uint8_t* name, uint8_t nameLength, uint32_t fileSize, uint
         if (directoryAddress != 0) {
             flagClaimed = 1;
             
-            // Increment the directory file counter
             uint32_t numberOfFiles = fsDirectoryGetNumberOfFiles(workingDirectory, workingDirectoryLength-1);
-            numberOfFiles++;
-            fsDirectorySetNumberOfFiles(workingDirectory, workingDirectoryLength-1, numberOfFiles);
             
             // Add file reference to the directory
             
@@ -139,26 +136,22 @@ uint32_t fsFileCreate(uint8_t* name, uint8_t nameLength, uint32_t fileSize, uint
             for (uint8_t i=0; i < directorySize; i++) 
                 bufferRefs[i] = ' ';
             
-            fsFileRead(index, bufferRefs, directorySize);
+            fsFileReadBin(index, bufferRefs, directorySize);
             
             union Pointer fileAddressPtr;
             fileAddressPtr.address = fileTargetAddress;
             
             for (uint8_t p=0; p < 4; p++) {
                 
-                uint32_t bufferAddress = ((numberOfFiles - 1) * 4) + p;
+                uint32_t bufferAddress = (numberOfFiles * 4) + p;
                 
-                //bufferRefs[bufferAddress] = p + 'A';
                 bufferRefs[bufferAddress] = fileAddressPtr.byte_t[p];
                 
             }
             
-            
-            uint32_t bufferAddress = (numberOfFiles - 1) * 4;
-            
-            bufferRefs[bufferAddress] = fileAddressPtr.byte_t[0];
-            
-            
+            // Increment the directory file counter
+            numberOfFiles++;
+            fsDirectorySetNumberOfFiles(workingDirectory, workingDirectoryLength-1, numberOfFiles);
             
             fsFileWrite(index, bufferRefs, directorySize);
             
