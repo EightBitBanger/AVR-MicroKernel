@@ -22,6 +22,8 @@ void kInit(void) {
     // Enumerate available hardware devices
     for (uint8_t d=1; d <= NUMBER_OF_PERIPHERALS; d++) {
         
+        continue;
+        
         fsSetCurrentDevice( d );
         
         if (fsCheckDeviceReady() == 0) 

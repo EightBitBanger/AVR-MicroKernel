@@ -61,7 +61,7 @@ int main(void) {
     
     //registerCommandDevice();
     //registerCommandCAP();
-    //registerCommandList();
+    registerCommandList();
     //registerCommandTASK();
     
     //registerCommandEDIT();
@@ -83,11 +83,11 @@ int main(void) {
     registerCommandCOPY();
     registerCommandCD();
     
-    //registerCommandMK();
-    //registerCommandRM();
+    registerCommandMK();
+    registerCommandRM();
     //registerCommandRN();
     registerCommandMKDIR();
-    //registerCommandRMDIR();
+    registerCommandRMDIR();
     
     //registerCommandATTRIB();
     //registerCommandRepair();
@@ -136,7 +136,7 @@ int main(void) {
     
     fsSetCurrentDevice( 0xff );
     
-    fsWorkingDirectoryClear();
+    fsClearWorkingDirectory();
     
     uint8_t prompt[] = "/>";
     ConsoleSetPrompt( prompt, sizeof(prompt) );
