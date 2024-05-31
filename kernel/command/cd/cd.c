@@ -101,7 +101,7 @@ void functionCD(uint8_t* param, uint8_t param_length) {
                 
                 uint8_t PromptDir[20];
                 
-                fsSetWorkingDirectory(param, param_length);
+                fsSetWorkingDirectory(param, param_length-1);
                 
                 // Check root directory preamble
                 if (fsGetRootDirectory() == '/') {

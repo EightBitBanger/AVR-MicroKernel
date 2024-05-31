@@ -53,14 +53,18 @@ void functionLS(uint8_t* param, uint8_t param_length) {
             
             for (uint8_t i=0; i < numberOfFiles; i++) {
                 
-                
-                
                 // Get file address offset
                 union Pointer fileAddressPtr;
                 
-                for (uint8_t p=0; p < 4; p++) 
-                    fileAddressPtr.byte_t[p] = bufferDir[(i * 4) + p];
+                for (uint8_t p=0; p < 4; p++) {
+                    
+                    uint32_t bufferAddress = (i * 4) + p;
+                    
+                    fileAddressPtr.byte_t[p] = bufferDir[ bufferAddress ];
+                    
+                }
                 
+                print( &fileAddressPtr.byte_t[0], 5 );
                 printInt( fileAddressPtr.address );
                 
                 printLn();
