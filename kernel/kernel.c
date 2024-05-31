@@ -22,8 +22,6 @@ void kInit(void) {
     // Enumerate available hardware devices
     for (uint8_t d=1; d <= NUMBER_OF_PERIPHERALS; d++) {
         
-        continue;
-        
         fsSetCurrentDevice( d );
         
         if (fsCheckDeviceReady() == 0) 
@@ -32,18 +30,25 @@ void kInit(void) {
         fsSetCurrentDevice( 0xff );
         
         // Set the root directory
-        uint8_t filename[] = "dev0";
-        filename[3] = '0' + (deviceIndex);
         deviceIndex++;
         
-        fsFileCreate(filename, sizeof(filename)-1, 80, ' ');
+        uint8_t dirname[]  = "sys";
+        fsDirectoryCreate(dirname, sizeof(dirname)-1, 80);
         
-        uint8_t index = fsFileOpen(filename, sizeof(filename)-1);
-        uint8_t lineA[] = "ld=drvsys\n\0";
+        fsSetWorkingDirectory(dirname, sizeof(dirname)-1);
         
-        fsFileWrite(index, lineA, sizeof(lineA));
+        uint8_t filenameA[] = "file";
+        fsFileCreate(filenameA, sizeof(filenameA)-1, 80, ' ');
         
-        fsFileClose(index);
+        uint8_t filenameB[] = "test";
+        fsFileCreate(filenameB, sizeof(filenameB)-1, 80, ' ');
+        
+        //uint8_t index = fsFileOpen(filename, sizeof(filename)-1);
+        //uint8_t lineA[] = "ld=drvsys\n\0";
+        
+        //fsFileWrite(index, lineA, sizeof(lineA));
+        
+        //fsFileClose(index);
         
         continue;
     }

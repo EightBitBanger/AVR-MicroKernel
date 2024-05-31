@@ -80,14 +80,14 @@ int main(void) {
   #ifdef INCLUDE_FILE_SYSTEM_APPLICATIONS
     
     registerCommandLS();
-    registerCommandCOPY();
+    //registerCommandCOPY();
     registerCommandCD();
     
     registerCommandMK();
-    registerCommandRM();
+    //registerCommandRM();
     //registerCommandRN();
-    registerCommandMKDIR();
-    registerCommandRMDIR();
+    //registerCommandMKDIR();
+    //registerCommandRMDIR();
     
     //registerCommandATTRIB();
     //registerCommandRepair();
