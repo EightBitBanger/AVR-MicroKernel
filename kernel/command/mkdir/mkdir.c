@@ -27,7 +27,7 @@ void functionMKDIR(uint8_t* param, uint8_t param_length) {
         return;
     }
     
-    if (fsDirectoryCreate(param, param_length, 100) == 0) {
+    if (fsDirectoryCreate(param, param_length, 20) == 0) {
         
         print(msgNoSpace, sizeof(msgNoSpace));
         printLn();

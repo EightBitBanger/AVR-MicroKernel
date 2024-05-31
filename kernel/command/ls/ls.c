@@ -11,8 +11,6 @@ void functionLS(uint8_t* param, uint8_t param_length) {
     bus.read_waitstate  = 5;
     bus.write_waitstate = 5;
     
-    uint8_t fileCount = 0;
-    
     uint16_t numberOfFiles = 0;
     uint16_t numberOfDirs  = 0;
     
@@ -38,9 +36,9 @@ void functionLS(uint8_t* param, uint8_t param_length) {
             return;
 		}
 		
-		uint8_t directorySize = fsGetFileSize(workingDirectory, workingDirectoryLength-1);
+		uint32_t directorySize = fsGetFileSize(workingDirectory, workingDirectoryLength-1);
         
-        uint8_t numberOfFiles = fsDirectoryGetNumberOfFiles(workingDirectory, workingDirectoryLength-1);
+        uint32_t numberOfFiles = fsDirectoryGetNumberOfFiles(workingDirectory, workingDirectoryLength-1);
         
         if (numberOfFiles > 0) {
             
@@ -53,13 +51,25 @@ void functionLS(uint8_t* param, uint8_t param_length) {
             
             fsFileClose(index);
             
-            for (uint8_t i=1; i <= numberOfFiles; i++) {
+            for (uint8_t i=0; i < numberOfFiles; i++) {
+                
+                
                 
                 // Get file address offset
                 union Pointer fileAddressPtr;
                 
                 for (uint8_t p=0; p < 4; p++) 
-                    fileAddressPtr.byte_t[p] = bufferDir[(numberOfFiles * 4) + p];
+                    fileAddressPtr.byte_t[p] = bufferDir[(i * 4) + p];
+                
+                printInt( fileAddressPtr.address );
+                
+                printLn();
+                
+                continue;
+                
+                
+                
+                
                 
                 // Name
                 uint8_t filename[10];
@@ -164,6 +174,8 @@ void functionLS(uint8_t* param, uint8_t param_length) {
         }
         
         printLn();
+        
+        uint8_t fileCount = 0;
         
         if ((param[0] == '-') & (param[1] == 'p')) {
             

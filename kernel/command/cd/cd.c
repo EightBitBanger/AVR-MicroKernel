@@ -33,7 +33,7 @@ void functionCD(uint8_t* param, uint8_t param_length) {
         
         fsSetRootDirectory(param[0]);
         
-        fsWorkingDirectoryClear();
+        fsClearWorkingDirectory();
         
         return;
     }
@@ -51,7 +51,7 @@ void functionCD(uint8_t* param, uint8_t param_length) {
         
         ConsoleSetPrompt(PromptRoot, 3);
         
-        fsWorkingDirectoryClear();
+        fsClearWorkingDirectory();
         
         return;
     }
@@ -69,7 +69,7 @@ void functionCD(uint8_t* param, uint8_t param_length) {
         uint8_t PromptBase[] = "/>";
         ConsoleSetPrompt(PromptBase, sizeof(PromptBase));
         
-        fsWorkingDirectoryClear();
+        fsClearWorkingDirectory();
         
         return;
     }
@@ -101,7 +101,7 @@ void functionCD(uint8_t* param, uint8_t param_length) {
                 
                 uint8_t PromptDir[20];
                 
-                fsWorkingDirectorySet(param, param_length);
+                fsSetWorkingDirectory(param, param_length);
                 
                 // Check root directory preamble
                 if (fsGetRootDirectory() == '/') {

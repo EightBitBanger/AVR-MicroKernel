@@ -39,7 +39,7 @@ void functionRMDIR(uint8_t* param, uint8_t param_length) {
         return;
     }
     
-    if (fsFileDelete(param, param_length-1) != 0) {
+    if (fsDirectoryDelete(param, param_length-1) != 0) {
         
         print(msgDirRemoved, sizeof(msgDirRemoved));
         printLn();
