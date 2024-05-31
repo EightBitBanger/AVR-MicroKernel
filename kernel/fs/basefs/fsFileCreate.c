@@ -142,15 +142,23 @@ uint32_t fsFileCreate(uint8_t* name, uint8_t nameLength, uint32_t fileSize, uint
             fsFileRead(index, bufferRefs, directorySize);
             
             union Pointer fileAddressPtr;
-            fileAddressPtr.address = 0;
+            fileAddressPtr.address = fileTargetAddress;
             
             for (uint8_t p=0; p < 4; p++) {
                 
-                uint8_t bufferAddress = ((numberOfFiles - 1) * 4) + p;
+                uint32_t bufferAddress = ((numberOfFiles - 1) * 4) + p;
                 
+                //bufferRefs[bufferAddress] = p + 'A';
                 bufferRefs[bufferAddress] = fileAddressPtr.byte_t[p];
                 
             }
+            
+            
+            uint32_t bufferAddress = (numberOfFiles - 1) * 4;
+            
+            bufferRefs[bufferAddress] = fileAddressPtr.byte_t[0];
+            
+            
             
             fsFileWrite(index, bufferRefs, directorySize);
             

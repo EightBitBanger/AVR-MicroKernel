@@ -116,10 +116,10 @@ void fsSetWorkingDirectory(uint8_t* directoryName, uint8_t nameLength) {
     if (nameLength > FILE_NAME_LENGTH) 
         nameLength = FILE_NAME_LENGTH;
     
-    for (uint8_t i=0; i < nameLength; i++) 
+    for (uint8_t i=0; i < nameLength + 1; i++) 
         fs_working_directory[i] = directoryName[i];
     
-    fs_working_directory_length = nameLength;
+    fs_working_directory_length = nameLength + 1;
     return;
 }
 
