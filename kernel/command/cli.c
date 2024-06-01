@@ -150,6 +150,10 @@ void consoleRunShell(void) {
                 
                 fsSetCurrentDevice(0xff);
                 
+                fsClearWorkingDirectory();
+                
+                fsSetDirectoryStack(0);
+                
             }
             
             // Device letter
@@ -157,6 +161,11 @@ void consoleRunShell(void) {
                 (console_string[0] <= 'Z')) {
                 
                 fsSetCurrentDevice(console_string[0] - 'A');
+                
+                fsSetDirectoryStack(0);
+                
+                fsClearWorkingDirectory();
+                
             }
             
             // Update the prompt

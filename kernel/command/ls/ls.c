@@ -24,8 +24,6 @@ void functionLS(uint8_t* param, uint8_t param_length) {
     
     if ((workingDirectoryLength > 0) & (workingDirectory[0] != ' ')) {
         
-        /*
-        
         // Check if the current working directory is valid
         uint32_t fileAddress = fsFileExists(workingDirectory, workingDirectoryLength-1);
 		if (fileAddress == 0) {
@@ -37,8 +35,6 @@ void functionLS(uint8_t* param, uint8_t param_length) {
             
             return;
 		}
-		
-		*/
 		
 		uint32_t directorySize = fsGetFileSize(workingDirectory, workingDirectoryLength-1);
         

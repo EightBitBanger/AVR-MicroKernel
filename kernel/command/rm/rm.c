@@ -9,13 +9,11 @@ void functionRM(uint8_t* param, uint8_t param_length) {
     uint8_t msgFileNotFound[]      = "File not found";
     uint8_t msgFileAccessDenied[]  = "Access denied";
     uint8_t msgFileRemoved[]       = "File removed";
+    uint8_t msgBadName[]           = "Invalid filename";
     
-    
-    if (fsFileExists(param, param_length-1) == 0) {
-        
-        print(msgFileNotFound, sizeof(msgFileNotFound));
+    if (param_length < 1) {
+        print(msgBadName, sizeof(msgBadName));
         printLn();
-        
         return;
     }
     
@@ -29,6 +27,7 @@ void functionRM(uint8_t* param, uint8_t param_length) {
         return;
     }
     
+    // Ignore directories
     if (attribute.type == 'd') {
         
         print(msgFileNotFound, sizeof(msgFileNotFound));
