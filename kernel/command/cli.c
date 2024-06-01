@@ -139,6 +139,45 @@ void consoleRunShell(void) {
         uint8_t isRightFunction = 0;
         uint8_t parameters_begin = 0;
         
+        // Check special character functionality
+        if ((console_string[1] == ':') & 
+            (console_string[2] == ' ')) {
+            
+            uppercase(&console_string[0]);
+            
+            // System root
+            if (console_string[0] == '/') {
+                
+                fsSetCurrentDevice(0xff);
+                
+            }
+            
+            // Device letter
+            if ((console_string[0] >= 'A') & 
+                (console_string[0] <= 'Z')) {
+                
+                fsSetCurrentDevice(console_string[0] - 'A');
+            }
+            
+            // Update the prompt
+            uint8_t consolePrompt[2];
+            consolePrompt[0] = console_string[0];
+            consolePrompt[1] = '>';
+            
+            ConsoleSetPrompt(consolePrompt, 3);
+            
+            ConsoleSetCursorPosition(2);
+            
+            ConsoleClearKeyboardString();
+            
+            console_string_length = 0;
+            
+            printPrompt();
+            
+            return;
+        }
+        
+        
         // Look up function name
         for (uint8_t i=0; i < CONSOLE_FUNCTION_TABLE_SIZE; i++) {
             
@@ -147,20 +186,34 @@ void consoleRunShell(void) {
             
             for (uint8_t n=0; n < CONSOLE_FUNCTION_NAME_LENGTH; n++) {
                 
-                if (CommandRegistry[i].name[n] != console_string[n]) {
+                uint8_t consoleChar = console_string[n];
+                lowercase(&consoleChar);
+                
+                if (CommandRegistry[i].name[n] != consoleChar) {
                     
                     isRightFunction = 0;
+                    parameters_begin = 0;
                     
                     break;
                 }
                 
                 if (CommandRegistry[i].name[n] == ' ') {
                     
-                    parameters_begin = n + 1;
+                    if (parameters_begin == 0) 
+                        parameters_begin = n + 1;
                     
                     break;
                 }
                 
+                if (is_symbol(&console_string[n+1]) == 1) {
+                    
+                    if (parameters_begin == 0) 
+                        parameters_begin = n + 1;
+                    
+                    break;
+                }
+                
+                continue;
             }
             
             if (isRightFunction == 0)
@@ -222,7 +275,7 @@ void consoleRunShell(void) {
                     uint8_t programBuffer[1024];
                     
                     // Load the file
-                    fsFileRead(index, programBuffer, programSize);
+                    fsFileReadBin(index, programBuffer, programSize);
                     
                     // Emulate the code
                     EmulateX4(programBuffer, programSize);

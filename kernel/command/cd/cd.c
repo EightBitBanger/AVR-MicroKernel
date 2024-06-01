@@ -4,6 +4,14 @@
 
 #include <kernel/command/cd/cd.h>
 
+struct DirectoryName {
+    
+    uint8_t name[10];
+    
+};
+
+uint8_t  directoryStackPtr = 0;
+struct DirectoryName directoryStack[8];
 
 void functionCD(uint8_t* param, uint8_t param_length) {
     
@@ -45,13 +53,65 @@ void functionCD(uint8_t* param, uint8_t param_length) {
     
     if ((param[0] == '.') & (param[1] == '.') & (param[2] == ' ')) {
         
-        uint8_t PromptRoot[] = " >";
+        //if (directoryStackPtr == 0) 
+        //    return;
         
-        PromptRoot[0] = fsGetRootDirectory();
-        
-        ConsoleSetPrompt(PromptRoot, 3);
-        
-        fsClearWorkingDirectory();
+        if (directoryStackPtr > 1) {
+            
+            // Drop to parent directory
+            directoryStackPtr--;
+            
+            uint8_t filename[20];
+            uint8_t filenameLength = 0;
+            
+            for (uint8_t n=0; n < 10; n++) {
+                
+                filename[n] = directoryStack[directoryStackPtr].name[n];
+                
+                filenameLength = n + 1;
+                
+                if (filename[n] == ' ') 
+                    break;
+            }
+            
+            fsSetWorkingDirectory(filename, filenameLength-1);
+            
+            uint8_t PromptDir[20];
+            
+            if (fsGetRootDirectory() == '/') {
+                
+                for (uint8_t n=0; n < 10; n++) 
+                    directoryStack[directoryStackPtr].name[n] = ' ';
+                
+                for (uint8_t n=0; n < filenameLength - 1; n++) {
+                    directoryStack[directoryStackPtr].name[n] = filename[n];
+                    
+                    PromptDir[n + 1] = filename[n];
+                }
+                
+                PromptDir[filenameLength] = '>';
+                
+                PromptDir[0] = '/';
+                
+                ConsoleSetPrompt(PromptDir, filenameLength + 2);
+                
+            }
+            
+        } else {
+            
+            // Drop to root directory
+            
+            directoryStackPtr--;
+            
+            uint8_t PromptRoot[] = " >";
+            
+            PromptRoot[0] = fsGetRootDirectory();
+            
+            ConsoleSetPrompt(PromptRoot, 3);
+            
+            fsClearWorkingDirectory();
+            
+        }
         
         return;
     }
@@ -70,6 +130,8 @@ void functionCD(uint8_t* param, uint8_t param_length) {
         ConsoleSetPrompt(PromptBase, sizeof(PromptBase));
         
         fsClearWorkingDirectory();
+        
+        directoryStackPtr = 0;
         
         return;
     }
@@ -99,15 +161,23 @@ void functionCD(uint8_t* param, uint8_t param_length) {
                     return;
                 }
                 
-                uint8_t PromptDir[20];
-                
                 fsSetWorkingDirectory(param, param_length-1);
                 
-                // Check root directory preamble
+                uint8_t PromptDir[20];
+                
                 if (fsGetRootDirectory() == '/') {
                     
-                    for (uint8_t i=0; i < param_length + 1; i++) 
-                        PromptDir[i + 1] = param[i];
+                    // Root directory
+                    directoryStackPtr++;
+                    
+                    for (uint8_t n=0; n < 10; n++) 
+                        directoryStack[directoryStackPtr].name[n] = ' ';
+                    
+                    for (uint8_t n=0; n < param_length - 1; n++) {
+                        directoryStack[directoryStackPtr].name[n] = param[n];
+                        
+                        PromptDir[n + 1] = param[n];
+                    }
                     
                     PromptDir[param_length] = '>';
                     
@@ -116,6 +186,8 @@ void functionCD(uint8_t* param, uint8_t param_length) {
                     ConsoleSetPrompt(PromptDir, param_length + 2);
                     
                 } else {
+                    
+                    // Device letter
                     
                     for (uint8_t i=0; i < param_length + 1; i++) 
                         PromptDir[i + 2] = param[i];

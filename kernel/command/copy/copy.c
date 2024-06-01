@@ -184,7 +184,7 @@ void functionCOPY(uint8_t* param, uint8_t param_length) {
         return;
     }
     
-    fsFileRead(fileIndex, fileBuffer, sourceFileSize);
+    fsFileReadBin(fileIndex, fileBuffer, sourceFileSize);
     
     fsFileClose(fileIndex);
     

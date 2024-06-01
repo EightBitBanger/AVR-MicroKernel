@@ -77,7 +77,7 @@ void functionEDIT(uint8_t* param, uint8_t param_length) {
         textBuffer[i] = ' ';
     
     // Load the file
-    fsFileRead(index, textBuffer, fileSize);
+    fsFileReadText(index, textBuffer, fileSize);
     
     uint8_t doUpdateFrame  = 1;
     uint8_t doLoadPage     = 1;

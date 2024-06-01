@@ -47,33 +47,27 @@ void functionLS(uint8_t* param, uint8_t param_length) {
             uint8_t index = fsFileOpen(workingDirectory, workingDirectoryLength-1);
             
             uint8_t bufferDir[directorySize];
-            fsFileRead(index, bufferDir, directorySize);
+            fsFileReadBin(index, bufferDir, directorySize);
             
             fsFileClose(index);
             
+            // List the directory contents
             for (uint8_t i=0; i < numberOfFiles; i++) {
                 
                 // Get file address offset
                 union Pointer fileAddressPtr;
+                for (uint8_t p=0; p < 4; p++) 
+                    fileAddressPtr.byte_t[p] = bufferDir[ (i * 4) + p ];
+                uint32_t fileAddress = fileAddressPtr.address;
                 
-                for (uint8_t p=0; p < 4; p++) {
-                    
-                    uint32_t bufferAddress = (i * 4) + p;
-                    
-                    fileAddressPtr.byte_t[p] = bufferDir[ bufferAddress ];
-                    
-                }
+                // Attributes
+                uint8_t attributes[4] = {' ',' ',' ',' '};
                 
-                print( &fileAddressPtr.byte_t[0], 5 );
-                printInt( fileAddressPtr.address );
+                for (uint8_t a=0; a < 4; a++) 
+                    fs_read_byte( &bus, fileAddress + a + OFFSET_FILE_ATTRIBUTES, &attributes[a] );
                 
-                printLn();
-                
-                continue;
-                
-                
-                
-                
+                print(&attributes[0], 4);
+                printSpace(1);
                 
                 // Name
                 uint8_t filename[10];
@@ -81,10 +75,47 @@ void functionLS(uint8_t* param, uint8_t param_length) {
                     filename[n] = ' ';
                 
                 for (uint8_t n=0; n < 10; n++) 
-                    fs_read_byte( &bus, fileAddressPtr.address + n + 1, &filename[n] );
+                    fs_read_byte( &bus, fileAddress + n + 1, &filename[n] );
                 
                 print(filename, sizeof(filename) + 1);
-                //printSpace(1);
+                printSpace(1);
+                
+                // Check is directory
+                if (attributes[3] == 'd') {
+                    
+                    // Directory listing
+                    
+                    uint8_t msgDirectoryListing[] = "<DIR>";
+                    print(msgDirectoryListing, sizeof(msgDirectoryListing));
+                    
+                    numberOfDirs++;
+                    
+                } else {
+                    
+                    // File listing
+                    
+                    // Size in bytes
+                    union Pointer ptr;
+                    
+                    for (uint8_t s=0; s < 4; s++) 
+                        fs_read_byte( &bus, fileAddress + s + OFFSET_FILE_SIZE, &ptr.byte_t[s] );
+                    
+                    uint8_t filesizeString[10];
+                    
+                    uint8_t len = int_to_string( ptr.address, filesizeString ) + 1;
+                    
+                    if (len > 6) 
+                        len = 6;
+                    
+                    uint8_t offset = 6 - len;
+                    
+                    if (offset > 5) 
+                        offset = 5;
+                    
+                    printSpace(offset);
+                    print(filesizeString, len);
+                    
+                }
                 
                 printLn();
                 
@@ -150,7 +181,6 @@ void functionLS(uint8_t* param, uint8_t param_length) {
         } else {
             
             // File listing
-            
             
             // Size in bytes
             union Pointer ptr;

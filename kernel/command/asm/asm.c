@@ -53,7 +53,7 @@ void functionAsm(uint8_t* param, uint8_t param_length) {
     uint8_t index = fsFileOpen(param, param_length);
     
     // Load the file into memory
-    fsFileRead(index, fileBuffer, fileSize);
+    fsFileReadBin(index, fileBuffer, fileSize);
     
     while(1) {
         
