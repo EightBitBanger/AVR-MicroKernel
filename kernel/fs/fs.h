@@ -58,6 +58,10 @@ uint8_t fsGetWorkingDirectoryLength(void);
 uint32_t fsGetWorkingDirectoryAddress(void);
 void fsSetWorkingDirectoryAddress(uint32_t address);
 
+// Directory stack
+
+void fsSetDirectoryStack(uint8_t amount);
+uint8_t fsGetDirectoryStack(void);
 
 // Device context
 
@@ -105,5 +109,8 @@ uint8_t fsDirectorySetNumberOfFiles(uint8_t* name, uint8_t nameLength, uint32_t 
 
 uint8_t fsDirectorySetFlag(uint8_t* name, uint8_t nameLength, uint8_t flag);
 uint8_t fsDirectoryGetFlag(uint8_t* name, uint8_t nameLength);
+
+uint32_t fsDirectoryExists(uint8_t* name, uint8_t nameLength);
+uint32_t fsDirectoryFileExists(uint8_t* name, uint8_t nameLength);
 
 #endif

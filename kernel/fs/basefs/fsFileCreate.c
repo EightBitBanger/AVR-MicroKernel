@@ -2,9 +2,6 @@
 
 uint32_t fsFileCreate(uint8_t* name, uint8_t nameLength, uint32_t fileSize, uint8_t subType) {
     
-    if (fsFileExists(name, nameLength) != 0) 
-        return 0;
-    
     struct Bus bus;
     bus.read_waitstate = 5;
     

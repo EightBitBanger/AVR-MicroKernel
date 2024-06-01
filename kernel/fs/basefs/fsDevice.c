@@ -15,6 +15,9 @@ uint8_t  fs_working_directory[FILE_NAME_LENGTH];
 uint8_t  fs_working_directory_length = 0;
 uint32_t fs_working_directory_address;
 
+uint8_t directoryStackPtr = 0;
+
+
 void fsInit(void) {
     
     fsSetDeviceTypeMEM();
@@ -87,6 +90,17 @@ void fs_write_byte(struct Bus* bus, uint32_t address, uint8_t byte) {
     return;
 }
 
+void fsSetDirectoryStack(uint8_t amount) {
+    
+    directoryStackPtr = amount;
+    
+    return;
+}
+
+uint8_t fsGetDirectoryStack(void) {
+    
+    return directoryStackPtr;
+}
 
 void fsSetRootDirectory(uint8_t device) {
     
@@ -106,6 +120,8 @@ void fsClearWorkingDirectory(void) {
         fs_working_directory[i] = ' ';
     
     fs_working_directory_length = 0;
+    
+    fs_working_directory_address = 0;
     
     return;
 }
