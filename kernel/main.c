@@ -86,12 +86,12 @@ int main(void) {
     registerCommandMK();
     //registerCommandRM();
     //registerCommandRN();
-    //registerCommandMKDIR();
-    //registerCommandRMDIR();
+    registerCommandMKDIR();
+    registerCommandRMDIR();
     
     //registerCommandATTRIB();
     //registerCommandRepair();
-    //registerCommandFormat();
+    registerCommandFormat();
     
   #endif
     

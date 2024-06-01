@@ -33,12 +33,12 @@ void kInit(void) {
         deviceIndex++;
         
         uint8_t dirname[]  = "sys";
-        fsDirectoryCreate(dirname, sizeof(dirname)-1, 80);
+        fsDirectoryCreate(dirname, sizeof(dirname)-1, 100);
         
         fsSetWorkingDirectory(dirname, sizeof(dirname)-1);
         
         uint8_t filenameA[] = "file";
-        fsFileCreate(filenameA, sizeof(filenameA)-1, 80, ' ');
+        fsDirectoryCreate(filenameA, sizeof(filenameA)-1, 100);
         
         uint8_t filenameB[] = "test";
         fsFileCreate(filenameB, sizeof(filenameB)-1, 80, ' ');

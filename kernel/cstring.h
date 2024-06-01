@@ -7,6 +7,7 @@
 
 uint8_t is_number(uint8_t* charPtr);
 uint8_t is_letter(uint8_t* charPtr);
+uint8_t is_symbol(uint8_t* charPtr);
 uint8_t is_hex(uint8_t* charPtr);
 
 uint8_t is_uppercase(uint8_t* charPtr);

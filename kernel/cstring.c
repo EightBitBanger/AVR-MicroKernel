@@ -12,6 +12,14 @@ uint8_t is_letter(uint8_t* charPtr) {
     return 0;
 }
 
+uint8_t is_symbol(uint8_t* charPtr) {
+    if ((*charPtr >= 0x21) & (*charPtr <= 0x2f)) return 1;
+    if ((*charPtr >= 0x3a) & (*charPtr <= 0x40)) return 1;
+    if ((*charPtr >= 0x5b) & (*charPtr <= 0x60)) return 1;
+    if ((*charPtr >= 0x7b) & (*charPtr <= 0x7e)) return 1;
+    return 0;
+}
+
 uint8_t is_hex(uint8_t* charPtr) {
     if (is_letter(charPtr) == 1) 
         lowercase(charPtr);
