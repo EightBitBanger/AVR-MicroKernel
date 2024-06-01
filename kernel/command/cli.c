@@ -265,19 +265,39 @@ void consoleRunShell(void) {
             break;
         }
         
+        // Get working directory
+        uint8_t workingDirectory[20];
+        uint8_t workingDirectoryLength = fsGetWorkingDirectory(workingDirectory);
+        
+        uint32_t directoryAddress = 0;
+        
+        if ((workingDirectoryLength > 0) & (workingDirectory[0] != ' ')) 
+            directoryAddress = fsFileExists(workingDirectory, workingDirectoryLength-1);
+        
         // Check executable file exists
         uint32_t programSize = fsGetFileSize(filename, FILE_NAME_LENGTH);
         
         if (programSize > 0) {
             
-            // Execute the file
-            if (fsFileExists(filename, parameters_begin) != 0) {
+            // Check file is executable
+            struct FSAttribute attribute;
+            fsGetFileAttributes(filename, parameters_begin, &attribute);
+            
+            if (attribute.executable != 0) {
                 
-                struct FSAttribute attribute;
+            } else {
                 
-                fsGetFileAttributes(filename, parameters_begin, &attribute);
+                // Non executable
                 
-                if (attribute.executable != 0) {
+                programSize = 0;
+                
+            }
+            
+            if (programSize > 0) {
+                
+                if (directoryAddress == 0) {
+                    
+                    // Execute file from root
                     
                     // Fire up the emulator
                     uint8_t index = fsFileOpen(filename, parameters_begin);
@@ -293,18 +313,18 @@ void consoleRunShell(void) {
                     
                 } else {
                     
-                    // Non executable
+                    // Execute file from the working directory
                     
-                    programSize = 0;
+                    
                     
                 }
                 
-                // Clear the console string
-                ConsoleClearKeyboardString();
-                
-                printPrompt();
-                
             }
+            
+            // Clear the console string
+            ConsoleClearKeyboardString();
+            
+            printPrompt();
             
         }
         

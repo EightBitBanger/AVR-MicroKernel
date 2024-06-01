@@ -7,7 +7,6 @@
 void functionRM(uint8_t* param, uint8_t param_length) {
     
     uint8_t msgFileNotFound[]      = "File not found";
-    uint8_t msgFileAccessDenied[]  = "Access denied";
     uint8_t msgFileRemoved[]       = "File removed";
     uint8_t msgBadName[]           = "Invalid filename";
     
@@ -21,7 +20,7 @@ void functionRM(uint8_t* param, uint8_t param_length) {
     struct FSAttribute attribute;
     if (fsGetFileAttributes(param, param_length-1, &attribute) == 0) {
         
-        print(msgFileAccessDenied, sizeof(msgFileAccessDenied));
+        print(msgFileNotFound, sizeof(msgFileNotFound));
         printLn();
         
         return;
@@ -43,7 +42,7 @@ void functionRM(uint8_t* param, uint8_t param_length) {
         
     } else {
         
-        print(msgFileAccessDenied, sizeof(msgFileAccessDenied));
+        print(msgFileNotFound, sizeof(msgFileNotFound));
         printLn();
         
     }

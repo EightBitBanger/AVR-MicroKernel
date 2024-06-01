@@ -78,6 +78,9 @@ void functionFORMAT(uint8_t* param, uint8_t param_length) {
         
         percentage += 1;
         
+        //if (percentage > 100) 
+        //    percentage = 100;
+        
         for (uint32_t c=0; c < cyclesPerPercent; c++) {
             
             sector++;

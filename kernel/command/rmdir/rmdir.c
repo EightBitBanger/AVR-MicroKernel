@@ -9,7 +9,7 @@ void functionRMDIR(uint8_t* param, uint8_t param_length) {
     
     uint8_t msgDirRemoved[]   = "Directory removed";
     uint8_t msgDirInvalid[]   = "Not a directory";
-    uint8_t msgNotFound[]     = "Not found";
+    //uint8_t msgNotFound[]     = "Not found";
     uint8_t msgBadName[]      = "Invalid name";
     
     if (param[0] == ' ') {
@@ -19,6 +19,7 @@ void functionRMDIR(uint8_t* param, uint8_t param_length) {
     }
     
     // Check if the directory does not exist
+    /*
     if (fsFileExists(param, param_length-1) == 0) {
         
         print(msgNotFound, sizeof(msgNotFound));
@@ -26,6 +27,7 @@ void functionRMDIR(uint8_t* param, uint8_t param_length) {
         
         return;
     }
+    */
     
     // Check directory attribute
     struct FSAttribute attribute;

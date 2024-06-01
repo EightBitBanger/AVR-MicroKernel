@@ -42,8 +42,6 @@ void functionLS(uint8_t* param, uint8_t param_length) {
         
         if (numberOfFiles > 0) {
             
-            //uint8_t directoryFlag = fsDirectoryGetFlag(workingDirectory, workingDirectoryLength-1);
-            
             uint8_t index = fsFileOpen(workingDirectory, workingDirectoryLength-1);
             
             uint8_t bufferDir[directorySize];
@@ -242,20 +240,6 @@ void functionLS(uint8_t* param, uint8_t param_length) {
         
         continue;
     }
-    
-    // File count
-    //uint16_t total = numberOfFiles + numberOfDirs;
-    //printSpace(2);
-    //printInt(total);
-    //printSpace(1);
-    
-    //uint8_t msgOneFile[] = "File";
-    //print(msgOneFile, sizeof(msgOneFile));
-    
-    //if (total != 1) 
-    //    printChar('s');
-    
-    //printLn();
     
     return;
 }
