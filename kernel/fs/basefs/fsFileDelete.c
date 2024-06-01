@@ -18,7 +18,11 @@ uint8_t fsFileDelete(uint8_t* name, uint8_t nameLength) {
     
     uint32_t directoryAddress = 0;
 	
+	
+	//
 	// Remove the file reference from the working directory
+	//
+	
 	if ((workingDirectoryLength > 0) & (workingDirectory[0] != ' ')) {
         
         directoryAddress = fsFileExists(workingDirectory, workingDirectoryLength);
@@ -65,12 +69,15 @@ uint8_t fsFileDelete(uint8_t* name, uint8_t nameLength) {
                         
                     }
                     
+                    currentDevice = filePtr.address;
+                    
                     // Decrement the file counter
                     directorySize.address--;
                     
                     for (uint8_t s=0; s < 4; s++) 
                         fs_write_byte(&bus, directoryAddress + OFFSET_DIRECTORY_SIZE + s, directorySize.byte_t[s]);
                     
+                    break;
                 }
                 
                 continue;
@@ -83,7 +90,10 @@ uint8_t fsFileDelete(uint8_t* name, uint8_t nameLength) {
 	}
 	
 	
+	//
 	// Delete following sectors allocated to this file
+	//
+	
     for (uint32_t sector=1; sector < currentCapacity; sector++) {
         
         // Find an active file start byte
@@ -91,22 +101,30 @@ uint8_t fsFileDelete(uint8_t* name, uint8_t nameLength) {
             continue;
         
         uint8_t isFileFound = 0;
-        
-        // Check file name
-        for (uint8_t i=0; i < nameLength; i++) {
+        if (directoryAddress == 0) {
             
-            uint8_t nameByte = 0;
-            
-            fs_read_byte(&bus, currentDevice + (sector * SECTOR_SIZE) + OFFSET_FILE_NAME + i, &nameByte);
-            
-            if (name[i] != nameByte) {
-                isFileFound = 0;
-                break;
+            // Check file name
+            for (uint8_t i=0; i < nameLength; i++) {
+                
+                uint8_t nameByte = 0;
+                
+                // Check file on root
+                fs_read_byte(&bus, currentDevice + (sector * SECTOR_SIZE) + OFFSET_FILE_NAME + i, &nameByte);
+                
+                if (name[i] != nameByte) {
+                    isFileFound = 0;
+                    break;
+                }
+                
+                isFileFound = 1;
+                
+                continue;
             }
+            
+        } else {
             
             isFileFound = 1;
             
-            continue;
         }
         
         // Was the file located
@@ -114,11 +132,16 @@ uint8_t fsFileDelete(uint8_t* name, uint8_t nameLength) {
             continue;
         
         // Check file claimed by directory
-        uint8_t claimedFlag = 0x00;
-        fs_read_byte(&bus, currentDevice + (sector * SECTOR_SIZE) + OFFSET_DIRECTORY_FLAG, &claimedFlag);
-        
-        if (claimedFlag != 0) 
-            return 0;
+        if (directoryAddress == 0) {
+            
+            uint8_t claimedFlag = 0x00;
+            
+            fs_read_byte(&bus, currentDevice + (sector * SECTOR_SIZE) + OFFSET_DIRECTORY_FLAG, &claimedFlag);
+            
+            if (claimedFlag != 0) 
+                continue;
+            
+        }
         
         uint8_t isHeaderDeleted = 0;
         
