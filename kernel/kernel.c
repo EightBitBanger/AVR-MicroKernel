@@ -55,6 +55,8 @@ void kInit(void) {
     
     fsSetCurrentDevice( 0xff );
     
+    fsClearWorkingDirectory();
+    
     return;
 }
 
