@@ -84,7 +84,7 @@ uint8_t fsFileWrite(uint8_t index, uint8_t* buffer, uint32_t length) {
     return 1;
 }
 
-uint8_t fsFileRead(uint8_t index, uint8_t* buffer, uint32_t length) {
+uint8_t fsFileReadText(uint8_t index, uint8_t* buffer, uint32_t length) {
     
     if (fileBeginAddress == 0) 
         return 0;
@@ -121,6 +121,43 @@ uint8_t fsFileRead(uint8_t index, uint8_t* buffer, uint32_t length) {
     }
     
     buffer[length] = '\0';
+    
+    return ' ';
+}
+
+
+uint8_t fsFileReadBin(uint8_t index, uint8_t* buffer, uint32_t length) {
+    
+    if (fileBeginAddress == 0) 
+        return 0;
+    
+    struct Bus bus;
+    bus.read_waitstate  = 5;
+    bus.write_waitstate = 5;
+    
+    uint32_t sector = 0;
+    uint32_t sectorCounter = 0;
+    
+    if (length > (fileSize + 1)) 
+        return 0;
+    
+    for (uint32_t i=0; i < length; i++) {
+        
+        // Skip the sector marker byte
+        if (sectorCounter == (SECTOR_SIZE - 1)) {
+            sectorCounter=0;
+            sector++;
+        }
+        
+        uint32_t positionOffset = fileBeginAddress + SECTOR_SIZE + sector + 1;
+        
+        fs_read_byte( &bus, positionOffset, &buffer[i] );
+        
+        sectorCounter++;
+        sector++;
+        
+        continue;
+    }
     
     return ' ';
 }

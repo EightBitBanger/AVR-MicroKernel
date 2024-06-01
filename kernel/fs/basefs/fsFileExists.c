@@ -20,23 +20,38 @@ uint32_t fsFileExists(uint8_t* name, uint8_t nameLength) {
         currentCapacity = CAPACITY_8K;
     }
     
+    // Check working directory
+    uint8_t workingDirectory[20];
+    uint8_t workingDirectoryLength = fsGetWorkingDirectory(workingDirectory);
+    
     // Check following sectors allocated to this file
-    for (uint32_t sector=0; sector < currentCapacity; sector++) {
+    //if ((workingDirectoryLength > 0) & (workingDirectory[0] != ' ')) {
         
-        // Find an active file start byte
-        if (fsGetDeviceHeaderByte( sector * SECTOR_SIZE ) != 0x55) 
+        // Check working directory
+        
+        
+    //} else {
+        
+        // Root full sweep
+        
+        for (uint32_t sector=0; sector < currentCapacity; sector++) {
+            
+            // Find an active file start byte
+            if (fsGetDeviceHeaderByte( sector * SECTOR_SIZE ) != 0x55) 
+                continue;
+            
+            // Get filename from the device
+            uint8_t filenameCheck[FILE_NAME_LENGTH];
+            
+            for (uint8_t i=0; i < FILE_NAME_LENGTH; i++) 
+                fs_read_byte(&bus, currentDevice + (sector * SECTOR_SIZE) + OFFSET_FILE_NAME + i, &filenameCheck[i]);
+            
+            if (StringCompare(name, nameLength, filenameCheck, FILE_NAME_LENGTH) == 1) 
+                return currentDevice + (sector * SECTOR_SIZE);
+            
             continue;
+        //}
         
-        // Get filename from the device
-        uint8_t filenameCheck[FILE_NAME_LENGTH];
-        
-        for (uint8_t i=0; i < FILE_NAME_LENGTH; i++) 
-            fs_read_byte(&bus, currentDevice + (sector * SECTOR_SIZE) + OFFSET_FILE_NAME + i, &filenameCheck[i]);
-        
-        if (StringCompare(name, nameLength, filenameCheck, FILE_NAME_LENGTH) == 1) 
-            return currentDevice + (sector * SECTOR_SIZE);
-        
-        continue;
     }
     
     return 0;

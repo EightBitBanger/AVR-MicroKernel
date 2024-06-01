@@ -13,6 +13,7 @@ uint8_t  fs_device_root = '/';
 
 uint8_t  fs_working_directory[FILE_NAME_LENGTH];
 uint8_t  fs_working_directory_length = 0;
+uint32_t fs_working_directory_address;
 
 void fsInit(void) {
     
@@ -111,6 +112,13 @@ void fsClearWorkingDirectory(void) {
 
 void fsSetWorkingDirectory(uint8_t* directoryName, uint8_t nameLength) {
     
+    uint32_t fileAddress = fsFileExists(directoryName, nameLength);
+    
+    if (fileAddress == 0) 
+        return;
+    
+    fs_working_directory_address = fileAddress;
+    
     fsClearWorkingDirectory();
     
     if (nameLength > FILE_NAME_LENGTH) 
@@ -134,6 +142,18 @@ uint8_t fsGetWorkingDirectory(uint8_t* directoryName) {
 uint8_t fsGetWorkingDirectoryLength(void) {
     
     return fs_working_directory_length;
+}
+
+uint32_t fsGetWorkingDirectoryAddress(void) {
+    
+    return fs_working_directory_address;
+}
+
+void fsSetWorkingDirectoryAddress(uint32_t address) {
+    
+    fs_working_directory_address = address;
+    
+    return;
 }
 
 void fsSetDeviceTypeIO(void) {

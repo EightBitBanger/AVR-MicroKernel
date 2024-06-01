@@ -141,13 +141,8 @@ uint32_t fsFileCreate(uint8_t* name, uint8_t nameLength, uint32_t fileSize, uint
             union Pointer fileAddressPtr;
             fileAddressPtr.address = fileTargetAddress;
             
-            for (uint8_t p=0; p < 4; p++) {
-                
-                uint32_t bufferAddress = (numberOfFiles * 4) + p;
-                
-                bufferRefs[bufferAddress] = fileAddressPtr.byte_t[p];
-                
-            }
+            for (uint8_t p=0; p < 4; p++) 
+                bufferRefs[(numberOfFiles * 4) + p] = fileAddressPtr.byte_t[p];
             
             // Increment the directory file counter
             numberOfFiles++;

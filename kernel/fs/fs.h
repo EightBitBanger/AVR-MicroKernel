@@ -55,6 +55,10 @@ void fsSetWorkingDirectory(uint8_t* directoryName, uint8_t nameLength);
 uint8_t fsGetWorkingDirectory(uint8_t* directoryName);
 uint8_t fsGetWorkingDirectoryLength(void);
 
+uint32_t fsGetWorkingDirectoryAddress(void);
+void fsSetWorkingDirectoryAddress(uint32_t address);
+
+
 
 // Device context
 
