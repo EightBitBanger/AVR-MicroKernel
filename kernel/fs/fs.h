@@ -59,7 +59,6 @@ uint32_t fsGetWorkingDirectoryAddress(void);
 void fsSetWorkingDirectoryAddress(uint32_t address);
 
 
-
 // Device context
 
 uint8_t fsGetRootDirectory(void);
