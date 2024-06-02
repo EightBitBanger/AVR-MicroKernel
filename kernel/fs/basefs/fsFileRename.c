@@ -16,7 +16,7 @@ uint8_t fsFileRename(uint8_t* name, uint8_t nameLength, uint8_t* newName, uint8_
     for (uint32_t sector=0; sector < currentCapacity; sector++) {
         
         // Find an active file start byte
-        if (fsGetSectorByte( sector * SECTOR_SIZE ) != 0x55) 
+        if (fsSectorGetByte( sector * SECTOR_SIZE ) != 0x55) 
             continue;
         
         uint8_t isFileFound = 0;

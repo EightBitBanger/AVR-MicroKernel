@@ -23,7 +23,7 @@ uint32_t fsFileFind(uint32_t index) {
     for (uint32_t sector=0; sector < currentCapacity; sector++) {
         
         // Find an active file start byte
-        if (fsGetSectorByte( sector * SECTOR_SIZE ) != 0x55) 
+        if (fsSectorGetByte( sector * SECTOR_SIZE ) != 0x55) 
             continue;
         
         // Check file index
