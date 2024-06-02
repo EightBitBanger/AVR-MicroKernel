@@ -7,6 +7,8 @@
 void functionRM(uint8_t* param, uint8_t param_length) {
     
     uint8_t msgFileNotFound[]      = "File not found";
+    uint8_t msgFileIsDir[]         = "File is a dir";
+    uint8_t msgAccessDenied[]      = "Access denied";
     uint8_t msgFileRemoved[]       = "File removed";
     uint8_t msgBadName[]           = "Invalid filename";
     
@@ -29,7 +31,16 @@ void functionRM(uint8_t* param, uint8_t param_length) {
     // Ignore directories
     if (attribute.type == 'd') {
         
-        print(msgFileNotFound, sizeof(msgFileNotFound));
+        print(msgFileIsDir, sizeof(msgFileIsDir));
+        printLn();
+        
+        return;
+    }
+    
+    // Check read only
+    if (attribute.writeable != 'w') {
+        
+        print(msgAccessDenied, sizeof(msgAccessDenied));
         printLn();
         
         return;
