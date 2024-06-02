@@ -148,7 +148,7 @@ void consoleRunShell(void) {
             // System root
             if (console_string[0] == '/') {
                 
-                fsSetCurrentDevice(0xff);
+                fsSetDeviceLetter('/');
                 
                 fsClearWorkingDirectory();
                 
@@ -160,7 +160,7 @@ void consoleRunShell(void) {
             if ((console_string[0] >= 'A') & 
                 (console_string[0] <= 'Z')) {
                 
-                fsSetCurrentDevice(console_string[0] - 'A');
+                fsSetDeviceLetter(console_string[0]);
                 
                 fsSetDirectoryStack(0);
                 

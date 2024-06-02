@@ -14,7 +14,7 @@ void functionRepair(uint8_t* param, uint8_t param_length) {
     uint8_t buffer[SECTOR_SIZE];
     
     // Get header sector
-    uint32_t currentDevice = fsGetCurrentDevice();
+    uint32_t currentDevice = fsGetDevice();
     
     for (uint8_t i=0; i < SECTOR_SIZE; i++) 
         fs_read_byte(&bus, currentDevice + i, &buffer[i]);
