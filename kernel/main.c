@@ -60,12 +60,12 @@ int main(void) {
   #ifdef INCLUDE_KERNEL_APPLICATIONS
     
     //registerCommandDevice();
-    registerCommandCAP();
+    //registerCommandCAP();
     registerCommandList();
     //registerCommandTASK();
     
     //registerCommandEDIT();
-    registerCommandAssembly();
+    //registerCommandAssembly();
     
     //registerCommandCLS();
     
@@ -80,7 +80,7 @@ int main(void) {
   #ifdef INCLUDE_FILE_SYSTEM_APPLICATIONS
     
     registerCommandLS();
-    registerCommandCOPY();
+    //registerCommandCOPY();
     registerCommandCD();
     
     registerCommandMK();
@@ -89,9 +89,9 @@ int main(void) {
     //registerCommandMKDIR();
     //registerCommandRMDIR();
     
-    registerCommandATTRIB();
+    //registerCommandATTRIB();
     //registerCommandRepair();
-    registerCommandFormat();
+    //registerCommandFormat();
     
   #endif
     
@@ -134,7 +134,7 @@ int main(void) {
     //
     // Start in the root directory
     
-    fsSetCurrentDevice( 0xff );
+    fsSetDeviceLetter('/');
     
     fsClearWorkingDirectory();
     

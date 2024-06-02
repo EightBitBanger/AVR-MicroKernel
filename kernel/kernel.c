@@ -19,7 +19,7 @@ void kInit(void) {
     
     uint8_t deviceIndex=0;
     
-    fsSetCurrentDevice( 0xff );
+    fsSetDeviceLetter('/');
     
     uint8_t dirname[]  = "bin";
     fsDirectoryCreate(dirname, sizeof(dirname)-1, 100);
@@ -29,12 +29,12 @@ void kInit(void) {
     // Enumerate available hardware devices
     for (uint8_t d=1; d <= NUMBER_OF_PERIPHERALS; d++) {
         
-        fsSetCurrentDevice( d );
+        fsSetDeviceLetter( d + 'A' );
         
         if (fsCheckDeviceReady() == 0) 
             continue;
         
-        fsSetCurrentDevice( 0xff );
+        fsSetDeviceLetter('/');
         
         // Set the root directory
         deviceIndex++;
@@ -57,7 +57,7 @@ void kInit(void) {
         continue;
     }
     
-    fsSetCurrentDevice( 0xff );
+    fsSetDeviceLetter('/');
     
     fsClearWorkingDirectory();
     
