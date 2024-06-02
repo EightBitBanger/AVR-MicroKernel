@@ -17,19 +17,19 @@ uint32_t fs_working_directory_address;
 
 uint8_t directoryStackPtr = 0;
 
+struct Bus fs_bus;
 
 void fsInit(void) {
     
+    fs_bus.read_waitstate  = 5;
+    fs_bus.write_waitstate = 5;
+    
     fsSetDeviceTypeMEM();
-    fsSetCurrentDevice(0xff);
+    fsSetDeviceLetter('/');
     
     //
     // Format RAMDISK sectors
     //
-    
-    struct Bus bus;
-    bus.read_waitstate  = 5;
-    bus.write_waitstate = 5;
     
     uint32_t sector = 0;
     uint32_t sectorCounter = 0;
@@ -44,10 +44,10 @@ void fsInit(void) {
     for (sector=1; sector < 8192; sector++) {
         
         if (sectorCounter < (SECTOR_SIZE - 1)) {
-            fs_write_byte( &bus, sector, ' ');
+            fs_write_byte( &fs_bus, sector, ' ');
             sectorCounter++;
         } else {
-            fs_write_byte( &bus, sector, 0x00);
+            fs_write_byte( &fs_bus, sector, 0x00);
             sectorCounter = 0;
         }
         
@@ -58,9 +58,9 @@ void fsInit(void) {
     // Initiate first sector
     //
     
-    fs_write_byte( &bus, fs_device_address    , 0x13 );
-    fs_write_byte( &bus, fs_device_address + 1, 'f' );
-    fs_write_byte( &bus, fs_device_address + 2, 's' );
+    fs_write_byte( &fs_bus, fs_device_address    , 0x13 );
+    fs_write_byte( &fs_bus, fs_device_address + 1, 'f' );
+    fs_write_byte( &fs_bus, fs_device_address + 2, 's' );
     
     // Device total capacity
     union Pointer deviceSize;
@@ -68,24 +68,24 @@ void fsInit(void) {
     deviceSize.address = deviceCapacityBytes;
     
     for (uint8_t i=0; i < 4; i++) 
-        fs_write_byte( &bus, fs_device_address + DEVICE_CAPACITY_OFFSET + i, deviceSize.byte_t[i] );
+        fs_write_byte( &fs_bus, fs_device_address + DEVICE_CAPACITY_OFFSET + i, deviceSize.byte_t[i] );
     
     fsSetDeviceTypeIO();
-    fsSetCurrentDevice(0);
+    fsSetDeviceLetter('A');
     
     return;
 }
 
 void fs_read_byte(struct Bus* bus, uint32_t address, uint8_t* buffer) {
     
-    __fs_read_byte(bus, address, buffer);
+    __fs_read_byte(&fs_bus, address, buffer);
     
     return;
 }
 
 void fs_write_byte(struct Bus* bus, uint32_t address, uint8_t byte) {
     
-    __fs_write_byte(bus, address, byte);
+    __fs_write_byte(&fs_bus, address, byte);
     
     return;
 }
@@ -188,17 +188,31 @@ void fsSetDeviceTypeMEM(void) {
     return;
 }
 
-void fsSetCurrentDevice(uint8_t device_index) {
+void fsSetDevice(uint32_t address) {
     
-    if (device_index == 0xff) {
+    fs_device_address = address;
+    
+    return;
+}
+
+uint32_t fsGetDevice(void) {
+    
+    return fs_device_address;
+}
+
+void fsSetDeviceLetter(uint8_t letter) {
+    
+    if (letter == '/') {
         
         fsSetDeviceTypeMEM();
         fs_device_address = 0x00000;
         
     } else {
         
+        lowercase(&letter);
+        
         fsSetDeviceTypeIO();
-        fs_device_address = PERIPHERAL_ADDRESS_BEGIN + (device_index * 0x10000);
+        fs_device_address = PERIPHERAL_ADDRESS_BEGIN + ((letter - 'A') * 0x10000);
         
     }
     
@@ -206,61 +220,48 @@ void fsSetCurrentDevice(uint8_t device_index) {
 }
 
 
-uint32_t fsGetCurrentDevice(void) {
-    
-    return fs_device_address;
-}
-
 
 uint8_t fsCheckDeviceReady(void) {
     
-    uint8_t deviceHeader[2];
-    deviceHeader[0] = fsGetDeviceHeaderByte(1);
-    deviceHeader[1] = fsGetDeviceHeaderByte(2);
+    uint32_t currentDevice = fsGetDevice();
     
-    if ((deviceHeader[0] == 'f') & (deviceHeader[1] == 's')) 
-        return 1;
+    // Check header byte
+    uint8_t headerByte[3];
     
-    return 0;
+    fs_read_byte(&fs_bus, currentDevice + 0, &headerByte[0]);
+    fs_read_byte(&fs_bus, currentDevice + 1, &headerByte[1]);
+    fs_read_byte(&fs_bus, currentDevice + 2, &headerByte[2]);
+    
+    if (headerByte[0] != 0x13) return 0;
+    if (headerByte[1] != 'f') return 0;
+    if (headerByte[2] != 's') return 0;
+    
+    return 1;
 }
 
 
-uint8_t fsGetDeviceHeaderByte(uint32_t address_offset) {
+
+uint8_t fsGetSectorByte(uint32_t address) {
     uint8_t headerByte = 0;
     
-    struct Bus bus;
-    bus.read_waitstate = 5;
-    
-    fs_read_byte(&bus, fs_device_address + address_offset, &headerByte);
+    fs_read_byte(&fs_bus, fs_device_address + address, &headerByte);
     
     return headerByte;
 }
 
 
+
 uint32_t fsGetDeviceCapacity(void) {
     
-    struct Bus bus;
-    bus.read_waitstate = 5;
-    
-    uint8_t buffer[SECTOR_SIZE];
-    
-    // Get header sector
-    for (uint8_t i=0; i < SECTOR_SIZE; i++) 
-        fs_read_byte(&bus, fsGetCurrentDevice() + i, &buffer[i]);
+    uint32_t currentDevice = fsGetDevice();
     
     // Check header byte
-    if (buffer[0] != 0x13) 
-        return 0;
-    
-    // Check hardware name
-    if ((buffer[1] != 'f') | (buffer[2] != 's')) 
-        return 0;
-    
-    union Pointer sizePointer;
     
     // Get device capacity
+    union Pointer sizePointer;
+    
     for (uint8_t i=0; i < 4; i++) 
-        sizePointer.byte_t[i] = buffer[i + DEVICE_CAPACITY_OFFSET];
+        fs_read_byte(&fs_bus, currentDevice + DEVICE_CAPACITY_OFFSET + i, &sizePointer.byte_t[i]);
     
     return sizePointer.address;
 }

@@ -8,7 +8,7 @@ uint32_t fsFileCreate(uint8_t* name, uint8_t nameLength, uint32_t fileSize, uint
     uint32_t freeSectorCount = 0;
     uint32_t fileTargetAddress = 0;
     
-    uint32_t currentDevice = fsGetCurrentDevice();
+    uint32_t currentDevice = fsGetDevice();
     
     uint32_t currentCapacity = fsGetDeviceCapacity() / SECTOR_SIZE;
     
@@ -42,7 +42,7 @@ uint32_t fsFileCreate(uint8_t* name, uint8_t nameLength, uint32_t fileSize, uint
         fs_read_byte(&bus, currentDevice + (sector * SECTOR_SIZE), &headerByte);
         
         // Find an empty sector
-        if (fsGetDeviceHeaderByte( sector * SECTOR_SIZE ) != 0x00) 
+        if (fsGetSectorByte( sector * SECTOR_SIZE ) != 0x00) 
             continue;
         
         // Find next sectors for total file size
@@ -51,7 +51,7 @@ uint32_t fsFileCreate(uint8_t* name, uint8_t nameLength, uint32_t fileSize, uint
             // Get sector header byte
             fs_read_byte(&bus, currentDevice + (nextSector * SECTOR_SIZE), &headerByte);
             
-            if (fsGetDeviceHeaderByte( nextSector * SECTOR_SIZE ) == 0x00) {
+            if (fsGetSectorByte( nextSector * SECTOR_SIZE ) == 0x00) {
                 
                 // Check target reached
                 if (freeSectorCount == totalSectors) {
