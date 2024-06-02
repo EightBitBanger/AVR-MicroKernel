@@ -26,6 +26,8 @@ void functionCD(uint8_t* param, uint8_t param_length) {
     // The letter represents the hardware address 
     // offset pointing to the device on the system bus
     
+    /*
+    
     if ((param[0] >= 'a') & (param[0] <= 'z') & (param[1] == ':')) {
         
         uint8_t deviceLetter = param[0] - 'a';
@@ -46,6 +48,7 @@ void functionCD(uint8_t* param, uint8_t param_length) {
         return;
     }
     
+    
     // Check internal storage switch
     if ((param[0] == '/') & (param[1] == ':')) {
         
@@ -62,6 +65,7 @@ void functionCD(uint8_t* param, uint8_t param_length) {
         return;
     }
     
+    */
     
     //
     // Drop down the parent directory
@@ -70,6 +74,9 @@ void functionCD(uint8_t* param, uint8_t param_length) {
     if ((param[0] == '.') & (param[1] == '.') & (param[2] == ' ')) {
         
         uint8_t directoryStackPtr = fsGetDirectoryStack();
+        
+        if (directoryStackPtr == 0) 
+            return;
         
         if (directoryStackPtr > 1) {
             
@@ -135,14 +142,11 @@ void functionCD(uint8_t* param, uint8_t param_length) {
         return;
     }
     
-    
     //
     // Change to system root
     //
-    
+    /*
     if ((param[0] == '/') & (param[1] == ' ')) {
-        
-        fsClearWorkingDirectory();
         
         fsSetDirectoryStack(0);
         
@@ -156,7 +160,7 @@ void functionCD(uint8_t* param, uint8_t param_length) {
         
         return;
     }
-    
+    */
     
     //
     // Change to a directory
