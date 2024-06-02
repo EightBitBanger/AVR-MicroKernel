@@ -7,22 +7,35 @@ void(*__fs_read_byte)(struct Bus*, uint32_t, uint8_t*);
 void(*__fs_write_byte)(struct Bus*, uint32_t, uint8_t);
 
 
-uint32_t fs_device_address = 0;
+uint32_t fs_device_address;
+struct Bus fs_bus;
 
-uint8_t  fs_device_root = '/';
+
+
+uint8_t  fs_device_root;
 
 uint8_t  fs_working_directory[FILE_NAME_LENGTH];
-uint8_t  fs_working_directory_length = 0;
+uint8_t  fs_working_directory_length;
 uint32_t fs_working_directory_address;
 
-uint8_t directoryStackPtr = 0;
+uint8_t fs_directory_stack_ptr;
 
-struct Bus fs_bus;
 
 void fsInit(void) {
     
     fs_bus.read_waitstate  = 5;
     fs_bus.write_waitstate = 5;
+    
+    fs_device_root = '/';
+    
+    for (uint8_t i=0; i < FILE_NAME_LENGTH; i++) 
+        fs_working_directory[i] = ' ';
+    
+    fs_working_directory_length = 0;
+    fs_working_directory_address = 0;
+    fs_device_address = 0;
+    
+    fs_directory_stack_ptr = 0;
     
     fsSetDeviceTypeMEM();
     fsSetDeviceLetter('/');
@@ -86,88 +99,6 @@ void fs_read_byte(struct Bus* bus, uint32_t address, uint8_t* buffer) {
 void fs_write_byte(struct Bus* bus, uint32_t address, uint8_t byte) {
     
     __fs_write_byte(&fs_bus, address, byte);
-    
-    return;
-}
-
-void fsSetDirectoryStack(uint8_t amount) {
-    
-    directoryStackPtr = amount;
-    
-    return;
-}
-
-uint8_t fsGetDirectoryStack(void) {
-    
-    return directoryStackPtr;
-}
-
-void fsSetRootDirectory(uint8_t device) {
-    
-    fs_device_root = device;
-    
-    return;
-}
-
-uint8_t fsGetRootDirectory(void) {
-    
-    return fs_device_root;
-}
-
-
-void fsClearWorkingDirectory(void) {
-    for (uint8_t i=0; i < FILE_NAME_LENGTH; i++) 
-        fs_working_directory[i] = ' ';
-    
-    fs_working_directory_length = 0;
-    
-    fs_working_directory_address = 0;
-    
-    return;
-}
-
-void fsSetWorkingDirectory(uint8_t* directoryName, uint8_t nameLength) {
-    
-    uint32_t fileAddress = fsFileExists(directoryName, nameLength);
-    
-    if (fileAddress == 0) 
-        return;
-    
-    fs_working_directory_address = fileAddress;
-    
-    fsClearWorkingDirectory();
-    
-    if (nameLength > FILE_NAME_LENGTH) 
-        nameLength = FILE_NAME_LENGTH;
-    
-    for (uint8_t i=0; i < nameLength + 1; i++) 
-        fs_working_directory[i] = directoryName[i];
-    
-    fs_working_directory_length = nameLength + 1;
-    return;
-}
-
-uint8_t fsGetWorkingDirectory(uint8_t* directoryName) {
-    
-    for (uint8_t i=0; i < fs_working_directory_length; i++) 
-        directoryName[i] = fs_working_directory[i];
-    
-    return fs_working_directory_length;
-}
-
-uint8_t fsGetWorkingDirectoryLength(void) {
-    
-    return fs_working_directory_length;
-}
-
-uint32_t fsGetWorkingDirectoryAddress(void) {
-    
-    return fs_working_directory_address;
-}
-
-void fsSetWorkingDirectoryAddress(uint32_t address) {
-    
-    fs_working_directory_address = address;
     
     return;
 }
@@ -238,17 +169,6 @@ uint8_t fsCheckDeviceReady(void) {
     
     return 1;
 }
-
-
-
-uint8_t fsGetSectorByte(uint32_t address) {
-    uint8_t headerByte = 0;
-    
-    fs_read_byte(&fs_bus, fs_device_address + address, &headerByte);
-    
-    return headerByte;
-}
-
 
 
 uint32_t fsGetDeviceCapacity(void) {
