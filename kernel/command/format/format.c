@@ -44,7 +44,7 @@ void functionFORMAT(uint8_t* param, uint8_t param_length) {
     
     uint32_t deviceCapacityBytes = (deviceCapacityCurrent * 1024);
     
-    uint32_t currentDevice = fsGetCurrentDevice();
+    uint32_t currentDevice = fsGetDevice();
     
     uint32_t cyclesPerPercent = (deviceCapacityCurrent * 1024) / 100;
     

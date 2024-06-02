@@ -14,6 +14,8 @@ uint8_t fileCopySourceWorkingDirLength = 0;
 uint32_t fileCopySourceSize = 0;
 struct FSAttribute fileCopySourceAttrib;
 
+uint32_t fileCopySourceCurrentDevice;
+
 
 void functionCOPY(uint8_t* param, uint8_t param_length) {
     
@@ -77,23 +79,48 @@ void functionCOPY(uint8_t* param, uint8_t param_length) {
     if ((sourceFilename[0] == '-') & 
         (sourceFilename[1] == 'p')) {
         
+        if ((fileCopySourceSize == 0) | 
+           (fileCopySourceCurrentDevice == 0) | 
+           (fileCopySourceNameLength == 0)) {
+            
+            print(msgFileAccessError, sizeof(msgFileAccessError));
+            printLn();
+            
+            return;
+        }
+        
         // Remember current working directory
         uint8_t OldWorkingDir[FILE_NAME_LENGTH];
         uint8_t OldWorkingDirLength = fsGetWorkingDirectory(OldWorkingDir);
+        uint32_t oldDevice = fsGetDevice();
         
         // Copy source file data
         fsSetWorkingDirectory(fileCopySourceWorkingDir, fileCopySourceWorkingDirLength);
+        fsSetDevice(fileCopySourceCurrentDevice);
         
+        uint8_t index = fsFileOpen(fileCopySourceName, fileCopySourceNameLength);
         
+        uint8_t fileBuffer[fileCopySourceSize];
+        fsFileReadBin(index, fileBuffer, fileCopySourceSize);
         
-        
+        fsFileClose(index);
         
         // Paste the file into the current working directory
         // Restore the current working directory
+        
         fsSetWorkingDirectory(OldWorkingDir, OldWorkingDirLength);
+        fsSetDevice(oldDevice);
         
         fsFileCreate(fileCopySourceName, fileCopySourceNameLength, fileCopySourceSize, ' ');
         
+        // Write buffer to new file
+        index = fsFileOpen(fileCopySourceName, fileCopySourceNameLength);
+        
+        fsFileWrite(index, fileBuffer, fileCopySourceSize);
+        
+        fsFileClose(index);
+        
+        // Set file attributes
         fsSetFileAttributes(fileCopySourceName, fileCopySourceNameLength, &fileCopySourceAttrib);
         
         print(fileCopySourceName, fileCopySourceNameLength);
@@ -119,14 +146,16 @@ void functionCOPY(uint8_t* param, uint8_t param_length) {
         (destFilename[0] == ' ')) {
         
         // Get file size
-        uint32_t fileAddress = fsGetFileSize(sourceFilename, sourceNameLength);
+        uint32_t fileSize = fsGetFileSize(sourceFilename, sourceNameLength);
         
-        if (fileAddress != 0) {
+        if (fileSize > 0) {
             
             // Get file attributes
             fsGetFileAttributes(sourceFilename, sourceNameLength, &fileCopySourceAttrib);
             
-            fileCopySourceSize = fileAddress;
+            fileCopySourceSize = fileSize;
+            
+            fileCopySourceCurrentDevice = fsGetDevice();
             
             // Remember current working directory
             fileCopySourceWorkingDirLength = fsGetWorkingDirectory(fileCopySourceWorkingDir);
@@ -172,7 +201,7 @@ void functionCOPY(uint8_t* param, uint8_t param_length) {
     // Get source file size
     uint32_t sourceFileSize = fsGetFileSize(sourceFilename, sourceNameLength);
     
-    uint32_t sourceDevice = fsGetCurrentDevice();
+    uint32_t sourceDevice = fsGetDevice();
     
     uint32_t currentDevice     = 0;
     uint32_t destinationDevice = 0;
@@ -192,7 +221,7 @@ void functionCOPY(uint8_t* param, uint8_t param_length) {
         
         // Destination is the local system root
         
-        fsSetCurrentDevice( 0xff );
+        fsSetDeviceLetter('/');
         destinationDevice = 0xff;
         destNameIsSource = 1;
         
@@ -205,7 +234,7 @@ void functionCOPY(uint8_t* param, uint8_t param_length) {
             
             destinationDevice = destFilename[0] - 'a';
             
-            fsSetCurrentDevice( destinationDevice );
+            fsSetDeviceLetter( destinationDevice );
             
             destNameIsSource = 1;
         }
@@ -228,7 +257,7 @@ void functionCOPY(uint8_t* param, uint8_t param_length) {
         print(msgDestinationError, sizeof(msgDestinationError));
         printLn();
         
-        fsSetCurrentDevice(currentDevice);
+        fsSetDeviceLetter(currentDevice);
         return;
     }
     
@@ -242,7 +271,8 @@ void functionCOPY(uint8_t* param, uint8_t param_length) {
         print(msgErrorCreatingFile, sizeof(msgErrorCreatingFile));
         printLn();
         
-        fsSetCurrentDevice(currentDevice);
+        fsSetDeviceLetter(currentDevice + 'A');
+        
         return;
     }
     
@@ -253,7 +283,7 @@ void functionCOPY(uint8_t* param, uint8_t param_length) {
     struct FSAttribute attributeSrc;
     uint8_t fileBuffer[sourceFileSize];
     
-    fsSetCurrentDevice(currentDevice);
+    fsSetDeviceLetter(currentDevice + 'A');
     fsGetFileAttributes(sourceFilename, sourceNameLength, &attributeSrc);
     
     uint8_t fileIndex = fsFileOpen(sourceFilename, sourceNameLength);
@@ -263,7 +293,7 @@ void functionCOPY(uint8_t* param, uint8_t param_length) {
         print(msgFileAccessError, sizeof(msgFileAccessError));
         printLn();
         
-        fsSetCurrentDevice(currentDevice);
+        fsSetDeviceLetter(currentDevice + 'A');
         return;
     }
     
@@ -272,7 +302,7 @@ void functionCOPY(uint8_t* param, uint8_t param_length) {
     fsFileClose(fileIndex);
     
     // Transfer to new file
-    fsSetCurrentDevice(destinationDevice);
+    fsSetDeviceLetter(destinationDevice + 'A');
     fsSetFileAttributes(destFilename, destNameLength, &attributeSrc);
     
     fileIndex = fsFileOpen(destFilename, destNameLength);
@@ -290,7 +320,7 @@ void functionCOPY(uint8_t* param, uint8_t param_length) {
     
     
     // Complete
-    fsSetCurrentDevice(currentDevice);
+    fsSetDeviceLetter(currentDevice + 'A');
     
     print(msgFileCopied, sizeof(msgFileCopied));
     printLn();
