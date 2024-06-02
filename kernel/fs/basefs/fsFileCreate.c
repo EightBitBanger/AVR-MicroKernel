@@ -1,14 +1,12 @@
 #include <kernel/kernel.h>
 
+extern struct Bus fs_bus;
+
+
 uint32_t fsFileCreate(uint8_t* name, uint8_t nameLength, uint32_t fileSize, uint8_t subType) {
-    
-    struct Bus bus;
-    bus.read_waitstate = 5;
     
     uint32_t freeSectorCount = 0;
     uint32_t fileTargetAddress = 0;
-    
-    uint32_t currentDevice = fsGetDevice();
     
     uint32_t currentCapacity = fsGetDeviceCapacity() / SECTOR_SIZE;
     
@@ -26,37 +24,34 @@ uint32_t fsFileCreate(uint8_t* name, uint8_t nameLength, uint32_t fileSize, uint
 	
 	// Get working directory
 	uint8_t workingDirectory[20];
-    uint8_t workingDirectoryLength = fsGetWorkingDirectory(workingDirectory);
+    uint8_t workingDirectoryLength = 0;
     
     uint32_t directoryAddress = 0;
 	
-	if ((workingDirectoryLength > 0) & (workingDirectory[0] != ' ')) 
+	if (fsCheckWorkingDirectory() == 1) {
+        
+        workingDirectoryLength = fsGetWorkingDirectory(workingDirectory);
+        
         directoryAddress = fsFileExists(workingDirectory, workingDirectoryLength-1);
-	
+        
+	}
 	
 	// Find free sectors
     for (uint32_t sector=1; sector < currentCapacity; sector++) {
         
-        // Get sector header byte
-        uint8_t headerByte=0;
-        fs_read_byte(&bus, currentDevice + (sector * SECTOR_SIZE), &headerByte);
-        
         // Find an empty sector
-        if (fsGetSectorByte( sector * SECTOR_SIZE ) != 0x00) 
+        if (fsSectorGetByte( sector * SECTOR_SIZE ) != 0x00) 
             continue;
         
         // Find next sectors for total file size
         for (uint32_t nextSector = sector; nextSector < currentCapacity; nextSector++) {
             
-            // Get sector header byte
-            fs_read_byte(&bus, currentDevice + (nextSector * SECTOR_SIZE), &headerByte);
-            
-            if (fsGetSectorByte( nextSector * SECTOR_SIZE ) == 0x00) {
+            if (fsSectorGetByte( nextSector * SECTOR_SIZE ) == 0x00) {
                 
                 // Check target reached
                 if (freeSectorCount == totalSectors) {
                     
-                    fileTargetAddress = currentDevice + (sector * SECTOR_SIZE);
+                    fileTargetAddress = sector * SECTOR_SIZE;
                     
                     break;
                 }
@@ -78,41 +73,41 @@ uint32_t fsFileCreate(uint8_t* name, uint8_t nameLength, uint32_t fileSize, uint
         // Mark following sectors as taken
         
         for (uint32_t i = 0; i <= totalSectors; i++) 
-            fs_write_byte(&bus, fileTargetAddress + (i * SECTOR_SIZE), 0xff);
+            fsSectorSetByte(fileTargetAddress + (i * SECTOR_SIZE), 0xff);
         
         // Mark the end of file sector
-        fs_write_byte(&bus, fileTargetAddress + (totalSectors * SECTOR_SIZE), 0xaa);
+        fsSectorSetByte(fileTargetAddress + (totalSectors * SECTOR_SIZE), 0xaa);
         
 		// Mark the first sector
         uint8_t fileStartbyte = 0x55; // File start byte is 0x55
-		fs_write_byte(&bus, fileTargetAddress, fileStartbyte);
+		fsSectorSetByte(fileTargetAddress, fileStartbyte);
 		
 		// Blank the file name
 		for (uint8_t i=0; i < 10; i++) 
-            fs_write_byte( &bus,  fileTargetAddress + i + OFFSET_FILE_NAME, ' ' );
+            fsSectorSetByte(fileTargetAddress + i + OFFSET_FILE_NAME, ' ');
         
 		// Write file name
 		for (uint8_t i=0; i < nameLength; i++) 
-            fs_write_byte( &bus, fileTargetAddress + i + OFFSET_FILE_NAME, name[i] );
+            fsSectorSetByte(fileTargetAddress + i + OFFSET_FILE_NAME, name[i]);
         
         // Set file size
         union Pointer sizePtr;
         sizePtr.address = fileSize;
         
         for (uint8_t i=0; i < 4; i++) 
-            fs_write_byte( &bus, fileTargetAddress + i + OFFSET_FILE_SIZE, sizePtr.byte_t[i] );
+            fsSectorSetByte(fileTargetAddress + i + OFFSET_FILE_SIZE, sizePtr.byte_t[i]);
         
         // Write file attributes
         uint8_t attributes[4] = {' ', 'r', 'w', subType};
         for (uint8_t i=0; i < 4; i++) 
-            fs_write_byte( &bus, fileTargetAddress + i + OFFSET_FILE_ATTRIBUTES, attributes[i] );
+            fsSectorSetByte(fileTargetAddress + i + OFFSET_FILE_ATTRIBUTES, attributes[i]);
         
         // Zero the directory size
         union Pointer dirSzPtr;
         dirSzPtr.address = 0;
         
         for (uint8_t i=0; i < 4; i++) 
-            fs_write_byte( &bus, fileTargetAddress + i + OFFSET_DIRECTORY_SIZE, dirSzPtr.byte_t[i] );
+            fsSectorSetByte(fileTargetAddress + i + OFFSET_DIRECTORY_SIZE, dirSzPtr.byte_t[i]);
         
         // Check file claimed by a directory
         uint8_t flagClaimed = 0;
@@ -151,8 +146,8 @@ uint32_t fsFileCreate(uint8_t* name, uint8_t nameLength, uint32_t fileSize, uint
         }
         
         // FLAG Claimed by a directory
-        fs_write_byte(&bus, fileTargetAddress + OFFSET_DIRECTORY_FLAG, flagClaimed);
-		
+        fsSectorSetByte(fileTargetAddress + OFFSET_DIRECTORY_FLAG, flagClaimed);
+        
         return fileTargetAddress;
     }
     
