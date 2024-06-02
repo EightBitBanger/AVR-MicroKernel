@@ -46,9 +46,9 @@ void functionATTRIB(uint8_t* param, uint8_t param_length) {
     attribute.writeable   = attributeCurrent.writeable;
     
     // Remove
-    if ((param[filenameLength + 1] == '-') & (param[filenameLength + 2] == 'x')) attribute.executable = 0;
-    if ((param[filenameLength + 1] == '-') & (param[filenameLength + 2] == 'r')) attribute.readable   = 0;
-    if ((param[filenameLength + 1] == '-') & (param[filenameLength + 2] == 'w')) attribute.writeable  = 0;
+    if ((param[filenameLength + 1] == '-') & (param[filenameLength + 2] == 'x')) attribute.executable = ' ';
+    if ((param[filenameLength + 1] == '-') & (param[filenameLength + 2] == 'r')) attribute.readable   = ' ';
+    if ((param[filenameLength + 1] == '-') & (param[filenameLength + 2] == 'w')) attribute.writeable  = ' ';
     
     // Add
     if ((param[filenameLength + 1] == '+') & (param[filenameLength + 2] == 'x')) attribute.executable = 'x';
