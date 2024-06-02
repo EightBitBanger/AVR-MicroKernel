@@ -71,10 +71,12 @@ void fsSetRootDirectory(uint8_t device);
 void fsSetDeviceTypeIO(void);
 void fsSetDeviceTypeMEM(void);
 
-void fsSetCurrentDevice(uint8_t device_index);
-uint8_t fsGetDeviceHeaderByte(uint32_t address_offset);
+void fsSetDevice(uint32_t address);
+void fsSetDeviceLetter(uint8_t letter);
+uint32_t fsGetDevice(void);
+
+uint8_t fsGetSectorByte(uint32_t address);
 uint32_t fsGetDeviceCapacity(void);
-uint32_t fsGetCurrentDevice(void);
 uint8_t fsCheckDeviceReady(void);
 
 // File

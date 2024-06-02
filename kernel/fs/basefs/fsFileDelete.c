@@ -5,7 +5,7 @@ uint8_t fsFileDelete(uint8_t* name, uint8_t nameLength) {
     struct Bus bus;
     bus.read_waitstate = 5;
     
-    uint32_t currentDevice = fsGetCurrentDevice();
+    uint32_t currentDevice = fsGetDevice();
     
     uint32_t currentCapacity = fsGetDeviceCapacity();
     
@@ -99,7 +99,7 @@ uint8_t fsFileDelete(uint8_t* name, uint8_t nameLength) {
     for (uint32_t sector=1; sector < currentCapacity; sector++) {
         
         // Find an active file start byte
-        if (fsGetDeviceHeaderByte( sector * SECTOR_SIZE ) != 0x55) 
+        if (fsGetSectorByte( sector * SECTOR_SIZE ) != 0x55) 
             continue;
         
         uint8_t isFileFound = 0;

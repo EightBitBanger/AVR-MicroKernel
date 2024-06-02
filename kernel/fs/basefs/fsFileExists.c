@@ -5,7 +5,7 @@ uint32_t fsFileExists(uint8_t* name, uint8_t nameLength) {
     struct Bus bus;
     bus.read_waitstate = 5;
     
-    uint32_t currentDevice = fsGetCurrentDevice();
+    uint32_t currentDevice = fsGetDevice();
     
     uint32_t currentCapacity = fsGetDeviceCapacity();
     
