@@ -5,8 +5,15 @@
 
 #include <kernel/command/copy/copy.h>
 
-uint32_t fileCopyAddress = 0;
-uint32_t fileCopyDeviceAddress = 0;
+uint8_t fileCopySourceName[FILE_NAME_LENGTH];
+uint8_t fileCopySourceNameLength = 0;
+
+uint8_t fileCopySourceWorkingDir[FILE_NAME_LENGTH];
+uint8_t fileCopySourceWorkingDirLength = 0;
+
+uint32_t fileCopySourceSize = 0;
+struct FSAttribute fileCopySourceAttrib;
+
 
 void functionCOPY(uint8_t* param, uint8_t param_length) {
     
@@ -70,7 +77,26 @@ void functionCOPY(uint8_t* param, uint8_t param_length) {
     if ((sourceFilename[0] == '-') & 
         (sourceFilename[1] == 'p')) {
         
-        printc(" -p  ", 5);
+        // Remember current working directory
+        uint8_t OldWorkingDir[FILE_NAME_LENGTH];
+        uint8_t OldWorkingDirLength = fsGetWorkingDirectory(OldWorkingDir);
+        
+        // Copy source file data
+        fsSetWorkingDirectory(fileCopySourceWorkingDir, fileCopySourceWorkingDirLength);
+        
+        
+        
+        
+        
+        // Paste the file into the current working directory
+        // Restore the current working directory
+        fsSetWorkingDirectory(OldWorkingDir, OldWorkingDirLength);
+        
+        fsFileCreate(fileCopySourceName, fileCopySourceNameLength, fileCopySourceSize, ' ');
+        
+        fsSetFileAttributes(fileCopySourceName, fileCopySourceNameLength, &fileCopySourceAttrib);
+        
+        print(fileCopySourceName, fileCopySourceNameLength);
         printLn();
         
         return;
@@ -92,15 +118,28 @@ void functionCOPY(uint8_t* param, uint8_t param_length) {
     if (((destNameLength - 2) < 1) | 
         (destFilename[0] == ' ')) {
         
-        
-        uint32_t fileAddress = fsFileExists(sourceFilename, sourceNameLength);
+        // Get file size
+        uint32_t fileAddress = fsGetFileSize(sourceFilename, sourceNameLength);
         
         if (fileAddress != 0) {
             
-            // Copy file reference
-            fileCopyAddress = fileAddress;
+            // Get file attributes
+            fsGetFileAttributes(sourceFilename, sourceNameLength, &fileCopySourceAttrib);
             
-            fileCopyDeviceAddress = fsGetCurrentDevice();
+            fileCopySourceSize = fileAddress;
+            
+            // Remember current working directory
+            fileCopySourceWorkingDirLength = fsGetWorkingDirectory(fileCopySourceWorkingDir);
+            
+            // Copy file reference
+            
+            for (uint8_t i=0; i < FILE_NAME_LENGTH; i++) 
+                fileCopySourceName[i] = ' ';
+            
+            for (uint8_t i=0; i < sourceNameLength; i++) 
+                fileCopySourceName[i] = sourceFilename[i];
+            
+            fileCopySourceNameLength = sourceNameLength;
             
             print(msgSourceCopied, sizeof(msgSourceCopied));
             printLn();
