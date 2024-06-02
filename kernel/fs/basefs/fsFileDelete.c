@@ -57,6 +57,9 @@ uint8_t fsFileDelete(uint8_t* name, uint8_t nameLength) {
                 for (uint8_t n=0; n < 10; n++) 
                     fs_read_byte(&bus, filePtr.address + OFFSET_FILE_NAME + n, &filename[n]);
                 
+                // Clear the directory flag
+                fs_write_byte(&bus, filePtr.address + OFFSET_DIRECTORY_FLAG, 0x00);
+                
                 if (StringCompare(name, nameLength, filename, nameLength) == 1) {
                     
                     // Shift the last item in this ones place
@@ -69,15 +72,13 @@ uint8_t fsFileDelete(uint8_t* name, uint8_t nameLength) {
                         
                     }
                     
-                    currentDevice = filePtr.address;
-                    
                     // Decrement the file counter
                     directorySize.address--;
                     
                     for (uint8_t s=0; s < 4; s++) 
                         fs_write_byte(&bus, directoryAddress + OFFSET_DIRECTORY_SIZE + s, directorySize.byte_t[s]);
                     
-                    break;
+                    return 1;
                 }
                 
                 continue;
@@ -87,6 +88,7 @@ uint8_t fsFileDelete(uint8_t* name, uint8_t nameLength) {
             
         }
         
+        return 0;
 	}
 	
 	
@@ -101,37 +103,30 @@ uint8_t fsFileDelete(uint8_t* name, uint8_t nameLength) {
             continue;
         
         uint8_t isFileFound = 0;
-        if (directoryAddress == 0) {
+        
+        // Check file name
+        for (uint8_t i=0; i < nameLength; i++) {
             
-            // Check file name
-            for (uint8_t i=0; i < nameLength; i++) {
-                
-                uint8_t nameByte = 0;
-                
-                // Check file on root
-                fs_read_byte(&bus, currentDevice + (sector * SECTOR_SIZE) + OFFSET_FILE_NAME + i, &nameByte);
-                
-                if (name[i] != nameByte) {
-                    isFileFound = 0;
-                    break;
-                }
-                
-                isFileFound = 1;
-                
-                continue;
+            uint8_t nameByte = 0;
+            
+            // Check file on root
+            fs_read_byte(&bus, currentDevice + (sector * SECTOR_SIZE) + OFFSET_FILE_NAME + i, &nameByte);
+            
+            if (name[i] != nameByte) {
+                isFileFound = 0;
+                break;
             }
-            
-        } else {
             
             isFileFound = 1;
             
+            continue;
         }
         
         // Was the file located
         if (isFileFound == 0) 
             continue;
         
-        // Check file claimed by directory
+        // Ignore files claimed by a directory
         if (directoryAddress == 0) {
             
             uint8_t claimedFlag = 0x00;
