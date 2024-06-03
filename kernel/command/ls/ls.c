@@ -16,17 +16,17 @@ void functionLS(uint8_t* param, uint8_t param_length) {
     
     
     //
-    // List directory contents
+    // List working directory contents
     //
     
-    uint8_t workingDirectory[20];
-    uint8_t workingDirectoryLength = fsGetWorkingDirectory(workingDirectory);
-    
-    if ((workingDirectoryLength > 0) & (workingDirectory[0] != ' ')) {
+    if (fsCheckWorkingDirectory() == 1) {
+        
+        uint8_t workingDirectory[20];
+        uint8_t workingDirectoryLength = fsGetWorkingDirectory(workingDirectory);
         
         // Check if the current working directory is valid
-        uint32_t fileAddress = fsFileExists(workingDirectory, workingDirectoryLength-1);
-		if (fileAddress == 0) {
+        uint32_t directoryAddress = fsFileExists(workingDirectory, workingDirectoryLength-1);
+		if (directoryAddress == 0) {
             
             uint8_t msgDirectoryError[] = "Invalid directory";
             
@@ -62,18 +62,16 @@ void functionLS(uint8_t* param, uint8_t param_length) {
                 uint8_t attributes[4] = {' ',' ',' ',' '};
                 
                 for (uint8_t a=0; a < 4; a++) 
-                    fs_read_byte( &bus, fileAddress + a + OFFSET_FILE_ATTRIBUTES, &attributes[a] );
+                    attributes[a] = fsSectorGetByte(fileAddress + a + OFFSET_FILE_ATTRIBUTES);
                 
                 print(&attributes[0], 4);
                 printSpace(1);
                 
                 // Name
                 uint8_t filename[10];
-                for (uint8_t n=0; n < 10; n++) 
-                    filename[n] = ' ';
                 
                 for (uint8_t n=0; n < 10; n++) 
-                    fs_read_byte( &bus, fileAddress + n + 1, &filename[n] );
+                    filename[n] = fsSectorGetByte(fileAddress + n + 1);
                 
                 print(filename, sizeof(filename) + 1);
                 printSpace(1);
@@ -96,7 +94,7 @@ void functionLS(uint8_t* param, uint8_t param_length) {
                     union Pointer ptr;
                     
                     for (uint8_t s=0; s < 4; s++) 
-                        fs_read_byte( &bus, fileAddress + s + OFFSET_FILE_SIZE, &ptr.byte_t[s] );
+                        ptr.byte_t[s] = fsSectorGetByte(fileAddress + s + OFFSET_FILE_SIZE);
                     
                     uint8_t filesizeString[10];
                     
