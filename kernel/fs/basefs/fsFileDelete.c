@@ -2,9 +2,6 @@
 
 uint8_t fsFileDelete(uint8_t* name, uint8_t nameLength) {
     
-    struct Bus bus;
-    bus.read_waitstate = 5;
-    
     uint32_t currentDevice = fsGetDevice();
     
     uint32_t currentCapacity = fsGetDeviceCapacity();
@@ -16,6 +13,7 @@ uint8_t fsFileDelete(uint8_t* name, uint8_t nameLength) {
 	//
 	// Remove the file reference from the working directory
 	//
+	
 	uint32_t directoryAddress = 0;
     union Pointer filePtr;
     filePtr.address = 0;
@@ -32,12 +30,12 @@ uint8_t fsFileDelete(uint8_t* name, uint8_t nameLength) {
             // Get file size
             union Pointer fileSize;
             for (uint8_t i=0; i < 4; i++) 
-                fs_read_byte(&bus, directoryAddress + OFFSET_FILE_SIZE + i, &fileSize.byte_t[i]);
+                fileSize.byte_t[i] = fsSectorGetByte(directoryAddress + OFFSET_FILE_SIZE + i);
             
             // Number of files in directory
             union Pointer directorySize;
             for (uint8_t i=0; i < 4; i++) 
-                fs_read_byte(&bus, directoryAddress + OFFSET_DIRECTORY_SIZE + i, &directorySize.byte_t[i]);
+                directorySize.byte_t[i] = fsSectorGetByte(directoryAddress + OFFSET_DIRECTORY_SIZE + i);
             
             // Get directory file pointers
             uint8_t fileBuffer[fileSize.address];
@@ -54,10 +52,10 @@ uint8_t fsFileDelete(uint8_t* name, uint8_t nameLength) {
                 // Get file name
                 uint8_t filename[10];
                 for (uint8_t n=0; n < 10; n++) 
-                    fs_read_byte(&bus, filePtr.address + OFFSET_FILE_NAME + n, &filename[n]);
+                    filename[n] = fsSectorGetByte(filePtr.address + OFFSET_FILE_NAME + n);
                 
                 // Clear the directory flag
-                fs_write_byte(&bus, filePtr.address + OFFSET_DIRECTORY_FLAG, 0x00);
+                fsSectorSetByte(filePtr.address + OFFSET_DIRECTORY_FLAG, 0x00);
                 
                 if (StringCompare(name, nameLength, filename, nameLength) == 1) {
                     
@@ -75,7 +73,7 @@ uint8_t fsFileDelete(uint8_t* name, uint8_t nameLength) {
                     directorySize.address--;
                     
                     for (uint8_t s=0; s < 4; s++) 
-                        fs_write_byte(&bus, directoryAddress + OFFSET_DIRECTORY_SIZE + s, directorySize.byte_t[s]);
+                        fsSectorSetByte(directoryAddress + OFFSET_DIRECTORY_SIZE + s, directorySize.byte_t[s]);
                     
                 }
                 
@@ -104,14 +102,14 @@ uint8_t fsFileDelete(uint8_t* name, uint8_t nameLength) {
             
             uint8_t filename[FILE_NAME_LENGTH];
             for (uint8_t i=0; i < nameLength; i++) 
-                fs_read_byte(&bus, currentDevice + (sector * SECTOR_SIZE) + OFFSET_FILE_NAME + i, &filename[i]);
+                filename[i] = fsSectorGetByte(currentDevice + (sector * SECTOR_SIZE) + OFFSET_FILE_NAME + i);
             
             if (StringCompare(filename, nameLength, name, nameLength) == 0) 
                 continue;
             
             uint8_t claimedFlag = 0x00;
             
-            fs_read_byte(&bus, currentDevice + (sector * SECTOR_SIZE) + OFFSET_DIRECTORY_FLAG, &claimedFlag);
+            claimedFlag = fsSectorGetByte(currentDevice + (sector * SECTOR_SIZE) + OFFSET_DIRECTORY_FLAG);
             
             if (claimedFlag != 0) 
                 continue;
@@ -135,7 +133,7 @@ uint8_t fsFileDelete(uint8_t* name, uint8_t nameLength) {
             
             // Get sector header byte
             uint8_t headerByte = 0x00;
-            fs_read_byte(&bus, currentDevice + (nextSector * SECTOR_SIZE), &headerByte);
+            headerByte = fsSectorGetByte(currentDevice + (nextSector * SECTOR_SIZE));
             
             // Delete file header sector
             if (headerByte == 0x55) {
@@ -144,7 +142,7 @@ uint8_t fsFileDelete(uint8_t* name, uint8_t nameLength) {
                 if (isHeaderDeleted == 1) 
                     return 1;
                 
-                fs_write_byte(&bus, currentDevice + (nextSector * SECTOR_SIZE), clearByte);
+                fsSectorSetByte(currentDevice + (nextSector * SECTOR_SIZE), clearByte);
                 
                 isHeaderDeleted = 1;
                 continue;
@@ -153,7 +151,7 @@ uint8_t fsFileDelete(uint8_t* name, uint8_t nameLength) {
             // Delete data sector
             if (headerByte == 0xff) {
                 
-                fs_write_byte(&bus, currentDevice + (nextSector * SECTOR_SIZE), clearByte);
+                fsSectorSetByte(currentDevice + (nextSector * SECTOR_SIZE), clearByte);
                 
                 continue;
             }
@@ -161,7 +159,7 @@ uint8_t fsFileDelete(uint8_t* name, uint8_t nameLength) {
             // Delete end sector
             if (headerByte == 0xaa) {
                 
-                fs_write_byte(&bus, currentDevice + (nextSector * SECTOR_SIZE), clearByte);
+                fsSectorSetByte(currentDevice + (nextSector * SECTOR_SIZE), clearByte);
                 
                 return 1;
             }
