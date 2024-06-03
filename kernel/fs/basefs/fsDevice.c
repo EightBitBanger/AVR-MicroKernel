@@ -57,10 +57,10 @@ void fsInit(void) {
     for (sector=1; sector < 8192; sector++) {
         
         if (sectorCounter < (SECTOR_SIZE - 1)) {
-            fs_write_byte( &fs_bus, sector, ' ');
+            fsSectorSetByte(sector, ' ');
             sectorCounter++;
         } else {
-            fs_write_byte( &fs_bus, sector, 0x00);
+            fsSectorSetByte(sector, 0x00);
             sectorCounter = 0;
         }
         
@@ -71,9 +71,9 @@ void fsInit(void) {
     // Initiate first sector
     //
     
-    fs_write_byte( &fs_bus, fs_device_address    , 0x13 );
-    fs_write_byte( &fs_bus, fs_device_address + 1, 'f' );
-    fs_write_byte( &fs_bus, fs_device_address + 2, 's' );
+    fsSectorSetByte(fs_device_address    , 0x13 );
+    fsSectorSetByte(fs_device_address + 1, 'f' );
+    fsSectorSetByte(fs_device_address + 2, 's' );
     
     // Device total capacity
     union Pointer deviceSize;
@@ -81,7 +81,7 @@ void fsInit(void) {
     deviceSize.address = deviceCapacityBytes;
     
     for (uint8_t i=0; i < 4; i++) 
-        fs_write_byte( &fs_bus, fs_device_address + DEVICE_CAPACITY_OFFSET + i, deviceSize.byte_t[i] );
+        fsSectorSetByte(fs_device_address + DEVICE_CAPACITY_OFFSET + i, deviceSize.byte_t[i]);
     
     fsSetDeviceTypeIO();
     fsSetDeviceLetter('A');
