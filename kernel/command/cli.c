@@ -145,41 +145,39 @@ void consoleRunShell(void) {
             
             uppercase(&console_string[0]);
             
+            uint8_t isChanged = 0;
+            
             // System root
-            if (console_string[0] == '/') {
-                
-                fsSetDeviceLetter('/');
-                
-                fsClearWorkingDirectory();
-                
-                fsSetDirectoryStack(0);
-                
-            }
+            if (console_string[0] == '/') 
+                isChanged = 1;
             
             // Device letter
             if ((console_string[0] >= 'A') & 
-                (console_string[0] <= 'Z')) {
+                (console_string[0] <= 'Z')) 
+                isChanged = 1;
+            
+            // Update the prompt if the device letter was changed
+            if (isChanged == 1) {
                 
-                fsSetDeviceLetter(console_string[0]);
+                fsSetDeviceLetter( console_string[0] );
                 
-                fsSetDirectoryStack(0);
+                fsSetRootDirectory( console_string[0] );
+                
+                uint8_t consolePrompt[2];
+                consolePrompt[0] = console_string[0];
+                consolePrompt[1] = '>';
+                
+                ConsoleSetPrompt(consolePrompt, 3);
+                
+                ConsoleSetCursorPosition(2);
+                ConsoleClearKeyboardString();
                 
                 fsClearWorkingDirectory();
+                fsSetDirectoryStack(0);
+                
+                console_string_length = 0;
                 
             }
-            
-            // Update the prompt
-            uint8_t consolePrompt[2];
-            consolePrompt[0] = console_string[0];
-            consolePrompt[1] = '>';
-            
-            ConsoleSetPrompt(consolePrompt, 3);
-            
-            ConsoleSetCursorPosition(2);
-            
-            ConsoleClearKeyboardString();
-            
-            console_string_length = 0;
             
             printPrompt();
             
