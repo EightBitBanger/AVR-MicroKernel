@@ -83,11 +83,11 @@ int main(void) {
     //registerCommandCOPY();
     registerCommandCD();
     
-    registerCommandMK();
-    registerCommandRM();
+    //registerCommandMK();
+    //registerCommandRM();
     //registerCommandRN();
-    //registerCommandMKDIR();
-    //registerCommandRMDIR();
+    registerCommandMKDIR();
+    registerCommandRMDIR();
     
     //registerCommandATTRIB();
     //registerCommandRepair();
