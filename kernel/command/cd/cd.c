@@ -145,7 +145,7 @@ void functionCD(uint8_t* param, uint8_t param_length) {
     //
     // Change to system root
     //
-    /*
+    
     if ((param[0] == '/') & (param[1] == ' ')) {
         
         fsSetDirectoryStack(0);
@@ -160,7 +160,7 @@ void functionCD(uint8_t* param, uint8_t param_length) {
         
         return;
     }
-    */
+    
     
     //
     // Change to a directory
@@ -173,7 +173,7 @@ void functionCD(uint8_t* param, uint8_t param_length) {
             struct FSAttribute attribute;
             fsGetFileAttributes(param, param_length-1, &attribute);
             
-            // Check directory attribute
+            // Check is a directory
             if (attribute.type == 'd') {
                 
                 // Check device
