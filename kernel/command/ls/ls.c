@@ -5,14 +5,19 @@
 
 #include <kernel/command/ls/ls.h>
 
+extern struct Bus fs_bus;
+
+
 void functionLS(uint8_t* param, uint8_t param_length) {
     
-    struct Bus bus;
-    bus.read_waitstate  = 5;
-    bus.write_waitstate = 5;
+    uint8_t msgDirectoryError[]    = "Invalid directory";
+    uint8_t msgDirectoryListing[]  = "<DIR>";
+    uint8_t msgPressAnyKey[]       = "Press any key...";
     
     uint16_t numberOfFiles = 0;
     uint16_t numberOfDirs  = 0;
+    
+    uint8_t fileCount = 0;
     
     
     //
@@ -27,8 +32,6 @@ void functionLS(uint8_t* param, uint8_t param_length) {
         // Check if the current working directory is valid
         uint32_t directoryAddress = fsFileExists(workingDirectory, workingDirectoryLength-1);
 		if (directoryAddress == 0) {
-            
-            uint8_t msgDirectoryError[] = "Invalid directory";
             
             print(msgDirectoryError, sizeof(msgDirectoryError));
             printLn();
@@ -81,7 +84,6 @@ void functionLS(uint8_t* param, uint8_t param_length) {
                     
                     // Directory listing
                     
-                    uint8_t msgDirectoryListing[] = "<DIR>";
                     print(msgDirectoryListing, sizeof(msgDirectoryListing));
                     
                     numberOfDirs++;
@@ -115,6 +117,34 @@ void functionLS(uint8_t* param, uint8_t param_length) {
                 
                 printLn();
                 
+                if ((param[0] == '-') & (param[1] == 'p')) {
+                    
+                    if (fileCount > 1) {
+                        
+                        print(msgPressAnyKey, sizeof(msgPressAnyKey));
+                        
+                        ConsoleSetCursorPosition( sizeof(msgPressAnyKey) - 1 );
+                        
+                        uint8_t keypress = ConsoleWait(0);
+                        
+                        ConsoleSetCursorPosition(0);
+                        
+                        for (uint8_t a=0; a < sizeof(msgPressAnyKey); a++) 
+                            printChar(' ');
+                        
+                        ConsoleSetCursorPosition(0);
+                        
+                        fileCount = 0;
+                        
+                        if (keypress == 'c') 
+                            return;
+                        
+                        continue;
+                    }
+                    
+                    fileCount++;
+                }
+                
                 continue;
             }
             
@@ -139,7 +169,7 @@ void functionLS(uint8_t* param, uint8_t param_length) {
         
         // Check if the file is claimed by a directory
         uint8_t flagClaimed = 0;
-		fs_read_byte(&bus, fileAddress + OFFSET_DIRECTORY_FLAG, &flagClaimed);
+		fs_read_byte(&fs_bus, fileAddress + OFFSET_DIRECTORY_FLAG, &flagClaimed);
 		
 		if (flagClaimed != 0) 
             continue;
@@ -148,7 +178,7 @@ void functionLS(uint8_t* param, uint8_t param_length) {
         uint8_t attributes[4] = {' ',' ',' ',' '};
         
         for (uint8_t a=0; a < 4; a++) 
-            fs_read_byte( &bus, fileAddress + a + OFFSET_FILE_ATTRIBUTES, &attributes[a] );
+            fs_read_byte( &fs_bus, fileAddress + a + OFFSET_FILE_ATTRIBUTES, &attributes[a] );
         
         print(&attributes[0], 4);
         printSpace(1);
@@ -159,7 +189,7 @@ void functionLS(uint8_t* param, uint8_t param_length) {
             filename[n] = ' ';
         
         for (uint8_t n=0; n < 10; n++) 
-            fs_read_byte( &bus, fileAddress + n + 1, &filename[n] );
+            fs_read_byte( &fs_bus, fileAddress + n + 1, &filename[n] );
         
         print(filename, sizeof(filename) + 1);
         printSpace(1);
@@ -169,7 +199,6 @@ void functionLS(uint8_t* param, uint8_t param_length) {
             
             // Directory listing
             
-            uint8_t msgDirectoryListing[] = "<DIR>";
             print(msgDirectoryListing, sizeof(msgDirectoryListing));
             
             numberOfDirs++;
@@ -182,7 +211,7 @@ void functionLS(uint8_t* param, uint8_t param_length) {
             union Pointer ptr;
             
             for (uint8_t s=0; s < 4; s++) 
-                fs_read_byte( &bus, fileAddress + s + OFFSET_FILE_SIZE, &ptr.byte_t[s] );
+                fs_read_byte( &fs_bus, fileAddress + s + OFFSET_FILE_SIZE, &ptr.byte_t[s] );
             
             uint8_t filesizeString[10];
             
@@ -205,13 +234,10 @@ void functionLS(uint8_t* param, uint8_t param_length) {
         
         printLn();
         
-        uint8_t fileCount = 0;
-        
         if ((param[0] == '-') & (param[1] == 'p')) {
             
             if (fileCount > 1) {
                 
-                uint8_t msgPressAnyKey[] = "Press any key...";
                 print(msgPressAnyKey, sizeof(msgPressAnyKey));
                 
                 ConsoleSetCursorPosition( sizeof(msgPressAnyKey) - 1 );

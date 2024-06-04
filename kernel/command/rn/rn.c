@@ -4,22 +4,26 @@
 
 #include <kernel/command/rn/rn.h>
 
+uint8_t msgFileRenamed[]   = "File renamed";
+uint8_t msgFileNotFound[]  = "File not found";
+
 void functionRN(uint8_t* param, uint8_t param_length) {
     
+    // Get source name
     uint8_t sourceName[10];
     uint8_t sourceNameLen = 0;
     
     for (uint8_t i=0; i < param_length; i++) {
         
-        sourceName[i] = param[i];
-        
         sourceNameLen++;
+        
+        sourceName[i] = param[i];
         
         if (param[i] == ' ') 
             break;
-        
     }
     
+    // Get new name
     uint8_t targetName[10];
     uint8_t targetNameLen = 0;
     
@@ -34,7 +38,16 @@ void functionRN(uint8_t* param, uint8_t param_length) {
         
     }
     
-    fsFileRename(sourceName, sourceNameLen, targetName, targetNameLen);
+    if (fsFileRename(sourceName, sourceNameLen, targetName, targetNameLen) == 1) {
+        
+        print(msgFileRenamed, sizeof(msgFileRenamed));
+        
+    } else {
+        
+        print(msgFileNotFound, sizeof(msgFileNotFound));
+    }
+    
+    printLn();
     
     return;
 }

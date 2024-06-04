@@ -147,10 +147,6 @@ void consoleRunShell(void) {
             
             uint8_t isChanged = 0;
             
-            // System root
-            if (console_string[0] == '/') 
-                isChanged = 1;
-            
             // Device letter
             if ((console_string[0] >= 'A') & 
                 (console_string[0] <= 'Z')) 
