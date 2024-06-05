@@ -15,9 +15,9 @@ uint8_t number_of_devices = 0;
 void InitiateDeviceTable(void) {
     
     // Clear the device table
-    for (unsigned int d=0; d < DEVICE_TABLE_SIZE; d++) {
+    for (uint8_t d=0; d < DEVICE_TABLE_SIZE; d++) {
         
-        for (unsigned int i=0; i < DEVICE_NAME_LENGTH; i++) 
+        for (uint8_t i=0; i < DEVICE_NAME_LENGTH; i++) 
             device_table[d].device_name[i] = ' ';
         
         device_table[d].hardware_slot = 0;
@@ -25,8 +25,6 @@ void InitiateDeviceTable(void) {
         device_table[d].device_id = 0x00;
         
         device_table[d].hardware_address = 0x00000;
-        
-        device_table[d].firmware_address = 0x00000;
         
     }
     
@@ -36,40 +34,39 @@ void InitiateDeviceTable(void) {
     bus.write_waitstate = 20;
     
     //
-    // Check peripheral devices
+    // Initiate peripheral devices
     //
     
     unsigned int index=0;
     
     for (uint32_t d=0; d < NUMBER_OF_PERIPHERALS; d++) {
         
+        // Allow time between device initiation
+        _delay_us(100);
+        
         // Set the device address
         uint32_t hardware_address = PERIPHERAL_ADDRESS_BEGIN + (PERIPHERAL_STRIDE * d);
         
-        // Get device header
-        uint8_t buffer[ 10 ];
+        // Get device name
+        for (uint8_t i=0; i < 10; i++) 
+            bus_read_byte(&bus, hardware_address + i + 1, &device_table[index].device_name[i]);
         
-        for (unsigned int i=0; i < 10; i++) 
-            bus_read_byte(&bus, hardware_address + i, &buffer[i]);
+        // Get device ID
+        bus_read_byte(&bus, hardware_address, &device_table[index].device_id);
         
         // Reject device name
-        if (is_letter( &buffer[1] ) == 0) 
+        if (is_letter( &device_table[index].device_name[0] ) == 0) 
             continue;
         
-        if (buffer[1] == ' ') 
+        if (device_table[index].device_name[0] == ' ') 
             continue;
         
-        // Add device to the device table
-        for (unsigned int i=0; i < DEVICE_NAME_LENGTH - 1; i++) 
-            device_table[ index ].device_name[i] = buffer[i + 1];
+        if (device_table[index].device_id == 0) 
+            continue;
         
         device_table[index].hardware_address = hardware_address;
         
-        device_table[index].firmware_address = 0;
-        
-        device_table[index].hardware_slot = d + '1';
-        
-        device_table[index].device_id = buffer[0];
+        device_table[index].hardware_slot = d;
         
         number_of_devices++;
         
@@ -98,7 +95,6 @@ void InitiateDeviceTable(void) {
             driverDevice->hardware_slot     = device_table[d].hardware_slot;
             
             driverDevice->hardware_address  = device_table[d].hardware_address;
-            driverDevice->firmware_address  = device_table[d].firmware_address;
             
             break;
         }

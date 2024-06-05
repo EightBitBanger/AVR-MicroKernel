@@ -9,7 +9,7 @@ void* driver_registry[ DRIVER_REGISTRY_SIZE ];
 uint8_t number_of_drivers = 0;
 
 
-struct Driver* GetDriverByName(uint8_t* nameString, uint8_t stringSize) {
+struct Driver* GetDriverByName(uint8_t* name, uint8_t nameLength) {
 	
 	for (uint8_t d=0; d < number_of_drivers; d++) {
         
@@ -17,9 +17,9 @@ struct Driver* GetDriverByName(uint8_t* nameString, uint8_t stringSize) {
         
         uint8_t isWrongName = 0;
         
-        for (uint8_t i=0; i < stringSize - 1; i++) {
+        for (uint8_t i=0; i < nameLength - 1; i++) {
             
-            if (driverPtr->device.device_name[i] != nameString[i]) {
+            if (driverPtr->device.device_name[i] != name[i]) {
                 isWrongName = 1;
                 break;
             }
@@ -36,6 +36,7 @@ struct Driver* GetDriverByName(uint8_t* nameString, uint8_t stringSize) {
 }
 
 struct Driver* GetDriverByIndex(uint8_t index) {
+    
     return driver_registry[ index ];
 }
 
@@ -52,5 +53,6 @@ uint8_t RegisterDriver(void* deviceDriverPtr) {
 }
 
 uint8_t GetNumberOfDrivers(void) {
+    
     return number_of_drivers;
 }
