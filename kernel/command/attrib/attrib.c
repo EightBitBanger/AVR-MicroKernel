@@ -7,8 +7,8 @@
 
 void functionATTRIB(uint8_t* param, uint8_t param_length) {
     
-    uint8_t msgFileNotFound[]     = "File not found";
-    uint8_t msgAttributeNotSet[]  = "Error setting attribute";
+    uint8_t msgFileNotFound[]    = "File not found";
+    uint8_t msgAttributeError[]  = "Error";
     
     // Get the file name
     uint8_t filename[10];
@@ -25,8 +25,9 @@ void functionATTRIB(uint8_t* param, uint8_t param_length) {
         
     }
     
-    // Check file exists
-    if (fsFileExists(filename, filenameLength) == 0) {
+    // Get current file attributes
+    struct FSAttribute attributeCurrent;
+    if (fsGetFileAttributes(filename, filenameLength, &attributeCurrent) == 0) {
         
         print(msgFileNotFound, sizeof(msgFileNotFound));
         printLn();
@@ -34,9 +35,6 @@ void functionATTRIB(uint8_t* param, uint8_t param_length) {
         return;
     }
     
-    // Get current file attributes
-    struct FSAttribute attributeCurrent;
-    fsGetFileAttributes(filename, filenameLength, &attributeCurrent);
     
     //
     // Determine the applied attributes
@@ -44,6 +42,7 @@ void functionATTRIB(uint8_t* param, uint8_t param_length) {
     attribute.executable  = attributeCurrent.executable;
     attribute.readable    = attributeCurrent.readable;
     attribute.writeable   = attributeCurrent.writeable;
+    attribute.type        = attributeCurrent.type;
     
     // Remove
     if ((param[filenameLength + 1] == '-') & (param[filenameLength + 2] == 'x')) attribute.executable = ' ';
@@ -60,12 +59,32 @@ void functionATTRIB(uint8_t* param, uint8_t param_length) {
     if (attribute.executable != attributeCurrent.executable) isChanged = 1;
     if (attribute.readable   != attributeCurrent.readable)   isChanged = 1;
     if (attribute.writeable  != attributeCurrent.writeable)  isChanged = 1;
+    if (attribute.type       != attributeCurrent.type)       isChanged = 1;
     
+    // Cannot make directories executable...
+    if ((attributeCurrent.type == 'd') & (attribute.type != 'd')) {
+        
+        print(msgAttributeError, sizeof(msgAttributeError));
+        printLn();
+        
+        return;
+    }
+    
+    // Cannot make directories executable...
+    if ((attributeCurrent.type == 'd') & (attribute.executable != ' ')) {
+        
+        print(msgAttributeError, sizeof(msgAttributeError));
+        printLn();
+        
+        return;
+    }
+    
+    // Update changes
     if (isChanged == 1) {
         
         if (fsSetFileAttributes(filename, filenameLength, &attribute) == 0) {
             
-            print(msgAttributeNotSet, sizeof(msgAttributeNotSet));
+            print(msgAttributeError, sizeof(msgAttributeError));
             printLn();
             
             return;
@@ -76,6 +95,7 @@ void functionATTRIB(uint8_t* param, uint8_t param_length) {
     if (attribute.executable != 0) {printChar( attribute.executable );} else {printSpace(1);}
     if (attribute.readable   != 0) {printChar( attribute.readable   );} else {printSpace(1);}
     if (attribute.writeable  != 0) {printChar( attribute.writeable  );} else {printSpace(1);}
+    if (attribute.type       != 0) {printChar( attribute.type       );} else {printSpace(1);}
     
     printSpace(1);
     print(param, param_length);

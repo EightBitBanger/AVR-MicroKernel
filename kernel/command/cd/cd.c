@@ -11,7 +11,7 @@ struct DirectoryName {
 };
 
 
-struct DirectoryName directoryStack[8];
+struct DirectoryName directoryStack[16];
 
 extern uint8_t fs_directory_stack_ptr;
 
@@ -98,13 +98,13 @@ void functionCD(uint8_t* param, uint8_t param_length) {
         
         // Prompt for device letters
         
-        for (uint8_t n=0; n < param_length - 1; n++) 
+        for (uint8_t n=0; n < param_length + 1; n++) 
             directoryStack[fs_directory_stack_ptr].name[n] = param[n];
         
         uint8_t PromptDir[20];
         
         // Device letter
-        for (uint8_t i=0; i < param_length + 1; i++) 
+        for (uint8_t i=0; i < param_length + 2; i++) 
             PromptDir[i + 2] = param[i];
         
         PromptDir[param_length + 1] = '>';
@@ -118,17 +118,13 @@ void functionCD(uint8_t* param, uint8_t param_length) {
     }
     
     
-    
     //
     // Drop down the parent directory
     //
     
     if ((param[0] == '.') & (param[1] == '.') & (param[2] == ' ')) {
         
-        if (fs_directory_stack_ptr > 0) {
-            
-            printc("AAA", 3);
-            printLn();
+        if (fs_directory_stack_ptr > 1) {
             
             // Drop to the parent directory
             fs_directory_stack_ptr--;
@@ -140,14 +136,14 @@ void functionCD(uint8_t* param, uint8_t param_length) {
                 
                 filename[n] = directoryStack[fs_directory_stack_ptr].name[n];
                 
-                filenameLength = n + 1;
+                filenameLength = n + 2;
                 
                 if (filename[n] == ' ') 
                     break;
             }
             
             // Set the parent directory
-            fsSetWorkingDirectory(filename, filenameLength-1);
+            fsSetWorkingDirectory(filename, filenameLength - 1);
             
             uint8_t PromptDir[20];
             
@@ -171,9 +167,6 @@ void functionCD(uint8_t* param, uint8_t param_length) {
             
         } else {
             
-            printc("BBB", 3);
-            printLn();
-            
             // Drop to the root directory
             
             fs_directory_stack_ptr = 0;
@@ -187,6 +180,59 @@ void functionCD(uint8_t* param, uint8_t param_length) {
             fsClearWorkingDirectory();
             
         }
+        
+        return;
+    }
+    
+    
+    
+    //
+    // Display the full path
+    //
+    
+    if ((param[0] == '.') & (param[1] == ' ')) {
+        
+        for (uint8_t i=1; i < fs_directory_stack_ptr + 1; i++) {
+            
+            printChar('/');
+            
+            for (uint8_t c=0; c < FILE_NAME_LENGTH; c++) {
+                
+                if (directoryStack[i].name[c] == ' ') 
+                    break;
+                
+                printChar( directoryStack[i].name[c] );
+                
+            }
+            
+            continue;
+        }
+        
+        if (fs_directory_stack_ptr > 0) 
+            printLn();
+        
+        return;
+    }
+    
+    
+    
+    //
+    // Drop down to the root
+    //
+    
+    if ((param[0] == '/') & (param[1] == ' ')) {
+        
+        // Drop to the root directory
+        
+        fs_directory_stack_ptr = 0;
+        
+        uint8_t PromptRoot[] = " >";
+        
+        PromptRoot[0] = fsGetRootDirectory();
+        
+        ConsoleSetPrompt(PromptRoot, 3);
+        
+        fsClearWorkingDirectory();
         
         return;
     }

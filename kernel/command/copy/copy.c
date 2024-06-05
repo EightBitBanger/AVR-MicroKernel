@@ -217,11 +217,11 @@ void functionCOPY(uint8_t* param, uint8_t param_length) {
         destinationDevice = currentDevice;
     }
     
-    if (destFilename[0] == '/') {
+    if (destFilename[0] == 'X') {
         
         // Destination is the local system root
         
-        fsSetDeviceLetter('/');
+        fsSetDeviceLetter('X');
         destinationDevice = 0xff;
         destNameIsSource = 1;
         
