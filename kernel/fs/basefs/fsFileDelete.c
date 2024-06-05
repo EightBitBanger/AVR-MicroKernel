@@ -6,8 +6,6 @@ uint8_t fsFileDelete(uint8_t* name, uint8_t nameLength) {
     
     uint32_t currentCapacity = fsGetDeviceCapacity();
     
-    uint8_t clearByte = 0x00;
-    
 	// Get working directory
 	
 	//
@@ -127,6 +125,7 @@ uint8_t fsFileDelete(uint8_t* name, uint8_t nameLength) {
         }
         
         uint8_t isHeaderDeleted = 0;
+        uint8_t clearByte = 0x00;
         
         // Delete the file sectors
         for (uint32_t nextSector = sector; nextSector < currentCapacity; nextSector++) {

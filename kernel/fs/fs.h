@@ -58,6 +58,8 @@ uint8_t fsGetWorkingDirectoryLength(void);
 uint32_t fsGetWorkingDirectoryAddress(void);
 void fsSetWorkingDirectoryAddress(uint32_t address);
 
+uint8_t fsCheckWorkingDirectory(void);
+
 // Directory stack
 
 void fsSetDirectoryStack(uint8_t amount);
@@ -75,9 +77,14 @@ void fsSetDevice(uint32_t address);
 void fsSetDeviceLetter(uint8_t letter);
 uint32_t fsGetDevice(void);
 
-uint8_t fsGetSectorByte(uint32_t address);
 uint32_t fsGetDeviceCapacity(void);
 uint8_t fsCheckDeviceReady(void);
+
+// Sectors
+
+uint8_t fsSectorGetByte(uint32_t address);
+void fsSectorSetByte(uint32_t address, uint8_t byte);
+
 
 // File
 
@@ -103,7 +110,7 @@ uint8_t fsFileReadBin(uint8_t index, uint8_t* buffer, uint32_t length);
 
 // Directory
 
-uint32_t fsDirectoryCreate(uint8_t* name, uint8_t nameLength, uint32_t fileSize);
+uint32_t fsDirectoryCreate(uint8_t* name, uint8_t nameLength);
 uint32_t fsDirectoryDelete(uint8_t* name, uint8_t nameLength);
 
 uint32_t fsDirectoryGetNumberOfFiles(uint8_t* name, uint8_t nameLength);

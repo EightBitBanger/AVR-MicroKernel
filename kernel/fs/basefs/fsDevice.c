@@ -26,7 +26,7 @@ void fsInit(void) {
     fs_bus.read_waitstate  = 5;
     fs_bus.write_waitstate = 5;
     
-    fs_device_root = '/';
+    fs_device_root = 'X';
     
     for (uint8_t i=0; i < FILE_NAME_LENGTH; i++) 
         fs_working_directory[i] = ' ';
@@ -38,7 +38,7 @@ void fsInit(void) {
     fs_directory_stack_ptr = 0;
     
     fsSetDeviceTypeMEM();
-    fsSetDeviceLetter('/');
+    fsSetDeviceLetter('X');
     
     //
     // Format RAMDISK sectors
@@ -133,7 +133,7 @@ uint32_t fsGetDevice(void) {
 
 void fsSetDeviceLetter(uint8_t letter) {
     
-    if (letter == '/') {
+    if (letter == 'X') {
         
         fsSetDeviceTypeMEM();
         fs_device_address = 0x00000;
@@ -143,7 +143,7 @@ void fsSetDeviceLetter(uint8_t letter) {
         lowercase(&letter);
         
         fsSetDeviceTypeIO();
-        fs_device_address = PERIPHERAL_ADDRESS_BEGIN + ((letter - 'A') * 0x10000);
+        fs_device_address = PERIPHERAL_ADDRESS_BEGIN + ((letter - 'a') * 0x10000);
         
     }
     

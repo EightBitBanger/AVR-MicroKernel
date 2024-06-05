@@ -91,6 +91,8 @@ void fsSetWorkingDirectoryAddress(uint32_t address) {
 
 void fsSetRootDirectory(uint8_t device) {
     
+    uppercase(&device);
+    
     fs_device_root = device;
     
     return;
