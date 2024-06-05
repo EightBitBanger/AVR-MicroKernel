@@ -3,12 +3,14 @@
 
 #include <avr/io.h>
 
-// Case
+// Checks
 
 uint8_t is_number(uint8_t* charPtr);
 uint8_t is_letter(uint8_t* charPtr);
 uint8_t is_symbol(uint8_t* charPtr);
 uint8_t is_hex(uint8_t* charPtr);
+
+// Case
 
 uint8_t is_uppercase(uint8_t* charPtr);
 uint8_t is_lowercase(uint8_t* charPtr);

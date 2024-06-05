@@ -12,8 +12,8 @@ int main(void) {
     // Device drivers
 	initiateDisplayDriver();      // 20x4 LCD Display
 	initiatePS2Driver();          // PS/2 Port
-	//initiateNetworkDriver();      // UART Network Card
-	//initiateSpeakerDriver();      // On-Board speaker
+	initiateNetworkDriver();      // UART Network Card
+	initiateSpeakerDriver();      // On-Board speaker
 	
 	// Initiate kernel sub systems
 	InitiateDeviceTable();
@@ -26,7 +26,7 @@ int main(void) {
     
 #ifdef _KERNEL_ALLOCATE_EXTERNAL_MEMORY__
     
-    //AllocateExternalMemory();
+    AllocateExternalMemory();
     
 #endif
     
@@ -36,22 +36,22 @@ int main(void) {
     
 #ifdef BOARD_RETRO_AVR_X4_REV1
     
-    //uint16_t duration  = 120;
-    //uint16_t frequency = 20000;
+    uint16_t duration  = 120;
+    uint16_t frequency = 20000;
     
-    //spkBeep(duration, frequency);
+    spkBeep(duration, frequency);
     
 #endif
     
 #ifdef NETWORK_APPLICATION_PACKET_ROUTER
     
-    //InitiateRouter();
+    InitiateRouter();
     
 #endif
     
 #ifdef NETWORK_APPLICATION_SERVER
     
-    //InitiateServer();
+    InitiateServer();
     
 #endif
     
@@ -61,7 +61,7 @@ int main(void) {
     
     //registerCommandDevice();
     //registerCommandCAP();
-    registerCommandList();
+    //registerCommandList();
     //registerCommandTASK();
     
     //registerCommandEDIT();
@@ -80,14 +80,14 @@ int main(void) {
   #ifdef INCLUDE_FILE_SYSTEM_APPLICATIONS
     
     registerCommandLS();
-    //registerCommandCOPY();
+    registerCommandCOPY();
     registerCommandCD();
     
     //registerCommandMK();
     //registerCommandRM();
     //registerCommandRN();
-    registerCommandMKDIR();
-    registerCommandRMDIR();
+    //registerCommandMKDIR();
+    //registerCommandRMDIR();
     
     //registerCommandATTRIB();
     //registerCommandRepair();
@@ -101,14 +101,14 @@ int main(void) {
     // Boot the kernel
     // 
     
-    //kernelVectorTableInit();      // Hardware interrupt vector table
+    kernelVectorTableInit();      // Hardware interrupt vector table
     schedulerInit();              // Scheduler sub system
     fsInit();                     // File system
-    //ntInit();                     // Network support
+    ntInit();                     // Network support
     kInit();                      // Setup the kernel environment
     
 #ifdef _KERNEL_PRINT_VERSION_INFORMATION__
-    /*
+    
     ConsoleSetBlinkRate( CURSOR_BLINK_RATE );
     
     // Version
@@ -127,22 +127,21 @@ int main(void) {
     printChar('.');
     printInt(versionPatch);
     printLn();
-    */
+    
 #endif
     
     
     //
     // Start in the root directory
     
-    fsSetDeviceLetter('/');
+    uint8_t prompt[] = " >";
+    prompt[0] = fsGetRootDirectory();
     
-    fsClearWorkingDirectory();
-    
-    uint8_t prompt[] = "/>";
-    ConsoleSetPrompt( prompt, sizeof(prompt) );
+    ConsoleSetPrompt(prompt, sizeof(prompt));
     
     // Drop the initial command prompt
     printPrompt();
+    
     
     //
     // Launch system tasks
@@ -157,7 +156,7 @@ int main(void) {
     
     // Enable hardware interrupts
     //  Trigger on the HIGH to LOW transition of PIN2
-    //InterruptStartHardware();
+    InterruptStartHardware();
     
     SetHardwareInterruptServiceA( _ISR_hardware_service_routine );
     

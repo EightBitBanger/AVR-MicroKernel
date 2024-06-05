@@ -37,6 +37,10 @@ void AllocateExternalMemory(void) {
             
             retry++;
             
+            address--;
+            
+            continue;
+            
         } else {
             
             retry = 0;
