@@ -17,9 +17,8 @@ void initiateDisplayDriver(void) {
     
     uint8_t deviceName[] = "display";
     
-    for (unsigned int i=0; i < sizeof(deviceName); i++) {
+    for (unsigned int i=0; i < sizeof(deviceName); i++) 
         displayDriver->device.device_name[i] = deviceName[i];
-    }
     
     // Register the driver with the kernel
 	RegisterDriver( (void*)displayDriver );
