@@ -61,10 +61,11 @@ int main(void) {
     
     //registerCommandDevice();
     //registerCommandCAP();
-    //registerCommandList();
+    registerCommandList();
     //registerCommandTASK();
+    registerCommandType();
     
-    //registerCommandEDIT();
+    registerCommandEDIT();
     //registerCommandAssembly();
     
     //registerCommandCLS();

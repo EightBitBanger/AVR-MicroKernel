@@ -5,6 +5,8 @@
 
 #include <kernel/version.h>
 
+#include <kernel/kref.h>
+
 #include <kernel/kalloc.h>
 
 #include <kernel/pointers.h>
