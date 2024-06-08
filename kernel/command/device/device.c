@@ -6,47 +6,95 @@
 
 void functionDevice(uint8_t* param, uint8_t param_length) {
     
-    uint8_t numberOfDevices = GetNumberOfDevices();
+    uint8_t msgPressAnyKey[] = "Press any key...";
     
-    for (uint8_t i=0; i < numberOfDevices; i++) {
+    uint8_t lineCount = 0;
+    
+    //
+    // Display linked drivers
+    
+    if ((param[0] == '-') & 
+        (param[1] == 'd') & 
+        (param[2] == 'r') & 
+        (param[3] == 'v')) {
         
-        struct Device* dev = GetHardwareDeviceByIndex( i );
+        uint8_t numberOfDrivers = GetNumberOfDrivers();
         
-        print(dev->device_name, 10);
-        printSpace(1);
+        for (uint8_t i=0; i < numberOfDrivers; i++) {
+            
+            struct Driver* drv = GetDriverByIndex( i );
+            
+            if ((param[4] == ' ') & 
+                (param[5] == 'l') & 
+                (param[6] == 'n') & 
+                (param[7] == 'k')) {
+                
+                if (drv->is_linked == 0) 
+                    continue;
+            }
+            
+            for (uint8_t i=0; i < DEVICE_NAME_LENGTH; i++) {
+                if (drv->device.device_name[i] != 0) {
+                    printChar(drv->device.device_name[i]);
+                } else {
+                    printSpace(1);
+                }
+            }
+            
+            uint8_t addr = ((drv->device.hardware_address - PERIPHERAL_ADDRESS_BEGIN) + 0x10000) / 0x10000;
+            
+            if (drv->device.hardware_address != 0) {
+                
+                uint8_t deviceAddr[] = "0x00000";
+                
+                deviceAddr[2] += addr;
+                print(&deviceAddr[0], sizeof(deviceAddr));
+                
+            }
+            
+            printLn();
+            
+            if (lineCount > 1) {
+                
+                print(msgPressAnyKey, sizeof(msgPressAnyKey));
+                
+                ConsoleSetCursorPosition( sizeof(msgPressAnyKey) - 1 );
+                
+                uint8_t keypress = ConsoleWait(0);
+                
+                ConsoleSetCursorPosition(0);
+                
+                for (uint8_t a=0; a < sizeof(msgPressAnyKey); a++) 
+                    printChar(' ');
+                
+                ConsoleSetCursorPosition(0);
+                
+                lineCount = 0;
+                
+                if (keypress == 'c') 
+                    return;
+                
+                continue;
+            }
+            
+            lineCount++;
+        }
         
-        uint8_t deviceAddr[] = "0x00000";
-        
-        uint8_t addr = (dev->hardware_address) / 0x10000;
-        
-        deviceAddr[2] += addr;
-        print(&deviceAddr[0], sizeof(deviceAddr));
-        
-        printLn();
-        
-        /*
-        
-        //
-        // This will list the drivers rather than devices
-        //
-        
-        struct Driver* drv = GetDriverByIndex( i );
-        
-        print(drv->device.device_name, 10);
-        printSpace(1);
-        
-        
-        uint8_t deviceAddr[] = "0x00000";
-        
-        uint8_t addr = (drv->device.hardware_address - 0x40000) / 0x10000;
-        deviceAddr[2] += addr;
-        print(&deviceAddr[0], sizeof(deviceAddr));
-        
-        printLn();
-        
-        */
-        
+        return;
     }
+    
+    //
+    // Help function
+    
+    uint8_t msgHelpA[] = "-drv";
+    uint8_t msgHelpB[] = "-drv lnk";
+    //uint8_t msgHelpC[] = "";
+    print(msgHelpA, sizeof(msgHelpA));
+    printLn();
+    print(msgHelpB, sizeof(msgHelpB));
+    printLn();
+    //print(msgHelpC, sizeof(msgHelpC));
+    //printLn();
     
     return;
 }
