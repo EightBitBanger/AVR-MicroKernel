@@ -8,6 +8,9 @@ void functionType(uint8_t* param, uint8_t param_length) {
     
     uint32_t fileSize = fsGetFileSize(param, param_length);
     
+    if (fileSize == 0) 
+        return;
+    
     uint8_t fileBuffer[fileSize];
     
     uint8_t index = fsFileOpen(param, param_length);
