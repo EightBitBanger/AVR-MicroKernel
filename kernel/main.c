@@ -59,11 +59,13 @@ int main(void) {
     
   #ifdef INCLUDE_KERNEL_APPLICATIONS
     
-    //registerCommandDevice();
+    registerCommandDevice();
     //registerCommandCAP();
     registerCommandList();
     //registerCommandTASK();
     registerCommandType();
+    
+    registerCommandLD();
     
     registerCommandEDIT();
     //registerCommandAssembly();
@@ -107,6 +109,7 @@ int main(void) {
     fsInit();                     // File system
     ntInit();                     // Network support
     kInit();                      // Setup the kernel environment
+    driverInit();                 // Driver hot loading
     
 #ifdef _KERNEL_PRINT_VERSION_INFORMATION__
     

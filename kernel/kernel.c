@@ -35,17 +35,9 @@ void kInit(void) {
     
     uint8_t index = fsFileOpen(driverFileName, sizeof(driverFileName)-1);
     
-    uint8_t buffer[20];
+    uint8_t buffer[] = "kmod      xxxx";
     
-    for (uint8_t i=0; i < 20; i++) 
-        buffer[i] = ' ';
-    
-    buffer[0] = 'A';
-    buffer[1] = 'B';
-    buffer[2] = 'C';
-    buffer[3] = 'D';
-    
-    fsFileWrite(index, buffer, 4);
+    fsFileWrite(index, buffer, sizeof(buffer) - 1);
     
     fsFileClose(index);
     
