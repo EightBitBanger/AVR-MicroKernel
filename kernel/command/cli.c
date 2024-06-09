@@ -245,6 +245,9 @@ void consoleRunShell(void) {
             break;
         }
         
+        //
+        // Check file executable
+        
         // Get parameters
         uint8_t filename[FILE_NAME_LENGTH];
         for (uint8_t i=0; i < FILE_NAME_LENGTH; i++) 
@@ -265,70 +268,142 @@ void consoleRunShell(void) {
         uint8_t workingDirectory[20];
         uint8_t workingDirectoryLength = fsGetWorkingDirectory(workingDirectory);
         
-        uint32_t directoryAddress = 0;
-        
-        if ((workingDirectoryLength > 0) & (workingDirectory[0] != ' ')) 
-            directoryAddress = fsFileExists(workingDirectory, workingDirectoryLength-1);
-        
-        // Check executable file exists
-        uint32_t programSize = fsGetFileSize(filename, FILE_NAME_LENGTH);
-        
-        if (programSize > 0) {
+        // Are we currently in a working directory
+        if ((workingDirectory[0] != ' ') & (workingDirectoryLength > 0)) {
             
-            // Check file is executable
-            struct FSAttribute attribute;
-            fsGetFileAttributes(filename, parameters_begin, &attribute);
+            // Check file exists in working directory
+            uint32_t fileAddress = fsDirectoryFileExists(filename, parameters_begin);
             
-            if (attribute.executable != 0) {
+            if (fileAddress > 0) {
                 
-            } else {
+                // Check file is executable
+                struct FSAttribute attribute;
+                fsGetFileAttributes(filename, parameters_begin, &attribute);
                 
-                // Non executable
-                
-                programSize = 0;
-                
-            }
-            
-            if (programSize > 0) {
-                
-                if (directoryAddress == 0) {
-                    
-                    // Execute file from root
-                    
-                    // Fire up the emulator
+                // Check executable
+                if (attribute.executable == 'x') {
                     uint8_t index = fsFileOpen(filename, parameters_begin);
-                    uint8_t programBuffer[1024];
                     
-                    // Load the file
-                    fsFileReadBin(index, programBuffer, programSize);
+                    uint32_t programSize = fsGetFileSize(filename, FILE_NAME_LENGTH);
+                    uint8_t programBuffer[programSize];
                     
-                    // Emulate the code
-                    EmulateX4(programBuffer, programSize);
-                    
-                    fsFileClose(index);
-                    
-                } else {
-                    
-                    // Execute file from the working directory
-                    
-                    //fs_read_byte( fs_working_directory_address
-                    
+                    if (index > 0) {
+                        
+                        // Load the file
+                        fsFileReadBin(index, programBuffer, programSize);
+                        
+                        // Emulate the code
+                        EmulateX4(programBuffer, programSize);
+                        
+                        fsFileClose(index);
+                        
+                        isRightFunction = 1;
+                        
+                    }
                     
                 }
                 
             }
             
-            // Clear the console string
-            ConsoleClearKeyboardString();
+        } else {
             
-            printPrompt();
+            // Execute from the root
+            
+            uint32_t fileAddress = fsFileExists(filename, parameters_begin-1);
+            
+            if (fileAddress != 0) {
+                
+                uint8_t directoryFlag = 0;
+                fs_read_byte(fileAddress + OFFSET_DIRECTORY_FLAG, &directoryFlag);
+                
+                // Check file is on the root directory
+                if (directoryFlag == 0) {
+                    
+                    //uint32_t programSize = fsGetFileSize(filename, FILE_NAME_LENGTH);
+                    
+                    // Check file is executable
+                    struct FSAttribute attribute;
+                    fsGetFileAttributes(filename, parameters_begin, &attribute);
+                    
+                    // Check executable
+                    if (attribute.executable == 'x') {
+                        
+                        uint8_t index = fsFileOpen(filename, parameters_begin);
+                        
+                        uint32_t programSize = fsGetFileSize(filename, FILE_NAME_LENGTH);
+                        uint8_t programBuffer[programSize];
+                        
+                        if (index > 0) {
+                            
+                            // Load the file
+                            fsFileReadBin(index, programBuffer, programSize);
+                            
+                            // Emulate the code
+                            EmulateX4(programBuffer, programSize);
+                            
+                            fsFileClose(index);
+                            
+                            isRightFunction = 1;
+                            
+                        }
+                        
+                    }
+                    
+                }
+                
+            }
             
         }
+        
+        
+        /*
+        
+        // Get working directory
+        uint8_t workingDirectory[20];
+        uint8_t workingDirectoryLength = fsGetWorkingDirectory(workingDirectory);
+        
+        uint32_t directoryAddress = fsFileExists(workingDirectory, workingDirectoryLength-1);
+        
+        // Check executable file exists
+        uint32_t programSize = fsGetFileSize(filename, FILE_NAME_LENGTH);
+        
+        // Check file is executable
+        struct FSAttribute attribute;
+        fsGetFileAttributes(filename, parameters_begin, &attribute);
+        
+        // Check executable
+        if (attribute.executable != 0) {
+            
+            // Execute from working directory
+            if (directoryAddress != 0) {
+                
+                
+            }
+            
+            // Execute file from root
+            
+            // Fire up the emulator
+            uint8_t index = fsFileOpen(filename, parameters_begin);
+            uint8_t programBuffer[programSize];
+            
+            // Load the file
+            fsFileReadBin(index, programBuffer, programSize);
+            
+            // Emulate the code
+            EmulateX4(programBuffer, programSize);
+            
+            fsFileClose(index);
+            
+            return;
+        }
+        */
+        
+        
         
         //
         // Bad command or filename
         
-        if ((programSize == 0) & (isRightFunction == 0) & (console_string_length > 0)) {
+        if ((isRightFunction == 0) & (console_string_length > 0)) {
             
             // Save last entered command string
             for (uint8_t i=0; i < console_string_length; i++) 
