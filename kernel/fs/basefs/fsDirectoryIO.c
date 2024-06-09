@@ -1,5 +1,16 @@
 #include <kernel/kernel.h>
 
+uint8_t fsCheckIsDirectory(uint8_t* name, uint8_t nameLength) {
+    
+    struct FSAttribute attribute;
+    fsGetFileAttributes(name, nameLength, &attribute);
+    
+    if (attribute.type == 'd') 
+        return 1;
+    
+    return 0;
+}
+
 uint8_t fsDirectorySetNumberOfFiles(uint8_t* name, uint8_t nameLength, uint32_t numberOfFiles) {
     
     uint32_t fileAddress = fsFileExists(name, nameLength);
