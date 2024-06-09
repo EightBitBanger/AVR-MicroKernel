@@ -75,60 +75,6 @@ void functionCOPY(uint8_t* param, uint8_t param_length) {
         
     }
     
-    // Check paste function
-    if ((sourceFilename[0] == '-') & 
-        (sourceFilename[1] == 'p')) {
-        
-        if ((fileCopySourceSize == 0) | 
-           (fileCopySourceCurrentDevice == 0) | 
-           (fileCopySourceNameLength == 0)) {
-            
-            print(msgFileAccessError, sizeof(msgFileAccessError));
-            printLn();
-            
-            return;
-        }
-        
-        // Remember current working directory
-        uint8_t OldWorkingDir[FILE_NAME_LENGTH];
-        uint8_t OldWorkingDirLength = fsGetWorkingDirectory(OldWorkingDir);
-        uint32_t oldDevice = fsGetDevice();
-        
-        // Copy source file data
-        fsSetWorkingDirectory(fileCopySourceWorkingDir, fileCopySourceWorkingDirLength);
-        fsSetDevice(fileCopySourceCurrentDevice);
-        
-        uint8_t index = fsFileOpen(fileCopySourceName, fileCopySourceNameLength);
-        
-        uint8_t fileBuffer[fileCopySourceSize];
-        fsFileReadBin(index, fileBuffer, fileCopySourceSize);
-        
-        fsFileClose(index);
-        
-        // Paste the file into the current working directory
-        // Restore the current working directory
-        
-        fsSetWorkingDirectory(OldWorkingDir, OldWorkingDirLength);
-        fsSetDevice(oldDevice);
-        
-        fsFileCreate(fileCopySourceName, fileCopySourceNameLength, fileCopySourceSize, ' ');
-        
-        // Write buffer to new file
-        index = fsFileOpen(fileCopySourceName, fileCopySourceNameLength);
-        
-        fsFileWrite(index, fileBuffer, fileCopySourceSize);
-        
-        fsFileClose(index);
-        
-        // Set file attributes
-        fsSetFileAttributes(fileCopySourceName, fileCopySourceNameLength, &fileCopySourceAttrib);
-        
-        print(fileCopySourceName, fileCopySourceNameLength);
-        printLn();
-        
-        return;
-    }
-    
     // Ignore directories
     struct FSAttribute attributes;
     fsGetFileAttributes(sourceFilename, sourceNameLength, &attributes);
