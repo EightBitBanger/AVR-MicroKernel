@@ -746,11 +746,10 @@ void consoleInit(void) {
     
     lastChar = kbDecodeScanCode(oldScanCodeLow, oldScanCodeHigh);
     
-    for (uint8_t i=0; i < CONSOLE_STRING_LENGTH; i++) 
+    for (uint8_t i=0; i < CONSOLE_STRING_LENGTH; i++) {
         console_string[i] = ' ';
+    }
     
-    displayDevice->write( 163, 0x24 );
-	
 	for (uint8_t i=0; i < CONSOLE_FUNCTION_TABLE_SIZE; i++) {
         
         for (uint8_t n=0; n < CONSOLE_FUNCTION_NAME_LENGTH; n++) {
