@@ -50,8 +50,6 @@ void fsSetWorkingDirectory(uint8_t* directoryName, uint8_t nameLength) {
     if (fileAddress == 0) 
         return;
     
-    fs_working_directory_address = fileAddress;
-    
     fsClearWorkingDirectory();
     
     if (nameLength > FILE_NAME_LENGTH) 
@@ -61,6 +59,9 @@ void fsSetWorkingDirectory(uint8_t* directoryName, uint8_t nameLength) {
         fs_working_directory[i] = directoryName[i];
     
     fs_working_directory_length = nameLength + 1;
+    
+    fs_working_directory_address = fileAddress;
+    
     return;
 }
 
