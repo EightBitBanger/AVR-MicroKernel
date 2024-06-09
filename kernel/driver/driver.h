@@ -18,6 +18,9 @@ struct Driver {
     /// Low level bus interface
     struct Bus interface;
     
+    /// Is the driver currently linked to a device
+    uint8_t is_linked;
+    
     /// Read a byte from the hardware device
     void(*read)(uint32_t address, uint8_t* buffer);
     

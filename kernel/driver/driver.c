@@ -38,6 +38,14 @@ uint8_t LoadLibrary(uint8_t* filename, uint8_t filenameLength) {
         if (loaded_drivers[i].device.device_id != 0) 
             continue;
         
+        // Check if the driver is already loaded
+        for (uint8_t i=0; i < NUMBER_OF_DRIVERS; i++) {
+            
+            if (StringCompare(&fileBuffer[0], FILE_NAME_LENGTH, &loaded_drivers[i].device.device_name[0], FILE_NAME_LENGTH) == 1) 
+                return 0;
+            
+        }
+        
         // Add the new driver
         
         for (uint8_t a=0; a < DEVICE_NAME_LENGTH; a++) 
@@ -56,25 +64,28 @@ uint8_t LoadLibrary(uint8_t* filename, uint8_t filenameLength) {
         
         switch (loaded_drivers[i].interface.bus_type) {
         
-        // Default hardware IO
         default:
             
         case 0:
-            loaded_drivers[0].read  = (void(*)(uint32_t, uint8_t*)) bus_read_byte;
-            loaded_drivers[0].write = (void(*)(uint32_t, uint8_t))  bus_write_byte;
+            loaded_drivers[i].read  = (void(*)(uint32_t, uint8_t*)) bus_read_byte;
+            loaded_drivers[i].write = (void(*)(uint32_t, uint8_t))  bus_write_byte;
             break;
             
         case 1:
-            loaded_drivers[0].read  = (void(*)(uint32_t, uint8_t*)) bus_read_memory;
-            loaded_drivers[0].write = (void(*)(uint32_t, uint8_t))  bus_write_memory;
+            loaded_drivers[i].read  = (void(*)(uint32_t, uint8_t*)) bus_read_memory;
+            loaded_drivers[i].write = (void(*)(uint32_t, uint8_t))  bus_write_memory;
             break;
             
         case 2:
-            loaded_drivers[0].read  = (void(*)(uint32_t, uint8_t*)) bus_read_io;
-            loaded_drivers[0].write = (void(*)(uint32_t, uint8_t))  bus_write_io;
+            loaded_drivers[i].read  = (void(*)(uint32_t, uint8_t*)) bus_read_io;
+            loaded_drivers[i].write = (void(*)(uint32_t, uint8_t))  bus_write_io;
             break;
             
         }
+        
+        loaded_drivers[i].is_linked = 1;
+        
+        RegisterDriver( (void*)&loaded_drivers[i] );
         
         break;
     }
@@ -146,9 +157,10 @@ void driverInit(void) {
         loaded_drivers[i].interface.write_waitstate = 0;
         loaded_drivers[i].interface.bus_type = 0;
         
-        loaded_drivers[0].read  = (void(*)(uint32_t, uint8_t*))0;
-        loaded_drivers[0].write = (void(*)(uint32_t, uint8_t))0;
+        loaded_drivers[i].is_linked = 0;
         
+        loaded_drivers[i].read  = (void(*)(uint32_t, uint8_t*))0;
+        loaded_drivers[i].write = (void(*)(uint32_t, uint8_t))0;
         
     }
     
