@@ -45,6 +45,8 @@ void initiatePS2Driver(void) {
     keyboardDriver->read  = __read_ps2_device;
     keyboardDriver->write = __write_ps2_device;
     
+    keyboardDriver->is_linked = 0;
+    
     return;
 }
 

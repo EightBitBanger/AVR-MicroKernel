@@ -29,7 +29,7 @@ struct DisplayDeviceDriver {
     
     struct Bus interface;
     
-    // Driver functions
+    uint8_t is_linked;
     
     void(*read)(uint32_t address, uint8_t* buffer);
     void(*write)(uint32_t address, uint8_t buffer);

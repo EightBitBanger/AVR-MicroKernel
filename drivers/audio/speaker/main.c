@@ -29,6 +29,8 @@ void initiateSpeakerDriver(void) {
 	
 	speakerDriver->device.device_id = 0x60;
 	
+	speakerDriver->is_linked = 0;
+	
 	speakerDriver->interface.read_waitstate  = 1000;
 	speakerDriver->interface.write_waitstate = 1000;
     

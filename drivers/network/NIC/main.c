@@ -32,9 +32,10 @@ void initiateNetworkDriver(void) {
 	networkDriver->interface.read_waitstate  = 20;
 	networkDriver->interface.write_waitstate = 20;
     
-    
     networkDriver->read  = __read_network_device;
     networkDriver->write = __write_network_device;
+    
+    networkDriver->is_linked = 0;
     
     return;
 }
