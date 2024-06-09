@@ -5,19 +5,6 @@ extern struct Bus fs_bus;
 
 uint32_t fsDirectoryFileExists(uint8_t* name, uint8_t nameLength) {
     
-    uint32_t currentCapacity = fsGetDeviceCapacity();
-    
-    if (currentCapacity == 0) 
-        return 0;
-    
-    // Verify the capacity
-    // Default to minimum size if size unknown
-    if ((currentCapacity != CAPACITY_8K) & 
-        (currentCapacity != CAPACITY_16K) & 
-        (currentCapacity != CAPACITY_32K)) {
-        currentCapacity = CAPACITY_8K;
-    }
-    
     if (fsCheckWorkingDirectory() == 1) {
         
         uint32_t directoryAddress = fsGetWorkingDirectoryAddress();
@@ -64,7 +51,7 @@ uint32_t fsDirectoryFileExists(uint8_t* name, uint8_t nameLength) {
             for (uint8_t i=0; i < FILE_NAME_LENGTH; i++) 
                 fs_read_byte(fileAddress.address + OFFSET_FILE_NAME + i, &filename[i]);
             
-            if (StringCompare(filename, FILE_NAME_LENGTH, name, nameLength) == 1) 
+            if (StringCompare(filename, FILE_NAME_LENGTH, name, nameLength-1) == 1) 
                 return fileAddress.address;
             
         }
