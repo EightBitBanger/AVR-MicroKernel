@@ -89,14 +89,14 @@ void fsInit(void) {
     return;
 }
 
-void fs_read_byte(struct Bus* bus, uint32_t address, uint8_t* buffer) {
+void fs_read_byte(uint32_t address, uint8_t* buffer) {
     
     __fs_read_byte(&fs_bus, address, buffer);
     
     return;
 }
 
-void fs_write_byte(struct Bus* bus, uint32_t address, uint8_t byte) {
+void fs_write_byte(uint32_t address, uint8_t byte) {
     
     __fs_write_byte(&fs_bus, address, byte);
     
@@ -159,9 +159,9 @@ uint8_t fsCheckDeviceReady(void) {
     // Check header byte
     uint8_t headerByte[3];
     
-    fs_read_byte(&fs_bus, currentDevice + 0, &headerByte[0]);
-    fs_read_byte(&fs_bus, currentDevice + 1, &headerByte[1]);
-    fs_read_byte(&fs_bus, currentDevice + 2, &headerByte[2]);
+    fs_read_byte(currentDevice + 0, &headerByte[0]);
+    fs_read_byte(currentDevice + 1, &headerByte[1]);
+    fs_read_byte(currentDevice + 2, &headerByte[2]);
     
     if (headerByte[0] != 0x13) return 0;
     if (headerByte[1] != 'f') return 0;
@@ -181,7 +181,7 @@ uint32_t fsGetDeviceCapacity(void) {
     union Pointer sizePointer;
     
     for (uint8_t i=0; i < 4; i++) 
-        fs_read_byte(&fs_bus, currentDevice + DEVICE_CAPACITY_OFFSET + i, &sizePointer.byte_t[i]);
+        fs_read_byte(currentDevice + DEVICE_CAPACITY_OFFSET + i, &sizePointer.byte_t[i]);
     
     return sizePointer.address;
 }

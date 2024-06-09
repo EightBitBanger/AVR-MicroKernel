@@ -45,8 +45,8 @@ struct FSAttribute {
 
 void fsInit(void);
 
-void fs_write_byte(struct Bus* bus, uint32_t address, uint8_t byte);
-void fs_read_byte(struct Bus* bus, uint32_t address, uint8_t* buffer);
+void fs_write_byte(uint32_t address, uint8_t byte);
+void fs_read_byte(uint32_t address, uint8_t* buffer);
 
 // Current working directory
 
