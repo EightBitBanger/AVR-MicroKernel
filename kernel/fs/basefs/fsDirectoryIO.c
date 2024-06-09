@@ -34,6 +34,22 @@ uint32_t fsDirectoryGetNumberOfFiles(uint8_t* name, uint8_t nameLength) {
     return directorySize.address;
 }
 
+uint32_t fsDirectoryGetFileSize(uint8_t* name, uint8_t nameLength) {
+    
+    uint32_t fileAddress = fsFileExists(name, nameLength);
+    
+    if (fileAddress == 0) 
+        return 0;
+    
+    // Read file size
+    union Pointer directoryFileSize;
+    
+    for (uint8_t i=0; i < 4; i++) 
+        fs_read_byte(fileAddress + OFFSET_FILE_SIZE + i, &directoryFileSize.byte_t[i]);
+    
+    return directoryFileSize.address;
+}
+
 uint8_t fsDirectorySetFlag(uint8_t* name, uint8_t nameLength, uint8_t flag) {
     
     uint32_t fileAddress = fsFileExists(name, nameLength);

@@ -18,42 +18,55 @@ uint32_t fsDirectoryFileExists(uint8_t* name, uint8_t nameLength) {
         currentCapacity = CAPACITY_8K;
     }
     
-    uint8_t workingDirectory[20];
-    uint8_t workingDirectoryLength = fsGetWorkingDirectory(workingDirectory);
-    
-    if ((workingDirectoryLength > 0) & (workingDirectory[0] != ' ')) {
+    if (fsCheckWorkingDirectory() == 1) {
         
         uint32_t directoryAddress = fsGetWorkingDirectoryAddress();
         
-        // Get directory file size
-        union Pointer fileSize;
-        for (uint8_t i=0; i < 4; i++) 
-            fs_read_byte(directoryAddress + OFFSET_FILE_SIZE + i, &fileSize.byte_t[i]);
+        uint8_t workingDirectory[FILE_NAME_LENGTH];
+        uint8_t workingDirectoryLength = fsGetWorkingDirectory(workingDirectory);
+        uint32_t numberOfFiles = fsDirectoryGetNumberOfFiles(workingDirectory, workingDirectoryLength-1);
+        uint32_t fileSize      = fsDirectoryGetFileSize(workingDirectory, workingDirectoryLength-1);
         
-        // Get directory size
-        union Pointer directorySize;
-        for (uint8_t i=0; i < 4; i++) 
-            fs_read_byte(directoryAddress + OFFSET_DIRECTORY_SIZE + i, &directorySize.byte_t[i]);
+        // Load the directory data
+        uint8_t dirBuffer[fileSize];
         
-        uint8_t fileBuffer[fileSize.address];
+        uint32_t sector = 0;
+        uint32_t sectorCounter = 0;
         
-        // Check the directory for the file
-        for (uint32_t d=0; d < directorySize.address; d++) {
+        for (uint32_t i=0; i < fileSize; i++) {
+            
+            // Skip the sector marker byte
+            if (sectorCounter == (SECTOR_SIZE - 1)) {
+                sectorCounter=0;
+                sector++;
+            }
+            
+            uint32_t positionOffset = directoryAddress + SECTOR_SIZE + sector + 1;
+            
+            fs_read_byte(positionOffset, &dirBuffer[i]);
+            
+            sectorCounter++;
+            sector++;
+            
+            continue;
+        }
+        
+        
+        for (uint32_t d=0; d < numberOfFiles; d++) {
             
             // Get the address to the file
             union Pointer fileAddress;
             for (uint8_t i=0; i < 4; i++) 
-                fs_read_byte(fileBuffer[(d * 4) + i], &fileAddress.byte_t[i]);
+                fileAddress.byte_t[i] = dirBuffer[(d * 4) + i];
             
             // Check the filename
-            uint8_t filename[10];
+            uint8_t filename[FILE_NAME_LENGTH];
             for (uint8_t i=0; i < FILE_NAME_LENGTH; i++) 
                 fs_read_byte(fileAddress.address + OFFSET_FILE_NAME + i, &filename[i]);
             
-            if (StringCompare(filename, 10, name, nameLength) == 1) 
+            if (StringCompare(filename, FILE_NAME_LENGTH, name, nameLength) == 1) 
                 return fileAddress.address;
             
-            continue;
         }
         
     }
