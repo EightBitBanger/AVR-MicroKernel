@@ -26,7 +26,7 @@ int main(void) {
     
 #ifdef _KERNEL_ALLOCATE_EXTERNAL_MEMORY__
     
-    AllocateExternalMemory();
+    //AllocateExternalMemory();
     
 #endif
     
@@ -61,7 +61,7 @@ int main(void) {
     
     //registerCommandDevice();
     //registerCommandCAP();
-    registerCommandList();
+    //registerCommandList();
     //registerCommandTASK();
     //registerCommandType();
     
@@ -86,8 +86,8 @@ int main(void) {
     //registerCommandCOPY();
     registerCommandCD();
     
-    registerCommandMK();
-    registerCommandRM();
+    //registerCommandMK();
+    //registerCommandRM();
     //registerCommandRN();
     //registerCommandMKDIR();
     //registerCommandRMDIR();
@@ -107,13 +107,14 @@ int main(void) {
     kernelVectorTableInit();      // Hardware interrupt vector table
     schedulerInit();              // Scheduler sub system
     fsInit();                     // File system
-    ntInit();                     // Network support
+    //ntInit();                     // Network support
     kInit();                      // Setup the kernel environment
     driverInit();                 // Driver hot loading
     
 #ifdef _KERNEL_PRINT_VERSION_INFORMATION__
-    
     ConsoleSetBlinkRate( CURSOR_BLINK_RATE );
+    
+    /*
     
     // Version
     uint8_t kernelHelloWorldString[] = "kernel";
@@ -131,7 +132,7 @@ int main(void) {
     printChar('.');
     printInt(versionPatch);
     printLn();
-    
+    */
 #endif
     
     

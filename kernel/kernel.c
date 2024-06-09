@@ -25,21 +25,89 @@ void kInit(void) {
     uint8_t binDirName[]  = "bin";
     fsDirectoryCreate(binDirName, sizeof(binDirName)-1);
     
+    
+    
+    // Create test executable
+    uint8_t testFileName[]  = "test";
+    fsFileCreate(testFileName, sizeof(testFileName)-1, 80, ' ');
+    
+    struct FSAttribute attribTest;
+    attribTest.executable = 'x';
+    attribTest.readable   = 'r';
+    attribTest.writeable  = 'w';
+    attribTest.type       = ' ';
+    
+    fsSetFileAttributes(testFileName, sizeof(testFileName)-1, &attribTest);
+    
+    uint8_t index = fsFileOpen(testFileName, sizeof(testFileName)-1);
+    uint8_t bufferTest[] = {0x89, 0x03, 'V', 0xcc, 0x10, 
+                            0x89, 0x03, 'e', 0xcc, 0x10, 
+                            0x89, 0x03, 'r', 0xcc, 0x10, 
+                            0x89, 0x03, 's', 0xcc, 0x10, 
+                            0x89, 0x03, 'i', 0xcc, 0x10, 
+                            0x89, 0x03, 'o', 0xcc, 0x10, 
+                            0x89, 0x03, 'n', 0xcc, 0x10, 
+                            0x89, 0x03, ' ', 0xcc, 0x10, 
+                            0x89, 0x03, '0', 0xcc, 0x10, 
+                            0x89, 0x03, '.', 0xcc, 0x10, 
+                            0x89, 0x03, '0', 0xcc, 0x10, 
+                            0x89, 0x03, '.', 0xcc, 0x10, 
+                            0x89, 0x03, '1', 0xcc, 0x10, 
+                            
+                            0xcc, 0x20};
+    
+    
+    fsFileWrite(index, bufferTest, sizeof(bufferTest));
+    fsFileClose(index);
+    
+    
+    
     uint8_t drvDirName[]  = "drivers";
     fsDirectoryCreate(drvDirName, sizeof(drvDirName)-1);
     
     fsSetWorkingDirectory(drvDirName, sizeof(drvDirName)-1);
     
+    
+    
+    
+    
+    // Create test driver
     uint8_t driverFileName[]  = "sys";
     fsFileCreate(driverFileName, sizeof(driverFileName)-1, 40, ' ');
     
-    uint8_t index = fsFileOpen(driverFileName, sizeof(driverFileName)-1);
-    
-    uint8_t buffer[] = "kmod      xxxx";
-    
-    fsFileWrite(index, buffer, sizeof(buffer) - 1);
-    
+    index = fsFileOpen(driverFileName, sizeof(driverFileName)-1);
+    uint8_t bufferDrv[] = "kmod      xxxx";
+    fsFileWrite(index, bufferDrv, sizeof(bufferDrv) - 1);
     fsFileClose(index);
+    
+    // Create test executable
+    uint8_t exeFileName[]  = "exe";
+    fsFileCreate(exeFileName, sizeof(exeFileName)-1, 40, ' ');
+    
+    struct FSAttribute attrib;
+    attrib.executable = 'x';
+    attrib.readable   = 'r';
+    attrib.writeable  = 'w';
+    attrib.type       = ' ';
+    
+    fsSetFileAttributes(exeFileName, sizeof(exeFileName)-1, &attrib);
+    
+    index = fsFileOpen(exeFileName, sizeof(exeFileName)-1);
+    uint8_t bufferExe[] = { 0x89, 0x03, 'F', 0xcc, 0x10, 
+                            0x89, 0x03, 'U', 0xcc, 0x10, 
+                            0x89, 0x03, 'C', 0xcc, 0x10, 
+                            0x89, 0x03, 'K', 0xcc, 0x10, 
+                            0x89, 0x03, ' ', 0xcc, 0x10, 
+                            0x89, 0x03, 'Y', 0xcc, 0x10, 
+                            0x89, 0x03, 'O', 0xcc, 0x10, 
+                            0x89, 0x03, 'U', 0xcc, 0x10, 
+                            
+                            0xcc, 0x20};
+    
+    
+    fsFileWrite(index, bufferExe, sizeof(bufferExe));
+    fsFileClose(index);
+    
     
     fsClearWorkingDirectory();
     
