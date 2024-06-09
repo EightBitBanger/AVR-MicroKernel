@@ -14,7 +14,6 @@ struct DirectoryName {
 struct DirectoryName directoryStack[16];
 
 extern uint8_t fs_directory_stack_ptr;
-extern uint32_t fs_working_directory_address;
 
 
 void functionCD(uint8_t* param, uint8_t param_length) {
