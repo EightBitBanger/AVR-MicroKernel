@@ -7,9 +7,6 @@ uint32_t fsFileExists(uint8_t* name, uint8_t nameLength) {
     
     uint32_t currentCapacity = fsGetDeviceCapacity();
     
-    if (currentCapacity == 0) 
-        return 0;
-    
     // Verify the capacity
     // Default to minimum size if size unknown
     if ((currentCapacity != CAPACITY_8K) & 
