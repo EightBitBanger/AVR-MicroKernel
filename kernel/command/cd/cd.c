@@ -65,21 +65,24 @@ void functionCD(uint8_t* param, uint8_t param_length) {
             return;
         }
         
-        uint32_t directoryAddress = fsFileExists(param, param_length-1);
-        
-        if (directoryAddress == 0) {
+        // Check for sub directory of the working directory
+        if (fsCheckWorkingDirectory() == 0) {
             
-            print(msgDirectoryNotFound, sizeof(msgDirectoryNotFound));
-            printLn();
+            // Check root for a directory
             
-            return;
+            // Check directory is not claimed by a directory
+            if (fsDirectoryGetFlag(param, param_length) != 0) {
+                
+                print(msgDirectoryNotFound, sizeof(msgDirectoryNotFound));
+                printLn();
+                
+                return;
+            }
+            
         }
         
-        struct FSAttribute attribute;
-        fsGetFileAttributes(param, param_length-1, &attribute);
-        
-        // Check is a directory
-        if (attribute.type != 'd') {
+        // Check is NOT a directory
+        if (fsCheckIsDirectory(param, param_length-1) == 0) {
             
             print(msgNotDirectory, sizeof(msgNotDirectory));
             printLn();
@@ -87,7 +90,13 @@ void functionCD(uint8_t* param, uint8_t param_length) {
             return;
         }
         
-        fsSetWorkingDirectory(param, param_length);
+        if (fsSetWorkingDirectory(param, param_length) == 0) {
+            
+            print(msgDirectoryNotFound, sizeof(msgDirectoryNotFound));
+            printLn();
+            
+            return;
+        }
         
         fs_directory_stack_ptr++;
         
