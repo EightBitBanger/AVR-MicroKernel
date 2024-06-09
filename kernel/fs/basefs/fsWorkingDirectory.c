@@ -43,12 +43,33 @@ void fsClearWorkingDirectory(void) {
     return;
 }
 
-void fsSetWorkingDirectory(uint8_t* directoryName, uint8_t nameLength) {
+uint8_t fsSetWorkingDirectory(uint8_t* directoryName, uint8_t nameLength) {
     
-    uint32_t fileAddress = fsFileExists(directoryName, nameLength);
+    uint32_t directoryAddress = 0;
     
-    if (fileAddress == 0) 
-        return;
+    if (fsCheckWorkingDirectory() == 1) {
+        
+        if (fs_directory_stack_ptr > 1) {
+            
+            directoryAddress = fsDirectoryFileExists(directoryName, nameLength);
+            
+        } else {
+            
+            directoryAddress = fsFileExists(directoryName, nameLength);
+            
+        }
+        
+    } else {
+        
+        directoryAddress = fsFileExists(directoryName, nameLength);
+        
+    }
+    
+    if (directoryAddress == 0) 
+        return 0;
+    
+    if (fs_working_directory_address == directoryAddress) 
+        return 0;
     
     fsClearWorkingDirectory();
     
@@ -60,9 +81,9 @@ void fsSetWorkingDirectory(uint8_t* directoryName, uint8_t nameLength) {
     
     fs_working_directory_length = nameLength + 1;
     
-    fs_working_directory_address = fileAddress;
+    fs_working_directory_address = directoryAddress;
     
-    return;
+    return 1;
 }
 
 uint8_t fsGetWorkingDirectory(uint8_t* directoryName) {
