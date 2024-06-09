@@ -11,6 +11,8 @@
 
 #define CONSOLE_STRING_LENGTH  40
 
+extern uint32_t fs_working_directory_address;
+
 uint16_t display_width  = 0;
 uint16_t display_height = 0;
 
@@ -309,6 +311,7 @@ void consoleRunShell(void) {
                     
                     // Execute file from the working directory
                     
+                    //fs_read_byte( fs_working_directory_address
                     
                     
                 }

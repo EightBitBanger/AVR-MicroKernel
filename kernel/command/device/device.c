@@ -6,7 +6,7 @@
 
 void functionDevice(uint8_t* param, uint8_t param_length) {
     
-    uint8_t msgPressAnyKey[] = "Press any key...";
+    uint8_t msgPressAnyKey[]   = "Press any key...";
     
     uint8_t lineCount = 0;
     
@@ -84,17 +84,14 @@ void functionDevice(uint8_t* param, uint8_t param_length) {
     }
     
     //
-    // Help function
+    // Usage
     
     uint8_t msgHelpA[] = "-drv";
     uint8_t msgHelpB[] = "-drv lnk";
-    //uint8_t msgHelpC[] = "";
     print(msgHelpA, sizeof(msgHelpA));
     printLn();
     print(msgHelpB, sizeof(msgHelpB));
     printLn();
-    //print(msgHelpC, sizeof(msgHelpC));
-    //printLn();
     
     return;
 }

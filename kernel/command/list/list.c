@@ -30,15 +30,11 @@ void functionList(uint8_t* param, uint8_t param_length) {
     
     uint8_t buffer[60];
     
-    struct Bus bus;
-    bus.read_waitstate  = 10;
-    bus.write_waitstate = 10;
-    
     uint8_t pageSize = 60;
     
     for (uint8_t i=0; i < 60; i++) {
         
-        fs_read_byte(&bus, fsGetDevice() + i + (page * pageSize), &buffer[i]);
+        fs_read_byte(fsGetDevice() + i + (page * pageSize), &buffer[i]);
         
     }
     
