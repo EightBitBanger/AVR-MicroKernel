@@ -59,15 +59,15 @@ int main(void) {
     
   #ifdef INCLUDE_KERNEL_APPLICATIONS
     
-    registerCommandDevice();
+    //registerCommandDevice();
     //registerCommandCAP();
     registerCommandList();
     //registerCommandTASK();
-    registerCommandType();
+    //registerCommandType();
     
-    registerCommandLD();
+    //registerCommandLD();
     
-    registerCommandEDIT();
+    //registerCommandEDIT();
     //registerCommandAssembly();
     
     //registerCommandCLS();
@@ -83,11 +83,11 @@ int main(void) {
   #ifdef INCLUDE_FILE_SYSTEM_APPLICATIONS
     
     registerCommandLS();
-    registerCommandCOPY();
+    //registerCommandCOPY();
     registerCommandCD();
     
-    //registerCommandMK();
-    //registerCommandRM();
+    registerCommandMK();
+    registerCommandRM();
     //registerCommandRN();
     //registerCommandMKDIR();
     //registerCommandRMDIR();
