@@ -25,6 +25,23 @@ uint8_t fsFileOpen(uint8_t* name, uint8_t nameLength) {
     return 0;
 }
 
+uint8_t fsDirectoryFileOpen(uint8_t* name, uint8_t nameLength) {
+    
+    fileBeginAddress = fsDirectoryFileExists(name, nameLength);
+    
+    if (fileBeginAddress != 0) {
+        
+        fileSize = fsGetFileSize(name, nameLength) + 1;
+        
+        fileSeek = 0;
+        
+        return 1;
+    }
+    
+    fileSize = 0;
+    return 0;
+}
+
 uint8_t fsFileSeekGet(void) {
     return fileSeek;
 }
