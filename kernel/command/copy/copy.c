@@ -25,7 +25,6 @@ void functionCOPY(uint8_t* param, uint8_t param_length) {
     uint8_t msgFileAccessError[]    = "File access error";
     uint8_t msgDestinationError[]   = "Destination error";
     uint8_t msgBadName[]            = "Invalid filename";
-    uint8_t msgSourceCopied[]       = "File referenced";
     
     uint8_t sourceFilename[FILE_NAME_LENGTH];
     uint8_t destFilename[FILE_NAME_LENGTH];
@@ -33,7 +32,7 @@ void functionCOPY(uint8_t* param, uint8_t param_length) {
     uint8_t sourceNameLength = 0;
     uint8_t destNameLength   = 0;
     
-    uint8_t destNameIsSource = 0;
+    uint8_t fileBufferSize = 0;
     
     for (uint8_t i=0; i < FILE_NAME_LENGTH; i++) {
         sourceFilename[i] = ' ';
@@ -75,7 +74,7 @@ void functionCOPY(uint8_t* param, uint8_t param_length) {
         
     }
     
-    // Ignore directories
+    // Ignore directories as source
     struct FSAttribute attributes;
     fsGetFileAttributes(sourceFilename, sourceNameLength, &attributes);
     
@@ -86,6 +85,192 @@ void functionCOPY(uint8_t* param, uint8_t param_length) {
         
         return;
     }
+    
+    // Check filenames
+    if ((sourceFilename[0] == ' ') | (destFilename[0] == ' ')) 
+        return;
+    
+    
+    // Cannot copy a directory
+    if (fsCheckIsDirectory(sourceFilename, sourceNameLength) == 1) {
+        
+        print(msgSourceNotFound, sizeof(msgSourceNotFound));
+        printLn();
+        
+        return;
+    }
+    
+    //
+    // Copy file data
+    
+    index = fsFileOpen(sourceFilename, sourceNameLength);
+    
+    if (index == 0) {
+        
+        print(msgSourceNotFound, sizeof(msgSourceNotFound));
+        printLn();
+        
+        return;
+    }
+    
+    struct FSAttribute attrib;
+    fsGetFileAttributes(sourceFilename, sourceNameLength, &attrib);
+    
+    uint32_t fileSize = fsGetFileSize(sourceFilename, sourceNameLength);
+    
+    uint8_t fileBuffer[fileSize];
+    
+    fsFileReadBin(index, fileBuffer, fileSize);
+    
+    fsFileClose(index);
+    
+    //print(msgFileCopied,sizeof(msgFileCopied));
+    //printLn();
+    
+    
+    
+    
+    
+    //
+    // Check destination is new local file
+    
+    if (destFilename[1] != ':') {
+        
+        // Check destination is a directory
+        if (fsCheckIsDirectory(destFilename, destNameLength) == 1) {
+            
+            uint8_t msgDestDir[] = "Copy to a dir";
+            print(msgDestDir, sizeof(msgDestDir));
+            printLn();
+            
+            
+            // Check if file exists in dir
+            
+            // Copy the file to the directory
+            
+            return;
+        }
+        
+        
+        // Check destination file already exists
+        if (fsFileExists(destFilename, destNameLength) != 0) {
+            
+            print(msgDestinationError, sizeof(msgDestinationError));
+            printLn();
+            
+            return;
+        }
+        
+        // Copy the file to a new file on the root
+        
+        if (fsFileCreate(destFilename, destNameLength, fileSize, ' ') != 0) {
+            
+            // Copy file data
+            index = fsFileOpen(destFilename, destNameLength);
+            
+            fsFileWrite(index, fileBuffer, fileSize);
+            
+            fsFileClose(index);
+            
+            fsSetFileAttributes(destFilename, destNameLength, &attrib);
+            
+            print(msgFileCopied,sizeof(msgFileCopied));
+            printLn();
+            
+            return;
+        }
+        
+        print(msgDestinationError,sizeof(msgDestinationError));
+        printLn();
+        
+        return;
+    }
+    
+    
+    
+    //
+    // Check destination is on another device
+    
+    if (destFilename[1] == ':') {
+        
+        uint8_t msgDestIsDevice[] = "Dest is device";
+        
+        print(msgDestIsDevice, sizeof(msgDestIsDevice));
+        printLn();
+        
+        return;
+    }
+    
+    
+    
+    
+    
+    
+    
+    return;
+    
+    
+    
+    
+    
+    //
+    // Copy file on the same device
+    //
+    
+    if (destFilename[1] != ':') {
+        
+        uint8_t msgToNewFilename[] = "Copy local file";
+        print(msgToNewFilename, sizeof(msgToNewFilename));
+        printLn();
+        
+        return;
+    }
+    
+    // Check file buffer
+    if (fileBufferSize == 0) {
+        
+        print(msgFileAccessError, sizeof(msgFileAccessError));
+        printLn();
+        
+        return;
+    }
+    
+    
+    
+    
+    
+    //
+    // Send file to a new device
+    //
+    
+    if (destFilename[1] == ':') {
+        
+        uint8_t msgToDevice[] = "Send to  :";
+        msgToDevice[8] = destFilename[0];
+        
+        print(msgToDevice, sizeof(msgToDevice));
+        printLn();
+        
+        
+        
+        return;
+    }
+    
+    
+    
+    
+    
+    
+    
+    return;
+    
+    
+    
+    
+    
+    /*
+    
+    
     
     // Check destination filename
     if (((destNameLength - 2) < 1) | 
@@ -154,8 +339,8 @@ void functionCOPY(uint8_t* param, uint8_t param_length) {
     
     if (sourceDevice == 0x00000) {
         
-        currentDevice     = 0xff;
-        destinationDevice = 0xff;
+        currentDevice     = 'X';
+        destinationDevice = 0x00;
         
     } else {
         
@@ -163,29 +348,19 @@ void functionCOPY(uint8_t* param, uint8_t param_length) {
         destinationDevice = currentDevice;
     }
     
-    if (destFilename[0] == 'X') {
+    
+    // Destination is a peripheral device
+    if ((destFilename[0] >= 'a') & 
+        (destFilename[0] <= 'z') & 
+        (destFilename[1] == ':')) {
         
-        // Destination is the local system root
+        destinationDevice = destFilename[0] - 'a';
         
-        fsSetDeviceLetter('X');
-        destinationDevice = 0xff;
+        fsSetDeviceLetter( destinationDevice );
+        
         destNameIsSource = 1;
-        
-    } else {
-        
-        // Destination is a peripheral device
-        if ((destFilename[0] >= 'a') & 
-            (destFilename[0] <= 'z') & 
-            (destFilename[1] == ':')) {
-            
-            destinationDevice = destFilename[0] - 'a';
-            
-            fsSetDeviceLetter( destinationDevice );
-            
-            destNameIsSource = 1;
-        }
-        
     }
+    
     
     // Destination name is the source name
     if (destNameIsSource == 1) {
@@ -270,6 +445,8 @@ void functionCOPY(uint8_t* param, uint8_t param_length) {
     
     print(msgFileCopied, sizeof(msgFileCopied));
     printLn();
+    
+    */
     
     return;
 }
