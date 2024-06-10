@@ -51,7 +51,7 @@ void fs_read_byte(uint32_t address, uint8_t* buffer);
 // Current working directory
 
 void fsClearWorkingDirectory(void);
-void fsSetWorkingDirectory(uint8_t* directoryName, uint8_t nameLength);
+uint8_t fsSetWorkingDirectory(uint8_t* directoryName, uint8_t nameLength);
 uint8_t fsGetWorkingDirectory(uint8_t* directoryName);
 uint8_t fsGetWorkingDirectoryLength(void);
 
@@ -104,9 +104,9 @@ uint8_t fsFileSeekGet(void);
 uint8_t fsFileSeekSet(uint8_t position);
 uint8_t fsFileClose(uint8_t index);
 
-uint8_t fsFileWrite(uint8_t index, uint8_t* buffer, uint32_t length);
+uint8_t fsFileWrite(uint8_t index, uint8_t* buffer, uint32_t size);
 uint8_t fsFileReadText(uint8_t index, uint8_t* buffer, uint32_t length);
-uint8_t fsFileReadBin(uint8_t index, uint8_t* buffer, uint32_t length);
+uint8_t fsFileReadBin(uint8_t index, uint8_t* buffer, uint32_t size);
 
 // Directory
 
@@ -119,7 +119,11 @@ uint8_t fsDirectorySetNumberOfFiles(uint8_t* name, uint8_t nameLength, uint32_t 
 uint8_t fsDirectorySetFlag(uint8_t* name, uint8_t nameLength, uint8_t flag);
 uint8_t fsDirectoryGetFlag(uint8_t* name, uint8_t nameLength);
 
+uint8_t fsCheckIsDirectory(uint8_t* name, uint8_t nameLength);
+
 uint32_t fsDirectoryExists(uint8_t* name, uint8_t nameLength);
 uint32_t fsDirectoryFileExists(uint8_t* name, uint8_t nameLength);
+
+uint32_t fsDirectoryGetFileSize(uint8_t* name, uint8_t nameLength);
 
 #endif

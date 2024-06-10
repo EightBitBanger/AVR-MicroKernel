@@ -47,7 +47,7 @@ uint8_t fsFileClose(uint8_t index) {
     return 0;
 }
 
-uint8_t fsFileWrite(uint8_t index, uint8_t* buffer, uint32_t length) {
+uint8_t fsFileWrite(uint8_t index, uint8_t* buffer, uint32_t size) {
     
     if (fileBeginAddress == 0) 
         return 0;
@@ -55,7 +55,7 @@ uint8_t fsFileWrite(uint8_t index, uint8_t* buffer, uint32_t length) {
     uint32_t sector = 0;
     uint32_t sectorCounter = 0;
     
-    for (uint32_t i=0; i < length; i++) {
+    for (uint32_t i=0; i < size; i++) {
         
         // Skip the sector marker byte
         if (sectorCounter == (SECTOR_SIZE - 1)) {
@@ -69,9 +69,6 @@ uint8_t fsFileWrite(uint8_t index, uint8_t* buffer, uint32_t length) {
         
         sectorCounter++;
         sector++;
-        
-        //if (buffer[i] == '\0') 
-        //    break;
         
         continue;
     }
@@ -117,7 +114,7 @@ uint8_t fsFileReadText(uint8_t index, uint8_t* buffer, uint32_t length) {
 }
 
 
-uint8_t fsFileReadBin(uint8_t index, uint8_t* buffer, uint32_t length) {
+uint8_t fsFileReadBin(uint8_t index, uint8_t* buffer, uint32_t size) {
     
     if (fileBeginAddress == 0) 
         return 0;
@@ -125,10 +122,10 @@ uint8_t fsFileReadBin(uint8_t index, uint8_t* buffer, uint32_t length) {
     uint32_t sector = 0;
     uint32_t sectorCounter = 0;
     
-    if (length > (fileSize + 1)) 
-        length = fileSize + 1;
+    if (size > (fileSize + 1)) 
+        size = fileSize + 1;
     
-    for (uint32_t i=0; i < length; i++) {
+    for (uint32_t i=0; i < size; i++) {
         
         // Skip the sector marker byte
         if (sectorCounter == (SECTOR_SIZE - 1)) {
