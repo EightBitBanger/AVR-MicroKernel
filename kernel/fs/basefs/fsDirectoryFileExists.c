@@ -51,7 +51,7 @@ uint32_t fsDirectoryFileExists(uint8_t* name, uint8_t nameLength) {
             for (uint8_t i=0; i < FILE_NAME_LENGTH; i++) 
                 fs_read_byte(fileAddress.address + OFFSET_FILE_NAME + i, &filename[i]);
             
-            if (StringCompare(filename, FILE_NAME_LENGTH, name, nameLength-1) == 1) 
+            if (StringCompare(filename, FILE_NAME_LENGTH, name, nameLength) == 1) 
                 return fileAddress.address;
             
         }
