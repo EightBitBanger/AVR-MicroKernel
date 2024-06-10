@@ -27,8 +27,17 @@ void kInit(void) {
     
     
     
+    uint8_t drvDirName[]  = "drivers";
+    fsDirectoryCreate(drvDirName, sizeof(drvDirName)-1);
+    
+    
+    
+    
+    
+    
+    
     // Create test executable
-    uint8_t testFileName[]  = "test";
+    uint8_t testFileName[]  = "ver";
     fsFileCreate(testFileName, sizeof(testFileName)-1, 80, ' ');
     
     struct FSAttribute attribTest;
@@ -62,17 +71,22 @@ void kInit(void) {
     
     
     
-    uint8_t drvDirName[]  = "drivers";
-    fsDirectoryCreate(drvDirName, sizeof(drvDirName)-1);
+    
+    
+    
+    
+    
+    
+    // Create test driver in drivers directory
     
     fsSetWorkingDirectory(drvDirName, sizeof(drvDirName)-1);
     
     
+    uint8_t subDirName[]  = "subdir";
+    fsDirectoryCreate(subDirName, sizeof(subDirName)-1);
     
     
-    
-    // Create test driver
-    uint8_t driverFileName[]  = "sys";
+    uint8_t driverFileName[]  = "kmod";
     fsFileCreate(driverFileName, sizeof(driverFileName)-1, 40, ' ');
     
     index = fsFileOpen(driverFileName, sizeof(driverFileName)-1);

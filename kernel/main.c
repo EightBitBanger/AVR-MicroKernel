@@ -14,11 +14,10 @@ int main(void) {
 	initiatePS2Driver();          // PS/2 Port
 	initiateNetworkDriver();      // UART Network Card
 	initiateSpeakerDriver();      // On-Board speaker
-	
+	consoleInit();                // Command console shell
+    
 	// Initiate kernel sub systems
 	InitiateDeviceTable();
-    
-    consoleInit();                // Command console shell
     
     //
     // Allocate external memory
@@ -61,7 +60,7 @@ int main(void) {
     
     //registerCommandDevice();
     //registerCommandCAP();
-    //registerCommandList();
+    registerCommandList();
     //registerCommandTASK();
     //registerCommandType();
     
@@ -83,11 +82,11 @@ int main(void) {
   #ifdef INCLUDE_FILE_SYSTEM_APPLICATIONS
     
     registerCommandLS();
-    //registerCommandCOPY();
+    registerCommandCOPY();
     registerCommandCD();
     
     //registerCommandMK();
-    //registerCommandRM();
+    registerCommandRM();
     //registerCommandRN();
     //registerCommandMKDIR();
     //registerCommandRMDIR();
