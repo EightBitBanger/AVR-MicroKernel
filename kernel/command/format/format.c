@@ -20,13 +20,23 @@ void functionFORMAT(uint8_t* param, uint8_t param_length) {
         deviceCapacityCurrent = deviceCapacity / 8;
     }
     
-    uint8_t deviceCapacityMsg[] = "k bytes";
-    uint8_t deviceCapacityAmount[10];
-    
-    uint8_t place = int_to_string(deviceCapacityCurrent, &deviceCapacityAmount[0]);
-    
-    print(deviceCapacityAmount, place + 1);
-    print(deviceCapacityMsg, sizeof(deviceCapacityMsg));
+    // Quick format
+    if (param[0] == 'q') {
+        
+        uint8_t deviceQuickFormat[] = "Quick format";
+        print(deviceQuickFormat, sizeof(deviceQuickFormat));
+        
+    } else {
+        
+        uint8_t deviceCapacityMsg[] = "k bytes";
+        uint8_t deviceCapacityAmount[10];
+        
+        uint8_t place = int_to_string(deviceCapacityCurrent, &deviceCapacityAmount[0]);
+        
+        print(deviceCapacityAmount, place + 1);
+        print(deviceCapacityMsg, sizeof(deviceCapacityMsg));
+        
+    }
     
     printLn();
     
@@ -55,7 +65,6 @@ void functionFORMAT(uint8_t* param, uint8_t param_length) {
     percentageSymbole[0] = '%';
     
     uint8_t sectorCounter = 0;
-    
     // Arbitrary read to trigger EEPROM cache flush
     uint8_t dummy;
     fs_read_byte(0, &dummy);
@@ -76,6 +85,9 @@ void functionFORMAT(uint8_t* param, uint8_t param_length) {
         
         if (percentage > 100) 
             percentage = 100;
+        
+        if (param[0] == 'q') 
+            continue;
         
         for (uint32_t c=0; c < cyclesPerPercent; c++) {
             
