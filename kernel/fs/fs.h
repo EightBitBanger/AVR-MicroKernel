@@ -98,11 +98,14 @@ uint8_t fsGetFileAttributes(uint8_t* name, uint8_t nameLength, struct FSAttribut
 uint8_t fsSetFileAttributes(uint8_t* name, uint8_t nameLength, struct FSAttribute* attributes);
 
 // File IO
-
 uint8_t fsFileOpen(uint8_t* name, uint8_t nameLength);
+uint8_t fsDirectoryFileOpen(uint8_t* name, uint8_t nameLength);
+
+uint8_t fsFileClose(uint8_t index);
+
 uint8_t fsFileSeekGet(void);
 uint8_t fsFileSeekSet(uint8_t position);
-uint8_t fsFileClose(uint8_t index);
+
 
 uint8_t fsFileWrite(uint8_t index, uint8_t* buffer, uint32_t size);
 uint8_t fsFileReadText(uint8_t index, uint8_t* buffer, uint32_t length);

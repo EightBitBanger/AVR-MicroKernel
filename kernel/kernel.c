@@ -90,7 +90,15 @@ void kInit(void) {
     fsFileCreate(driverFileName, sizeof(driverFileName)-1, 40, ' ');
     
     index = fsFileOpen(driverFileName, sizeof(driverFileName)-1);
-    uint8_t bufferDrv[] = "kmod      xxxx";
+    uint8_t bufferDrv[] = "KDkmod      $XXXXX";
+    
+    bufferDrv[12] = '$';     // Marker byte '$'
+    bufferDrv[13] = 0x13;    // Device ID
+    bufferDrv[14] = 'R';     // Bus read waitstate
+    bufferDrv[15] = 'W';     // Bus write waitstate
+    bufferDrv[16] = 'T';     // Bus interface type
+    bufferDrv[17] = 'S';     // Sub system registry type
+    
     fsFileWrite(index, bufferDrv, sizeof(bufferDrv) - 1);
     fsFileClose(index);
     

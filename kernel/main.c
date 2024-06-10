@@ -62,9 +62,9 @@ int main(void) {
     //registerCommandCAP();
     registerCommandList();
     //registerCommandTASK();
-    //registerCommandType();
+    registerCommandType();
     
-    //registerCommandLD();
+    registerCommandLD();
     
     //registerCommandEDIT();
     //registerCommandAssembly();
@@ -93,7 +93,7 @@ int main(void) {
     
     //registerCommandATTRIB();
     //registerCommandRepair();
-    //registerCommandFormat();
+    registerCommandFormat();
     
   #endif
     

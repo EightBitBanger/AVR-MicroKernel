@@ -9,6 +9,8 @@ void functionLD(uint8_t* param, uint8_t param_length) {
     uint8_t msgDriverLoaded[]      = "Driver loaded";
     uint8_t msgCannotLoadDriver[]  = "Already loaded";
     uint8_t msgDriverNotFound[]    = "File not found";
+    uint8_t msgInvalidDriver[]     = "Invalid driver";
+    
     
     if (fsFileExists(param, param_length) == 0) {
         print(msgDriverNotFound, sizeof(msgDriverNotFound));
@@ -16,12 +18,27 @@ void functionLD(uint8_t* param, uint8_t param_length) {
         return;
     }
     
-    if (LoadLibrary(param, param_length) == 1) {
+    uint8_t libState = LoadLibrary(param, param_length);
+    
+    // File is not a valid kernel driver
+    if (libState == 2) {
+        
+        print(msgInvalidDriver, sizeof(msgInvalidDriver));
+        printLn();
+        
+        return;
+    }
+    
+    if (libState == 1) {
+        
         print(msgDriverLoaded, sizeof(msgDriverLoaded));
         printLn();
+        
     } else {
+        
         print(msgCannotLoadDriver, sizeof(msgCannotLoadDriver));
         printLn();
+        
     }
     
     return;
