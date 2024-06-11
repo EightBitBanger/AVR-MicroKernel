@@ -268,19 +268,6 @@ void functionCOPY(uint8_t* param, uint8_t param_length) {
         fsSetDeviceLetter( destFilename[0] );
         fsClearWorkingDirectory();
         
-        // Check destination file exists
-        if (fsFileExists(sourceFilename, sourceNameLength) != 0) {
-            
-            print(msgDestinationError, sizeof(msgDestinationError));
-            printLn();
-            
-            // Restore the old device and working address
-            fsSetDeviceLetter(currentDeviceLetter);
-            fsSetWorkingDirectory(currentWorkingDirectory, currentWorkingDirectoryLength);
-            
-            return;
-        }
-        
         uint32_t fileAddress = fsFileCreate(sourceFilename, sourceNameLength, fileSize, ' ');
         
         if (fileAddress == 0) {
