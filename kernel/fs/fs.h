@@ -91,6 +91,7 @@ void fsSectorSetByte(uint32_t address, uint8_t byte);
 uint32_t fsFileCreate(uint8_t* name, uint8_t nameLength, uint32_t fileSize, uint8_t subType);
 uint8_t fsFileDelete(uint8_t* name, uint8_t nameLength);
 uint32_t fsFileExists(uint8_t* name, uint8_t nameLength);
+uint32_t fsRootFileExists(uint8_t* name, uint8_t nameLength);
 uint32_t fsFileFind(uint32_t index);
 uint8_t fsFileRename(uint8_t* name, uint8_t nameLength, uint8_t* newName, uint8_t newNameLength);
 uint32_t fsGetFileSize(uint8_t* name, uint8_t nameLength);

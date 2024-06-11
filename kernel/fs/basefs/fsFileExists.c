@@ -7,20 +7,12 @@ uint32_t fsFileExists(uint8_t* name, uint8_t nameLength) {
     
     uint32_t currentCapacity = fsGetDeviceCapacity();
     
-    // Verify the capacity
-    // Default to minimum size if size unknown
-    if ((currentCapacity != CAPACITY_8K) & 
-        (currentCapacity != CAPACITY_16K) & 
-        (currentCapacity != CAPACITY_32K)) {
-        currentCapacity = CAPACITY_8K;
-    }
-    
     // Root full sweep
     for (uint32_t sector=0; sector < currentCapacity; sector++) {
         
         // Find an active file start byte
         uint8_t headerByte;
-        fs_read_byte(currentDevice + sector * SECTOR_SIZE, &headerByte);
+        fs_read_byte(currentDevice + (sector * SECTOR_SIZE), &headerByte);
         
         if (headerByte != 0x55) 
             continue;

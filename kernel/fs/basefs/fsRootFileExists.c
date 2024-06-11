@@ -1,9 +1,7 @@
 #include <kernel/kernel.h>
 
-extern struct Bus fs_bus;
 
-
-uint32_t fsDirectoryExists(uint8_t* name, uint8_t nameLength) {
+uint32_t fsRootFileExists(uint8_t* name, uint8_t nameLength) {
     
     uint32_t currentDevice = fsGetDevice();
     
@@ -14,9 +12,16 @@ uint32_t fsDirectoryExists(uint8_t* name, uint8_t nameLength) {
         
         // Find an active file start byte
         uint8_t headerByte;
-        fs_read_byte(currentDevice + sector * SECTOR_SIZE, &headerByte);
+        fs_read_byte(currentDevice + (sector * SECTOR_SIZE), &headerByte);
         
         if (headerByte != 0x55) 
+            continue;
+        
+        // Check file is on the root
+        uint8_t directoryFlag;
+        fs_read_byte(currentDevice + (sector * SECTOR_SIZE) + OFFSET_DIRECTORY_FLAG, &directoryFlag);
+        
+        if (directoryFlag != 0) 
             continue;
         
         // Get filename from the device
@@ -24,13 +29,6 @@ uint32_t fsDirectoryExists(uint8_t* name, uint8_t nameLength) {
         
         for (uint8_t i=0; i < FILE_NAME_LENGTH; i++) 
             fs_read_byte(currentDevice + (sector * SECTOR_SIZE) + OFFSET_FILE_NAME + i, &filenameCheck[i]);
-        
-        // Check directory flag
-        uint8_t dirFlag = 0;
-        fs_read_byte(currentDevice + (sector * SECTOR_SIZE) + OFFSET_DIRECTORY_FLAG, &dirFlag);
-        
-        if (dirFlag == 0) 
-            continue;
         
         if (StringCompare(name, nameLength, filenameCheck, FILE_NAME_LENGTH) == 1) 
             return currentDevice + (sector * SECTOR_SIZE);

@@ -11,14 +11,6 @@ uint32_t fsFileFind(uint32_t index) {
     
     uint32_t fileFindIndex = 0;
     
-    // Verify the capacity
-    // Default to minimum size if size unknown
-    if ((currentCapacity != CAPACITY_8K) & 
-        (currentCapacity != CAPACITY_16K) & 
-        (currentCapacity != CAPACITY_32K)) {
-        currentCapacity = CAPACITY_8K;
-    }
-    
     // Check following sectors allocated to this file
     for (uint32_t sector=0; sector < currentCapacity; sector++) {
         
