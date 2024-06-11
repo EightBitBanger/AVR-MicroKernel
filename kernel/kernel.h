@@ -3,12 +3,11 @@
 
 #include <avr/io.h>
 
+#include <kernel/kconfig.h>
 #include <kernel/version.h>
 
 #include <kernel/kref.h>
-
 #include <kernel/kalloc.h>
-
 #include <kernel/pointers.h>
 
 #include <kernel/interrupt.h>

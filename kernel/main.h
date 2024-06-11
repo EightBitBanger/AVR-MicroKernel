@@ -3,8 +3,6 @@
 
 #include <kernel/delay.h>
 
-#include <kernel/configuration.h>
-
 #include <kernel/kernel.h>
 
 // Included console commands

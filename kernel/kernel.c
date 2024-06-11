@@ -90,7 +90,10 @@ void kInit(void) {
     fsFileCreate(driverFileName, sizeof(driverFileName)-1, 40, ' ');
     
     index = fsFileOpen(driverFileName, sizeof(driverFileName)-1);
-    uint8_t bufferDrv[] = "KDkmod      $XXXXX";
+    uint8_t bufferDrv[] = "  kmod      $XXXXX";
+    
+    bufferDrv[0] = 'K';      // Marker bytes  KD (kernel driver)
+    bufferDrv[1] = 'D';
     
     bufferDrv[12] = '$';     // Marker byte '$'
     bufferDrv[13] = 0x13;    // Device ID
