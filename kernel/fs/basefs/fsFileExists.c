@@ -5,7 +5,7 @@ uint32_t fsFileExists(uint8_t* name, uint8_t nameLength) {
     
     uint32_t currentDevice = fsGetDevice();
     
-    uint32_t currentCapacity = fsGetDeviceCapacity();
+    uint32_t currentCapacity = fsGetDeviceCapacity() / SECTOR_SIZE;
     
     // Root full sweep
     for (uint32_t sector=0; sector < currentCapacity; sector++) {
