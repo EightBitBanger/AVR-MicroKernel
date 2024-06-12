@@ -15,7 +15,7 @@ void functionFORMAT(uint8_t* param, uint8_t param_length) {
     
     uint32_t deviceCapacityCurrent=0;
     if (deviceCapacity == 0) {
-        deviceCapacityCurrent = fsGetDeviceCapacity() / 8;
+        deviceCapacityCurrent = CAPACITY_8K / 8;
     } else {
         deviceCapacityCurrent = deviceCapacity / 8;
     }
@@ -44,9 +44,8 @@ void functionFORMAT(uint8_t* param, uint8_t param_length) {
     print(devicePressToContinue, sizeof(devicePressToContinue));
     printLn();
     
-    if (ConsoleWait('y') == 0) {
+    if (ConsoleWait() != 'y') 
         return;
-    }
     
     uint32_t deviceCapacityBytes = (deviceCapacityCurrent * 1024);
     
@@ -65,6 +64,7 @@ void functionFORMAT(uint8_t* param, uint8_t param_length) {
     percentageSymbole[0] = '%';
     
     uint8_t sectorCounter = 0;
+    
     // Arbitrary read to trigger EEPROM cache flush
     uint8_t dummy;
     fs_read_byte(0, &dummy);

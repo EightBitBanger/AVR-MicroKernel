@@ -60,7 +60,7 @@ void functionDevice(uint8_t* param, uint8_t param_length) {
                 
                 ConsoleSetCursorPosition( sizeof(msgPressAnyKey) - 1 );
                 
-                uint8_t keypress = ConsoleWait(0);
+                uint8_t keypress = ConsoleWait();
                 
                 ConsoleSetCursorPosition(0);
                 
