@@ -130,14 +130,14 @@ uint32_t fsGetDevice(void) {
 
 void fsSetDeviceLetter(uint8_t letter) {
     
-    if (letter == 'X') {
+    lowercase(&letter);
+    
+    if (letter == 'x') {
         
         fsSetDeviceTypeMEM();
         fs_device_address = 0x00000;
         
     } else {
-        
-        lowercase(&letter);
         
         fsSetDeviceTypeIO();
         fs_device_address = PERIPHERAL_ADDRESS_BEGIN + ((letter - 'a') * 0x10000);
