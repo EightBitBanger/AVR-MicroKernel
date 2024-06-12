@@ -60,11 +60,11 @@ int main(void) {
     
     //registerCommandDevice();
     //registerCommandCAP();
-    registerCommandList();
+    //registerCommandList();
     //registerCommandTASK();
-    registerCommandType();
+    //registerCommandType();
     
-    registerCommandLD();
+    //registerCommandLD();
     
     //registerCommandEDIT();
     //registerCommandAssembly();
@@ -86,14 +86,14 @@ int main(void) {
     registerCommandCD();
     
     //registerCommandMK();
-    registerCommandRM();
+    //registerCommandRM();
     //registerCommandRN();
     //registerCommandMKDIR();
     //registerCommandRMDIR();
     
     //registerCommandATTRIB();
     //registerCommandRepair();
-    registerCommandFormat();
+    //registerCommandFormat();
     
   #endif
     
@@ -137,6 +137,7 @@ int main(void) {
     
     //
     // Start in the root directory
+    fsSetDeviceLetter('x');
     
     uint8_t prompt[] = " >";
     prompt[0] = fsGetRootDirectory();

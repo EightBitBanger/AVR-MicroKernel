@@ -13,7 +13,7 @@
 #define nullptr          0x00000000
 
 
-#include <kernel/configuration.h>
+#include <kernel/kconfig.h>
 
 struct Device {
     
