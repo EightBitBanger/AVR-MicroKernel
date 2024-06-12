@@ -38,7 +38,7 @@ void ConsoleClearScreen(void);
 uint8_t ConsoleGetCursorPosition(void);
 uint8_t ConsoleGetCursorLine(void);
 
-uint8_t ConsoleWait(uint8_t key);
+uint8_t ConsoleWait(void);
 void ConsoleClearKeyboardString(void);
 
 #endif

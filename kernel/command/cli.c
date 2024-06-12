@@ -827,7 +827,7 @@ void ConsoleClearKeyboardString(void) {
     return;
 }
 
-uint8_t ConsoleWait(uint8_t key) {
+uint8_t ConsoleWait(void) {
     
 #ifdef BOARD_RETRO_AVR_X4_REV1
     keyboadDevice->read( 0x00001, &oldScanCodeLow );
