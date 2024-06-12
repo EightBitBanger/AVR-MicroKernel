@@ -17,7 +17,19 @@ void functionLS(uint8_t* param, uint8_t param_length) {
     uint16_t numberOfFiles = 0;
     uint16_t numberOfDirs  = 0;
     
+    uint32_t directorySize = 0;
+    
     uint8_t fileCount = 0;
+    
+    if (fsCheckDeviceReady() == 0) {
+        
+        uint8_t msgDeviceNotReady[] = "Device not ready";
+        
+        print(msgDeviceNotReady, sizeof(msgDeviceNotReady));
+        printLn();
+        
+        return;
+    }
     
     
     //
@@ -39,9 +51,9 @@ void functionLS(uint8_t* param, uint8_t param_length) {
             return;
 		}
 		
-		uint32_t directorySize = fsGetFileSize(workingDirectory, workingDirectoryLength-1);
+		directorySize = fsGetFileSize(workingDirectory, workingDirectoryLength-1);
         
-        uint32_t numberOfFiles = fsDirectoryGetNumberOfFiles(workingDirectory, workingDirectoryLength-1);
+        numberOfFiles = fsDirectoryGetNumberOfFiles(workingDirectory, workingDirectoryLength-1);
         
         if (numberOfFiles > 0) {
             
@@ -59,6 +71,7 @@ void functionLS(uint8_t* param, uint8_t param_length) {
                 union Pointer fileAddressPtr;
                 for (uint8_t p=0; p < 4; p++) 
                     fileAddressPtr.byte_t[p] = bufferDir[ (i * 4) + p ];
+                
                 uint32_t fileAddress = fileAddressPtr.address;
                 
                 // Attributes

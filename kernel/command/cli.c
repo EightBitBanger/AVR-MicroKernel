@@ -264,12 +264,9 @@ void consoleRunShell(void) {
             break;
         }
         
-        // Get working directory
-        uint8_t workingDirectory[20];
-        uint8_t workingDirectoryLength = fsGetWorkingDirectory(workingDirectory);
         
         // Are we currently in a working directory
-        if ((workingDirectory[0] != ' ') & (workingDirectoryLength > 0)) {
+        if (fsCheckWorkingDirectory() == 1) {
             
             // Check file exists in working directory
             uint32_t fileAddress = fsDirectoryFileExists(filename, parameters_begin);
@@ -307,54 +304,56 @@ void consoleRunShell(void) {
             
         } else {
             
+            
             // Execute from the root
-            
-            uint32_t fileAddress = fsFileExists(filename, parameters_begin-1);
-            
-            if (fileAddress != 0) {
+            if (fsCheckDeviceReady() == 1) {
                 
-                uint8_t directoryFlag = 0;
-                fs_read_byte(fileAddress + OFFSET_DIRECTORY_FLAG, &directoryFlag);
+                uint32_t fileAddress = fsFileExists(filename, parameters_begin-1);
                 
-                // Check file is on the root directory
-                if (directoryFlag == 0) {
+                if (fileAddress != 0) {
                     
-                    //uint32_t programSize = fsGetFileSize(filename, FILE_NAME_LENGTH);
+                    uint8_t directoryFlag = 0;
+                    fs_read_byte(fileAddress + OFFSET_DIRECTORY_FLAG, &directoryFlag);
                     
-                    // Check file is executable
-                    struct FSAttribute attribute;
-                    fsGetFileAttributes(filename, parameters_begin, &attribute);
-                    
-                    // Check executable
-                    if (attribute.executable == 'x') {
+                    // Check file is on the root directory
+                    if (directoryFlag == 0) {
                         
-                        uint8_t index = fsFileOpen(filename, parameters_begin);
+                        // Check file is executable
+                        struct FSAttribute attribute;
+                        fsGetFileAttributes(filename, parameters_begin, &attribute);
                         
-                        uint32_t programSize = fsGetFileSize(filename, FILE_NAME_LENGTH);
-                        uint8_t programBuffer[programSize];
-                        
-                        if (index > 0) {
+                        // Check executable
+                        if (attribute.executable == 'x') {
                             
-                            // Load the file
-                            fsFileReadBin(index, programBuffer, programSize);
+                            uint8_t index = fsFileOpen(filename, parameters_begin);
                             
-                            // Emulate the code
-                            EmulateX4(programBuffer, programSize);
+                            uint32_t programSize = fsGetFileSize(filename, FILE_NAME_LENGTH);
+                            uint8_t programBuffer[programSize];
                             
-                            fsFileClose(index);
-                            
-                            isRightFunction = 1;
+                            if (index > 0) {
+                                
+                                // Load the file
+                                fsFileReadBin(index, programBuffer, programSize);
+                                
+                                // Emulate the code
+                                EmulateX4(programBuffer, programSize);
+                                
+                                fsFileClose(index);
+                                
+                                isRightFunction = 1;
+                                
+                            }
                             
                         }
                         
                     }
+                    
                     
                 }
                 
             }
             
         }
-        
         
         /*
         
@@ -396,9 +395,8 @@ void consoleRunShell(void) {
             
             return;
         }
+        
         */
-        
-        
         
         //
         // Bad command or filename
@@ -427,6 +425,7 @@ void consoleRunShell(void) {
         
         printPrompt();
         
+        return;
     }
     
     
@@ -479,7 +478,10 @@ void consoleRunShell(void) {
             
             // Print the character
             console_string[console_string_length] = scanCode;
-            console_position = (console_prompt_length + console_string_length) - 1;
+            
+            //console_position = (console_prompt_length + console_string_length) - 1;
+            console_position = ConsoleGetCursorPosition() - 1;
+            
             console_string_length++;
             
             printChar( scanCode );
