@@ -103,7 +103,6 @@ void functionCOPY(uint8_t* param, uint8_t param_length) {
     // Copy file data
     
     // TODO Check working directory
-    
     index = fsFileOpen(sourceFilename, sourceNameLength);
     
     if (index == 0) {
@@ -161,7 +160,7 @@ void functionCOPY(uint8_t* param, uint8_t param_length) {
                 return;
             }
             
-            index = fsDirectoryFileOpen(sourceFilename, sourceNameLength);
+            index = fsFileOpen(sourceFilename, sourceNameLength);
             
             if (index == 0) {
                 
