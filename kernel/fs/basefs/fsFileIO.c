@@ -12,6 +12,18 @@ uint8_t fsFileOpen(uint8_t* name, uint8_t nameLength) {
     
     fileBeginAddress = fsFileExists(name, nameLength);
     
+    /*
+    if (fsCheckWorkingDirectory() == 1) {
+        
+        fileBeginAddress = fsDirectoryFileExists(name, nameLength);
+        
+    } else {
+        
+        fileBeginAddress = fsRootFileExists(name, nameLength);
+        
+    }
+    */
+    
     if (fileBeginAddress != 0) {
         
         fileSize = fsGetFileSize(name, nameLength) + 1;

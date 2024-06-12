@@ -2,7 +2,7 @@
 
 uint8_t fsFileRename(uint8_t* name, uint8_t nameLength, uint8_t* newName, uint8_t newNameLength) {
     
-    uint32_t currentCapacity = fsGetDeviceCapacity();
+    uint32_t currentCapacity = fsGetDeviceCapacity() / SECTOR_SIZE;
     
     // Check working directory for the file
     if (fsCheckWorkingDirectory() == 1) {
