@@ -1,7 +1,5 @@
 #include <kernel/kernel.h>
 
-extern struct Bus fs_bus;
-
 
 uint32_t fsDirectoryFileExists(uint8_t* name, uint8_t nameLength) {
     

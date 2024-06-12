@@ -54,7 +54,7 @@ void fsInit(void) {
     
     fs_working_directory_length = 0;
     
-    for (sector=1; sector < 8192; sector++) {
+    for (sector=1; sector < deviceCapacityBytes; sector++) {
         
         if (sectorCounter < (SECTOR_SIZE - 1)) {
             fsSectorSetByte(sector, ' ');
@@ -82,9 +82,6 @@ void fsInit(void) {
     
     for (uint8_t i=0; i < 4; i++) 
         fsSectorSetByte(fs_device_address + DEVICE_CAPACITY_OFFSET + i, deviceSize.byte_t[i]);
-    
-    fsSetDeviceTypeIO();
-    fsSetDeviceLetter('A');
     
     return;
 }
@@ -175,9 +172,6 @@ uint32_t fsGetDeviceCapacity(void) {
     
     uint32_t currentDevice = fsGetDevice();
     
-    // Check header byte
-    
-    // Get device capacity
     union Pointer sizePointer;
     
     for (uint8_t i=0; i < 4; i++) 
