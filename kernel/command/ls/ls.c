@@ -125,7 +125,7 @@ void functionLS(uint8_t* param, uint8_t param_length) {
                         
                         ConsoleSetCursorPosition( sizeof(msgPressAnyKey) - 1 );
                         
-                        uint8_t keypress = ConsoleWait(0);
+                        uint8_t keypress = ConsoleWait();
                         
                         ConsoleSetCursorPosition(0);
                         
@@ -158,7 +158,7 @@ void functionLS(uint8_t* param, uint8_t param_length) {
     // List device root contents
     //
     
-    for (uint32_t i=0; i < 0xffffffff; i++) {
+    for (uint16_t i=0; i < 1024; i++) {
         
         uint32_t fileAddress = fsFileFind(i);
         
@@ -242,7 +242,7 @@ void functionLS(uint8_t* param, uint8_t param_length) {
                 
                 ConsoleSetCursorPosition( sizeof(msgPressAnyKey) - 1 );
                 
-                uint8_t keypress = ConsoleWait(0);
+                uint8_t keypress = ConsoleWait();
                 
                 ConsoleSetCursorPosition(0);
                 
