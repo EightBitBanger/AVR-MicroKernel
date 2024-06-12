@@ -100,7 +100,6 @@ uint8_t fsSetFileAttributes(uint8_t* name, uint8_t nameLength, struct FSAttribut
 
 // File IO
 uint8_t fsFileOpen(uint8_t* name, uint8_t nameLength);
-uint8_t fsDirectoryFileOpen(uint8_t* name, uint8_t nameLength);
 
 uint8_t fsFileClose(uint8_t index);
 
