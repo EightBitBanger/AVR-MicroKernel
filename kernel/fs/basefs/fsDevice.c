@@ -10,8 +10,6 @@ void(*__fs_write_byte)(struct Bus*, uint32_t, uint8_t);
 uint32_t fs_device_address;
 struct Bus fs_bus;
 
-
-
 uint8_t  fs_device_root;
 
 uint8_t  fs_working_directory[FILE_NAME_LENGTH];
@@ -37,8 +35,10 @@ void fsInit(void) {
     
     fs_directory_stack_ptr = 0;
     
-    fsSetDeviceTypeMEM();
     fsSetDeviceLetter('X');
+    
+    fsClearWorkingDirectory();
+    
     
     //
     // Format RAMDISK sectors
@@ -48,11 +48,6 @@ void fsInit(void) {
     uint32_t sectorCounter = 0;
     
     uint32_t deviceCapacityBytes = 8192;
-    
-    for (uint8_t i=0; i < FILE_NAME_LENGTH; i++) 
-        fs_working_directory[i] = ' ';
-    
-    fs_working_directory_length = 0;
     
     for (sector=1; sector < deviceCapacityBytes; sector++) {
         
@@ -178,4 +173,32 @@ uint32_t fsGetDeviceCapacity(void) {
         fs_read_byte(currentDevice + DEVICE_CAPACITY_OFFSET + i, &sizePointer.byte_t[i]);
     
     return sizePointer.address;
+}
+
+uint8_t fsFormat(uint32_t addressBegin, uint32_t addressEnd) {
+    
+    uint32_t sector = 0;
+    uint32_t sectorCounter = 0;
+    
+    uint32_t deviceCapacityBytes = 8192;
+    
+    for (uint8_t i=0; i < FILE_NAME_LENGTH; i++) 
+        fs_working_directory[i] = ' ';
+    
+    fs_working_directory_length = 0;
+    
+    for (sector=1; sector < deviceCapacityBytes; sector++) {
+        
+        if (sectorCounter < (SECTOR_SIZE - 1)) {
+            fsSectorSetByte(sector, ' ');
+            sectorCounter++;
+        } else {
+            fsSectorSetByte(sector, 0x00);
+            sectorCounter = 0;
+        }
+        
+        continue;
+    }
+    
+    return 1;
 }
