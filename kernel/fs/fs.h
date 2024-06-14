@@ -48,6 +48,10 @@ void fsInit(void);
 void fs_write_byte(uint32_t address, uint8_t byte);
 void fs_read_byte(uint32_t address, uint8_t* buffer);
 
+// Formatting
+uint8_t fsFormat(uint32_t addressBegin, uint32_t addressEnd);
+
+
 // Current working directory
 
 void fsClearWorkingDirectory(void);
@@ -60,7 +64,7 @@ void fsSetWorkingDirectoryAddress(uint32_t address);
 
 uint8_t fsCheckWorkingDirectory(void);
 
-// Directory stack
+// Working directory tree
 
 void fsSetDirectoryStack(uint8_t amount);
 uint8_t fsGetDirectoryStack(void);
