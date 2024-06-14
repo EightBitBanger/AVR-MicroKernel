@@ -7,14 +7,14 @@ int main(void) {
     bus_address_zero();
     
     // Allow board some time to stabilize
-    _delay_ms(800);
+    _delay_ms(1000);
     
     // Device drivers
 	initiateDisplayDriver();      // 20x4 LCD Display
 	initiatePS2Driver();          // PS/2 Port
 	initiateNetworkDriver();      // UART Network Card
 	initiateSpeakerDriver();      // On-Board speaker
-	consoleInit();                // Command console shell
+	cliInit();                    // Command line interpreter
     
 	// Initiate kernel sub systems
 	InitiateDeviceTable();
@@ -25,7 +25,7 @@ int main(void) {
     
 #ifdef _KERNEL_ALLOCATE_EXTERNAL_MEMORY__
     
-    //AllocateExternalMemory();
+    AllocateExternalMemory();
     
 #endif
     
@@ -69,7 +69,7 @@ int main(void) {
     //registerCommandEDIT();
     //registerCommandAssembly();
     
-    //registerCommandCLS();
+    registerCommandCLS();
     
   #endif
     
@@ -82,7 +82,7 @@ int main(void) {
   #ifdef INCLUDE_FILE_SYSTEM_APPLICATIONS
     
     registerCommandLS();
-    registerCommandCOPY();
+    //registerCommandCOPY();
     registerCommandCD();
     
     //registerCommandMK();
@@ -106,14 +106,12 @@ int main(void) {
     kernelVectorTableInit();      // Hardware interrupt vector table
     schedulerInit();              // Scheduler sub system
     fsInit();                     // File system
-    //ntInit();                     // Network support
+    ntInit();                     // Network support
     kInit();                      // Setup the kernel environment
     driverInit();                 // Driver hot loading
     
 #ifdef _KERNEL_PRINT_VERSION_INFORMATION__
     ConsoleSetBlinkRate( CURSOR_BLINK_RATE );
-    
-    /*
     
     // Version
     uint8_t kernelHelloWorldString[] = "kernel";
@@ -131,7 +129,7 @@ int main(void) {
     printChar('.');
     printInt(versionPatch);
     printLn();
-    */
+    
 #endif
     
     
@@ -153,11 +151,11 @@ int main(void) {
     
     // Command console
     uint8_t taskname[] = "command";
-    TaskCreate(taskname, sizeof(taskname), consoleRunShell, TASK_PRIORITY_REALTIME, TASK_TYPE_SERVICE);
+    TaskCreate(taskname, sizeof(taskname), cliRunInterpreter, TASK_PRIORITY_REALTIME, TASK_TYPE_SERVICE);
     
     
     //
-    // Hardware/software interrupt handling
+    // Hardware interrupt handling
     
     // Enable hardware interrupts
     //  Trigger on the HIGH to LOW transition of PIN2
@@ -172,12 +170,7 @@ int main(void) {
     InterruptStartScheduler();
     InterruptStartTimeCounter();
     
-    while(1) {
-        
-        __asm__("nop");
-        
-        continue;
-    }
+    while(1);
     
     InterruptStopTimerCounter();
     InterruptStopScheduler();
