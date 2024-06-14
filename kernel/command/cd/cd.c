@@ -200,9 +200,9 @@ void functionCD(uint8_t* param, uint8_t param_length) {
     
     if ((param[0] == '.') & (param[1] == ' ')) {
         
+        printChar('/');
+        
         for (uint8_t i=1; i < fs_directory_stack_ptr + 1; i++) {
-            
-            printChar('/');
             
             for (uint8_t c=0; c < FILE_NAME_LENGTH; c++) {
                 
@@ -213,11 +213,15 @@ void functionCD(uint8_t* param, uint8_t param_length) {
                 
             }
             
+            if (i == fs_directory_stack_ptr) 
+                break;
+            
+            printChar('/');
+            
             continue;
         }
         
-        if (fs_directory_stack_ptr > 0) 
-            printLn();
+        printLn();
         
         return;
     }
