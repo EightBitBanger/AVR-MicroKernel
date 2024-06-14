@@ -34,7 +34,6 @@ void functionRepair(uint8_t* param, uint8_t param_length) {
         fs_write_byte(currentDevice + 1, deviceName[0]);
         fs_write_byte(currentDevice + 2, deviceName[1]);
         
-        
     }
     
     //union Pointer sizePointer;
@@ -48,7 +47,7 @@ void functionRepair(uint8_t* param, uint8_t param_length) {
 
 void registerCommandRepair(void) {
     
-    uint8_t repairCommandName[] = "chkdsk";
+    uint8_t repairCommandName[] = "fsck";
     
     ConsoleRegisterCommand(repairCommandName, sizeof(repairCommandName), functionRepair);
     
