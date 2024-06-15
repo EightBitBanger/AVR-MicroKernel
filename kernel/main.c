@@ -14,10 +14,13 @@ int main(void) {
 	initiatePS2Driver();          // PS/2 Port
 	initiateNetworkDriver();      // UART Network Card
 	initiateSpeakerDriver();      // On-Board speaker
-	cliInit();                    // Command line interpreter
-    
+	
 	// Initiate kernel sub systems
 	InitiateDeviceTable();
+    
+    // Command line interpreter
+    cliInit();
+    
     
     //
     // Allocate external memory
@@ -82,7 +85,7 @@ int main(void) {
   #ifdef INCLUDE_FILE_SYSTEM_APPLICATIONS
     
     registerCommandLS();
-    //registerCommandCOPY();
+    registerCommandCOPY();
     registerCommandCD();
     
     //registerCommandMK();
@@ -116,12 +119,12 @@ int main(void) {
     // Version
     uint8_t kernelHelloWorldString[] = "kernel";
     print(kernelHelloWorldString, sizeof(kernelHelloWorldString));
+    printSpace(1);
     
     uint8_t versionMajor = _KERNEL_VERSION_MAJOR__;
     uint8_t versionMinor = _KERNEL_VERSION_MINOR__;
     uint8_t versionPatch = _KERNEL_VERSION_PATCH__;
     
-    printSpace(1);
     printChar('v');
     printInt(versionMajor);
     printChar('.');
@@ -151,7 +154,7 @@ int main(void) {
     
     // Command console
     uint8_t taskname[] = "command";
-    TaskCreate(taskname, sizeof(taskname), cliRunInterpreter, TASK_PRIORITY_REALTIME, TASK_TYPE_SERVICE);
+    TaskCreate(taskname, sizeof(taskname), cliRunShell, TASK_PRIORITY_REALTIME, TASK_TYPE_SERVICE);
     
     
     //

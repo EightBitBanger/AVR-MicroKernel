@@ -20,7 +20,7 @@
 
 #include <kernel/fs/fs.h>
 
-#include <kernel/command/cli/cli.h>
+#include <kernel/command/cli.h>
 
 #include <kernel/network/network.h>
 #include <kernel/network/router.h>
