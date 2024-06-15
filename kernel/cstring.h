@@ -31,4 +31,9 @@ uint8_t string_get_hex_char(uint8_t* string);
 // Standard
 uint8_t StringCompare(uint8_t* stringA, uint8_t lengthA, uint8_t* stringB, uint8_t lengthB);
 
+uint8_t StringSplit(uint8_t* source, uint8_t sourceLen, 
+                    uint8_t* splitA, uint8_t* splitALen, 
+                    uint8_t* splitB, uint8_t* splitBLen, 
+                    uint8_t delimiter);
+
 #endif

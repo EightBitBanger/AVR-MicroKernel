@@ -210,3 +210,46 @@ uint8_t StringCompare(uint8_t* stringA, uint8_t lengthA, uint8_t* stringB, uint8
     return 1;
 }
 
+
+uint8_t StringSplit(uint8_t* source, uint8_t sourceLen, 
+                    uint8_t* splitA, uint8_t* splitALen, 
+                    uint8_t* splitB, uint8_t* splitBLen, 
+                    uint8_t delimiter) {
+    
+    uint8_t split = 0;
+    uint8_t index = 0;
+    
+    for (uint8_t i=0; i < sourceLen; i++) {
+        
+        if (split == 0) {
+            
+            splitA[i] = source[i];
+            
+            if (source[i] == delimiter) {
+                
+                split = 1;
+                
+                *splitALen = i + 1;
+                
+                continue;
+            }
+            
+        } else {
+            
+            splitB[index] = source[i];
+            
+            *splitBLen = index + 2;
+            
+            if (source[i] == delimiter) 
+                break;
+            
+            index++;
+            
+        }
+        
+    }
+    
+    return 1;
+}
+
+
