@@ -2,13 +2,25 @@
 #define __CONSOLE_COMMAND_LINE_INTERPRETER_
 
 #define CURSOR_BLINK_RATE  35
+#define CONSOLE_STRING_LENGTH  40
+#define CONSOLE_FUNCTION_NAME_LENGTH   10
+#define CONSOLE_FUNCTION_TABLE_SIZE  32
 
 #include <kernel/kernel.h>
 
 #define  MSG_DEVICE_NOT_READY   1
 #define  MSG_DEVICE_NOT_FOUND   2
 
-void cliRunInterpreter(void);
+struct ConsoleCommand {
+    
+    uint8_t name[CONSOLE_FUNCTION_NAME_LENGTH];
+    
+    void(*function)(uint8_t* string, uint8_t length);
+    
+};
+
+
+void cliRunShell(void);
 
 void cliInit(void);
 
