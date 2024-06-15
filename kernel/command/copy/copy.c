@@ -17,6 +17,7 @@ struct FSAttribute fileCopySourceAttrib;
 uint32_t fileCopySourceCurrentDevice;
 
 
+
 void functionCOPY(uint8_t* param, uint8_t param_length) {
     
     uint8_t msgFileCopied[]         = "File copied";
@@ -39,39 +40,8 @@ void functionCOPY(uint8_t* param, uint8_t param_length) {
     }
     
     // Get filenames from parameters
-    uint8_t filename_index = 0;
-    uint8_t index = 0;
+    uint8_t index = StringSplit(param, param_length, sourceFilename, &sourceNameLength, destFilename, &destNameLength, ' ');
     
-    for (uint8_t i=0; i < param_length; i++) {
-        
-        if (filename_index == 0) {
-            
-            sourceFilename[i] = param[i];
-            
-            if (param[i] == ' ') {
-                
-                filename_index = 1;
-                
-                sourceNameLength = i + 1;
-                
-                continue;
-            }
-            
-        } else {
-            
-            destFilename[index] = param[i];
-            
-            destNameLength = index + 2;
-            
-            if (param[i] == ' ') {
-                break;
-            }
-            
-            index++;
-            
-        }
-        
-    }
     
     // Ignore directories as source
     struct FSAttribute attributes;
