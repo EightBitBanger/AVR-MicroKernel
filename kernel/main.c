@@ -70,9 +70,9 @@ int main(void) {
     //registerCommandLD();
     
     //registerCommandEDIT();
-    //registerCommandAssembly();
+    registerCommandAssembly();
     
-    registerCommandCLS();
+    //registerCommandCLS();
     
   #endif
     

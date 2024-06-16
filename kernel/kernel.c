@@ -22,6 +22,12 @@ void kInit(void) {
     fsSetDeviceLetter(deviceLetter);
     fsSetRootDirectory(deviceLetter);
     
+    fsClearWorkingDirectory();
+    
+    fsFormat(0, CAPACITY_32K);
+    
+    
+    
     uint8_t binDirName[]  = "bin";
     fsDirectoryCreate(binDirName, sizeof(binDirName)-1);
     
@@ -29,10 +35,6 @@ void kInit(void) {
     
     uint8_t drvDirName[]  = "drivers";
     fsDirectoryCreate(drvDirName, sizeof(drvDirName)-1);
-    
-    
-    
-    
     
     
     
@@ -72,18 +74,10 @@ void kInit(void) {
     
     
     
-    
-    
-    
-    
-    
     // Create test driver in drivers directory
     
     fsSetWorkingDirectory(drvDirName, sizeof(drvDirName)-1);
     
-    
-    uint8_t subDirName[]  = "subdir";
-    fsDirectoryCreate(subDirName, sizeof(subDirName)-1);
     
     
     uint8_t driverFileName[]  = "kmod";
@@ -103,25 +97,6 @@ void kInit(void) {
     bufferDrv[17] = 'S';     // Sub system registry type
     
     fsFileWrite(index, bufferDrv, sizeof(bufferDrv) - 1);
-    fsFileClose(index);
-    
-    // Create test executable
-    uint8_t exeFileName[]  = "exe";
-    fsFileCreate(exeFileName, sizeof(exeFileName)-1, 40, ' ');
-    
-    struct FSAttribute attrib;
-    attrib.executable = 'x';
-    attrib.readable   = 'r';
-    attrib.writeable  = 'w';
-    attrib.type       = ' ';
-    
-    fsSetFileAttributes(exeFileName, sizeof(exeFileName)-1, &attrib);
-    
-    index = fsFileOpen(exeFileName, sizeof(exeFileName)-1);
-    uint8_t bufferExe[] = { 0x89, 0x03, ' ', 0xcc, 0x10, 
-                            0xcc, 0x20};
-    
-    fsFileWrite(index, bufferExe, sizeof(bufferExe));
     fsFileClose(index);
     
     

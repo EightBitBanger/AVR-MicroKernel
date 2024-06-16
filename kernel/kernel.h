@@ -10,6 +10,8 @@
 #include <kernel/kalloc.h>
 #include <kernel/pointers.h>
 
+#include <kernel/bitwise.h>
+
 #include <kernel/interrupt.h>
 
 #include <kernel/bus/bus.h>

@@ -2,7 +2,14 @@
 // Hardware configuration
 
 // --------------------------------------------
-// Compilation options
+// Target board
+//
+
+#define  BOARD_RETRO_AVR_X4_REV1
+//#define  BOARD_RETROBOARD_REV2
+
+// --------------------------------------------
+// Boot options
 
 #define _KERNEL_ALLOCATE_EXTERNAL_MEMORY__
 #define _KERNEL_PRINT_VERSION_INFORMATION__
@@ -21,6 +28,12 @@
 
 //#define NETWORK_APPLICATION_PACKET_ROUTER
 //#define NETWORK_APPLICATION_SERVER
+
+
+
+
+// --------------------------------------------
+// INTERNAL
 
 
 // --------------------------------------------
