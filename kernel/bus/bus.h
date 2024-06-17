@@ -1,15 +1,6 @@
 #ifndef __BUS_INTERFACE_
 #define __BUS_INTERFACE_
 
-// ------------------------------------
-// Target board selection
-//
-
-#define  BOARD_RETRO_AVR_X4_REV1
-//#define  BOARD_RETROBOARD_REV2
-
-
-
 /// Zero the control logic IO port.
 void bus_control_zero(void);
 
