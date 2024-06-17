@@ -303,6 +303,8 @@ void functionAsm(uint8_t* param, uint8_t param_length) {
                         if (fileBuffer[assemblyAddress] == 0xFD) {printc("inc", 4);  opCodeWasFound = 2;}
                         if (fileBuffer[assemblyAddress] == 0xFC) {printc("dec", 4);  opCodeWasFound = 2;}
                         
+                        if (fileBuffer[assemblyAddress] == 0x86) {printc("lda", 4);  opCodeWasFound = 5;}
+                        if (fileBuffer[assemblyAddress] == 0x87) {printc("sta", 4);  opCodeWasFound = 5;}
                         if (fileBuffer[assemblyAddress] == 0x88) {printc("mov", 4);  opCodeWasFound = 3;}
                         if (fileBuffer[assemblyAddress] == 0x89) {printc("mov", 4);  opCodeWasFound = 3; specialOpcodeArgs = 2;}
                         
@@ -367,6 +369,9 @@ void functionAsm(uint8_t* param, uint8_t param_length) {
                             }
                             
                             
+                            //
+                            // Argument A is register
+                            // Argument B is register or hex
                             
                             if (opCodeWasFound == 3) {
                                 
@@ -401,6 +406,9 @@ void functionAsm(uint8_t* param, uint8_t param_length) {
                                 
                             }
                             
+                            //
+                            // Argument A is address
+                            
                             if (opCodeWasFound == 5) {
                                 
                                 uint8_t argA[4];
@@ -416,6 +424,7 @@ void functionAsm(uint8_t* param, uint8_t param_length) {
                                 ptr.byte_t[3] = argA[3];
                                 
                                 uint8_t intString[10];
+                                
                                 
                                 for (uint8_t i=0; i < 10; i++) 
                                     intString[i] = ' ';
@@ -441,7 +450,7 @@ void functionAsm(uint8_t* param, uint8_t param_length) {
                                 }
                                 
                                 printSpace(1);
-                                print(intString, 5);
+                                print(intString, 8);
                                 
                             }
                             
@@ -538,6 +547,8 @@ void functionAsm(uint8_t* param, uint8_t param_length) {
                 }
                 
                 if ((opCode[0] == 'n') & (opCode[1] == 'o') & (opCode[2] == 'p')) {fileBuffer[assemblyAddress] = 0x90; assemblyAddress += 1; argCount = 0;}
+                if ((opCode[0] == 'l') & (opCode[1] == 'd') & (opCode[2] == 'a')) {fileBuffer[assemblyAddress] = 0x86; assemblyAddress += 5; argCount = 4;}
+                if ((opCode[0] == 's') & (opCode[1] == 't') & (opCode[2] == 'a')) {fileBuffer[assemblyAddress] = 0x87; assemblyAddress += 5; argCount = 4;}
                 if ((opCode[0] == 'm') & (opCode[1] == 'o') & (opCode[2] == 'v')) {fileBuffer[assemblyAddress] = 0x88; assemblyAddress += 3; argCount = 2;}
                 if ((opCode[0] == 'i') & (opCode[1] == 'n') & (opCode[2] == 'c')) {fileBuffer[assemblyAddress] = 0xFD; assemblyAddress += 2; argCount = 1;}
                 if ((opCode[0] == 'd') & (opCode[1] == 'e') & (opCode[2] == 'c')) {fileBuffer[assemblyAddress] = 0xFC; assemblyAddress += 2; argCount = 1;}
@@ -564,8 +575,6 @@ void functionAsm(uint8_t* param, uint8_t param_length) {
                 uint8_t argB[4] = {0, 0, 0, 0};
                 uint8_t argAIsHex = 0;
                 uint8_t argBIsHex = 0;
-                
-                uint8_t argBIsAddr = 0;
                 
                 // Arguments after a 4 digit opcode
                 if ((is_letter(&asm_console_string[5]) == 1) & (is_letter(&asm_console_string[6]) == 1)) {
@@ -606,23 +615,11 @@ void functionAsm(uint8_t* param, uint8_t param_length) {
                     argBIsHex = 1;
                 }
                 
-                // Check argument B is address
-                if ((is_number(&asm_console_string[7]) == 1) & 
-                    (is_number(&asm_console_string[8]) == 1) & 
-                    (is_number(&asm_console_string[9]) == 1) & 
-                    (is_number(&asm_console_string[10]) == 1)) {
-                    
-                    argB[0] = asm_console_string[7];
-                    argB[1] = asm_console_string[8];
-                    argB[2] = asm_console_string[9];
-                    argB[3] = asm_console_string[10];
-                    
-                    argBIsAddr = 1;
-                }
-                
                 // Arguments after a 3 digit opcode with a numeric argument
-                if ((is_number(&asm_console_string[4]) == 1) & (is_number(&asm_console_string[5]) == 1) & 
-                    (is_number(&asm_console_string[6]) == 1) & (is_number(&asm_console_string[7]) == 1)) {
+                if ((is_number(&asm_console_string[4]) == 1) & 
+                    (is_number(&asm_console_string[5]) == 1) & 
+                    (is_number(&asm_console_string[6]) == 1) & 
+                    (is_number(&asm_console_string[7]) == 1)) {
                     argA[0] = asm_console_string[4];
                     argA[1] = asm_console_string[5];
                     argA[2] = asm_console_string[6];
