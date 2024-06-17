@@ -24,59 +24,16 @@ void fsInit(void) {
     fs_bus.read_waitstate  = 5;
     fs_bus.write_waitstate = 5;
     
-    fs_device_root = 'X';
-    
     for (uint8_t i=0; i < FILE_NAME_LENGTH; i++) 
         fs_working_directory[i] = ' ';
+    
+    fs_directory_stack_ptr = 0;
     
     fs_working_directory_length = 0;
     fs_working_directory_address = 0;
     fs_device_address = 0;
     
-    fs_directory_stack_ptr = 0;
-    
-    fsSetDeviceLetter('X');
-    
     fsClearWorkingDirectory();
-    
-    
-    //
-    // Format RAMDISK sectors
-    //
-    
-    uint32_t sector = 0;
-    uint32_t sectorCounter = 0;
-    
-    uint32_t deviceCapacityBytes = 8192;
-    
-    for (sector=1; sector < deviceCapacityBytes; sector++) {
-        
-        if (sectorCounter < (SECTOR_SIZE - 1)) {
-            fsSectorSetByte(sector, ' ');
-            sectorCounter++;
-        } else {
-            fsSectorSetByte(sector, 0x00);
-            sectorCounter = 0;
-        }
-        
-        continue;
-    }
-    
-    //
-    // Initiate first sector
-    //
-    
-    fsSectorSetByte(fs_device_address    , 0x13 );
-    fsSectorSetByte(fs_device_address + 1, 'f' );
-    fsSectorSetByte(fs_device_address + 2, 's' );
-    
-    // Device total capacity
-    union Pointer deviceSize;
-    
-    deviceSize.address = deviceCapacityBytes;
-    
-    for (uint8_t i=0; i < 4; i++) 
-        fsSectorSetByte(fs_device_address + DEVICE_CAPACITY_OFFSET + i, deviceSize.byte_t[i]);
     
     return;
 }
@@ -177,28 +134,39 @@ uint32_t fsGetDeviceCapacity(void) {
 
 uint8_t fsFormat(uint32_t addressBegin, uint32_t addressEnd) {
     
-    uint32_t sector = 0;
     uint32_t sectorCounter = 0;
-    
-    uint32_t deviceCapacityBytes = 8192;
     
     for (uint8_t i=0; i < FILE_NAME_LENGTH; i++) 
         fs_working_directory[i] = ' ';
     
     fs_working_directory_length = 0;
     
-    for (sector=1; sector < deviceCapacityBytes; sector++) {
+    for (uint32_t sector = addressBegin + 1; sector <= addressEnd; sector++) {
         
         if (sectorCounter < (SECTOR_SIZE - 1)) {
+            
             fsSectorSetByte(sector, ' ');
             sectorCounter++;
+            
         } else {
+            
             fsSectorSetByte(sector, 0x00);
             sectorCounter = 0;
         }
         
         continue;
     }
+    
+    fsSectorSetByte(addressBegin, 0x13 );
+    fsSectorSetByte(addressBegin + 1, 'f' );
+    fsSectorSetByte(addressBegin + 2, 's' );
+    
+    // Device total capacity
+    union Pointer deviceSize;
+    deviceSize.address = addressEnd - addressBegin;
+    
+    for (uint8_t i=0; i < 4; i++) 
+        fsSectorSetByte(addressBegin + DEVICE_CAPACITY_OFFSET + i, deviceSize.byte_t[i]);
     
     return 1;
 }

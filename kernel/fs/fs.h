@@ -8,9 +8,9 @@
 
 // Capacities
 
-#define CAPACITY_32K      256
-#define CAPACITY_16K      128
-#define CAPACITY_8K       64
+#define CAPACITY_32K      32768
+#define CAPACITY_16K      16384
+#define CAPACITY_8K       8192
 
 // Sector format
 
