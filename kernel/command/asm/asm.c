@@ -603,11 +603,22 @@ void functionAsm(uint8_t* param, uint8_t param_length) {
                 if ((is_number(&asm_console_string[4]) == 1) & 
                     (is_number(&asm_console_string[5]) == 1) & 
                     (is_number(&asm_console_string[6]) == 1) & 
-                    (is_number(&asm_console_string[7]) == 1)) {
+                    (is_number(&asm_console_string[7]) == 1) & 
+                    (is_number(&asm_console_string[8]) == 1) & 
+                    (is_number(&asm_console_string[9]) == 1) & 
+                    (is_number(&asm_console_string[10]) == 1) & 
+                    (is_number(&asm_console_string[11]) == 1)) {
+                    
                     argA[0] = asm_console_string[4];
                     argA[1] = asm_console_string[5];
                     argA[2] = asm_console_string[6];
                     argA[3] = asm_console_string[7];
+                    
+                    argB[0] = asm_console_string[8];
+                    argB[1] = asm_console_string[9];
+                    argB[2] = asm_console_string[10];
+                    argB[3] = asm_console_string[11];
+                    
                 }
                 
                 
@@ -703,15 +714,15 @@ void functionAsm(uint8_t* param, uint8_t param_length) {
                 
                 if (argCount == 4) {
                     
-                    uint8_t hexValFlipA[2] = {argB[1], argB[0]};
-                    uint8_t hexValFlipB[2] = {argB[3], argB[2]};
-                    uint8_t hexValFlipC[2] = {argB[5], argB[4]};
-                    uint8_t hexValFlipD[2] = {argB[7], argB[6]};
+                    uint8_t hexValFlipA[2] = {argA[1], argA[0]};
+                    uint8_t hexValFlipB[2] = {argA[3], argA[2]};
+                    uint8_t hexValFlipC[2] = {argB[1], argB[0]};
+                    uint8_t hexValFlipD[2] = {argB[3], argB[2]};
                     
-                    fileBuffer[assemblyAddress - 4] = string_get_hex_char(hexValFlipA);
-                    fileBuffer[assemblyAddress - 3] = string_get_hex_char(hexValFlipB);
-                    fileBuffer[assemblyAddress - 2] = string_get_hex_char(hexValFlipC);
-                    fileBuffer[assemblyAddress - 1] = string_get_hex_char(hexValFlipD);
+                    fileBuffer[assemblyAddress - 4] = string_get_hex_char(hexValFlipD);
+                    fileBuffer[assemblyAddress - 3] = string_get_hex_char(hexValFlipC);
+                    fileBuffer[assemblyAddress - 2] = string_get_hex_char(hexValFlipB);
+                    fileBuffer[assemblyAddress - 1] = string_get_hex_char(hexValFlipA);
                     
                 }
                 
