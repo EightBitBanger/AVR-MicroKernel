@@ -417,40 +417,24 @@ void functionAsm(uint8_t* param, uint8_t param_length) {
                                 argA[1] = fileBuffer[assemblyAddress - 2];
                                 argA[0] = fileBuffer[assemblyAddress - 1];
                                 
-                                union Pointer ptr;
-                                ptr.byte_t[0] = argA[0];
-                                ptr.byte_t[1] = argA[1];
-                                ptr.byte_t[2] = argA[2];
-                                ptr.byte_t[3] = argA[3];
+                                uint8_t hexA[2] = {'0', '0'};
+                                uint8_t hexB[2] = {'0', '0'};
+                                uint8_t hexC[2] = {'0', '0'};
+                                uint8_t hexD[2] = {'0', '0'};
                                 
-                                uint8_t intString[10];
-                                
-                                
-                                for (uint8_t i=0; i < 10; i++) 
-                                    intString[i] = ' ';
-                                
-                                int_to_string(ptr.address, intString);
-                                
-                                for (uint8_t i=0; i < 4; i++) {
-                                    if (intString[0] == ' ') {
-                                        intString[0] = intString[1];
-                                        intString[1] = intString[2];
-                                        intString[2] = intString[3];
-                                        intString[3] = '0';
-                                    }
-                                }
-                                
-                                for (uint8_t i=0; i < 4; i++) {
-                                    if (intString[3] == ' ') {
-                                        intString[3] = intString[2];
-                                        intString[2] = intString[1];
-                                        intString[1] = intString[0];
-                                        intString[0] = '0';
-                                    }
-                                }
+                                int_to_hex_string(argA[0], hexA);
+                                int_to_hex_string(argA[1], hexB);
+                                int_to_hex_string(argA[2], hexC);
+                                int_to_hex_string(argA[3], hexD);
                                 
                                 printSpace(1);
-                                print(intString, 8);
+                                
+                                print(hexA, 3);
+                                print(hexB, 3);
+                                print(hexC, 3);
+                                print(hexD, 3);
+                                
+                                printChar('h');
                                 
                             }
                             
@@ -719,14 +703,15 @@ void functionAsm(uint8_t* param, uint8_t param_length) {
                 
                 if (argCount == 4) {
                     
-                    union Pointer ptr;
+                    uint8_t hexValFlipA[2] = {argB[1], argB[0]};
+                    uint8_t hexValFlipB[2] = {argB[3], argB[2]};
+                    uint8_t hexValFlipC[2] = {argB[5], argB[4]};
+                    uint8_t hexValFlipD[2] = {argB[7], argB[6]};
                     
-                    ptr.address = string_get_int_long(argA);
-                    
-                    fileBuffer[assemblyAddress - 4] = ptr.byte_t[3];
-                    fileBuffer[assemblyAddress - 3] = ptr.byte_t[2];
-                    fileBuffer[assemblyAddress - 2] = ptr.byte_t[1];
-                    fileBuffer[assemblyAddress - 1] = ptr.byte_t[0];
+                    fileBuffer[assemblyAddress - 4] = string_get_hex_char(hexValFlipA);
+                    fileBuffer[assemblyAddress - 3] = string_get_hex_char(hexValFlipB);
+                    fileBuffer[assemblyAddress - 2] = string_get_hex_char(hexValFlipC);
+                    fileBuffer[assemblyAddress - 1] = string_get_hex_char(hexValFlipD);
                     
                 }
                 
@@ -745,9 +730,8 @@ void functionAsm(uint8_t* param, uint8_t param_length) {
             }
             
             // Clear the old op codes
-            for (uint8_t i=0; i < 4; i++) {
+            for (uint8_t i; i < 40; i++) 
                 asm_console_string[i] = ' ';
-            }
             
             continue;
         }
