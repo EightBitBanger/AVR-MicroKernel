@@ -64,14 +64,14 @@ void cliRunShell(void) {
     if (scanCode == 0xf3) {
         
         console_string_length = console_string_length_old;
-        ConsoleSetCursorPosition(console_prompt_length);
+        ConsoleSetCursorPosition(console_prompt_length - 1);
         
         for (uint8_t i=0; i < console_string_length; i++) {
             console_string[i] = console_string_old[i];
             printChar( console_string[i] );
         }
         
-        ConsoleSetCursorPosition( console_string_length + 2 );
+        ConsoleSetCursorPosition( console_prompt_length + console_string_length - 1 );
         
         return;
     }
@@ -118,6 +118,12 @@ void cliRunShell(void) {
         
         uint8_t isRightFunction = 0;
         uint8_t parameters_begin = 0;
+        
+        // Save last entered command string
+        for (uint8_t a=0; a <= console_string_length; a++) 
+            console_string_old[a] = console_string[a];
+        
+        console_string_length_old = console_string_length;
         
         // Check special character functionality
         if ((console_string[1] == ':') & 
@@ -201,12 +207,6 @@ void cliRunShell(void) {
             
             if (isRightFunction == 0)
                 continue;
-            
-            // Save last entered command string
-            for (uint8_t a=0; a <= console_string_length; a++) 
-                console_string_old[a] = console_string[a];
-            
-            console_string_length_old = console_string_length;
             
             console_position = 0;
             
@@ -350,11 +350,6 @@ void cliRunShell(void) {
             printLn();
             
         }
-        
-        // Save last entered command string
-        for (uint8_t i=0; i < console_string_length; i++) 
-            console_string_old[i] = console_string[i];
-        console_string_length_old = console_string_length;
         
         ConsoleClearKeyboardString();
         

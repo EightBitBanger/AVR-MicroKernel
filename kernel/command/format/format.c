@@ -15,9 +15,12 @@ void functionFORMAT(uint8_t* param, uint8_t param_length) {
     
     uint32_t deviceCapacityCurrent=0;
     if (deviceCapacity == 0) {
-        deviceCapacityCurrent = CAPACITY_8K / 8;
+        
+        deviceCapacityCurrent = CAPACITY_8K / 1024;
+        
     } else {
-        deviceCapacityCurrent = deviceCapacity / 8;
+        
+        deviceCapacityCurrent = deviceCapacity / 1024;
     }
     
     // Quick format
