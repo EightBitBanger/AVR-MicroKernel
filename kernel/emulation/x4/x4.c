@@ -8,6 +8,8 @@
 /*
 
 0x90  nop   
+0x86  lda   
+0x87  sta   
 0x88  mov   
 0x89  mov   
 0xFA  inc   
@@ -24,9 +26,15 @@
 0xFE  jmp   
 
 0xCC  int   
+0xCD  int   
+
 */
 
 uint8_t EmulateX4(uint8_t* programBuffer, uint32_t programSize) {
+    
+    struct Bus mem_bus;
+    mem_bus.read_waitstate = 2;
+    mem_bus.write_waitstate = 1;
     
     //uint8_t executeProgram[] = "";
     //print( executeProgram, sizeof(executeProgram) );
@@ -67,6 +75,34 @@ uint8_t EmulateX4(uint8_t* programBuffer, uint32_t programSize) {
         // NOP
         if (opCode == 0x90) {
             programCounter += 1;
+            continue;
+        }
+        
+        // LDA Load from memory to DX register
+        if (opCode == 0x86) {
+            union Pointer ptr;
+            ptr.byte_t[0] = argA;
+            ptr.byte_t[1] = argB;
+            ptr.byte_t[2] = argC;
+            ptr.byte_t[3] = argD;
+            
+            bus_read_memory(&mem_bus, ptr.address, &reg[3]);
+            
+            programCounter += 5;
+            continue;
+        }
+        
+        // STA Store DX register to memory
+        if (opCode == 0x87) {
+            union Pointer ptr;
+            ptr.byte_t[0] = argA;
+            ptr.byte_t[1] = argB;
+            ptr.byte_t[2] = argC;
+            ptr.byte_t[3] = argD;
+            
+            bus_write_memory(&mem_bus, ptr.address, reg[3]);
+            
+            programCounter += 5;
             continue;
         }
         
