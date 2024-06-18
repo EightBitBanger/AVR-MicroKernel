@@ -24,21 +24,41 @@ void kInit(void) {
     
     fsClearWorkingDirectory();
     
-    fsFormat(0, CAPACITY_32K);
+    fsFormat(0, CAPACITY_8K);
     
     
     
-    uint8_t binDirName[]  = "bin";
-    fsDirectoryCreate(binDirName, sizeof(binDirName)-1);
-    
-    
+    uint8_t kernelDirName[]  = "kernel";
+    fsDirectoryCreate(kernelDirName, sizeof(kernelDirName)-1);
     
     uint8_t drvDirName[]  = "drivers";
     fsDirectoryCreate(drvDirName, sizeof(drvDirName)-1);
     
+    uint8_t binDirName[]  = "bin";
+    fsDirectoryCreate(binDirName, sizeof(binDirName)-1);
+    
+    uint8_t userDirName[]  = "user";
+    fsDirectoryCreate(userDirName, sizeof(userDirName)-1);
     
     
-    // Create test executable
+    
+    fsSetWorkingDirectory(kernelDirName, sizeof(kernelDirName)-1);
+    
+    uint8_t subsysDirName[]  = "subsys";
+    fsDirectoryCreate(subsysDirName, sizeof(subsysDirName)-1);
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    // Create version executable
+    
+    fsSetWorkingDirectory(subsysDirName, sizeof(subsysDirName)-1);
+    
     uint8_t testFileName[]  = "ver";
     fsFileCreate(testFileName, sizeof(testFileName)-1, 80, ' ');
     
@@ -74,10 +94,12 @@ void kInit(void) {
     
     
     
+    
+    
+    
     // Create test driver in drivers directory
     
     fsSetWorkingDirectory(drvDirName, sizeof(drvDirName)-1);
-    
     
     
     uint8_t driverFileName[]  = "kmod";
@@ -100,7 +122,9 @@ void kInit(void) {
     fsFileClose(index);
     
     
+    
     fsClearWorkingDirectory();
+    
     
     return;
 }

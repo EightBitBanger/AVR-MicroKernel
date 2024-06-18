@@ -63,14 +63,14 @@ int main(void) {
     
     //registerCommandDevice();
     //registerCommandCAP();
-    //registerCommandList();
+    registerCommandList();
     //registerCommandTASK();
     //registerCommandType();
     
     //registerCommandLD();
     
     //registerCommandEDIT();
-    registerCommandAssembly();
+    //registerCommandAssembly();
     
     //registerCommandCLS();
     
@@ -88,11 +88,11 @@ int main(void) {
     registerCommandCOPY();
     registerCommandCD();
     
-    //registerCommandMK();
-    //registerCommandRM();
-    //registerCommandRN();
-    //registerCommandMKDIR();
-    //registerCommandRMDIR();
+    registerCommandMK();
+    registerCommandRM();
+    registerCommandRN();
+    registerCommandMKDIR();
+    registerCommandRMDIR();
     
     //registerCommandATTRIB();
     //registerCommandRepair();
