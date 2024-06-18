@@ -171,7 +171,7 @@ void functionLS(uint8_t* param, uint8_t param_length) {
     // List device root contents
     //
     
-    for (uint16_t i=0; i < 128; i++) {
+    for (uint32_t i=0; i < 128; i++) {
         
         uint32_t fileAddress = fsFileFind(i);
         
