@@ -3,8 +3,6 @@
 
 uint32_t fsRootFileExists(uint8_t* name, uint8_t nameLength) {
     
-    uint32_t currentDevice = fsGetDevice();
-    
     uint32_t currentCapacity = fsGetDeviceCapacity() / SECTOR_SIZE;
     
     // Root full sweep
@@ -12,26 +10,23 @@ uint32_t fsRootFileExists(uint8_t* name, uint8_t nameLength) {
         
         // Find an active file start byte
         uint8_t headerByte;
-        fs_read_byte(currentDevice + (sector * SECTOR_SIZE), &headerByte);
+        headerByte = fsSectorGetByte(sector * SECTOR_SIZE);
         
         if (headerByte != 0x55) 
             continue;
         
         // Check file is on the root
-        uint8_t directoryFlag;
-        fs_read_byte(currentDevice + (sector * SECTOR_SIZE) + OFFSET_DIRECTORY_FLAG, &directoryFlag);
-        
-        if (directoryFlag != 0) 
+        if (fsSectorGetByte((sector * SECTOR_SIZE) + OFFSET_DIRECTORY_FLAG) != 0) 
             continue;
         
         // Get filename from the device
         uint8_t filenameCheck[FILE_NAME_LENGTH];
         
         for (uint8_t i=0; i < FILE_NAME_LENGTH; i++) 
-            fs_read_byte(currentDevice + (sector * SECTOR_SIZE) + OFFSET_FILE_NAME + i, &filenameCheck[i]);
+            filenameCheck[i] = fsSectorGetByte((sector * SECTOR_SIZE) + OFFSET_FILE_NAME + i);
         
-        if (StringCompare(name, nameLength, filenameCheck, FILE_NAME_LENGTH) == 1) 
-            return currentDevice + (sector * SECTOR_SIZE);
+        if (StringCompare(filenameCheck, FILE_NAME_LENGTH, name, nameLength) == 1) 
+            return fsGetDevice() + (sector * SECTOR_SIZE);
         
         continue;
     }

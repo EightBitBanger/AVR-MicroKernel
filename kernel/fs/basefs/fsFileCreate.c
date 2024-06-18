@@ -35,7 +35,7 @@ uint32_t fsFileCreate(uint8_t* name, uint8_t nameLength, uint32_t fileSize, uint
 	}
 	
 	// Find free sectors
-    for (uint32_t sector=1; sector < currentCapacity; sector++) {
+    for (uint32_t sector=0; sector < currentCapacity; sector++) {
         
         // Find an empty sector
         if (fsSectorGetByte( sector * SECTOR_SIZE ) != 0x00) 

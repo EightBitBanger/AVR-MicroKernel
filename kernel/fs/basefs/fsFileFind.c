@@ -1,12 +1,16 @@
 #include <kernel/kernel.h>
 
+
+
+
+
 uint32_t fsFileFind(uint32_t index) {
     
     uint32_t currentDevice = fsGetDevice();
     
     uint32_t currentCapacity = fsGetDeviceCapacity() / SECTOR_SIZE;
     
-    if (currentCapacity == 0) 
+    if (currentCapacity == 0)
         return 0;
     
     uint32_t fileFindIndex = 0;
