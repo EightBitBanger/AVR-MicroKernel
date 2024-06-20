@@ -90,7 +90,7 @@ uint8_t fsSectorGetByte(uint32_t address);
 void fsSectorSetByte(uint32_t address, uint8_t byte);
 
 uint32_t fsSectorAllocate(uint32_t size);
-uint8_t fsSectorDeallocate(uint32_t address, uint32_t size);
+uint8_t fsSectorDeallocate(uint32_t address);
 
 // File
 
