@@ -92,7 +92,7 @@ uint8_t fsFileDelete(uint8_t* name, uint8_t nameLength) {
 	//
 	// Delete following sectors allocated to this file
 	//
-	
+    
     for (uint32_t sector=1; sector < currentCapacity; sector++) {
         
         // Find an active file start byte

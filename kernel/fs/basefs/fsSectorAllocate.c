@@ -1,7 +1,5 @@
 #include <kernel/kernel.h>
 
-extern uint32_t fs_device_address;
-
 uint32_t fsSectorAllocate(uint32_t size) {
     
     uint32_t freeSectorCount = 0;
@@ -20,7 +18,7 @@ uint32_t fsSectorAllocate(uint32_t size) {
 		totalSectors = 1;
 	
 	// Find free sectors
-    for (uint32_t sector=0; sector < currentCapacity; sector++) {
+    for (uint32_t sector=0; sector <= currentCapacity; sector++) {
         
         // Find an empty sector
         if (fsSectorGetByte( sector * SECTOR_SIZE ) != 0x00) 
