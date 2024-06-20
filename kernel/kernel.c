@@ -27,6 +27,28 @@ void kInit(void) {
     fsFormat(0, CAPACITY_8K);
     
     
+    uint32_t fileAddressA = fsSectorAllocate(100);
+    uint32_t fileAddressB = fsSectorAllocate(100);
+    uint32_t fileAddressC = fsSectorAllocate(100);
+    
+    
+    
+    
+    
+    
+    
+    return;
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
     
     uint8_t kernelDirName[]  = "kernel";
     fsDirectoryCreate(kernelDirName, sizeof(kernelDirName)-1);
@@ -57,7 +79,7 @@ void kInit(void) {
     
     // Create version executable
     
-    fsSetWorkingDirectory(subsysDirName, sizeof(subsysDirName)-1);
+    fsSetWorkingDirectory(kernelDirName, sizeof(kernelDirName)-1);
     
     uint8_t testFileName[]  = "ver";
     fsFileCreate(testFileName, sizeof(testFileName)-1, 80, ' ');
@@ -108,15 +130,17 @@ void kInit(void) {
     index = fsFileOpen(driverFileName, sizeof(driverFileName)-1);
     uint8_t bufferDrv[] = "  kmod      $XXXXX";
     
-    bufferDrv[0] = 'K';      // Marker bytes  KD (kernel driver)
+    bufferDrv[0] = 'K';      // Marker bytes KD (kernel driver)
     bufferDrv[1] = 'D';
+    
+    // Next 10 bytes reserved for driver name
     
     bufferDrv[12] = '$';     // Marker byte '$'
     bufferDrv[13] = 0x13;    // Device ID
-    bufferDrv[14] = 'R';     // Bus read waitstate
-    bufferDrv[15] = 'W';     // Bus write waitstate
-    bufferDrv[16] = 'T';     // Bus interface type
-    bufferDrv[17] = 'S';     // Sub system registry type
+    bufferDrv[14] = 0x02;    // Bus read wait-state
+    bufferDrv[15] = 0x01;    // Bus write wait-state
+    bufferDrv[16] = 0x00;    // Bus interface type
+    bufferDrv[17] = 0x00;    // Sub system registry type
     
     fsFileWrite(index, bufferDrv, sizeof(bufferDrv) - 1);
     fsFileClose(index);
