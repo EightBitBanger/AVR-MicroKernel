@@ -57,6 +57,7 @@ void functionAsm(uint8_t* param, uint8_t param_length) {
         
         return;
     }
+    return;
     
     // Load the file into memory
     fsFileReadBin(index, fileBuffer, fileSize);
