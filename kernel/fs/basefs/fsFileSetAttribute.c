@@ -1,6 +1,10 @@
 #include <kernel/kernel.h>
 
-uint8_t fsFileSetAttributes(uint32_t address, struct FSAttribute* attributes) {
+uint8_t fsSetFileAttributes(uint8_t* name, uint8_t nameLength, struct FSAttribute* attributes) {
+    
+    uint32_t fileAddress = fsFileExists(name, nameLength);
+    if (fileAddress == 0) 
+        return 0;
     
     // Write file attributes
     uint8_t attributeArray[4] = {' ', ' ', ' ', ' '};
@@ -11,7 +15,7 @@ uint8_t fsFileSetAttributes(uint32_t address, struct FSAttribute* attributes) {
     attributeArray[3] = attributes->type;
     
     for (uint8_t i=0; i < 4; i++) {
-        fs_write_byte(address + OFFSET_FILE_ATTRIBUTES + i, attributeArray[i]);
+        fs_write_byte(fileAddress + OFFSET_FILE_ATTRIBUTES + i, attributeArray[i]);
     }
     
 	return 1;
