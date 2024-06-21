@@ -101,8 +101,8 @@ uint32_t fsRootFileExists(uint8_t* name, uint8_t nameLength);
 uint32_t fsFileFind(uint32_t index);
 uint8_t fsFileRename(uint8_t* name, uint8_t nameLength, uint8_t* newName, uint8_t newNameLength);
 uint32_t fsGetFileSize(uint8_t* name, uint8_t nameLength);
-uint8_t fsGetFileAttributes(uint8_t* name, uint8_t nameLength, struct FSAttribute* attributes);
-uint8_t fsSetFileAttributes(uint8_t* name, uint8_t nameLength, struct FSAttribute* attributes);
+uint8_t fsFileGetAttributes(uint32_t address, struct FSAttribute* attributes);
+uint8_t fsFileSetAttributes(uint32_t address, struct FSAttribute* attributes);
 
 // File IO
 uint8_t fsFileOpen(uint8_t* name, uint8_t nameLength);
