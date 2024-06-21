@@ -7,8 +7,6 @@
 
 void functionATTRIB(uint8_t* param, uint8_t param_length) {
     
-    /*
-    
     uint8_t msgFileNotFound[]    = "File not found";
     uint8_t msgAttributeError[]  = "Error";
     
@@ -26,8 +24,6 @@ void functionATTRIB(uint8_t* param, uint8_t param_length) {
         filename[i] = param[i];
         
     }
-    
-    fsFileExists();
     
     // Get current file attributes
     struct FSAttribute attributeCurrent;
@@ -105,8 +101,6 @@ void functionATTRIB(uint8_t* param, uint8_t param_length) {
     print(param, param_length);
     
     printLn();
-    
-    */
     
     return;
 }
