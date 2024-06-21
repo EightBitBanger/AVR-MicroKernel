@@ -256,7 +256,7 @@ void cliRunShell(void) {
                 
                 // Check file is executable
                 struct FSAttribute attribute;
-                fsGetFileAttributes(filename, parameters_begin, &attribute);
+                fsFileGetAttributes(fileAddress, &attribute);
                 
                 // Check executable
                 if (attribute.executable == 'x') {
@@ -301,7 +301,7 @@ void cliRunShell(void) {
                         
                         // Check file is executable
                         struct FSAttribute attribute;
-                        fsGetFileAttributes(filename, parameters_begin, &attribute);
+                        fsFileGetAttributes(fileAddress, &attribute);
                         
                         // Check executable
                         if (attribute.executable == 'x') {

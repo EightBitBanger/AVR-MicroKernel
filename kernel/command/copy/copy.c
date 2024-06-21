@@ -20,6 +20,8 @@ uint32_t fileCopySourceCurrentDevice;
 
 void functionCOPY(uint8_t* param, uint8_t param_length) {
     
+    /*
+    
     uint8_t msgFileCopied[]         = "File copied";
     uint8_t msgSourceNotFound[]     = "File not found";
     //uint8_t msgErrorCreatingFile[]  = "Cannot create file";
@@ -286,6 +288,8 @@ void functionCOPY(uint8_t* param, uint8_t param_length) {
         
         return;
     }
+    
+    */
     
     return;
 }
