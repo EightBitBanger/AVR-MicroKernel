@@ -27,11 +27,15 @@ void kInit(void) {
     fsFormat(0, CAPACITY_8K);
     
     
-    uint32_t fileAddressA = fsSectorAllocate(100);
-    uint32_t fileAddressB = fsSectorAllocate(100);
-    uint32_t fileAddressC = fsSectorAllocate(100);
+    uint32_t fileAddress = fsSectorAllocate(100);
     
+    struct FSAttribute attrib;
+    attrib.executable = 'x';
+    attrib.readable   = 'r';
+    attrib.writeable  = 'w';
+    attrib.type       = 's';
     
+    fsFileSetAttributes(fileAddress, &attrib);
     
     
     
@@ -42,7 +46,7 @@ void kInit(void) {
     
     
     
-    
+    /*
     
     
     
@@ -149,6 +153,7 @@ void kInit(void) {
     
     fsClearWorkingDirectory();
     
+    */
     
     return;
 }
