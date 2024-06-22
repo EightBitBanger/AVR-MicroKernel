@@ -40,6 +40,8 @@ uint8_t number_of_drivers = 0;
 
 uint8_t LoadLibrary(uint8_t* filename, uint8_t filenameLength) {
     
+    /*
+    
     uint32_t fileSize = fsGetFileSize(filename, filenameLength);
     
     if (fileSize < 20) 
@@ -123,6 +125,8 @@ uint8_t LoadLibrary(uint8_t* filename, uint8_t filenameLength) {
         
         break;
     }
+    
+    */
     
     return 1;
 }
