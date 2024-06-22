@@ -8,13 +8,18 @@
 
 // Capacities
 
-#define CAPACITY_32K      32768
-#define CAPACITY_16K      16384
-#define CAPACITY_8K       8192
+#define FORMAT_CAPACITY_32K       32768
+#define FORMAT_CAPACITY_16K       16384
+#define FORMAT_CAPACITY_8K        8192
 
 // Sector format
 
 #define SECTOR_SIZE               32
+
+#define SECTOR_HEADER             0x55
+#define SECTOR_DATA               0xff
+#define SECTOR_FOOTER             0xaa
+#define SECTOR_EMPTY              0x00
 
 #define DEVICE_CAPACITY_OFFSET    12
 
@@ -22,118 +27,96 @@
 
 #define FILE_NAME_LENGTH          10
 
-#define OFFSET_FILE_NAME          1
-#define OFFSET_FILE_SIZE          11
-#define OFFSET_FILE_ATTRIBUTES    15
-#define OFFSET_DIRECTORY_SIZE     19
-#define OFFSET_DIRECTORY_FLAG     23
+#define FILE_OFFSET_NAME          1
+#define FILE_OFFSET_SIZE          11
+#define FILE_OFFSET_ATTRIBUTES    15
+#define DIRECTORY_OFFSET_SIZE     19
+#define DIRECTORY_OFFSET_FLAG     23
 
 #define FILE_ATTRIBUTE_FILETYPE   15
 #define FILE_ATTRIBUTE_READ       16
 #define FILE_ATTRIBUTE_WRITE      17
 #define FILE_ATTRIBUTE_SPECIAL    18
 
-struct FSAttribute {
-    
-    uint8_t executable;
-    uint8_t readable;
-    uint8_t writeable;
-    uint8_t type;
-    
-};
-
-
 void fsInit(void);
+
+
+// Device
 
 void fs_write_byte(uint32_t address, uint8_t byte);
 void fs_read_byte(uint32_t address, uint8_t* buffer);
 
-// Formatting
-uint8_t fsFormat(uint32_t addressBegin, uint32_t addressEnd);
-
-
-// Current working directory
-
-void fsClearWorkingDirectory(void);
-uint8_t fsSetWorkingDirectory(uint8_t* directoryName, uint8_t nameLength);
-uint8_t fsGetWorkingDirectory(uint8_t* directoryName);
-uint8_t fsGetWorkingDirectoryLength(void);
-
-uint32_t fsGetWorkingDirectoryAddress(void);
-void fsSetWorkingDirectoryAddress(uint32_t address);
-
-uint8_t fsCheckWorkingDirectory(void);
-
-// Working directory tree
-
-void fsSetDirectoryStack(uint8_t amount);
-uint8_t fsGetDirectoryStack(void);
-
-// Device context
-
-uint8_t fsGetRootDirectory(void);
-void fsSetRootDirectory(uint8_t device);
+uint32_t fsGetDevice(void);
+void fsSetDevice(uint32_t device_address);
 
 void fsSetDeviceTypeIO(void);
 void fsSetDeviceTypeMEM(void);
 
-void fsSetDevice(uint32_t address);
-void fsSetDeviceLetter(uint8_t letter);
-uint32_t fsGetDevice(void);
-
 uint32_t fsGetDeviceCapacity(void);
 uint8_t fsCheckDeviceReady(void);
+void fsSetDeviceLetter(uint8_t letter);
+void fsSetDeviceRoot(uint8_t deviceLetter);
+uint8_t fsGetDeviceRoot(void);
 
-// Sectors
+// Allocation
 
-uint8_t fsSectorGetByte(uint32_t address);
-void fsSectorSetByte(uint32_t address, uint8_t byte);
+uint32_t fsAllocate(uint32_t size);
+uint8_t fsFree(uint32_t address);
 
-uint32_t fsSectorAllocate(uint32_t size);
-uint8_t fsSectorDeallocate(uint32_t address);
+uint8_t fsFormat(uint32_t addressBegin, uint32_t addressEnd);
 
-// File
 
-uint32_t fsFileCreate(uint8_t* name, uint8_t nameLength, uint32_t fileSize, uint8_t subType);
+
+
+// Files
+
+uint32_t fsFileCreate(uint8_t* name, uint8_t nameLength, uint32_t fileSize);
 uint8_t fsFileDelete(uint8_t* name, uint8_t nameLength);
-uint32_t fsFileExists(uint8_t* name, uint8_t nameLength);
-uint32_t fsRootFileExists(uint8_t* name, uint8_t nameLength);
+
 uint32_t fsFileFind(uint32_t index);
-uint8_t fsFileRename(uint8_t* name, uint8_t nameLength, uint8_t* newName, uint8_t newNameLength);
-uint32_t fsGetFileSize(uint8_t* name, uint8_t nameLength);
-uint8_t fsGetFileAttributes(uint8_t* name, uint8_t nameLength, struct FSAttribute* attributes);
-uint8_t fsSetFileAttributes(uint8_t* name, uint8_t nameLength, struct FSAttribute* attributes);
-
-// File IO
-uint8_t fsFileOpen(uint8_t* name, uint8_t nameLength);
-uint8_t fsDirectoryFileOpen(uint8_t* name, uint8_t nameLength);
-
-uint8_t fsFileClose(uint8_t index);
-
-uint8_t fsFileSeekGet(void);
-uint8_t fsFileSeekSet(uint8_t position);
+uint32_t fsFileExists(uint8_t* name, uint8_t nameLength);
 
 
-uint8_t fsFileWrite(uint8_t index, uint8_t* buffer, uint32_t size);
-uint8_t fsFileReadText(uint8_t index, uint8_t* buffer, uint32_t length);
-uint8_t fsFileReadBin(uint8_t index, uint8_t* buffer, uint32_t size);
-
-// Directory
+// Directories
 
 uint32_t fsDirectoryCreate(uint8_t* name, uint8_t nameLength);
-uint32_t fsDirectoryDelete(uint8_t* name, uint8_t nameLength);
 
-uint32_t fsDirectoryGetNumberOfFiles(uint8_t* name, uint8_t nameLength);
-uint8_t fsDirectorySetNumberOfFiles(uint8_t* name, uint8_t nameLength, uint32_t numberOfFiles);
 
-uint8_t fsDirectorySetFlag(uint8_t* name, uint8_t nameLength, uint8_t flag);
-uint8_t fsDirectoryGetFlag(uint8_t* name, uint8_t nameLength);
 
-uint8_t fsCheckIsDirectory(uint8_t* name, uint8_t nameLength);
+// IO
 
-uint32_t fsDirectoryExists(uint8_t* name, uint8_t nameLength);
-uint32_t fsDirectoryFileExists(uint8_t* name, uint8_t nameLength);
+uint8_t fsFileOpen(uint32_t address);
+uint8_t fsFileClose(void);
 
-uint32_t fsDirectoryGetFileSize(uint8_t* name, uint8_t nameLength);
+uint8_t fsFileRead(uint8_t* buffer, uint32_t size);
+uint8_t fsFileWrite(uint8_t* buffer, uint32_t size);
+
+
+// Working directory
+
+void     fsSetWorkingDirectoryAddress(uint32_t address);
+uint32_t fsGetWorkingDirectoryAddress(void);
+
+uint8_t fsGetDirectoryStack(void);
+void    fsSetDirectoryStack(uint8_t amount);
+
+uint8_t fsGetWorkingDirectory(uint8_t* directoryName);
+uint8_t fsSetWorkingDirectory(uint8_t* directoryName, uint8_t nameLength);
+
+uint8_t fsGetWorkingDirectoryLength(void);
+
+uint8_t fsCheckWorkingDirectory(void);
+
+void fsClearWorkingDirectory(void);
+
+
+
+
+
+
+
+
+
+
 
 #endif
