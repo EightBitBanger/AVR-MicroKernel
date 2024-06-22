@@ -17,6 +17,26 @@ void (*interrupt_vector_table[INTERRUPT_VECTOR_TABLE_SIZE])(uint8_t);
 
 void kInit(void) {
     
+    fsFormat(0, FORMAT_CAPACITY_8K);
+    
+    uint8_t directoryName[] = "bin";
+    fsDirectoryCreate(directoryName, sizeof(directoryName));
+    
+    uint8_t fileName[] = "kmod";
+    uint32_t address = fsFileCreate(fileName, sizeof(fileName), 40);
+    
+    fsFileOpen(address);
+    
+    uint8_t buffer[] = "";
+    
+    fsFileWrite(buffer, sizeof(buffer));
+    
+    fsFileClose();
+    
+    
+    
+    /*
+    
     uint8_t deviceLetter = 'X';
     
     fsSetDeviceLetter(deviceLetter);
@@ -25,11 +45,6 @@ void kInit(void) {
     fsClearWorkingDirectory();
     
     fsFormat(0, CAPACITY_8K);
-    
-    
-    uint32_t fileAddressA = fsSectorAllocate(100);
-    uint32_t fileAddressB = fsSectorAllocate(100);
-    uint32_t fileAddressC = fsSectorAllocate(100);
     
     
     uint8_t kernelDirName[]  = "kernel";
@@ -72,7 +87,7 @@ void kInit(void) {
     attribTest.writeable  = 'w';
     attribTest.type       = ' ';
     
-    fsSetFileAttributes(testFileName, sizeof(testFileName)-1, &attribTest);
+    fsFileSetAttributes(testFileName, sizeof(testFileName)-1, &attribTest);
     
     uint8_t index = fsFileOpen(testFileName, sizeof(testFileName)-1);
     uint8_t bufferTest[] = {0x89, 0x03, 'V', 0xcc, 0x10, 
@@ -131,6 +146,7 @@ void kInit(void) {
     
     fsClearWorkingDirectory();
     
+    */
     
     return;
 }

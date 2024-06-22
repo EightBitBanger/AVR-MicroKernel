@@ -89,9 +89,9 @@ int main(void) {
     registerCommandCD();
     
     registerCommandMK();
-    registerCommandRM();
+    //registerCommandRM();
     //registerCommandRN();
-    //registerCommandMKDIR();
+    registerCommandMKDIR();
     //registerCommandRMDIR();
     
     //registerCommandATTRIB();
@@ -138,10 +138,10 @@ int main(void) {
     
     //
     // Start in the root directory
-    fsSetDeviceLetter('x');
-    
     uint8_t prompt[] = " >";
-    prompt[0] = fsGetRootDirectory();
+    //prompt[0] = fsGetRootDirectory();
+    
+    prompt[0] = 'Z';
     
     ConsoleSetPrompt(prompt, sizeof(prompt));
     
@@ -153,8 +153,8 @@ int main(void) {
     // Launch system tasks
     
     // Command console
-    uint8_t taskname[] = "command";
-    TaskCreate(taskname, sizeof(taskname), cliRunShell, TASK_PRIORITY_REALTIME, TASK_TYPE_SERVICE);
+    //uint8_t taskname[] = "command";
+    //TaskCreate(taskname, sizeof(taskname), cliRunShell, TASK_PRIORITY_REALTIME, TASK_TYPE_SERVICE);
     
     
     //
@@ -173,7 +173,15 @@ int main(void) {
     InterruptStartScheduler();
     InterruptStartTimeCounter();
     
-    while(1);
+    while(1) {
+        
+        __asm__("cli");
+        
+        cliRunShell();
+        
+        __asm__("sei");
+        
+    }
     
     InterruptStopTimerCounter();
     InterruptStopScheduler();
