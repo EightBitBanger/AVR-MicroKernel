@@ -6,6 +6,8 @@
 
 void functionType(uint8_t* param, uint8_t param_length) {
     
+    /*
+    
     uint32_t fileSize = fsGetFileSize(param, param_length);
     
     if (fsCheckWorkingDirectory() == 1) {
@@ -56,6 +58,8 @@ void functionType(uint8_t* param, uint8_t param_length) {
         printChar( fileBuffer[i] );
         
     }
+    
+    */
     
     return;
 }

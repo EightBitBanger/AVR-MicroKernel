@@ -12,13 +12,15 @@ uint8_t fileCopySourceWorkingDir[FILE_NAME_LENGTH];
 uint8_t fileCopySourceWorkingDirLength = 0;
 
 uint32_t fileCopySourceSize = 0;
-struct FSAttribute fileCopySourceAttrib;
+//struct FSAttribute fileCopySourceAttrib;
 
 uint32_t fileCopySourceCurrentDevice;
 
 
 
 void functionCOPY(uint8_t* param, uint8_t param_length) {
+    
+    /*
     
     uint8_t msgFileCopied[]         = "File copied";
     uint8_t msgSourceNotFound[]     = "File not found";
@@ -45,7 +47,7 @@ void functionCOPY(uint8_t* param, uint8_t param_length) {
     
     // Ignore directories as source
     struct FSAttribute attributes;
-    fsGetFileAttributes(sourceFilename, sourceNameLength, &attributes);
+    fsFileGetAttributes(sourceFilename, sourceNameLength, &attributes);
     
     if (attributes.type == 'd') {
         
@@ -84,7 +86,7 @@ void functionCOPY(uint8_t* param, uint8_t param_length) {
     }
     
     struct FSAttribute attrib;
-    fsGetFileAttributes(sourceFilename, sourceNameLength, &attrib);
+    fsFileGetAttributes(sourceFilename, sourceNameLength, &attrib);
     
     uint32_t fileSize = fsGetFileSize(sourceFilename, sourceNameLength);
     
@@ -188,7 +190,7 @@ void functionCOPY(uint8_t* param, uint8_t param_length) {
             
             fsFileClose(index);
             
-            fsSetFileAttributes(destFilename, destNameLength, &attrib);
+            fsFileSetAttributes(destFilename, destNameLength, &attrib);
             
             print(msgFileCopied,sizeof(msgFileCopied));
             printLn();
@@ -286,6 +288,8 @@ void functionCOPY(uint8_t* param, uint8_t param_length) {
         
         return;
     }
+    
+    */
     
     return;
 }

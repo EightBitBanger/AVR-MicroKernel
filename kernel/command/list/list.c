@@ -34,7 +34,7 @@ void functionList(uint8_t* param, uint8_t param_length) {
     
     for (uint8_t i=0; i < 60; i++) {
         
-        fs_read_byte(fsGetDevice() + i + (page * pageSize), &buffer[i]);
+        fs_read_byte((page * pageSize) + i, &buffer[i]);
         
     }
     

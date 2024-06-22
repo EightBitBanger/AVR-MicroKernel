@@ -32,17 +32,21 @@ void functionLS(uint8_t* param, uint8_t param_length) {
     }
     
     
+    
+    if (fsCheckWorkingDirectory() == 1) {
+        
+        return;
+    }
+    
+    
     //
     // List working directory contents
     //
     
     if (fsCheckWorkingDirectory() == 1) {
         
-        uint8_t workingDirectory[20];
-        uint8_t workingDirectoryLength = fsGetWorkingDirectory(workingDirectory);
-        
         // Check if the current working directory is valid
-        uint32_t directoryAddress = fsFileExists(workingDirectory, workingDirectoryLength-1);
+        uint32_t directoryAddress = fsGetWorkingDirectoryAddress();
 		if (directoryAddress == 0) {
             
             print(msgDirectoryError, sizeof(msgDirectoryError));
@@ -51,18 +55,29 @@ void functionLS(uint8_t* param, uint8_t param_length) {
             return;
 		}
 		
-		directorySize = fsGetFileSize(workingDirectory, workingDirectoryLength-1);
+		// Get file size
+		union Pointer fileSizePtr;
+		for (uint8_t i=0; i < 4; i++) 
+            fs_read_byte(directoryAddress + FILE_OFFSET_SIZE + i, &fileSizePtr.byte_t[i]);
         
-        numberOfFiles = fsDirectoryGetNumberOfFiles(workingDirectory, workingDirectoryLength-1);
+		directorySize = fileSizePtr.address;
+		
+		// Get number of files
+		union Pointer directorySizePtr;
+		for (uint8_t i=0; i < 4; i++) 
+            fs_read_byte(directoryAddress + DIRECTORY_OFFSET_SIZE + i, &directorySizePtr.byte_t[i]);
         
+		numberOfFiles = directorySizePtr.address;
+		
+		
         if (numberOfFiles > 0) {
             
-            uint8_t index = fsFileOpen(workingDirectory, workingDirectoryLength-1);
+            fsFileOpen(directoryAddress);
             
             uint8_t bufferDir[directorySize];
-            fsFileReadBin(index, bufferDir, directorySize);
+            fsFileRead(bufferDir, directorySize);
             
-            fsFileClose(index);
+            fsFileClose();
             
             // List the directory contents
             for (uint8_t i=0; i < numberOfFiles; i++) {
@@ -78,7 +93,7 @@ void functionLS(uint8_t* param, uint8_t param_length) {
                 uint8_t attributes[4] = {' ',' ',' ',' '};
                 
                 for (uint8_t a=0; a < 4; a++) 
-                    attributes[a] = fsSectorGetByte(fileAddress + a + OFFSET_FILE_ATTRIBUTES);
+                    fs_read_byte(fileAddress + a + FILE_OFFSET_ATTRIBUTES, &attributes[a]);
                 
                 print(&attributes[0], 4);
                 printSpace(1);
@@ -87,7 +102,7 @@ void functionLS(uint8_t* param, uint8_t param_length) {
                 uint8_t filename[10];
                 
                 for (uint8_t n=0; n < 10; n++) 
-                    filename[n] = fsSectorGetByte(fileAddress + n + 1);
+                    fs_read_byte(fileAddress + n + 1, &filename[n]);
                 
                 print(filename, sizeof(filename) + 1);
                 printSpace(1);
@@ -109,7 +124,7 @@ void functionLS(uint8_t* param, uint8_t param_length) {
                     union Pointer ptr;
                     
                     for (uint8_t s=0; s < 4; s++) 
-                        ptr.byte_t[s] = fsSectorGetByte(fileAddress + s + OFFSET_FILE_SIZE);
+                        fs_read_byte(fileAddress + s + FILE_OFFSET_SIZE, &ptr.byte_t[s]);
                     
                     uint8_t filesizeString[10];
                     
@@ -182,7 +197,7 @@ void functionLS(uint8_t* param, uint8_t param_length) {
         
         // Check if the file is claimed by a directory
         uint8_t flagClaimed = 0;
-		fs_read_byte(fileAddress + OFFSET_DIRECTORY_FLAG, &flagClaimed);
+		fs_read_byte(fileAddress + DIRECTORY_OFFSET_FLAG, &flagClaimed);
 		
 		if (flagClaimed != 0) 
             continue;
@@ -191,7 +206,7 @@ void functionLS(uint8_t* param, uint8_t param_length) {
         uint8_t attributes[4] = {' ',' ',' ',' '};
         
         for (uint8_t a=0; a < 4; a++) 
-            fs_read_byte(fileAddress + a + OFFSET_FILE_ATTRIBUTES, &attributes[a]);
+            fs_read_byte(fileAddress + a + FILE_OFFSET_ATTRIBUTES, &attributes[a]);
         
         print(&attributes[0], 4);
         printSpace(1);
@@ -224,7 +239,7 @@ void functionLS(uint8_t* param, uint8_t param_length) {
             union Pointer ptr;
             
             for (uint8_t s=0; s < 4; s++) 
-                fs_read_byte(fileAddress + s + OFFSET_FILE_SIZE, &ptr.byte_t[s]);
+                fs_read_byte(fileAddress + s + FILE_OFFSET_SIZE, &ptr.byte_t[s]);
             
             uint8_t filesizeString[10];
             

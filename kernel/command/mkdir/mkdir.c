@@ -8,7 +8,6 @@
 void functionMKDIR(uint8_t* param, uint8_t param_length) {
     
     uint8_t msgFileCreated[]   = "Directory created";
-    uint8_t msgNoSpace[]       = "No space available";
     //uint8_t msgAlreadyExists[] = "Already exists";
     uint8_t msgBadName[]       = "Invalid name";
     
@@ -20,12 +19,7 @@ void functionMKDIR(uint8_t* param, uint8_t param_length) {
         return;
     }
     
-    if (fsDirectoryCreate(param, param_length) == 0) {
-        
-        print(msgNoSpace, sizeof(msgNoSpace));
-        printLn();
-        
-    } else {
+    if (fsDirectoryCreate(param, param_length) != 0) {
         
         print(msgFileCreated, sizeof(msgFileCreated));
         printLn();

@@ -7,6 +7,8 @@
 
 void functionEDIT(uint8_t* param, uint8_t param_length) {
     
+    /*
+    
     uint8_t msgFileNotFoundEdittor[] = "File not found";
     uint8_t msgSaved[]               = "Saved";
     uint8_t msgSaveQuit[]            = "(S)ave / (Q)uit?";
@@ -118,14 +120,12 @@ void functionEDIT(uint8_t* param, uint8_t param_length) {
             if (pageNumber > 0) {
                 for (uint16_t i=0; i < fileSize; i++) {
                     
-                    /*
                     // Check end of file
-                    if (i < fileSize-1) {
-                        flagEOF = 0;
-                    } else {
-                        flagEOF = 1;
-                    }
-                    */
+                    //if (i < fileSize-1) {
+                    //    flagEOF = 0;
+                    ////} else {
+                    //    flagEOF = 1;
+                    //}
                     
                     if (textBuffer[i] != '\n') 
                         continue;
@@ -287,6 +287,8 @@ void functionEDIT(uint8_t* param, uint8_t param_length) {
         
         lastChar = currentChar;
         
+        */
+        
         
         /*
         
@@ -314,6 +316,13 @@ void functionEDIT(uint8_t* param, uint8_t param_length) {
         }
         
         */
+        
+        
+        
+        
+        
+        
+        /*
         
         
         // Toggle line ending characters
@@ -594,6 +603,8 @@ void functionEDIT(uint8_t* param, uint8_t param_length) {
         
         continue;
     }
+    
+    */
     
     return;
 }

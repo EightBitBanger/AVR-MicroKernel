@@ -7,6 +7,8 @@
 
 void functionFORMAT(uint8_t* param, uint8_t param_length) {
     
+    /*
+    
     uint32_t deviceCapacity = 0;
     
     if  (param[0] == '8') deviceCapacity = CAPACITY_8K;
@@ -146,6 +148,8 @@ void functionFORMAT(uint8_t* param, uint8_t param_length) {
     ConsoleCursorEnable();
     
     printLn();
+    
+    */
     
     return;
 }

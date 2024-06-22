@@ -7,6 +7,8 @@
 
 void functionRepair(uint8_t* param, uint8_t param_length) {
     
+    /*
+    
     uint8_t buffer[SECTOR_SIZE];
     
     // Get header sector
@@ -41,6 +43,8 @@ void functionRepair(uint8_t* param, uint8_t param_length) {
     // Get device capacity
     //for (uint8_t i=0; i < 4; i++) 
     //    sizePointer.byte_t[i] = buffer[i + DEVICE_CAPACITY_OFFSET];
+    
+    */
     
     return;
 }

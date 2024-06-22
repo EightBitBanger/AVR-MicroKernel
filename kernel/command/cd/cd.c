@@ -4,51 +4,21 @@
 
 #include <kernel/command/cd/cd.h>
 
-struct DirectoryName {
-    
-    uint8_t name[10];
-    
-};
+struct Directory { uint8_t name[FILE_NAME_LENGTH]; uint32_t address; };
 
-
-struct DirectoryName directoryStack[16];
+extern struct Directory directoryStack[8];
 
 extern uint8_t fs_directory_stack_ptr;
 
 
 void functionCD(uint8_t* param, uint8_t param_length) {
     
-    uint8_t msgDeviceError[]        = "Device not ready";
+    //uint8_t msgDeviceError[]        = "Device not ready";
     uint8_t msgDirectoryNotFound[]  = "Directory not found";
-    uint8_t msgNotDirectory[]       = "Not a directory";
-    
-    
-    //
-    // Change Device
-    //
-    
-    // The letter represents the hardware address 
-    // offset pointing to the device on the system bus
+    //uint8_t msgNotDirectory[]       = "Not a directory";
     
     uint8_t deviceLetter = param[0];
     uppercase(&deviceLetter);
-    
-    if ((deviceLetter >= 'A') & (deviceLetter <= 'Z') & (param[1] == ':')) {
-        
-        fsSetDeviceLetter( deviceLetter );
-        fsSetRootDirectory( deviceLetter );
-        
-        uint8_t consolePrompt[2];
-        consolePrompt[0] = deviceLetter;
-        consolePrompt[1] = '>';
-        
-        ConsoleSetPrompt(consolePrompt, 3);
-        
-        fsClearWorkingDirectory();
-        fs_directory_stack_ptr = 0;
-        
-        return;
-    }
     
     
     //
@@ -57,40 +27,14 @@ void functionCD(uint8_t* param, uint8_t param_length) {
     
     if ((deviceLetter >= 'A') & (deviceLetter <= 'Z')) {
         
-        if (fsCheckDeviceReady() == 0) {
-            
-            print(msgDeviceError, sizeof(msgDeviceError));
-            printLn();
-            
-            return;
-        }
+        uint32_t fileAddress = fsFileExists(param, param_length);
         
-        // Check for sub directory of the working directory
-        if (fsCheckWorkingDirectory() == 0) {
-            
-            // Check root for a directory
-            
-            // Check directory is not claimed by a directory
-            if (fsDirectoryGetFlag(param, param_length) != 0) {
-                
-                print(msgDirectoryNotFound, sizeof(msgDirectoryNotFound));
-                printLn();
-                
-                return;
-            }
-            
-        }
+        // Check directory flag
+        uint8_t directoryAttrib = 0;
+        fs_read_byte(fileAddress + FILE_ATTRIBUTE_SPECIAL, &directoryAttrib);
         
-        // Check is NOT a directory
-        if (fsCheckIsDirectory(param, param_length-1) == 0) {
-            
-            print(msgNotDirectory, sizeof(msgNotDirectory));
-            printLn();
-            
-            return;
-        }
-        
-        if (fsSetWorkingDirectory(param, param_length) == 0) {
+        if ((fileAddress == 0) | (
+            directoryAttrib != 'd')) {
             
             print(msgDirectoryNotFound, sizeof(msgDirectoryNotFound));
             printLn();
@@ -98,11 +42,15 @@ void functionCD(uint8_t* param, uint8_t param_length) {
             return;
         }
         
+        fsSetWorkingDirectory(param, param_length);
+        
         fs_directory_stack_ptr++;
         
         // Add the directory to the directory stack
         for (uint8_t n=0; n < 10; n++) 
             directoryStack[fs_directory_stack_ptr].name[n] = ' ';
+        
+        directoryStack[fs_directory_stack_ptr].address = fileAddress;
         
         // Prompt for device letters
         
@@ -117,7 +65,7 @@ void functionCD(uint8_t* param, uint8_t param_length) {
         
         PromptDir[param_length + 1] = '>';
         
-        PromptDir[0] = fsGetRootDirectory();
+        PromptDir[0] = fsGetDeviceRoot();
         PromptDir[1] = '/';
         
         ConsoleSetPrompt(PromptDir, param_length + 3);
@@ -150,6 +98,8 @@ void functionCD(uint8_t* param, uint8_t param_length) {
                     break;
             }
             
+            fsSetWorkingDirectoryAddress( directoryStack[fs_directory_stack_ptr].address );
+            
             // Set the parent directory
             fsSetWorkingDirectory(filename, filenameLength - 1);
             
@@ -168,7 +118,7 @@ void functionCD(uint8_t* param, uint8_t param_length) {
             
             PromptDir[filenameLength] = '>';
             
-            PromptDir[0] = fsGetRootDirectory();
+            PromptDir[0] = fsGetDeviceRoot();
             PromptDir[1] = '/';
             
             ConsoleSetPrompt(PromptDir, filenameLength + 2);
@@ -181,7 +131,7 @@ void functionCD(uint8_t* param, uint8_t param_length) {
             
             uint8_t PromptRoot[] = " >";
             
-            PromptRoot[0] = fsGetRootDirectory();
+            PromptRoot[0] = fsGetDeviceRoot();
             
             ConsoleSetPrompt(PromptRoot, 3);
             
@@ -229,6 +179,30 @@ void functionCD(uint8_t* param, uint8_t param_length) {
     
     
     //
+    // Change Device
+    //
+    
+    // The letter represents the hardware address 
+    // offset pointing to the device on the system bus
+    
+    if ((deviceLetter >= 'A') & (deviceLetter <= 'Z') & (param[1] == ':')) {
+        
+        fsSetDeviceLetter( deviceLetter );
+        fsSetDeviceRoot( deviceLetter );
+        
+        uint8_t consolePrompt[2];
+        consolePrompt[0] = deviceLetter;
+        consolePrompt[1] = '>';
+        
+        ConsoleSetPrompt(consolePrompt, 3);
+        
+        fsClearWorkingDirectory();
+        
+        return;
+    }
+    
+    
+    //
     // Drop down to the root
     //
     
@@ -240,7 +214,7 @@ void functionCD(uint8_t* param, uint8_t param_length) {
         
         uint8_t PromptRoot[] = " >";
         
-        PromptRoot[0] = fsGetRootDirectory();
+        PromptRoot[0] = fsGetDeviceRoot();
         
         ConsoleSetPrompt(PromptRoot, 3);
         

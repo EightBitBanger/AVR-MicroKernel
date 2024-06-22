@@ -6,6 +6,8 @@
 
 void functionLD(uint8_t* param, uint8_t param_length) {
     
+    /*
+    
     uint8_t msgDriverLoaded[]      = "Driver loaded";
     uint8_t msgCannotLoadDriver[]  = "Already loaded";
     uint8_t msgDriverNotFound[]    = "File not found";
@@ -40,6 +42,8 @@ void functionLD(uint8_t* param, uint8_t param_length) {
         printLn();
         
     }
+    
+    */
     
     return;
 }

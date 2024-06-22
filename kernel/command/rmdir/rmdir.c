@@ -7,6 +7,8 @@
 
 void functionRMDIR(uint8_t* param, uint8_t param_length) {
     
+    /*
+    
     uint8_t msgDirRemoved[]   = "Directory removed";
     uint8_t msgDirNotFound[]  = "Directory not found";
     uint8_t msgBadName[]      = "Invalid name";
@@ -19,7 +21,7 @@ void functionRMDIR(uint8_t* param, uint8_t param_length) {
     
     // Check directory attribute
     struct FSAttribute attribute;
-    fsGetFileAttributes(param, param_length-1, &attribute);
+    fsFileGetAttributes(param, param_length-1, &attribute);
     
     if (attribute.type != 'd') {
         
@@ -41,7 +43,7 @@ void functionRMDIR(uint8_t* param, uint8_t param_length) {
         
         return;
     }
-    
+    */
     return;
 }
 

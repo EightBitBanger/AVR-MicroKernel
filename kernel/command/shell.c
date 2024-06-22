@@ -126,6 +126,7 @@ void cliRunShell(void) {
         console_string_length_old = console_string_length;
         
         // Check special character functionality
+        /*
         if ((console_string[1] == ':') & 
             (console_string[2] == ' ')) {
             
@@ -165,6 +166,7 @@ void cliRunShell(void) {
             
             return;
         }
+        */
         
         
         // Look up function name
@@ -224,6 +226,9 @@ void cliRunShell(void) {
         }
         
         
+        /*
+        
+        
         //
         // Check file executable
         
@@ -256,7 +261,7 @@ void cliRunShell(void) {
                 
                 // Check file is executable
                 struct FSAttribute attribute;
-                fsGetFileAttributes(filename, parameters_begin, &attribute);
+                fsFileGetAttributes(filename, parameters_begin, &attribute);
                 
                 // Check executable
                 if (attribute.executable == 'x') {
@@ -301,7 +306,7 @@ void cliRunShell(void) {
                         
                         // Check file is executable
                         struct FSAttribute attribute;
-                        fsGetFileAttributes(filename, parameters_begin, &attribute);
+                        fsFileGetAttributes(filename, parameters_begin, &attribute);
                         
                         // Check executable
                         if (attribute.executable == 'x') {
@@ -336,6 +341,7 @@ void cliRunShell(void) {
             
         }
         
+        */
         
         //
         // Bad command or filename

@@ -6,6 +6,8 @@
 
 void functionAsm(uint8_t* param, uint8_t param_length) {
     
+    /*
+    
     uint8_t msgPromptString[] = "-";
     
     uint8_t asm_console_string[40];
@@ -840,6 +842,8 @@ void functionAsm(uint8_t* param, uint8_t param_length) {
     }
     
     fsFileClose(index);
+    
+    */
     
     return;
 }

@@ -58,7 +58,7 @@ void functionMK(uint8_t* param, uint8_t param_length) {
         return;
     }
     
-    if (fsFileCreate(param, param_length, filesize, ' ') == 0) {
+    if (fsFileCreate(param, param_length, filesize) == 0) {
         
         print(msgErrorCreating, sizeof(msgErrorCreating));
         printLn();
