@@ -42,6 +42,48 @@ void kInit(void) {
     
     
     
+    
+    
+    
+    
+    
+    
+    uint8_t versionFileName[]  = "ver";
+    uint32_t versionFileAddress = fsFileCreate(versionFileName, sizeof(versionFileName), 80);
+    
+    struct FSAttribute attribTest;
+    attribTest.executable = 'x';
+    attribTest.readable   = 'r';
+    attribTest.writeable  = 'w';
+    attribTest.type       = ' ';
+    
+    fsFileSetAttributes(versionFileAddress, &attribTest);
+    
+    fsFileOpen(versionFileAddress);
+    uint8_t bufferTest[] = {0x89, 0x03, 'V', 0xcc, 0x10, 
+                            0x89, 0x03, 'e', 0xcc, 0x10, 
+                            0x89, 0x03, 'r', 0xcc, 0x10, 
+                            0x89, 0x03, 's', 0xcc, 0x10, 
+                            0x89, 0x03, 'i', 0xcc, 0x10, 
+                            0x89, 0x03, 'o', 0xcc, 0x10, 
+                            0x89, 0x03, 'n', 0xcc, 0x10, 
+                            0x89, 0x03, ' ', 0xcc, 0x10, 
+                            0x89, 0x03, '0', 0xcc, 0x10, 
+                            0x89, 0x03, '.', 0xcc, 0x10, 
+                            0x89, 0x03, '0', 0xcc, 0x10, 
+                            0x89, 0x03, '.', 0xcc, 0x10, 
+                            0x89, 0x03, '1', 0xcc, 0x10, 
+                            
+                            0xcc, 0x20};
+    
+    fsFileWrite(bufferTest, sizeof(bufferTest));
+    fsFileClose();
+    
+    
+    
+    
+    
+    
     /*
     
     uint8_t deviceLetter = 'X';
