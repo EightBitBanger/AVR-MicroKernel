@@ -17,6 +17,13 @@ void (*interrupt_vector_table[INTERRUPT_VECTOR_TABLE_SIZE])(uint8_t);
 
 void kInit(void) {
     
+    // Initiate console prompt
+    uint8_t prompt[] = " >";
+    prompt[0] = fsGetDeviceRoot();
+    
+    ConsoleSetPrompt(prompt, sizeof(prompt));
+    
+    // Initiate temporary storage
     fsFormat(0, FORMAT_CAPACITY_8K);
     
     uint8_t directoryName[] = "bin";

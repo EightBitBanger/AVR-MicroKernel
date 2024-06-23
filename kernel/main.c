@@ -85,13 +85,13 @@ int main(void) {
   #ifdef INCLUDE_FILE_SYSTEM_APPLICATIONS
     
     registerCommandLS();
-    //registerCommandCOPY();
+    registerCommandCOPY();
     registerCommandCD();
     
-    registerCommandMK();
+    //registerCommandMK();
     //registerCommandRM();
     //registerCommandRN();
-    registerCommandMKDIR();
+    //registerCommandMKDIR();
     //registerCommandRMDIR();
     
     //registerCommandATTRIB();
@@ -134,16 +134,6 @@ int main(void) {
     printLn();
     
 #endif
-    
-    
-    //
-    // Start in the root directory
-    uint8_t prompt[] = " >";
-    //prompt[0] = fsGetRootDirectory();
-    
-    prompt[0] = 'Z';
-    
-    ConsoleSetPrompt(prompt, sizeof(prompt));
     
     // Drop the initial command prompt
     printPrompt();
