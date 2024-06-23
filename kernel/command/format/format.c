@@ -7,18 +7,16 @@
 
 void functionFORMAT(uint8_t* param, uint8_t param_length) {
     
-    /*
-    
     uint32_t deviceCapacity = 0;
     
-    if  (param[0] == '8') deviceCapacity = CAPACITY_8K;
-    if ((param[0] == '1') & (param[1] == '6')) deviceCapacity = CAPACITY_16K;
-    if ((param[0] == '3') & (param[1] == '2')) deviceCapacity = CAPACITY_32K;
+    if  (param[0] == '8') deviceCapacity = FORMAT_CAPACITY_8K;
+    if ((param[0] == '1') & (param[1] == '6')) deviceCapacity = FORMAT_CAPACITY_16K;
+    if ((param[0] == '3') & (param[1] == '2')) deviceCapacity = FORMAT_CAPACITY_32K;
     
     uint32_t deviceCapacityCurrent=0;
     if (deviceCapacity == 0) {
         
-        deviceCapacityCurrent = CAPACITY_8K / 1024;
+        deviceCapacityCurrent = FORMAT_CAPACITY_8K / 1024;
         
     } else {
         
@@ -48,6 +46,8 @@ void functionFORMAT(uint8_t* param, uint8_t param_length) {
     uint8_t devicePressToContinue[] = "Press Y to format";
     print(devicePressToContinue, sizeof(devicePressToContinue));
     printLn();
+    
+    ConsoleSetCursorPosition(0);
     
     if (ConsoleWait() != 'y') 
         return;
@@ -88,8 +88,8 @@ void functionFORMAT(uint8_t* param, uint8_t param_length) {
         
         percentage += 1;
         
-        if (percentage > 100) 
-            percentage = 100;
+        if (percentage > 99) 
+            percentage = 99;
         
         if (param[0] == 'q') 
             continue;
@@ -124,12 +124,6 @@ void functionFORMAT(uint8_t* param, uint8_t param_length) {
         continue;
     }
     
-    // Finish as 100%
-    ConsoleSetCursorPosition(0);
-    
-    uint8_t oneHundredPercentMsg[] = {'1', '0', '0', '%'};
-    print( oneHundredPercentMsg, sizeof(oneHundredPercentMsg) );
-    
     _delay_ms(10);
     
     // Initiate first sector
@@ -145,11 +139,15 @@ void functionFORMAT(uint8_t* param, uint8_t param_length) {
     for (uint8_t i=0; i < 4; i++) 
         fs_write_byte(currentDevice + DEVICE_CAPACITY_OFFSET + i, deviceSize.byte_t[i] );
     
+    // Finish as 100%
+    ConsoleSetCursorPosition(0);
+    
+    uint8_t oneHundredPercentMsg[] = {'1', '0', '0', '%'};
+    print( oneHundredPercentMsg, sizeof(oneHundredPercentMsg) );
+    
     ConsoleCursorEnable();
     
     printLn();
-    
-    */
     
     return;
 }

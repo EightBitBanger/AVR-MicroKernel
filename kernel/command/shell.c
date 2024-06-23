@@ -210,8 +210,6 @@ void cliRunShell(void) {
             if (isRightFunction == 0)
                 continue;
             
-            console_position = 0;
-            
             // Run the function
             if (CommandRegistry[i].function != nullptr) 
                 CommandRegistry[i].function( &console_string[parameters_begin], (console_string_length + 1) - parameters_begin );

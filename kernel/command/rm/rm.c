@@ -6,22 +6,22 @@
 
 void functionRM(uint8_t* param, uint8_t param_length) {
     
-    /*
-    
     uint8_t msgFileNotFound[]      = "File not found";
     uint8_t msgAccessDenied[]      = "Access denied";
     uint8_t msgFileRemoved[]       = "File removed";
     uint8_t msgBadName[]           = "Invalid filename";
     
-    if (param_length < 1) {
+    if (param_length == 0) {
+        
         print(msgBadName, sizeof(msgBadName));
         printLn();
+        
         return;
     }
     
-    // Check directory attribute
-    struct FSAttribute attribute;
-    if (fsFileGetAttributes(param, param_length-1, &attribute) == 0) {
+    uint32_t fileAddress = fsFileExists(param, param_length);
+    
+    if (fileAddress == 0) {
         
         print(msgFileNotFound, sizeof(msgFileNotFound));
         printLn();
@@ -29,8 +29,14 @@ void functionRM(uint8_t* param, uint8_t param_length) {
         return;
     }
     
-    // Ignore directories
-    if (attribute.type == 'd') {
+    // Check directory attribute
+    uint8_t attribDir;
+    uint8_t attribWrite;
+    
+    fs_read_byte(fileAddress + FILE_ATTRIBUTE_SPECIAL, &attribDir);
+    fs_read_byte(fileAddress + FILE_ATTRIBUTE_WRITE, &attribWrite);
+    
+    if (attribDir == 'd') {
         
         print(msgFileNotFound, sizeof(msgFileNotFound));
         printLn();
@@ -39,7 +45,8 @@ void functionRM(uint8_t* param, uint8_t param_length) {
     }
     
     // Check read only
-    if (attribute.writeable != 'w') {
+    
+    if (attribWrite != 'w') {
         
         print(msgAccessDenied, sizeof(msgAccessDenied));
         printLn();
@@ -47,7 +54,7 @@ void functionRM(uint8_t* param, uint8_t param_length) {
         return;
     }
     
-    if (fsFileDelete(param, param_length-1) == 1) {
+    if (fsFileDelete(param, param_length) == 1) {
         
         print(msgFileRemoved, sizeof(msgFileRemoved));
         printLn();
@@ -58,8 +65,6 @@ void functionRM(uint8_t* param, uint8_t param_length) {
         printLn();
         
     }
-    
-    */
     
     return;
 }

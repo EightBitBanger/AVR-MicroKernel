@@ -13,6 +13,9 @@ extern uint8_t fs_directory_stack_ptr;
 
 void functionCD(uint8_t* param, uint8_t param_length) {
     
+    if (param_length > FILE_NAME_LENGTH) 
+        param_length = FILE_NAME_LENGTH;
+    
     //uint8_t msgDeviceError[]        = "Device not ready";
     uint8_t msgDirectoryNotFound[]  = "Directory not found";
     //uint8_t msgNotDirectory[]       = "Not a directory";
@@ -47,7 +50,7 @@ void functionCD(uint8_t* param, uint8_t param_length) {
         fs_directory_stack_ptr++;
         
         // Add the directory to the directory stack
-        for (uint8_t n=0; n < 10; n++) 
+        for (uint8_t n=0; n < FILE_NAME_LENGTH; n++) 
             directoryStack[fs_directory_stack_ptr].name[n] = ' ';
         
         directoryStack[fs_directory_stack_ptr].address = fileAddress;
@@ -58,8 +61,9 @@ void functionCD(uint8_t* param, uint8_t param_length) {
             directoryStack[fs_directory_stack_ptr].name[n] = param[n];
         
         uint8_t PromptDir[20];
+        for (uint8_t i=0; i < 20; i++) 
+            PromptDir[i] = ' ';
         
-        // Device letter
         for (uint8_t i=0; i < param_length + 2; i++) 
             PromptDir[i + 2] = param[i];
         
@@ -145,40 +149,6 @@ void functionCD(uint8_t* param, uint8_t param_length) {
     
     
     //
-    // Display the full path
-    //
-    
-    if ((param[0] == '.') & (param[1] == ' ')) {
-        
-        printChar('/');
-        
-        for (uint8_t i=1; i < fs_directory_stack_ptr + 1; i++) {
-            
-            for (uint8_t c=0; c < FILE_NAME_LENGTH; c++) {
-                
-                if (directoryStack[i].name[c] == ' ') 
-                    break;
-                
-                printChar( directoryStack[i].name[c] );
-                
-            }
-            
-            if (i == fs_directory_stack_ptr) 
-                break;
-            
-            printChar('/');
-            
-            continue;
-        }
-        
-        printLn();
-        
-        return;
-    }
-    
-    
-    
-    //
     // Change Device
     //
     
@@ -222,6 +192,34 @@ void functionCD(uint8_t* param, uint8_t param_length) {
         
         return;
     }
+    
+    
+    //
+    // Display the full path
+    //
+    
+    printChar('/');
+    
+    for (uint8_t i=1; i < fs_directory_stack_ptr + 1; i++) {
+        
+        for (uint8_t c=0; c < FILE_NAME_LENGTH; c++) {
+            
+            if (directoryStack[i].name[c] == ' ') 
+                break;
+            
+            printChar( directoryStack[i].name[c] );
+            
+        }
+        
+        if (i == fs_directory_stack_ptr) 
+            break;
+        
+        printChar('/');
+        
+        continue;
+    }
+    
+    printLn();
     
     return;
 }

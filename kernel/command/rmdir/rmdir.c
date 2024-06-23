@@ -7,43 +7,23 @@
 
 void functionRMDIR(uint8_t* param, uint8_t param_length) {
     
-    /*
-    
-    uint8_t msgDirRemoved[]   = "Directory removed";
-    uint8_t msgDirNotFound[]  = "Directory not found";
-    uint8_t msgBadName[]      = "Invalid name";
-    
-    if (param[0] == ' ') {
-        print(msgBadName, sizeof(msgBadName));
-        printLn();
-        return;
-    }
-    
-    // Check directory attribute
-    struct FSAttribute attribute;
-    fsFileGetAttributes(param, param_length-1, &attribute);
-    
-    if (attribute.type != 'd') {
-        
-        print(msgDirNotFound, sizeof(msgDirNotFound));
-        printLn();
-        
-        return;
-    }
-    
     if (fsDirectoryDelete(param, param_length-1) != 0) {
+        
+        uint8_t msgDirRemoved[]   = "Directory removed";
         
         print(msgDirRemoved, sizeof(msgDirRemoved));
         printLn();
         
     } else {
         
+        uint8_t msgDirNotFound[]  = "Directory not found";
+        
         print(msgDirNotFound, sizeof(msgDirNotFound));
         printLn();
         
         return;
     }
-    */
+    
     return;
 }
 

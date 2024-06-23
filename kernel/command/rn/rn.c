@@ -9,8 +9,6 @@ uint8_t msgFileNotFound[]  = "File not found";
 
 void functionRN(uint8_t* param, uint8_t param_length) {
     
-    /*
-    
     // Get source name
     uint8_t sourceName[10];
     uint8_t sourceNameLen = 0;
@@ -50,8 +48,6 @@ void functionRN(uint8_t* param, uint8_t param_length) {
     }
     
     printLn();
-    
-    */
     
     return;
 }

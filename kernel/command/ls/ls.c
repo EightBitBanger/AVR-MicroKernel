@@ -33,12 +33,6 @@ void functionLS(uint8_t* param, uint8_t param_length) {
     
     
     
-    if (fsCheckWorkingDirectory() == 1) {
-        
-        return;
-    }
-    
-    
     //
     // List working directory contents
     //
@@ -68,7 +62,6 @@ void functionLS(uint8_t* param, uint8_t param_length) {
             fs_read_byte(directoryAddress + DIRECTORY_OFFSET_SIZE + i, &directorySizePtr.byte_t[i]);
         
 		numberOfFiles = directorySizePtr.address;
-		
 		
         if (numberOfFiles > 0) {
             

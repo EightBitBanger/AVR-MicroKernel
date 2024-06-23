@@ -163,6 +163,8 @@ void printLn(void) {
     
     console_position = 0;
     
+    ConsoleSetCursor(console_line, console_position);
+    
     return;
 }
 
@@ -175,6 +177,8 @@ void printSpace(uint8_t numberOfSpaces) {
         console_position++;
     }
     
+    ConsoleSetCursorPosition(console_position);
+    
     return;
 }
 
@@ -186,7 +190,7 @@ void printPrompt(void) {
     
     console_position = console_prompt_length - 1;
     
-    displayDevice->write( 161, console_position );
+    ConsoleSetCursorPosition(console_position);
     
     return;
 }

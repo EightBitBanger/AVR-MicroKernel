@@ -7,13 +7,10 @@
 
 void functionATTRIB(uint8_t* param, uint8_t param_length) {
     
-    /*
-    
+    uint8_t msgAttributeError[]  = "Attribute error";
     uint8_t msgFileNotFound[]    = "File not found";
-    uint8_t msgAttributeError[]  = "Error";
     
     // Get the file name
-    uint8_t filename[10];
     uint8_t filenameLength = 0;
     
     for (uint8_t i=0; i < param_length; i++) {
@@ -22,14 +19,23 @@ void functionATTRIB(uint8_t* param, uint8_t param_length) {
         
         if (param[i] == ' ') 
             break;
-        
-        filename[i] = param[i];
-        
     }
     
     // Get current file attributes
+    uint32_t fileAddress = fsFileExists(param, filenameLength);
+    
+    if (fileAddress == 0) {
+        
+        print(msgFileNotFound, sizeof(msgFileNotFound));
+        printLn();
+        
+        return;
+    }
+    
     struct FSAttribute attributeCurrent;
-    if (fsFileGetAttributes(filename, filenameLength, &attributeCurrent) == 0) {
+    
+    
+    if (fsFileGetAttributes(fileAddress, &attributeCurrent) == 0) {
         
         print(msgFileNotFound, sizeof(msgFileNotFound));
         printLn();
@@ -63,7 +69,6 @@ void functionATTRIB(uint8_t* param, uint8_t param_length) {
     if (attribute.writeable  != attributeCurrent.writeable)  isChanged = 1;
     if (attribute.type       != attributeCurrent.type)       isChanged = 1;
     
-    // Cannot make directories executable...
     if ((attributeCurrent.type == 'd') & (attribute.type != 'd')) {
         
         print(msgAttributeError, sizeof(msgAttributeError));
@@ -84,7 +89,7 @@ void functionATTRIB(uint8_t* param, uint8_t param_length) {
     // Update changes
     if (isChanged == 1) {
         
-        if (fsFileSetAttributes(filename, filenameLength, &attribute) == 0) {
+        if (fsFileSetAttributes(fileAddress, &attribute) == 0) {
             
             print(msgAttributeError, sizeof(msgAttributeError));
             printLn();
@@ -103,8 +108,6 @@ void functionATTRIB(uint8_t* param, uint8_t param_length) {
     print(param, param_length);
     
     printLn();
-    
-    */
     
     return;
 }
