@@ -14,6 +14,8 @@ void fsSetDeviceLetter(uint8_t letter) {
     
     lowercase(&letter);
     
+    fs_device_root = letter;
+    
     if (letter == 'x') {
         
         fsSetDeviceTypeMEM();
@@ -38,7 +40,11 @@ void fsSetDeviceRoot(uint8_t deviceLetter) {
 
 uint8_t fsGetDeviceRoot(void) {
     
-    return fs_device_root;
+    uint8_t tempCaseConv = fs_device_root;
+    
+    uppercase(&tempCaseConv);
+    
+    return tempCaseConv;
 }
 
 uint32_t fsGetDevice(void) {
@@ -99,14 +105,12 @@ void fsSetDeviceTypeMEM(void) {
 
 uint8_t fsCheckDeviceReady(void) {
     
-    uint32_t currentDevice = fsGetDevice();
-    
     // Check header byte
     uint8_t headerByte[3];
     
-    fs_read_byte(currentDevice + 0, &headerByte[0]);
-    fs_read_byte(currentDevice + 1, &headerByte[1]);
-    fs_read_byte(currentDevice + 2, &headerByte[2]);
+    fs_read_byte(0, &headerByte[0]);
+    fs_read_byte(1, &headerByte[1]);
+    fs_read_byte(2, &headerByte[2]);
     
     if (headerByte[0] != 0x13) return 0;
     if (headerByte[1] != 'f') return 0;
@@ -118,12 +122,10 @@ uint8_t fsCheckDeviceReady(void) {
 
 uint32_t fsGetDeviceCapacity(void) {
     
-    uint32_t currentDevice = fsGetDevice();
-    
     union Pointer sizePointer;
     
     for (uint8_t i=0; i < 4; i++) 
-        fs_read_byte(currentDevice + DEVICE_CAPACITY_OFFSET + i, &sizePointer.byte_t[i]);
+        fs_read_byte(DEVICE_CAPACITY_OFFSET + i, &sizePointer.byte_t[i]);
     
     return sizePointer.address;
 }

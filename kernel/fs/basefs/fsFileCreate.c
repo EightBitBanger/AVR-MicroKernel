@@ -3,6 +3,9 @@
 uint32_t fsFileCreate(uint8_t* name, uint8_t nameLength, uint32_t fileSize) {
     
     uint32_t fileAddress = fsAllocate(fileSize);
+	if (fileAddress == 0) {
+        return 0;
+	}
 	
 	// Write file name
 	for (uint8_t i=0; i < nameLength - 1; i++) 

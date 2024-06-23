@@ -5,6 +5,10 @@ uint8_t fsDirectoryDelete(uint8_t* name, uint8_t nameLength) {
     
     uint32_t fileAddress = fsFileExists(name, nameLength);
     
+    if (fileAddress == 0) {
+        return 0;
+    }
+    
     // Check directory attribute
     uint8_t attribDir;
     fs_read_byte(fileAddress + FILE_ATTRIBUTE_SPECIAL, &attribDir);
