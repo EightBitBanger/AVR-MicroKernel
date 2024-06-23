@@ -38,6 +38,7 @@
 #define FILE_ATTRIBUTE_WRITE      17
 #define FILE_ATTRIBUTE_SPECIAL    18
 
+
 void fsInit(void);
 
 
@@ -76,10 +77,27 @@ uint8_t fsFileDelete(uint8_t* name, uint8_t nameLength);
 uint32_t fsFileFind(uint32_t index);
 uint32_t fsFileExists(uint8_t* name, uint8_t nameLength);
 
+uint8_t fsFileRename(uint8_t* name, uint8_t nameLength, uint8_t* newName, uint8_t newNameLength);
+
+
 
 // Directories
 
 uint32_t fsDirectoryCreate(uint8_t* name, uint8_t nameLength);
+uint8_t fsDirectoryDelete(uint8_t* name, uint8_t nameLength);
+
+
+
+// Attributes
+struct FSAttribute {
+    uint8_t executable;
+    uint8_t readable;
+    uint8_t writeable;
+    uint8_t type;
+};
+
+uint8_t fsFileSetAttributes(uint32_t address, struct FSAttribute* attributes);
+uint8_t fsFileGetAttributes(uint32_t address, struct FSAttribute* attributes);
 
 
 
