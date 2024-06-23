@@ -9,11 +9,19 @@ uint32_t filesize = 20;
 
 void functionMK(uint8_t* param, uint8_t param_length) {
     
-    uint8_t msgInBytes[]       = "bytes";
-    uint8_t msgFileCreated[]   = "File created";
-    uint8_t msgErrorCreating[] = "Error creating file";
-    //uint8_t msgAlreadyExists[] = "File already exists";
-    uint8_t msgBadName[]       = "Invalid filename";
+    uint8_t msgInBytes[]        = "bytes";
+    uint8_t msgFileCreated[]    = "File created";
+    uint8_t msgErrorCreating[]  = "Error creating file";
+    uint8_t msgInvalidName[]    = "Invalid filename";
+    
+    if ((param_length == 0) | 
+        (param[0] == ' ')) {
+        
+        print(msgInvalidName, sizeof(msgInvalidName));
+        printLn();
+        
+        return;
+    }
     
     // File size
     if ((param[0] == 's') & (param[1] == 'z')) {
@@ -49,12 +57,6 @@ void functionMK(uint8_t* param, uint8_t param_length) {
         print(msgInBytes, sizeof(msgInBytes));
         printLn();
         
-        return;
-    }
-    
-    if (param[0] == ' ') {
-        print(msgBadName, sizeof(msgBadName));
-        printLn();
         return;
     }
     

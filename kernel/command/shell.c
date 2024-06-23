@@ -126,25 +126,19 @@ void cliRunShell(void) {
         console_string_length_old = console_string_length;
         
         // Check special character functionality
-        /*
+        
         if ((console_string[1] == ':') & 
             (console_string[2] == ' ')) {
             
             uppercase(&console_string[0]);
             
-            uint8_t isChanged = 0;
-            
             // Device letter
             if ((console_string[0] >= 'A') & 
-                (console_string[0] <= 'Z')) 
-                isChanged = 1;
-            
-            // Update the prompt if the device letter was changed
-            if (isChanged == 1) {
+                (console_string[0] <= 'Z')) {
+                
+                // Update the prompt if the device letter was changed
                 
                 fsSetDeviceLetter( console_string[0] );
-                
-                fsSetRootDirectory( console_string[0] );
                 
                 uint8_t consolePrompt[2];
                 consolePrompt[0] = console_string[0];
@@ -166,7 +160,6 @@ void cliRunShell(void) {
             
             return;
         }
-        */
         
         
         // Look up function name
@@ -224,7 +217,20 @@ void cliRunShell(void) {
         }
         
         
-        /*
+        //
+        // Check device ready
+        
+        if (fsCheckDeviceReady() == 0) {
+            
+            //uint8_t msgDeviceNotReady[] = "Device not ready";
+            
+            //print(msgDeviceNotReady, sizeof(msgDeviceNotReady));
+            //printLn();
+            
+            printPrompt();
+            
+            return;
+        }
         
         
         //
@@ -249,89 +255,38 @@ void cliRunShell(void) {
         if (parameters_begin > FILE_NAME_LENGTH) 
             parameters_begin = FILE_NAME_LENGTH;
         
-        // Are we currently in a working directory
-        if (fsCheckWorkingDirectory() == 1) {
+        // Check file exists in working directory
+        uint32_t fileAddress = fsFileExists(filename, parameters_begin);
+        
+        if (fileAddress > 0) {
             
-            // Check file exists in working directory
-            uint32_t fileAddress = fsDirectoryFileExists(filename, parameters_begin);
+            // Check file is executable
+            struct FSAttribute attribute;
+            fsFileGetAttributes(fileAddress, &attribute);
             
-            if (fileAddress > 0) {
+            // Check executable
+            if (attribute.executable == 'x') {
+                uint8_t index = fsFileOpen(fileAddress);
                 
-                // Check file is executable
-                struct FSAttribute attribute;
-                fsFileGetAttributes(filename, parameters_begin, &attribute);
+                union Pointer fileSizePtr;
+                for (uint8_t i=0; i < 4; i++) 
+                    fs_read_byte(fileAddress + FILE_OFFSET_SIZE + i, &fileSizePtr.byte_t[i]);
                 
-                // Check executable
-                if (attribute.executable == 'x') {
-                    uint8_t index = fsFileOpen(filename, parameters_begin);
-                    
-                    uint32_t programSize = fsGetFileSize(filename, FILE_NAME_LENGTH);
-                    uint8_t programBuffer[programSize];
-                    
-                    if (index > 0) {
-                        
-                        // Load the file
-                        fsFileReadBin(index, programBuffer, programSize);
-                        
-                        // Emulate the code
-                        EmulateX4(programBuffer, programSize);
-                        
-                        fsFileClose(index);
-                        
-                        isRightFunction = 1;
-                        
-                    }
-                    
-                }
+                uint32_t programSize = fileSizePtr.address;
                 
-            }
-            
-        } else {
-            
-            
-            // Execute from the root
-            if (fsCheckDeviceReady() == 1) {
+                uint8_t programBuffer[programSize];
                 
-                uint32_t fileAddress = fsFileExists(filename, parameters_begin-1);
-                
-                if (fileAddress != 0) {
+                if (index > 0) {
                     
-                    uint8_t directoryFlag = 0;
-                    fs_read_byte(fileAddress + OFFSET_DIRECTORY_FLAG, &directoryFlag);
+                    // Load the file
+                    fsFileRead(programBuffer, programSize);
                     
-                    // Check file is on the root directory
-                    if (directoryFlag == 0) {
-                        
-                        // Check file is executable
-                        struct FSAttribute attribute;
-                        fsFileGetAttributes(filename, parameters_begin, &attribute);
-                        
-                        // Check executable
-                        if (attribute.executable == 'x') {
-                            
-                            uint8_t index = fsFileOpen(filename, parameters_begin);
-                            
-                            uint32_t programSize = fsGetFileSize(filename, FILE_NAME_LENGTH);
-                            uint8_t programBuffer[programSize];
-                            
-                            if (index > 0) {
-                                
-                                // Load the file
-                                fsFileReadBin(index, programBuffer, programSize);
-                                
-                                // Emulate the code
-                                EmulateX4(programBuffer, programSize);
-                                
-                                fsFileClose(index);
-                                
-                                isRightFunction = 1;
-                                
-                            }
-                            
-                        }
-                        
-                    }
+                    fsFileClose();
                     
+                    // Emulate the code
+                    EmulateX4(programBuffer, programSize);
+                    
+                    isRightFunction = 1;
                     
                 }
                 
@@ -339,7 +294,6 @@ void cliRunShell(void) {
             
         }
         
-        */
         
         //
         // Bad command or filename

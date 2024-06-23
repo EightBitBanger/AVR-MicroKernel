@@ -6,14 +6,15 @@
 
 void functionRM(uint8_t* param, uint8_t param_length) {
     
-    uint8_t msgFileNotFound[]      = "File not found";
-    uint8_t msgAccessDenied[]      = "Access denied";
-    uint8_t msgFileRemoved[]       = "File removed";
-    uint8_t msgBadName[]           = "Invalid filename";
+    uint8_t msgFileNotFound[] = "File not found";
+    uint8_t msgAccessDenied[] = "Access denied";
+    uint8_t msgFileRemoved[] = "File removed";
+    uint8_t msgInvalidName[] = "Invalid filename";
     
-    if (param_length == 0) {
+    if ((param_length == 0) | 
+        (param[0] == ' ')) {
         
-        print(msgBadName, sizeof(msgBadName));
+        print(msgInvalidName, sizeof(msgInvalidName));
         printLn();
         
         return;

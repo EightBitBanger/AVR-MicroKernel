@@ -7,21 +7,29 @@
 
 void functionRMDIR(uint8_t* param, uint8_t param_length) {
     
-    if (fsDirectoryDelete(param, param_length-1) != 0) {
+    uint8_t msgDirRemoved[]   = "Directory removed";
+    uint8_t msgDirNotFound[]  = "Directory not found";
+    uint8_t msgInvalidName[]    = "Invalid name";
+    
+    if ((param_length == 0) | 
+        (param[0] == ' ')) {
         
-        uint8_t msgDirRemoved[]   = "Directory removed";
+        print(msgInvalidName, sizeof(msgInvalidName));
+        printLn();
+        
+        return;
+    }
+    
+    if (fsDirectoryDelete(param, param_length-1) != 0) {
         
         print(msgDirRemoved, sizeof(msgDirRemoved));
         printLn();
         
     } else {
         
-        uint8_t msgDirNotFound[]  = "Directory not found";
-        
         print(msgDirNotFound, sizeof(msgDirNotFound));
         printLn();
         
-        return;
     }
     
     return;
