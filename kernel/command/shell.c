@@ -125,6 +125,7 @@ void cliRunShell(void) {
         
         console_string_length_old = console_string_length;
         
+        //
         // Check special character functionality
         
         if ((console_string[1] == ':') & 
@@ -160,6 +161,25 @@ void cliRunShell(void) {
             
             return;
         }
+        
+        
+        /*
+        
+        //
+        // Check device ready
+        
+        if (fsCheckDeviceReady() == 0) {
+            
+            uint8_t msgDeviceNotReady[] = "Device not ready";
+            
+            print(msgDeviceNotReady, sizeof(msgDeviceNotReady));
+            printLn();
+            
+            printPrompt();
+            
+            return;
+        }
+        */
         
         
         // Look up function name
@@ -218,22 +238,6 @@ void cliRunShell(void) {
         
         
         //
-        // Check device ready
-        
-        if (fsCheckDeviceReady() == 0) {
-            
-            //uint8_t msgDeviceNotReady[] = "Device not ready";
-            
-            //print(msgDeviceNotReady, sizeof(msgDeviceNotReady));
-            //printLn();
-            
-            printPrompt();
-            
-            return;
-        }
-        
-        
-        //
         // Check file executable
         
         // Get parameters
@@ -266,7 +270,8 @@ void cliRunShell(void) {
             
             // Check executable
             if (attribute.executable == 'x') {
-                uint8_t index = fsFileOpen(fileAddress);
+                
+                fsFileOpen(fileAddress);
                 
                 union Pointer fileSizePtr;
                 for (uint8_t i=0; i < 4; i++) 
@@ -276,19 +281,15 @@ void cliRunShell(void) {
                 
                 uint8_t programBuffer[programSize];
                 
-                if (index > 0) {
-                    
-                    // Load the file
-                    fsFileRead(programBuffer, programSize);
-                    
-                    fsFileClose();
-                    
-                    // Emulate the code
-                    EmulateX4(programBuffer, programSize);
-                    
-                    isRightFunction = 1;
-                    
-                }
+                // Load the file
+                fsFileRead(programBuffer, programSize);
+                
+                fsFileClose();
+                
+                // Emulate the code
+                EmulateX4(&programBuffer[0], programSize);
+                
+                isRightFunction = 1;
                 
             }
             

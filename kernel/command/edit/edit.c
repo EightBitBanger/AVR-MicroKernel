@@ -7,8 +7,6 @@
 
 void functionEDIT(uint8_t* param, uint8_t param_length) {
     
-    /*
-    
     uint8_t msgFileNotFoundEdittor[] = "File not found";
     uint8_t msgSaved[]               = "Saved";
     uint8_t msgSaveQuit[]            = "(S)ave / (Q)uit?";
@@ -21,6 +19,7 @@ void functionEDIT(uint8_t* param, uint8_t param_length) {
         return;
     
     for (uint8_t i=0; i < param_length+1; i++) {
+        
         if (param[i] == ' ') {
             filename_length = i;
             break;
@@ -48,10 +47,11 @@ void functionEDIT(uint8_t* param, uint8_t param_length) {
     uint8_t cursorLine = 0;
     
     // Open file
-    uint8_t index = fsFileOpen(filename, filename_length);
-    
     uint32_t fileAddressBegin = fsFileExists(filename, filename_length);
-    uint32_t fileSize         = fsGetFileSize(filename, filename_length);
+    
+    fsFileOpen(fileAddressBegin);
+    
+    uint32_t fileSize = fsFileGetSize();
     
     if (fileAddressBegin == 0) {
         
@@ -79,7 +79,7 @@ void functionEDIT(uint8_t* param, uint8_t param_length) {
         textBuffer[i] = ' ';
     
     // Load the file
-    fsFileReadText(index, textBuffer, fileSize);
+    fsFileReadText(textBuffer, fileSize);
     
     uint8_t doUpdateFrame  = 1;
     uint8_t doLoadPage     = 1;
@@ -89,7 +89,7 @@ void functionEDIT(uint8_t* param, uint8_t param_length) {
     uint8_t line             = 0;
     uint8_t position         = 0;
     
-    //uint8_t flagEOF   = 0;
+    uint8_t flagEOF   = 0;
     
     
     ConsoleClearScreen();
@@ -121,11 +121,11 @@ void functionEDIT(uint8_t* param, uint8_t param_length) {
                 for (uint16_t i=0; i < fileSize; i++) {
                     
                     // Check end of file
-                    //if (i < fileSize-1) {
-                    //    flagEOF = 0;
-                    ////} else {
-                    //    flagEOF = 1;
-                    //}
+                    if (i < fileSize-1) {
+                        flagEOF = 0;
+                    } else {
+                        flagEOF = 1;
+                    }
                     
                     if (textBuffer[i] != '\n') 
                         continue;
@@ -287,10 +287,7 @@ void functionEDIT(uint8_t* param, uint8_t param_length) {
         
         lastChar = currentChar;
         
-        */
         
-        
-        /*
         
         // Page up
         if (lastChar == 0xF5) {
@@ -315,14 +312,6 @@ void functionEDIT(uint8_t* param, uint8_t param_length) {
             
         }
         
-        */
-        
-        
-        
-        
-        
-        
-        /*
         
         
         // Toggle line ending characters
@@ -562,7 +551,7 @@ void functionEDIT(uint8_t* param, uint8_t param_length) {
                     }
                     
                     // Save file data
-                    fsFileWrite(index, saveBuffer, fileSize);
+                    fsFileWrite(saveBuffer, fileSize);
                     
                     ConsoleSetCursor(3, 15);
                     print(msgSaved, sizeof(msgSaved));
@@ -579,6 +568,8 @@ void functionEDIT(uint8_t* param, uint8_t param_length) {
                     
                     ConsoleSetBlinkRate(CURSOR_BLINK_RATE);
                     
+                    fsFileClose();
+                    
                     return;
                 }
                 
@@ -592,6 +583,8 @@ void functionEDIT(uint8_t* param, uint8_t param_length) {
             // Quit the application
             if (answere == 2) {
                 
+                fsFileClose();
+                
                 ConsoleClearScreen();
             }
             
@@ -603,8 +596,6 @@ void functionEDIT(uint8_t* param, uint8_t param_length) {
         
         continue;
     }
-    
-    */
     
     return;
 }

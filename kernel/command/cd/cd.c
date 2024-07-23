@@ -6,7 +6,7 @@
 
 struct Directory { uint8_t name[FILE_NAME_LENGTH]; uint32_t address; };
 
-extern struct Directory directoryStack[8];
+extern struct Directory directoryStack[WORKNG_DIRECTORY_STACK_SIZE];
 
 extern uint8_t fs_directory_stack_ptr;
 
@@ -30,14 +30,9 @@ void functionCD(uint8_t* param, uint8_t param_length) {
     
     if ((deviceLetter >= 'A') & (deviceLetter <= 'Z')) {
         
-        uint32_t fileAddress = fsFileExists(param, param_length);
+        uint32_t directoryAddress = fsDirectoryExists(param, param_length);
         
-        // Check directory flag
-        uint8_t directoryAttrib = 0;
-        fs_read_byte(fileAddress + FILE_ATTRIBUTE_SPECIAL, &directoryAttrib);
-        
-        if ((fileAddress == 0) | (
-            directoryAttrib != 'd')) {
+        if (directoryAddress == 0) {
             
             print(msgDirectoryNotFound, sizeof(msgDirectoryNotFound));
             printLn();
@@ -45,20 +40,20 @@ void functionCD(uint8_t* param, uint8_t param_length) {
             return;
         }
         
-        fsSetWorkingDirectory(param, param_length);
+        fsChangeWorkingDirectory(param, param_length);
         
         fs_directory_stack_ptr++;
         
         // Add the directory to the directory stack
         for (uint8_t n=0; n < FILE_NAME_LENGTH; n++) 
             directoryStack[fs_directory_stack_ptr].name[n] = ' ';
-        
-        directoryStack[fs_directory_stack_ptr].address = fileAddress;
-        
-        // Prompt for device letters
-        
         for (uint8_t n=0; n < param_length + 1; n++) 
             directoryStack[fs_directory_stack_ptr].name[n] = param[n];
+        
+        directoryStack[fs_directory_stack_ptr].address = directoryAddress;
+        
+        
+        // Prompt for device letters
         
         uint8_t PromptDir[20];
         for (uint8_t i=0; i < 20; i++) 
@@ -105,7 +100,7 @@ void functionCD(uint8_t* param, uint8_t param_length) {
             fsSetWorkingDirectoryAddress( directoryStack[fs_directory_stack_ptr].address );
             
             // Set the parent directory
-            fsSetWorkingDirectory(filename, filenameLength - 1);
+            fsChangeWorkingDirectory(filename, filenameLength - 1);
             
             uint8_t PromptDir[20];
             

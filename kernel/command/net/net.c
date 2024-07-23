@@ -3,6 +3,9 @@
 
 #include <kernel/kernel.h>
 
+#include <kernel/network/network.h>
+#include <kernel/network/packet.h>
+
 #include <kernel/command/net/net.h>
 
 uint8_t clientAddress[2] = {24, 0};
@@ -14,6 +17,7 @@ void functionNet(uint8_t* param, uint8_t param_length) {
     uint8_t msgReplyFrom[]        = "Reply from ";
     uint8_t msgNoHostResponce[]   = "Cannot reach host";
     uint8_t msgRequestTimedOut[]  = "Request timed out";
+    uint8_t msgNoMessages[]       = "0 messages";
     
     // Lower case the string
     for (uint8_t i=0; i < 4; i++) 
@@ -78,6 +82,9 @@ void functionNet(uint8_t* param, uint8_t param_length) {
         packet.addr_s[0]  = clientAddress[0]; // Return source address
         packet.addr_s[1]  = clientAddress[1];
         
+        packet.index = 1;
+        packet.total = 1;
+        
         uint8_t stringLen = (param_length - 4) + 1;
         
         for (uint8_t i=0; i < stringLen; i++) 
@@ -88,7 +95,7 @@ void functionNet(uint8_t* param, uint8_t param_length) {
         ntPacketClearAll();
         
         // Transmit the packet
-        ntPacketSend(&packet);
+        //ntPacketSend(&packet);
         
         
         //
@@ -96,19 +103,34 @@ void functionNet(uint8_t* param, uint8_t param_length) {
         
         struct NetworkPacket receive;
         
-        for (uint8_t i=0; i < 24; i++) {
+        for (uint8_t retry=0; retry < 3; retry++) {
             
-            _delay_ms(100);
+            // Transmit the packet
+            ntPacketSend(&packet);
             
-            if (ntPacketReceive(&receive, 1) == 0) 
+            for (uint16_t i=0; i < 1024; i++) {
+                
+                _delay_ms(1);
+                if (ntPacketReceive(&receive, 1) == 0) 
+                    continue;
+                
+                uint8_t index = receive.index;
+                uint8_t total = receive.total;
+                
+                print(&receive.data[0], NETWORK_PACKET_DATA_SIZE);
+                printLn();
+                
+                // Check last packet
+                if (index == total) {
+                    
+                    ntPacketClearAll();
+                    
+                    return;
+                }
+                
                 continue;
+            }
             
-            print(&receive.data[0], NETWORK_PACKET_DATA_SIZE);
-            printLn();
-            
-            ntPacketClearAll();
-            
-            return;
         }
         
         print(&msgNoHostResponce[0], sizeof(msgNoHostResponce));
@@ -128,8 +150,8 @@ void functionNet(uint8_t* param, uint8_t param_length) {
         
         if (ntPacketReceive(&packet, 1) == 0) {
             
-            //print(&msgNoMessages[0], sizeof(msgNoMessages));
-            //printLn();
+            print(&msgNoMessages[0], sizeof(msgNoMessages));
+            printLn();
             
             ntPacketClearAll();
             
@@ -161,6 +183,9 @@ void functionNet(uint8_t* param, uint8_t param_length) {
         packet.addr_s[0]   = clientAddress[0]; // Source
         packet.addr_s[1]   = clientAddress[1];
         
+        packet.index = 1;
+        packet.total = 1;
+        
         // Indicate we are a client attempting to connect to a server
         packet.data[0] = 0x55;
         packet.data[1] = 0x00;
@@ -174,7 +199,7 @@ void functionNet(uint8_t* param, uint8_t param_length) {
         
         uint8_t bufferSz = 0;
         
-        for (uint32_t i=0; i < 30000; i++) {
+        for (uint32_t i=0; i < 1024; i++) {
             
             uint8_t dataBuffer[32];
             
@@ -184,7 +209,7 @@ void functionNet(uint8_t* param, uint8_t param_length) {
                 
                 // Check return packet
                 if (dataBuffer[0]  != NETWORK_PACKET_START_BYTE) continue;
-                if (dataBuffer[21] != NETWORK_PACKET_STOP_BYTE) continue;
+                if (dataBuffer[1 + 2 + 2 + 1 + 1 + NETWORK_PACKET_DATA_SIZE] != NETWORK_PACKET_STOP_BYTE) continue;
                 
                 if (dataBuffer[3] != 0xff) continue;
                 if (dataBuffer[4] != 0xff) continue;
@@ -201,7 +226,7 @@ void functionNet(uint8_t* param, uint8_t param_length) {
                 break;
             }
             
-            _delay_us(1);
+            _delay_ms(1);
             
         }
         
@@ -234,6 +259,9 @@ void functionNet(uint8_t* param, uint8_t param_length) {
         packet.addr_s[0]   = 0x00; // Ping request
         packet.addr_s[1]   = 0x00;
         
+        packet.index = 1;
+        packet.total = 1;
+        
         // Indicate we are requesting a ping from the server
         packet.data[0] = 0x55;
         packet.data[1] = 0x00;
@@ -246,19 +274,21 @@ void functionNet(uint8_t* param, uint8_t param_length) {
             
             ntPacketSend(&packet);
             
-            uint8_t dataBuffer[32];
+            uint8_t dataBuffer[NETWORK_PACKET_SIZE];
             
             uint8_t bufferSz = 0;
             
-            for (uint16_t i=0; i < 30000; i++) {
+            for (uint16_t i=0; i < 1024; i++) {
                 
-                bufferSz = ntReceive(dataBuffer, 32);
+                bufferSz = ntReceive(dataBuffer, NETWORK_PACKET_SIZE);
                 
-                if (bufferSz > sizeof(struct NetworkPacket) - 1) {
+                if (bufferSz > NETWORK_PACKET_SIZE - 1) {
                     
                     // Check return packet
-                    if (dataBuffer[0]  != NETWORK_PACKET_START_BYTE) continue;
-                    if (dataBuffer[21] != NETWORK_PACKET_STOP_BYTE) continue;
+                    if ((dataBuffer[0]  != NETWORK_PACKET_START_BYTE) | 
+                        (dataBuffer[1 + 2 + 2 + 1 + 1 + NETWORK_PACKET_DATA_SIZE] != NETWORK_PACKET_STOP_BYTE)) 
+                        continue;
+                    
                     
                     uint8_t addrStrLow[8];
                     uint8_t addrStrHigh[8];
@@ -280,7 +310,7 @@ void functionNet(uint8_t* param, uint8_t param_length) {
                     break;
                 }
                 
-                _delay_us(1);
+                _delay_ms(1);
                 
             }
             
@@ -321,6 +351,9 @@ void functionNet(uint8_t* param, uint8_t param_length) {
             packet.addr_d[1]   = targetAddress[1];
             packet.addr_s[0]   = clientAddress[0];
             packet.addr_s[1]   = clientAddress[1];
+            
+            packet.index = 1;
+            packet.total = 1;
             
             packet.data[0] = 0x00;
             packet.data[1] = 0x00;

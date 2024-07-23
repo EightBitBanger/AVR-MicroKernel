@@ -6,60 +6,26 @@
 
 void functionType(uint8_t* param, uint8_t param_length) {
     
-    /*
+    uint32_t fileAddress = fsFileExists(param, param_length);
     
-    uint32_t fileSize = fsGetFileSize(param, param_length);
-    
-    if (fsCheckWorkingDirectory() == 1) {
-        
-        uint32_t fileAddress = fsDirectoryFileExists(param, param_length);
-        
-        if (fileAddress != 0) {
-            
-            uint8_t fileBuffer[fileSize];
-            
-            uint8_t index = fsFileOpen(param, param_length);
-            
-            fsFileReadBin(index, fileBuffer, fileSize);
-            
-            fsFileClose(index);
-            
-            
-            for (uint32_t i=0; i < fileSize; i++) {
-                
-                printChar( fileBuffer[i] );
-                
-            }
-            
-        }
-        
+    if (fileAddress == 0) 
         return;
-    }
+    
+    fsFileOpen(fileAddress);
+    
+    uint32_t fileSize = fsFileGetSize();
     
     if (fileSize == 0) 
         return;
     
     uint8_t fileBuffer[fileSize];
     
-    uint8_t dirFlag = fsDirectoryGetFlag(param, param_length);
+    fsFileRead(fileBuffer, fileSize);
     
-    if (dirFlag == 1) 
-        return;
+    fsFileClose();
     
-    uint8_t index = fsFileOpen(param, param_length);
-    
-    fsFileReadBin(index, fileBuffer, fileSize);
-    
-    fsFileClose(index);
-    
-    
-    for (uint32_t i=0; i < fileSize; i++) {
-        
+    for (uint32_t i=0; i < fileSize; i++) 
         printChar( fileBuffer[i] );
-        
-    }
-    
-    */
     
     return;
 }

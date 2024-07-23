@@ -26,10 +26,16 @@ void functionATTRIB(uint8_t* param, uint8_t param_length) {
     
     if (fileAddress == 0) {
         
-        print(msgFileNotFound, sizeof(msgFileNotFound));
-        printLn();
+        fileAddress = fsDirectoryExists(param, filenameLength);
         
-        return;
+        if (fileAddress == 0) {
+            
+            print(msgFileNotFound, sizeof(msgFileNotFound));
+            printLn();
+            
+            return;
+        }
+        
     }
     
     struct FSAttribute attributeCurrent;

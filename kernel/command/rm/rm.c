@@ -31,19 +31,9 @@ void functionRM(uint8_t* param, uint8_t param_length) {
     }
     
     // Check directory attribute
-    uint8_t attribDir;
     uint8_t attribWrite;
     
-    fs_read_byte(fileAddress + FILE_ATTRIBUTE_SPECIAL, &attribDir);
     fs_read_byte(fileAddress + FILE_ATTRIBUTE_WRITE, &attribWrite);
-    
-    if (attribDir == 'd') {
-        
-        print(msgFileNotFound, sizeof(msgFileNotFound));
-        printLn();
-        
-        return;
-    }
     
     // Check read only
     

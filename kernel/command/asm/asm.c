@@ -6,8 +6,6 @@
 
 void functionAsm(uint8_t* param, uint8_t param_length) {
     
-    /*
-    
     uint8_t msgPromptString[] = "-";
     
     uint8_t asm_console_string[40];
@@ -19,8 +17,6 @@ void functionAsm(uint8_t* param, uint8_t param_length) {
     uint32_t disassemblyAddress = 0;
     uint32_t dumpAddress = 0;
     
-    uint32_t fileSize = fsGetFileSize(param, param_length);
-    
     uint8_t lastChar         = ConsoleGetRawChar();
     uint8_t console_position = ConsoleGetCursorPosition();
     uint8_t console_line     = ConsoleGetCursorLine();
@@ -30,27 +26,10 @@ void functionAsm(uint8_t* param, uint8_t param_length) {
     
     asm_console_string_length = 0;
     
-    // File data buffer
-    uint8_t fileBuffer[fileSize];
-    
-    for (uint16_t i=0; i < fileSize; i++) 
-        fileBuffer[i] = ' ';
-    
     // Open the file
-    uint8_t index = 0;
+    uint32_t fileAddress = fsFileExists(param, param_length);
     
-    if (fsCheckWorkingDirectory() == 1) {
-        
-        index = fsDirectoryFileOpen(param, param_length);
-        
-    } else {
-        
-        index = fsFileOpen(param, param_length);
-        
-    }
-    
-    
-    if (index == 0) {
+    if (fileAddress == 0) {
         
         uint8_t msgFileNotFound[] = "File not found";
         
@@ -59,10 +38,19 @@ void functionAsm(uint8_t* param, uint8_t param_length) {
         
         return;
     }
-    return;
+    
+    fsFileOpen( fileAddress );
+    
+    uint32_t fileSize = fsFileGetSize();
+    
+    // File data buffer
+    uint8_t fileBuffer[fileSize];
+    
+    for (uint16_t i=0; i < fileSize; i++) 
+        fileBuffer[i] = ' ';
     
     // Load the file into memory
-    fsFileReadBin(index, fileBuffer, fileSize);
+    fsFileRead(fileBuffer, fileSize);
     
     
     void getInputAddress(uint32_t* addressPtr) {
@@ -217,7 +205,7 @@ void functionAsm(uint8_t* param, uint8_t param_length) {
                 
                 if (asm_console_string[0] == 'q') {
                     
-                    fsFileClose(index);
+                    fsFileClose();
                     
                     return;
                 }
@@ -248,7 +236,7 @@ void functionAsm(uint8_t* param, uint8_t param_length) {
                 
                 if (asm_console_string[0] == 'w') {
                     
-                    fsFileWrite(index, fileBuffer, fileSize);
+                    fsFileWrite(fileBuffer, fileSize);
                     printInt( fileSize );
                     
                     if (fileSize == 1) {
@@ -792,9 +780,8 @@ void functionAsm(uint8_t* param, uint8_t param_length) {
             // Check to clear the old op codes
             if (asm_console_string_length == 0) {
                 
-                for (uint8_t i=0; i < 4; i++) {
+                for (uint8_t i=0; i < 4; i++) 
                     asm_console_string[i] = ' ';
-                }
                 
             }
             
@@ -817,7 +804,7 @@ void functionAsm(uint8_t* param, uint8_t param_length) {
         // Escape exit
         if (lastChar == 0x07) {
             
-            fsFileClose(index);
+            fsFileClose();
             
             return;
         }
@@ -841,9 +828,7 @@ void functionAsm(uint8_t* param, uint8_t param_length) {
         continue;
     }
     
-    fsFileClose(index);
-    
-    */
+    fsFileClose();
     
     return;
 }

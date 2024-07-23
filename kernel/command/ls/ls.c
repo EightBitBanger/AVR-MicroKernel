@@ -21,17 +21,6 @@ void functionLS(uint8_t* param, uint8_t param_length) {
     
     uint8_t fileCount = 0;
     
-    if (fsCheckDeviceReady() == 0) {
-        
-        uint8_t msgDeviceNotReady[] = "Device not ready";
-        
-        print(msgDeviceNotReady, sizeof(msgDeviceNotReady));
-        printLn();
-        
-        return;
-    }
-    
-    
     
     //
     // List working directory contents
@@ -41,6 +30,7 @@ void functionLS(uint8_t* param, uint8_t param_length) {
         
         // Check if the current working directory is valid
         uint32_t directoryAddress = fsGetWorkingDirectoryAddress();
+		
 		if (directoryAddress == 0) {
             
             print(msgDirectoryError, sizeof(msgDirectoryError));
