@@ -16,7 +16,7 @@ void* driver_registry[ DRIVER_REGISTRY_SIZE ];
 uint8_t number_of_drivers = 0;
 
 /*
- 
+  
   Driver file layout
     
     Driver file ID         2 byte
@@ -38,23 +38,25 @@ uint8_t number_of_drivers = 0;
     
 */
 
-uint8_t LoadLibrary(uint8_t* filename, uint8_t filenameLength) {
+int8_t LoadLibrary(uint8_t* filename, uint8_t filenameLength) {
     
-    /*
+    uint32_t fileAddress = fsFileExists(filename, filenameLength);
     
-    uint32_t fileSize = fsGetFileSize(filename, filenameLength);
-    
-    if (fileSize < 20) 
+    if (fileAddress == 0) 
         return 0;
     
-    uint8_t index = fsFileOpen(filename, filenameLength);
+    fsFileOpen(fileAddress);
+    
+    uint32_t fileSize = fsFileGetSize();
     
     uint8_t fileBuffer[fileSize];
     
     for (uint8_t i=0; i < fileSize; i++) 
         fileBuffer[i] = ' ';
     
-    fsFileReadBin(index, fileBuffer, fileSize);
+    fsFileRead(fileBuffer, fileSize);
+    
+    fsFileClose();
     
     // Check for an available driver slot
     for (uint8_t i=0; i < NUMBER_OF_DRIVERS; i++) {
@@ -62,26 +64,18 @@ uint8_t LoadLibrary(uint8_t* filename, uint8_t filenameLength) {
         if (loaded_drivers[i].device.device_id != 0) 
             continue;
         
-        // Check if the driver is already loaded
-        for (uint8_t i=0; i < NUMBER_OF_DRIVERS; i++) {
-            
-            if (StringCompare(&fileBuffer[2], FILE_NAME_LENGTH, &loaded_drivers[i].device.device_name[0], FILE_NAME_LENGTH) == 1) 
-                return 0;
-            
-        }
-        
-        // Add the new driver
-        
         // Check driver header bytes
         if ((fileBuffer[0] != 'K') & 
-            (fileBuffer[0] != 'D')) {
-            return 2;
-        }
+            (fileBuffer[1] != 'D')) 
+            return -1;
         
+        // Check marker byte
         if (fileBuffer[DEVICE_NAME_LENGTH + 2] != '$') 
-            return 2;
+            return -1;
         
+        // Load the driver
         
+        // Name
         for (uint8_t a=0; a < DEVICE_NAME_LENGTH; a++) 
             loaded_drivers[i].device.device_name[a] = fileBuffer[a + 2];
         
@@ -119,16 +113,12 @@ uint8_t LoadLibrary(uint8_t* filename, uint8_t filenameLength) {
         
         loaded_drivers[i].is_linked = 1;
         
-        //ConsoleRegisterCommand
-        
         RegisterDriver( (void*)&loaded_drivers[i] );
         
-        break;
+        return 1;
     }
     
-    */
-    
-    return 1;
+    return 0;
 }
 
 

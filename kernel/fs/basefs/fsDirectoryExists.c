@@ -1,7 +1,7 @@
 #include <kernel/kernel.h>
 
 
-uint32_t fsFileExists(uint8_t* name, uint8_t nameLength) {
+uint32_t fsDirectoryExists(uint8_t* name, uint8_t nameLength) {
     
     if ((name[0] == ' ') | 
         (nameLength == 0))
@@ -47,7 +47,7 @@ uint32_t fsFileExists(uint8_t* name, uint8_t nameLength) {
                 uint8_t directoryAttrib;
                 fs_read_byte(fileAddress + FILE_ATTRIBUTE_SPECIAL, &directoryAttrib);
                 
-                if (directoryAttrib == 'd') 
+                if (directoryAttrib != 'd') 
                     continue;
                 
                 // Attributes
@@ -99,7 +99,7 @@ uint32_t fsFileExists(uint8_t* name, uint8_t nameLength) {
         uint8_t directoryAttrib;
         fs_read_byte(currentSector + FILE_ATTRIBUTE_SPECIAL, &directoryAttrib);
         
-        if (directoryAttrib == 'd') 
+        if (directoryAttrib != 'd') 
             continue;
         
         // Get filename from the device

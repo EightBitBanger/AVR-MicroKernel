@@ -30,7 +30,7 @@ struct Driver {
 };
 
 
-uint8_t LoadLibrary(uint8_t* filename, uint8_t filenameLength);
+int8_t LoadLibrary(uint8_t* filename, uint8_t filenameLength);
 
 
 struct Driver* GetDriverByName(uint8_t* name, uint8_t nameLength);

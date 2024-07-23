@@ -27,16 +27,22 @@
 
 #define FILE_NAME_LENGTH          10
 
-#define FILE_OFFSET_NAME          1
-#define FILE_OFFSET_SIZE          11
-#define FILE_OFFSET_ATTRIBUTES    15
-#define DIRECTORY_OFFSET_SIZE     19
-#define DIRECTORY_OFFSET_FLAG     23
+#define FILE_OFFSET_NAME          1  // 10 bytes
+#define FILE_OFFSET_SIZE          11 // uint32
+#define FILE_OFFSET_ATTRIBUTES    15 // 4 bytes
+
+#define DIRECTORY_OFFSET_SIZE     19 // uint32
+#define DIRECTORY_OFFSET_FLAG     23 // uint8
+
+// Attributes
 
 #define FILE_ATTRIBUTE_FILETYPE   15
 #define FILE_ATTRIBUTE_READ       16
 #define FILE_ATTRIBUTE_WRITE      17
 #define FILE_ATTRIBUTE_SPECIAL    18
+
+// Working directory
+#define WORKNG_DIRECTORY_STACK_SIZE    16
 
 
 void fsInit(void);
@@ -86,6 +92,8 @@ uint8_t fsFileRename(uint8_t* name, uint8_t nameLength, uint8_t* newName, uint8_
 uint32_t fsDirectoryCreate(uint8_t* name, uint8_t nameLength);
 uint8_t fsDirectoryDelete(uint8_t* name, uint8_t nameLength);
 
+uint32_t fsDirectoryExists(uint8_t* name, uint8_t nameLength);
+
 
 
 // Attributes
@@ -102,15 +110,21 @@ uint8_t fsFileGetAttributes(uint32_t address, struct FSAttribute* attributes);
 
 
 // IO
-
 uint8_t fsFileOpen(uint32_t address);
 uint8_t fsFileClose(void);
 
 uint8_t fsFileRead(uint8_t* buffer, uint32_t size);
+uint8_t fsFileReadText(uint8_t* buffer, uint32_t size);
 uint8_t fsFileWrite(uint8_t* buffer, uint32_t size);
+
+uint32_t fsFileGetSize(void);
+
 
 
 // Working directory
+
+uint32_t fsDirectoryGetParent(void);
+uint8_t  fsSetWorkingDirectoryToParent(void);
 
 void     fsSetWorkingDirectoryAddress(uint32_t address);
 uint32_t fsGetWorkingDirectoryAddress(void);
@@ -119,7 +133,8 @@ uint8_t fsGetDirectoryStack(void);
 void    fsSetDirectoryStack(uint8_t amount);
 
 uint8_t fsGetWorkingDirectory(uint8_t* directoryName);
-uint8_t fsSetWorkingDirectory(uint8_t* directoryName, uint8_t nameLength);
+uint8_t fsSetWorkingDirectory(uint32_t directoryAddress);
+uint8_t fsChangeWorkingDirectory(uint8_t* directoryName, uint8_t nameLength);
 
 uint8_t fsGetWorkingDirectoryLength(void);
 

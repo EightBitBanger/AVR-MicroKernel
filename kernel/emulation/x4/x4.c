@@ -36,10 +36,6 @@ uint8_t EmulateX4(uint8_t* programBuffer, uint32_t programSize) {
     mem_bus.read_waitstate = 2;
     mem_bus.write_waitstate = 1;
     
-    //uint8_t executeProgram[] = "";
-    //print( executeProgram, sizeof(executeProgram) );
-    //printLn();
-    
     uint32_t programCounter        = 0;
     uint32_t programCounterReturn  = 0;
     
@@ -240,7 +236,20 @@ uint8_t EmulateX4(uint8_t* programBuffer, uint32_t programSize) {
             
             // Display control interrupt routine
             if (argA == 0x10) {
-                printChar( reg[3] );
+                
+                // Print string
+                if (reg[0] == 0x09) {
+                    
+                    union Pointer dataOffset;
+                    dataOffset.byte_t[3] = 0;
+                    dataOffset.byte_t[2] = 0;
+                    dataOffset.byte_t[1] = reg[2];
+                    dataOffset.byte_t[0] = reg[3];
+                    
+                    print( &programBuffer[ dataOffset.address ], reg[1] );
+                    
+                }
+                
                 consoleWritten = 1;
             }
             
