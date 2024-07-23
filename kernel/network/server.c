@@ -3,6 +3,9 @@
 
 #include <kernel/kernel.h>
 
+#include <kernel/network/network.h>
+#include <kernel/network/packet.h>
+
 #include <kernel/network/server.h>
 
 uint8_t serverAddress[2] = {240, 80};
@@ -74,9 +77,12 @@ void InitiateServer(void) {
     struct NetworkPacket receive;
     
     uint8_t  connectionStatus = 0;
-    uint16_t connectionAttemptCounter = 0;
+    uint16_t connectionAttemptCounter = 800;
     
     while(1) {
+        
+        //
+        // Connection attempt
         
         if (connectionStatus == 0) {
             
@@ -128,11 +134,13 @@ void InitiateServer(void) {
                 print( msgConnected, sizeof(msgConnected) );
                 
             }
+            
             continue;
         }
         
         //
         // Handle client packets
+        ConsoleClearScreen();
         
         packetClientReturn.addr_s[0] = serverAddress[0];
         packetClientReturn.addr_s[1] = serverAddress[1];
@@ -141,7 +149,7 @@ void InitiateServer(void) {
         packetClientReturn.addr_d[0] = receive.addr_s[0];
         packetClientReturn.addr_d[1] = receive.addr_s[1];
         
-        ConsoleSetCursor(2, 0);
+        ConsoleSetCursor(0, 0);
         
         uint8_t msgConnected[] = " <<                ";
         print( msgConnected, sizeof(msgConnected) );
@@ -156,18 +164,65 @@ void InitiateServer(void) {
         if (addrPlaceLow == 0) addrPlaceLow++;
         if (addrPlaceHigh == 0) addrPlaceHigh++;
         
-        // Return packet message
-        uint8_t messageString[] = "Message string";
+        
+        // Clear the packet data
         
         for (uint8_t i=0; i < NETWORK_PACKET_DATA_SIZE; i++) 
             packetClientReturn.data[i] = ' ';
         
-        for (uint8_t i=0; i < sizeof(messageString) - 1; i++) 
-            packetClientReturn.data[i] = messageString[i];
+        uint8_t messageStringA[NETWORK_PACKET_DATA_SIZE] = "Return packet";
+        packetClientReturn.index = 1;
+        packetClientReturn.total = 1;
+        
+        for (uint8_t i=0; i < sizeof(messageStringA); i++) 
+            packetClientReturn.data[i] = messageStringA[i];
         
         ntPacketSend( &packetClientReturn );
         
-        ConsoleSetCursor(2, 4);
+        
+        /*
+        
+        //
+        // Send a total of 3 return packets
+        
+        // Packet first
+        uint8_t messageStringA[NETWORK_PACKET_DATA_SIZE] = "PACKETA DEADBEEF";
+        packetClientReturn.index = 1;
+        packetClientReturn.total = 3;
+        
+        for (uint8_t i=0; i < sizeof(messageStringA); i++) 
+            packetClientReturn.data[i] = messageStringA[i];
+        
+        ntPacketSend( &packetClientReturn );
+        
+        
+        // Packet second
+        uint8_t messageStringB[24] = "PACKETB DEADBEEFDEADBEEF";
+        packetClientReturn.index = 2;
+        packetClientReturn.total = 3;
+        
+        for (uint8_t i=0; i < sizeof(messageStringB); i++) 
+            packetClientReturn.data[i] = messageStringB[i];
+        
+        ntPacketSend( &packetClientReturn );
+        
+        // Packet third
+        uint8_t messageStringC[24] = "PACKETC DEADBEEFDEADBEEF";
+        packetClientReturn.index = 3;
+        packetClientReturn.total = 3;
+        
+        for (uint8_t i=0; i < sizeof(messageStringC); i++) 
+            packetClientReturn.data[i] = messageStringC[i];
+        
+        ntPacketSend( &packetClientReturn );
+        
+        */
+        
+        
+        //
+        // Display the source address
+        
+        ConsoleSetCursor(0, 4);
         
         if ((srcAddressLow[0] == ' ') | (srcAddressLow[1] == ' ')) srcAddressLow[0]  = '0';
         if ((srcAddressLow[0] == ' ') | (srcAddressLow[1] == ' ')) srcAddressLow[0]  = '0';
@@ -180,7 +235,7 @@ void InitiateServer(void) {
         //
         // Display packet contents
         
-        ConsoleSetCursor(3, 0);
+        ConsoleSetCursor(1, 0);
         
         for (uint8_t i=0; i < NETWORK_PACKET_DATA_SIZE; i++) 
             printChar( receive.data[i] );

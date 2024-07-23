@@ -1,6 +1,9 @@
 #include <avr/io.h>
 #include <kernel/delay.h>
 
+#include <kernel/network/network.h>
+#include <kernel/network/packet.h>
+
 #include <kernel/network/router.h>
 
 struct RoutingTable routingTable;
@@ -31,6 +34,9 @@ void InitiateRouter(void) {
     packetClientHandshake.addr_s[0] = 0xff; // From the router
     packetClientHandshake.addr_s[1] = 0xff;
     
+    packetClientHandshake.index = 1;
+    packetClientHandshake.total = 1;
+    
     for (uint8_t i=0; i < NETWORK_PACKET_DATA_SIZE; i++) 
         packetClientHandshake.data[i] = 0x55;
     
@@ -50,6 +56,9 @@ void InitiateRouter(void) {
     packetRouterHandshakeOutgoing.addr_s[0] = 0xff; // From a router requesting a connection
     packetRouterHandshakeOutgoing.addr_s[1] = 0xff;
     
+    packetRouterHandshakeOutgoing.index = 1;
+    packetRouterHandshakeOutgoing.total = 1;
+    
     for (uint8_t i=0; i < NETWORK_PACKET_DATA_SIZE; i++) 
         packetRouterHandshakeOutgoing.data[i] = 0x55;
     
@@ -65,6 +74,9 @@ void InitiateRouter(void) {
     packetRouterHandshakeReturn.addr_d[1] = 0xff;
     packetRouterHandshakeReturn.addr_s[0] = 0xff; // From a router requesting a connection
     packetRouterHandshakeReturn.addr_s[1] = 0xff;
+    
+    packetRouterHandshakeReturn.index = 1;
+    packetRouterHandshakeReturn.total = 1;
     
     for (uint8_t i=0; i < NETWORK_PACKET_DATA_SIZE; i++) 
         packetRouterHandshakeReturn.data[i] = 0xAA;
@@ -98,12 +110,8 @@ void InitiateRouter(void) {
             // Initiate NIC baud rate
             ntBindDevice(s);
             
-            _delay_ms(10);
-            
             if (ntCheckDevice() == 0) 
                 continue;
-            
-            _delay_ms(10);
             
             ntSetBaudRate( NETWORK_BAUD_RATE );
             
@@ -132,11 +140,7 @@ void InitiateRouter(void) {
             
             ntPacketSend( &packetRouterHandshakeOutgoing );
             
-            _delay_ms(10);
-            
         }
-        
-        _delay_ms(120);
         
         continue;
     }
@@ -186,12 +190,8 @@ void InitiateRouter(void) {
                             // Initiate NIC baud rate
                             ntBindDevice(ds);
                             
-                            _delay_ms(10);
-                            
                             if (ntCheckDevice() == 0) 
                                 continue;
-                            
-                            _delay_ms(10);
                             
                             ntSetBaudRate( NETWORK_BAUD_RATE );
                             
