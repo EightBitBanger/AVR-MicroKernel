@@ -9,7 +9,7 @@ void (*_timer_comp_a_ptr__)() = dummyFunction;
 void (*_timer_comp_b_ptr__)() = dummyFunction;
 void (*_timer_comp_c_ptr__)() = dummyFunction;
 
-void (*_external_a_ptr__)() = dummyFunction;
+void (*_external_int_ptr__)() = dummyFunction;
 
 
 void ClearInterruptFlag(void) {
@@ -84,30 +84,27 @@ void InterruptStopHardware(void) {
 // Interrupts
 //
 
-uint8_t SetInterruptServiceA(void (*service_ptr)()) {
+uint8_t SetInterruptService(uint8_t index, void (*service_ptr)()) {
     
-    _timer_comp_a_ptr__ = service_ptr;
+    switch (index) {
     
-    return 1;
-}
-
-uint8_t SetInterruptServiceB(void (*service_ptr)()) {
-    
-    _timer_comp_b_ptr__ = service_ptr;
-    
-    return 1;
-}
-
-uint8_t SetInterruptServiceC(void (*service_ptr)()) {
-    
-    _timer_comp_c_ptr__ = service_ptr;
+    case 0:
+        _timer_comp_a_ptr__ = service_ptr;
+        
+    case 1:
+        _timer_comp_b_ptr__ = service_ptr;
+        
+    case 2:
+        _timer_comp_c_ptr__ = service_ptr;
+        
+    }
     
     return 1;
 }
 
-uint8_t SetHardwareInterruptServiceA(void (*service_ptr)()) {
+uint8_t SetHardwareInterruptService(void (*service_ptr)()) {
     
-    _external_a_ptr__ = service_ptr;
+    _external_int_ptr__ = service_ptr;
     
     return 1;
 }
@@ -140,7 +137,7 @@ ISR (TIMER2_COMPA_vect) {
 
 ISR (INT2_vect) {
     
-    _external_a_ptr__();
+    _external_int_ptr__();
     
     return;
 }

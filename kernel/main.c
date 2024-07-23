@@ -1,5 +1,7 @@
 #include <kernel/main.h>
 
+extern struct Driver* networkDevice;
+
 int main(void) {
     
     // Zero the system bus
@@ -15,8 +17,17 @@ int main(void) {
 	initiateNetworkDriver();      // UART Network Card
 	initiateSpeakerDriver();      // On-Board speaker
 	
-	// Initiate kernel sub systems
-	InitiateDeviceTable();
+	// Initiate core kernel systems
+	InitiateDeviceTable();        // Hardware device table
+    kernelVectorTableInit();      // Hardware interrupt vector table
+    schedulerInit();              // Scheduler sub system
+    
+#ifdef NETWORK_APPLICATION_PACKET_ROUTER
+    
+    ntInit();
+    InitiateRouter();
+    
+#endif
     
     // Command line interpreter
     cliInit();
@@ -45,11 +56,14 @@ int main(void) {
     
 #endif
     
-#ifdef NETWORK_APPLICATION_PACKET_ROUTER
+    //
+    // Initiate kernel sub systems
     
-    InitiateRouter();
+    fsInit();         // File system
+    kInit();          // Setup the kernel environment
+    driverInit();     // Driver hot loading
+    ntInit();         // Network support
     
-#endif
     
 #ifdef NETWORK_APPLICATION_SERVER
     
@@ -63,7 +77,7 @@ int main(void) {
     
     //registerCommandDevice();
     //registerCommandCAP();
-    registerCommandList();
+    //registerCommandList();
     //registerCommandTASK();
     //registerCommandType();
     
@@ -78,7 +92,8 @@ int main(void) {
     
   #ifdef INCLUDE_NETWORK_APPLICATIONS
     
-    //registerCommandNet();
+    registerCommandNet();
+    registerCommandFTP();
     
   #endif
     
@@ -88,11 +103,11 @@ int main(void) {
     registerCommandCOPY();
     registerCommandCD();
     
-    registerCommandMK();
-    registerCommandRM();
+    //registerCommandMK();
+    //registerCommandRM();
     //registerCommandRN();
-    registerCommandMKDIR();
-    registerCommandRMDIR();
+    //registerCommandMKDIR();
+    //registerCommandRMDIR();
     
     //registerCommandATTRIB();
     //registerCommandRepair();
@@ -105,13 +120,6 @@ int main(void) {
     //
     // Boot the kernel
     // 
-    
-    kernelVectorTableInit();      // Hardware interrupt vector table
-    schedulerInit();              // Scheduler sub system
-    fsInit();                     // File system
-    ntInit();                     // Network support
-    kInit();                      // Setup the kernel environment
-    driverInit();                 // Driver hot loading
     
 #ifdef _KERNEL_PRINT_VERSION_INFORMATION__
     ConsoleSetBlinkRate( CURSOR_BLINK_RATE );
@@ -154,7 +162,7 @@ int main(void) {
     //  Trigger on the HIGH to LOW transition of PIN2
     InterruptStartHardware();
     
-    SetHardwareInterruptServiceA( _ISR_hardware_service_routine );
+    SetHardwareInterruptService( _ISR_hardware_service_routine );
     
     // Prepare the scheduler and its 
     // associated hardware interrupts
@@ -165,11 +173,11 @@ int main(void) {
     
     while(1) {
         
-        __asm__("cli");
+        ClearInterruptFlag();
         
         cliRunShell();
         
-        __asm__("sei");
+        SetInterruptFlag();
         
     }
     

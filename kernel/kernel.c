@@ -26,27 +26,20 @@ void kInit(void) {
     // Initiate temporary storage
     fsFormat(0, FORMAT_CAPACITY_8K);
     
+    
+    
+    //
+    // Create bin directory
+    
     uint8_t directoryName[] = "bin";
     fsDirectoryCreate(directoryName, sizeof(directoryName));
     
-    uint8_t fileName[] = "kmod";
-    uint32_t address = fsFileCreate(fileName, sizeof(fileName), 40);
-    
-    fsFileOpen(address);
-    
-    uint8_t buffer[] = "";
-    
-    fsFileWrite(buffer, sizeof(buffer));
-    
-    fsFileClose();
+    fsChangeWorkingDirectory(directoryName, sizeof(directoryName));
     
     
     
-    
-    
-    
-    
-    
+    //
+    // Executable example
     
     uint8_t versionFileName[]  = "ver";
     uint32_t versionFileAddress = fsFileCreate(versionFileName, sizeof(versionFileName), 80);
@@ -59,121 +52,88 @@ void kInit(void) {
     
     fsFileSetAttributes(versionFileAddress, &attribTest);
     
+    uint8_t versionMajorStr[4];
+    uint8_t versionMinorStr[4];
+    uint8_t versionPatchStr[4];
+    
+    uint8_t majLen = int_to_string( _KERNEL_VERSION_MAJOR__, versionMajorStr );
+    uint8_t minLen = int_to_string( _KERNEL_VERSION_MINOR__, versionMinorStr );
+    uint8_t patLen = int_to_string( _KERNEL_VERSION_PATCH__, versionPatchStr );
+    
     fsFileOpen(versionFileAddress);
-    uint8_t bufferTest[] = {0x89, 0x03, 'V', 0xcc, 0x10, 
-                            0x89, 0x03, 'e', 0xcc, 0x10, 
-                            0x89, 0x03, 'r', 0xcc, 0x10, 
-                            0x89, 0x03, 's', 0xcc, 0x10, 
-                            0x89, 0x03, 'i', 0xcc, 0x10, 
-                            0x89, 0x03, 'o', 0xcc, 0x10, 
-                            0x89, 0x03, 'n', 0xcc, 0x10, 
-                            0x89, 0x03, ' ', 0xcc, 0x10, 
-                            0x89, 0x03, '0', 0xcc, 0x10, 
-                            0x89, 0x03, '.', 0xcc, 0x10, 
-                            0x89, 0x03, '0', 0xcc, 0x10, 
-                            0x89, 0x03, '.', 0xcc, 0x10, 
-                            0x89, 0x03, '1', 0xcc, 0x10, 
+    uint8_t bufferTest[] = {0x89, 0x00,  9,   // Call to print a string to the display
+                            0x89, 0x01, 20,   // Number of characters to print
+                            0x89, 0x02,  0,   // High byte offset to data start address
+                            0x89, 0x03, 16,   // Low byte offset to data start address
+                            0xcc, 0x10,       // Run display routine
+                            0xcc, 0x20,       // Return to the shell
                             
-                            0xcc, 0x20};
+                            'V', 'e', 'r', 's', 'i', 'o', 'n', ' ',
+                            
+                            ' ',' ',' ',' ',' ',' ',' ',' ',' '
+                            
+                            };
+    
+    uint8_t currentChar = 0;
+    
+    if (majLen == 2) {
+        
+        bufferTest[24] = versionMajorStr[0];
+        bufferTest[25] = versionMajorStr[1];
+        bufferTest[26] = '.';
+        currentChar = 27;
+    } else {
+        bufferTest[24] = versionMajorStr[0];
+        bufferTest[25] = '.';
+        currentChar = 26;
+    }
+    
+    if (minLen == 2) {
+        
+        bufferTest[currentChar]   = versionMinorStr[0];
+        bufferTest[currentChar+1] = versionMinorStr[1];
+        bufferTest[currentChar+2] = '.';
+        currentChar += 3;
+    } else {
+        bufferTest[currentChar] = versionMinorStr[0];
+        bufferTest[currentChar+1] = '.';
+        currentChar += 2;
+    }
+    
+    if (patLen == 2) {
+        
+        bufferTest[currentChar]   = versionPatchStr[0];
+        bufferTest[currentChar+1] = versionPatchStr[1];
+    } else {
+        bufferTest[currentChar] = versionPatchStr[0];
+    }
     
     fsFileWrite(bufferTest, sizeof(bufferTest));
     fsFileClose();
     
     
     
-    
-    
-    
-    /*
-    
-    uint8_t deviceLetter = 'X';
-    
-    fsSetDeviceLetter(deviceLetter);
-    fsSetRootDirectory(deviceLetter);
+    //
+    // Create drivers directory
     
     fsClearWorkingDirectory();
     
-    fsFormat(0, CAPACITY_8K);
+    uint8_t directorySubName[] = "drivers";
+    fsDirectoryCreate(directorySubName, sizeof(directorySubName));
     
-    
-    uint8_t kernelDirName[]  = "kernel";
-    fsDirectoryCreate(kernelDirName, sizeof(kernelDirName)-1);
-    
-    uint8_t drvDirName[]  = "drivers";
-    fsDirectoryCreate(drvDirName, sizeof(drvDirName)-1);
-    
-    uint8_t binDirName[]  = "bin";
-    fsDirectoryCreate(binDirName, sizeof(binDirName)-1);
-    
-    uint8_t userDirName[]  = "user";
-    fsDirectoryCreate(userDirName, sizeof(userDirName)-1);
-    
-    
-    
-    fsSetWorkingDirectory(kernelDirName, sizeof(kernelDirName)-1);
-    
-    uint8_t subsysDirName[]  = "subsys";
-    fsDirectoryCreate(subsysDirName, sizeof(subsysDirName)-1);
+    fsChangeWorkingDirectory(directorySubName, sizeof(directorySubName));
     
     
     
     
     
-    
-    
-    
-    
-    // Create version executable
-    
-    fsSetWorkingDirectory(kernelDirName, sizeof(kernelDirName)-1);
-    
-    uint8_t testFileName[]  = "ver";
-    fsFileCreate(testFileName, sizeof(testFileName)-1, 80, ' ');
-    
-    struct FSAttribute attribTest;
-    attribTest.executable = 'x';
-    attribTest.readable   = 'r';
-    attribTest.writeable  = 'w';
-    attribTest.type       = ' ';
-    
-    fsFileSetAttributes(testFileName, sizeof(testFileName)-1, &attribTest);
-    
-    uint8_t index = fsFileOpen(testFileName, sizeof(testFileName)-1);
-    uint8_t bufferTest[] = {0x89, 0x03, 'V', 0xcc, 0x10, 
-                            0x89, 0x03, 'e', 0xcc, 0x10, 
-                            0x89, 0x03, 'r', 0xcc, 0x10, 
-                            0x89, 0x03, 's', 0xcc, 0x10, 
-                            0x89, 0x03, 'i', 0xcc, 0x10, 
-                            0x89, 0x03, 'o', 0xcc, 0x10, 
-                            0x89, 0x03, 'n', 0xcc, 0x10, 
-                            0x89, 0x03, ' ', 0xcc, 0x10, 
-                            0x89, 0x03, '0', 0xcc, 0x10, 
-                            0x89, 0x03, '.', 0xcc, 0x10, 
-                            0x89, 0x03, '0', 0xcc, 0x10, 
-                            0x89, 0x03, '.', 0xcc, 0x10, 
-                            0x89, 0x03, '1', 0xcc, 0x10, 
-                            
-                            0xcc, 0x20};
-    
-    
-    fsFileWrite(index, bufferTest, sizeof(bufferTest));
-    fsFileClose(index);
-    
-    
-    
-    
-    
-    
-    
-    // Create test driver in drivers directory
-    
-    fsSetWorkingDirectory(drvDirName, sizeof(drvDirName)-1);
-    
+    //
+    // Driver example
     
     uint8_t driverFileName[]  = "kmod";
-    fsFileCreate(driverFileName, sizeof(driverFileName)-1, 40, ' ');
+    uint32_t kmodFileAddress = fsFileCreate(driverFileName, sizeof(driverFileName), 40);
     
-    index = fsFileOpen(driverFileName, sizeof(driverFileName)-1);
+    fsFileOpen(kmodFileAddress);
     uint8_t bufferDrv[] = "  kmod      $XXXXX";
     
     bufferDrv[0] = 'K';      // Marker bytes KD (kernel driver)
@@ -188,14 +148,33 @@ void kInit(void) {
     bufferDrv[16] = 0x00;    // Bus interface type
     bufferDrv[17] = 0x00;    // Sub system registry type
     
-    fsFileWrite(index, bufferDrv, sizeof(bufferDrv) - 1);
-    fsFileClose(index);
-    
-    
+    fsFileWrite(bufferDrv, sizeof(bufferDrv));
+    fsFileClose();
     
     fsClearWorkingDirectory();
     
-    */
+    
+    //
+    // Document example
+    
+    uint8_t docFileName[]  = "doc";
+    uint32_t docFileAddress = fsFileCreate(docFileName, sizeof(docFileName), 80);
+    
+    struct FSAttribute attribDoc;
+    attribDoc.executable = ' ';
+    attribDoc.readable   = 'r';
+    attribDoc.writeable  = 'w';
+    attribDoc.type       = ' ';
+    
+    fsFileSetAttributes(docFileAddress, &attribDoc);
+    
+    fsFileOpen(docFileAddress);
+    uint8_t bufferDoc[] = "Line A\nNext Line\nLine C\nLast Line\n\0";
+    
+    fsFileWrite(bufferDoc, sizeof(bufferDoc));
+    fsFileClose();
+    
+    
     
     return;
 }

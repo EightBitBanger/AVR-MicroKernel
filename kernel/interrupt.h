@@ -33,12 +33,10 @@ void ClearInterruptFlag(void);
 
 // Interrupt service routines
 
-uint8_t SetInterruptServiceA(void (*service_ptr)());
-uint8_t SetInterruptServiceB(void (*service_ptr)());
-uint8_t SetInterruptServiceC(void (*service_ptr)());
+uint8_t SetInterruptService(uint8_t index, void (*service_ptr)());
 
 // Hardware interrupt service routines
 
-uint8_t SetHardwareInterruptServiceA(void (*service_ptr)());
+uint8_t SetHardwareInterruptService(void (*service_ptr)());
 
 #endif

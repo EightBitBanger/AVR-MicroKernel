@@ -28,6 +28,7 @@
 #ifdef INCLUDE_NETWORK_APPLICATIONS
   
   #include <kernel/command/net/net.h>
+  #include <kernel/command/ftp/ftp.h>
   
 #endif
 

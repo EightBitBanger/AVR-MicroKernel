@@ -165,8 +165,8 @@ void SchedulerStart(void) {
 	ClearInterruptFlag();
 	
 	// Set the ISRs
-	SetInterruptServiceA( _ISR_SCHEDULER_MAIN__ );
-    SetInterruptServiceB( _ISR_SCHEDULER_TIMER__ );
+	SetInterruptService(0, _ISR_SCHEDULER_MAIN__ );
+    SetInterruptService(1, _ISR_SCHEDULER_TIMER__);
     
     SetInterruptFlag();
 	
