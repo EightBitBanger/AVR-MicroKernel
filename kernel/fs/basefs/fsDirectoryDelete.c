@@ -5,9 +5,8 @@ uint8_t fsDirectoryDelete(uint8_t* name, uint8_t nameLength) {
     
     uint32_t directoryAddress = fsDirectoryExists(name, nameLength);
     
-    if (directoryAddress == 0) {
+    if (directoryAddress == 0) 
         return 0;
-    }
     
     // Free the contents of the directory
     
@@ -39,5 +38,10 @@ uint8_t fsDirectoryDelete(uint8_t* name, uint8_t nameLength) {
         continue;
     }
     
-    return fsFileDelete(name, nameLength);
+    fsFileClose();
+    
+    // Delete the directory
+    fsFree(directoryAddress);
+    
+    return 1;
 }

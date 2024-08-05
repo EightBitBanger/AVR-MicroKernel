@@ -74,6 +74,22 @@ uint8_t EmulateX4(uint8_t* programBuffer, uint32_t programSize) {
             continue;
         }
         
+        // IN Read a byte from IO space
+        if (opCode == 0x85) {
+            
+            
+            programCounter += 5;
+            continue;
+        }
+        
+        // OUT Write a byte into IO space
+        if (opCode == 0x84) {
+            
+            
+            programCounter += 5;
+            continue;
+        }
+        
         // LDA Load from memory to DX register
         if (opCode == 0x86) {
             union Pointer ptr;
@@ -135,28 +151,28 @@ uint8_t EmulateX4(uint8_t* programBuffer, uint32_t programSize) {
         // Math
         //
         
-        // Add bx into ax
+        // Add BX into AX
         if (opCode == 0x00) {
             reg[0] += reg[1];
             programCounter += 1;
             continue;
         }
         
-        // Sub bx from ax
+        // Sub BX from AX
         if (opCode == 0x80) {
             reg[0] -= reg[1];
             programCounter += 1;
             continue;
         }
         
-        // Multiply bx and cx into ax
+        // Multiply BX and CX into AX
         if (opCode == 0xF6) {
             reg[0] = reg[1] * reg[2];
             programCounter += 1;
             continue;
         }
         
-        // Divide bx by cx into ax
+        // Divide BX by CX into AX
         // Remainder into dx
         if (opCode == 0xF4) {
             //reg[argA] ;
@@ -232,13 +248,43 @@ uint8_t EmulateX4(uint8_t* programBuffer, uint32_t programSize) {
             continue;
         }
         
+        // Interrupt routines
         if ((opCode == 0xCC) | (opCode == 0xCD)) {
             
-            // Display control interrupt routine
+            //
+            // Display
+            
             if (argA == 0x10) {
                 
-                // Print string
-                if (reg[0] == 0x09) {
+                // Print string ah=01
+                if (reg[1] == 0x09) {
+                    
+                    union Pointer dataOffset;
+                    dataOffset.byte_t[3] = 0;
+                    dataOffset.byte_t[2] = 0;
+                    dataOffset.byte_t[1] = reg[6]; // dl
+                    dataOffset.byte_t[0] = reg[7]; // dh
+                    for (uint32_t i=0; i < programSize; i++) {
+                        
+                        if (programBuffer[dataOffset.address + i] == '\0') 
+                            break;
+                        
+                        printChar(programBuffer[dataOffset.address + i]);
+                        
+                    }
+                    
+                }
+                
+                consoleWritten = 1;
+            }
+            
+            //
+            // Network
+            
+            if (argA == 0x14) {
+                
+                // Send
+                if (reg[0] == 0x02) {
                     
                     union Pointer dataOffset;
                     dataOffset.byte_t[3] = 0;
@@ -246,11 +292,10 @@ uint8_t EmulateX4(uint8_t* programBuffer, uint32_t programSize) {
                     dataOffset.byte_t[1] = reg[2];
                     dataOffset.byte_t[0] = reg[3];
                     
-                    print( &programBuffer[ dataOffset.address ], reg[1] );
+                    ntSend(&programBuffer[ dataOffset.address ], reg[1]);
                     
                 }
                 
-                consoleWritten = 1;
             }
             
             // Return control to the OS

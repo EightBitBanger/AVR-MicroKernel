@@ -7,6 +7,9 @@ uint32_t fsAllocate(uint32_t size) {
     
     uint32_t currentCapacity = fsGetDeviceCapacity() / SECTOR_SIZE;
     
+    if (size == 0) 
+        size = 1;
+    
     // Calculate sectors required to fit the file
     // TODO: This is slow, optimize this out
     uint32_t totalSectors=0;
