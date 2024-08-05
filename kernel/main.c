@@ -1,6 +1,26 @@
 #include <kernel/main.h>
 
-extern struct Driver* networkDevice;
+
+void spk_beep(uint16_t duration, uint16_t frequency) {
+    
+    struct Bus spkBus;
+    spkBus.read_waitstate  = 1000;
+    spkBus.write_waitstate = 1000;
+    
+    
+    for (uint16_t i=0; i < duration; i++) {
+        
+        bus_write_io(&spkBus, 0x60000, 0xff);
+        
+        for (uint16_t i=0; i < frequency / 16; i++) 
+            __asm__("nop");
+        
+        continue;
+    }
+    
+    return;
+}
+
 
 int main(void) {
     
@@ -14,8 +34,6 @@ int main(void) {
     // Device drivers
 	initiateDisplayDriver();      // 20x4 LCD Display
 	initiatePS2Driver();          // PS/2 Port
-	initiateNetworkDriver();      // UART Network Card
-	initiateSpeakerDriver();      // On-Board speaker
 	
 	// Initiate core kernel systems
 	InitiateDeviceTable();        // Hardware device table
@@ -25,6 +43,7 @@ int main(void) {
 #ifdef NETWORK_APPLICATION_PACKET_ROUTER
     
     ntInit();
+    
     InitiateRouter();
     
 #endif
@@ -48,11 +67,23 @@ int main(void) {
     //
     
 #ifdef BOARD_RETRO_AVR_X4_REV1
+    uint16_t frequency      = 14000;
+    uint16_t duration       = 300;
+    uint16_t duration_long  = 2000;
     
-    uint16_t duration  = 120;
-    uint16_t frequency = 20000;
+    // Check RAM error
+    if (kAllocGetTotal() == 0) {
+        
+        spk_beep(duration_long, frequency);
+        
+        _delay_ms(500);
+        spk_beep(duration, frequency);
+        _delay_ms(500);
+        
+    }
     
-    spkBeep(duration, frequency);
+    // Normal beep, all clear to continue
+    spk_beep(duration, frequency);
     
 #endif
     
@@ -61,11 +92,12 @@ int main(void) {
     
     fsInit();         // File system
     kInit();          // Setup the kernel environment
-    driverInit();     // Driver hot loading
-    ntInit();         // Network support
+    driverInit();     // Driver hot loader
     
     
 #ifdef NETWORK_APPLICATION_SERVER
+    
+    ntInit();
     
     InitiateServer();
     
@@ -84,7 +116,7 @@ int main(void) {
     //registerCommandLD();
     
     //registerCommandEDIT();
-    //registerCommandAssembly();
+    registerCommandAssembly();
     
     //registerCommandCLS();
     
@@ -92,15 +124,15 @@ int main(void) {
     
   #ifdef INCLUDE_NETWORK_APPLICATIONS
     
-    registerCommandNet();
-    registerCommandFTP();
+    //registerCommandNet();
+    //registerCommandFTP();
     
   #endif
     
   #ifdef INCLUDE_FILE_SYSTEM_APPLICATIONS
     
     registerCommandLS();
-    registerCommandCOPY();
+    //registerCommandCOPY();
     registerCommandCD();
     
     //registerCommandMK();
@@ -109,7 +141,7 @@ int main(void) {
     //registerCommandMKDIR();
     //registerCommandRMDIR();
     
-    //registerCommandATTRIB();
+    //registerCommandAttrib();
     //registerCommandRepair();
     //registerCommandFormat();
     

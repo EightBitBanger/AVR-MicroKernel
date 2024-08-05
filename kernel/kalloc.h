@@ -5,6 +5,7 @@
 
 #include <kernel/kernel.h>
 
+uint32_t kAllocGetTotal(void);
 
 void AllocateExternalMemory(void);
 

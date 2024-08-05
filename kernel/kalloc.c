@@ -1,5 +1,11 @@
 #include <kernel/kalloc.h>
 
+uint32_t totalAllocatedMemory = 0;
+
+uint32_t kAllocGetTotal(void) {
+    
+    return totalAllocatedMemory;
+}
 
 void AllocateExternalMemory(void) {
     
@@ -73,6 +79,8 @@ void AllocateExternalMemory(void) {
     print(byteFreeString, sizeof(byteFreeString));
     
     printLn();
+    
+    totalAllocatedMemory = address;
     
 #endif
     

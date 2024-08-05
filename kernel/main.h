@@ -54,10 +54,9 @@
 #endif
 
 
-
+//
 // Included drivers
+
 #include <drivers/display/LiquidCrystalDisplayController/main.h>
 #include <drivers/keyboard/ps2/main.h>
-#include <drivers/network/NIC/main.h>
-#include <drivers/audio/speaker/main.h>
 

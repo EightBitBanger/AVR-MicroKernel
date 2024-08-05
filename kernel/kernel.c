@@ -28,13 +28,9 @@ void kInit(void) {
     
     
     
-    //
-    // Create bin directory
     
-    uint8_t directoryName[] = "bin";
-    fsDirectoryCreate(directoryName, sizeof(directoryName));
     
-    fsChangeWorkingDirectory(directoryName, sizeof(directoryName));
+    
     
     
     
@@ -61,16 +57,15 @@ void kInit(void) {
     uint8_t patLen = int_to_string( _KERNEL_VERSION_PATCH__, versionPatchStr );
     
     fsFileOpen(versionFileAddress);
-    uint8_t bufferTest[] = {0x89, 0x00,  9,   // Call to print a string to the display
-                            0x89, 0x01, 20,   // Number of characters to print
-                            0x89, 0x02,  0,   // High byte offset to data start address
-                            0x89, 0x03, 16,   // Low byte offset to data start address
+    uint8_t bufferTest[] = {0x89, 0x01,  9,   // Call to print a string to the display
+                            0x89, 0x06,  0,   // High byte offset to data start address
+                            0x89, 0x07, 13,   // Low byte offset to data start address
                             0xcc, 0x10,       // Run display routine
                             0xcc, 0x20,       // Return to the shell
                             
                             'V', 'e', 'r', 's', 'i', 'o', 'n', ' ',
                             
-                            ' ',' ',' ',' ',' ',' ',' ',' ',' '
+                            ' ',' ',' ',' ',' ','\0','\0','\0'
                             
                             };
     
@@ -78,14 +73,14 @@ void kInit(void) {
     
     if (majLen == 2) {
         
-        bufferTest[24] = versionMajorStr[0];
-        bufferTest[25] = versionMajorStr[1];
-        bufferTest[26] = '.';
-        currentChar = 27;
+        bufferTest[21] = versionMajorStr[0];
+        bufferTest[22] = versionMajorStr[1];
+        bufferTest[23] = '.';
+        currentChar = 24;
     } else {
-        bufferTest[24] = versionMajorStr[0];
-        bufferTest[25] = '.';
-        currentChar = 26;
+        bufferTest[21] = versionMajorStr[0];
+        bufferTest[22] = '.';
+        currentChar = 23;
     }
     
     if (minLen == 2) {
@@ -113,6 +108,33 @@ void kInit(void) {
     
     
     
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    /*
+    
+    
+    
+    //
+    // Create bin directory
+    
+    uint8_t directoryName[] = "bin";
+    fsDirectoryCreate(directoryName, sizeof(directoryName));
+    
+    fsChangeWorkingDirectory(directoryName, sizeof(directoryName));
+    
+    
+    
+    
+    
+    
     //
     // Create drivers directory
     
@@ -128,30 +150,37 @@ void kInit(void) {
     
     
     //
-    // Driver example
+    // Network driver
     
-    uint8_t driverFileName[]  = "kmod";
-    uint32_t kmodFileAddress = fsFileCreate(driverFileName, sizeof(driverFileName), 40);
+    uint8_t driverNicFileName[]  = "nic";
+    uint32_t nicFileAddress = fsFileCreate(driverNicFileName, sizeof(driverNicFileName), 30);
     
-    fsFileOpen(kmodFileAddress);
-    uint8_t bufferDrv[] = "  kmod      $XXXXX";
+    fsFileOpen(nicFileAddress);
+    uint8_t bufferDrvNic[] = "  network   $XXXXX";
     
-    bufferDrv[0] = 'K';      // Marker bytes KD (kernel driver)
-    bufferDrv[1] = 'D';
+    bufferDrvNic[0] = 'K';      // Marker bytes KD (kernel driver)
+    bufferDrvNic[1] = 'D';
     
     // Next 10 bytes reserved for driver name
     
-    bufferDrv[12] = '$';     // Marker byte '$'
-    bufferDrv[13] = 0x13;    // Device ID
-    bufferDrv[14] = 0x02;    // Bus read wait-state
-    bufferDrv[15] = 0x01;    // Bus write wait-state
-    bufferDrv[16] = 0x00;    // Bus interface type
-    bufferDrv[17] = 0x00;    // Sub system registry type
+    bufferDrvNic[12] = '$';   // Marker byte '$'
+    bufferDrvNic[13] = 0x14;  // Device ID
+    bufferDrvNic[14] = 0x0a;  // Bus read wait-state
+    bufferDrvNic[15] = 0x0a;  // Bus write wait-state
+    bufferDrvNic[16] = 0x02;  // Bus interface type
     
-    fsFileWrite(bufferDrv, sizeof(bufferDrv));
+    bufferDrvNic[17] = 0x00;  // Hardware address
+    bufferDrvNic[18] = 0x00;  
+    bufferDrvNic[19] = 0x00;  
+    bufferDrvNic[20] = 0x00;  
+    
+    fsFileWrite(bufferDrvNic, sizeof(bufferDrvNic));
     fsFileClose();
     
+    
+    
     fsClearWorkingDirectory();
+    
     
     
     //
@@ -175,17 +204,17 @@ void kInit(void) {
     fsFileClose();
     
     
+    */
+    
+    
     
     return;
 }
 
 void kernelVectorTableInit(void) {
     
-    for (uint8_t i=0; i < INTERRUPT_VECTOR_TABLE_SIZE; i++) {
-        
+    for (uint8_t i=0; i < INTERRUPT_VECTOR_TABLE_SIZE; i++) 
         interrupt_vector_table[i] = defaultLandingFunction;
-        
-    }
     
     return;
 }
@@ -195,11 +224,11 @@ void _ISR_hardware_service_routine(void) {
     struct Bus bus;
     bus.read_waitstate  = 4;
     
-    uint8_t iVect = 0;
+    uint8_t intVect = 0;
     
-    bus_read_io(&bus, 0x00000, &iVect);
+    bus_read_io(&bus, 0x00000, &intVect);
     
-    switch(iVect) {
+    switch(intVect) {
         
         case INT_VECT_0: interrupt_vector_table[0](0); break;
         case INT_VECT_1: interrupt_vector_table[1](1); break;

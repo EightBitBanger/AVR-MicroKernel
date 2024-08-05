@@ -7,18 +7,31 @@
 
 struct Driver* networkDevice;
 
+void __read_network_device(uint32_t address, uint8_t* buffer);
+void __write_network_device(uint32_t address, uint8_t buffer);
+
+uint8_t ntIsInitiated = 0;
+
 
 void ntInit(void) {
     
     uint8_t nameNetwork[] = "network";
 	networkDevice = (struct Driver*)GetDriverByName( nameNetwork, sizeof(nameNetwork) );
 	
+	if (networkDevice == nullptr) 
+        return;
+    
 	networkDevice->interface.read_waitstate  = 10;
 	networkDevice->interface.write_waitstate = 10;
 	
+    networkDevice->read  = __read_network_device;
+    networkDevice->write = __write_network_device;
+    
 	// Initiate NIC baud rate
 	ntSetBaudRate( NETWORK_BAUD_RATE );
 	
+	ntIsInitiated = 1;
+    
 	return;
 }
 
@@ -113,4 +126,20 @@ uint8_t ntCheckDevice(void) {
     return 1;
 }
 
+uint8_t ntCheckInitiated(void) {
+    
+    return ntIsInitiated;
+}
 
+
+// Low level IO
+
+void __read_network_device(uint32_t address, uint8_t* buffer) {
+    bus_read_byte( &networkDevice->interface, networkDevice->device.hardware_address + address, buffer );
+    return;
+}
+
+void __write_network_device(uint32_t address, uint8_t buffer) {
+    bus_write_byte( &networkDevice->interface, networkDevice->device.hardware_address + address, buffer );
+    return;
+}

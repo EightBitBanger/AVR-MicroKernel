@@ -29,4 +29,7 @@ void ntBindDevice(uint8_t deviceIndex);
 
 uint8_t ntCheckDevice(void);
 
+uint8_t ntCheckInitiated(void);
+
+
 #endif
