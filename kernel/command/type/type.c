@@ -27,6 +27,9 @@ void functionType(uint8_t* param, uint8_t param_length) {
     for (uint32_t i=0; i < fileSize; i++) 
         printChar( fileBuffer[i] );
     
+    if (fileSize < 20) 
+        printLn();
+    
     return;
 }
 

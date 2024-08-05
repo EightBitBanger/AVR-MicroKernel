@@ -31,12 +31,11 @@ void functionAsm(uint8_t* param, uint8_t param_length) {
     
     if (fileAddress == 0) {
         
-        uint8_t msgFileNotFound[] = "File not found";
+        fileAddress = fsFileCreate(param, param_length, 1);
         
-        print(msgFileNotFound, sizeof(msgFileNotFound));
-        printLn();
+        if (fileAddress == 0) 
+            return;
         
-        return;
     }
     
     fsFileOpen( fileAddress );
@@ -44,7 +43,7 @@ void functionAsm(uint8_t* param, uint8_t param_length) {
     uint32_t fileSize = fsFileGetSize();
     
     // File data buffer
-    uint8_t fileBuffer[fileSize];
+    uint8_t fileBuffer[1024];
     
     for (uint16_t i=0; i < fileSize; i++) 
         fileBuffer[i] = ' ';
@@ -203,7 +202,7 @@ void functionAsm(uint8_t* param, uint8_t param_length) {
                 // Quit
                 //
                 
-                if (asm_console_string[0] == 'q') {
+                if ((asm_console_string[0] == 'q') & (asm_console_string[1] == ' ')) {
                     
                     fsFileClose();
                     
@@ -214,18 +213,56 @@ void functionAsm(uint8_t* param, uint8_t param_length) {
                 // Run the program in memory
                 //
                 
-                if (asm_console_string[0] == 'r') {
+                if ((asm_console_string[0] == 'r') & (asm_console_string[1] == ' ')) {
                     
-                    uint8_t statusCode = EmulateX4( fileBuffer, fileSize );
+                    EmulateX4( fileBuffer, fileSize );
                     
-                    if (statusCode != 1) {
+                }
+                
+                
+                //
+                // Set the program size register
+                //
+                
+                if ((asm_console_string[0] == 'r') & (asm_console_string[1] == 'c') & (asm_console_string[2] == 'x')) {
+                    
+                    if ((asm_console_string[4] != ' ') | (asm_console_string[5] != ' ') | (asm_console_string[6] != ' ') | (asm_console_string[7] != ' ')) {
                         
-                        uint8_t msgError[] = "error: ";
+                        uint8_t newFileSize[4];
+                        newFileSize[0] = asm_console_string[4];
+                        newFileSize[1] = asm_console_string[5];
+                        newFileSize[2] = asm_console_string[6];
+                        newFileSize[3] = asm_console_string[7];
                         
-                        print(msgError, sizeof(msgError));
-                        printInt( statusCode );
-                        printLn();
+                        if (asm_console_string[7] == ' ') {
+                            newFileSize[3] = newFileSize[2];
+                            newFileSize[2] = newFileSize[1];
+                            newFileSize[1] = newFileSize[0];
+                            newFileSize[0] = ' ';
+                        }
+                        
+                        if (asm_console_string[6] == ' ') {
+                            newFileSize[3] = newFileSize[2];
+                            newFileSize[2] = newFileSize[1];
+                            newFileSize[1] = newFileSize[0];
+                            newFileSize[0] = ' ';
+                        }
+                        
+                        if (asm_console_string[5] == ' ') {
+                            newFileSize[3] = newFileSize[2];
+                            newFileSize[2] = newFileSize[1];
+                            newFileSize[1] = newFileSize[0];
+                            newFileSize[0] = ' ';
+                        }
+                        
+                        fileSize = string_get_int_long(newFileSize);
                     }
+                    
+                    uint8_t msgByte[] = "RCX: ";
+                    print(msgByte, sizeof(msgByte));
+                    
+                    printInt( fileSize );
+                    printLn();
                     
                 }
                 
@@ -234,16 +271,24 @@ void functionAsm(uint8_t* param, uint8_t param_length) {
                 // Write data to file
                 //
                 
-                if (asm_console_string[0] == 'w') {
+                if ((asm_console_string[0] == 'w') & (asm_console_string[1] == ' ')) {
+                    
+                    // Delete the original
+                    fsFileClose();
+                    fsFileDelete(param, param_length);
+                    
+                    // Create new file with new size
+                    fileAddress = fsFileCreate(param, param_length, fileSize);
+                    fsFileOpen(fileAddress);
                     
                     fsFileWrite(fileBuffer, fileSize);
                     printInt( fileSize );
                     
                     if (fileSize == 1) {
-                        uint8_t msgByte[] = "byte ";
+                        uint8_t msgByte[] = " byte ";
                         print(msgByte, sizeof(msgByte));
                     } else {
-                        uint8_t msgBytes[] = "bytes ";
+                        uint8_t msgBytes[] = " bytes ";
                         print(msgBytes, sizeof(msgBytes));
                     }
                     
@@ -314,6 +359,10 @@ void functionAsm(uint8_t* param, uint8_t param_length) {
                         
                         if (fileBuffer[disassemblyAddress] == 0x86) {printc("lda", 4);  opCodeWasFound = 5;}
                         if (fileBuffer[disassemblyAddress] == 0x87) {printc("sta", 4);  opCodeWasFound = 5;}
+                        
+                        if (fileBuffer[disassemblyAddress] == 0x85) {printc("in", 3);   opCodeWasFound = 5;}
+                        if (fileBuffer[disassemblyAddress] == 0x84) {printc("out", 4);  opCodeWasFound = 5;}
+                        
                         if (fileBuffer[disassemblyAddress] == 0x88) {printc("mov", 4);  opCodeWasFound = 3;}
                         if (fileBuffer[disassemblyAddress] == 0x89) {printc("mov", 4);  opCodeWasFound = 3; specialOpcodeArgs = 2;}
                         
@@ -371,6 +420,16 @@ void functionAsm(uint8_t* param, uint8_t param_length) {
                                     
                                     argumentChar[0] += argA;
                                     
+                                    if (argumentChar[0] == 'a') {argumentChar[0] = 'a'; argumentChar[1] = 'l';}
+                                    if (argumentChar[0] == 'b') {argumentChar[0] = 'a'; argumentChar[1] = 'h';}
+                                    if (argumentChar[0] == 'c') {argumentChar[0] = 'b'; argumentChar[1] = 'l';}
+                                    if (argumentChar[0] == 'd') {argumentChar[0] = 'b'; argumentChar[1] = 'h';}
+                                    if (argumentChar[0] == 'e') {argumentChar[0] = 'c'; argumentChar[1] = 'l';}
+                                    if (argumentChar[0] == 'f') {argumentChar[0] = 'c'; argumentChar[1] = 'h';}
+                                    if (argumentChar[0] == 'g') {argumentChar[0] = 'd'; argumentChar[1] = 'l';}
+                                    if (argumentChar[0] == 'h') {argumentChar[0] = 'd'; argumentChar[1] = 'h';}
+                                    
+                                    
                                     print(argumentChar, 3);
                                     
                                 }
@@ -392,6 +451,15 @@ void functionAsm(uint8_t* param, uint8_t param_length) {
                                 
                                 argumentCharA[0] += argA;
                                 
+                                if (argumentCharA[0] == 'a') {argumentCharA[0] = 'a'; argumentCharA[1] = 'l';}
+                                if (argumentCharA[0] == 'b') {argumentCharA[0] = 'a'; argumentCharA[1] = 'h';}
+                                if (argumentCharA[0] == 'c') {argumentCharA[0] = 'b'; argumentCharA[1] = 'l';}
+                                if (argumentCharA[0] == 'd') {argumentCharA[0] = 'b'; argumentCharA[1] = 'h';}
+                                if (argumentCharA[0] == 'e') {argumentCharA[0] = 'c'; argumentCharA[1] = 'l';}
+                                if (argumentCharA[0] == 'f') {argumentCharA[0] = 'c'; argumentCharA[1] = 'h';}
+                                if (argumentCharA[0] == 'g') {argumentCharA[0] = 'd'; argumentCharA[1] = 'l';}
+                                if (argumentCharA[0] == 'h') {argumentCharA[0] = 'd'; argumentCharA[1] = 'h';}
+                                
                                 printSpace(1);
                                 print(argumentCharA, 3);
                                 printc(",", 2);
@@ -410,6 +478,16 @@ void functionAsm(uint8_t* param, uint8_t param_length) {
                                 if (specialOpcodeArgs == 0) {
                                     
                                     argumentCharB[0] += argB;
+                                    
+                                    if (argumentCharB[0] == 'a') {argumentCharB[0] = 'a'; argumentCharB[1] = 'l';}
+                                    if (argumentCharB[0] == 'b') {argumentCharB[0] = 'a'; argumentCharB[1] = 'h';}
+                                    if (argumentCharB[0] == 'c') {argumentCharB[0] = 'b'; argumentCharB[1] = 'l';}
+                                    if (argumentCharB[0] == 'd') {argumentCharB[0] = 'b'; argumentCharB[1] = 'h';}
+                                    if (argumentCharB[0] == 'e') {argumentCharB[0] = 'c'; argumentCharB[1] = 'l';}
+                                    if (argumentCharB[0] == 'f') {argumentCharB[0] = 'c'; argumentCharB[1] = 'h';}
+                                    if (argumentCharB[0] == 'g') {argumentCharB[0] = 'd'; argumentCharB[1] = 'l';}
+                                    if (argumentCharB[0] == 'h') {argumentCharB[0] = 'd'; argumentCharB[1] = 'h';}
+                                    
                                     print(argumentCharB, 3);
                                 }
                                 
@@ -518,12 +596,16 @@ void functionAsm(uint8_t* param, uint8_t param_length) {
                 uint8_t opCode[4] = {asm_console_string[0], asm_console_string[1], asm_console_string[2], asm_console_string[3]};
                 uint8_t argCount = 0;
                 
-                if ((opCode[0] == 'd') & (opCode[1] == 'b')) {
+                if ((opCode[0] == 'd') & (opCode[1] == 'b') & (opCode[2] == ' ') & (opCode[3] != ' ')) {
                     
-                    for (uint8_t i=0; i < asm_console_string_length; i++) {
-                        fileBuffer[assemblyAddress] = asm_console_string[3 + i];
-                        assemblyAddress++;
-                    }
+                    for (uint8_t i=0; i < (asm_console_string_length - 3); i++) 
+                        fileBuffer[assemblyAddress + i] = asm_console_string[3 + i];
+                    
+                    assemblyAddress += (asm_console_string_length - 3);
+                    
+                    // Clear the old op codes
+                    for (uint8_t i; i < 40; i++) 
+                        asm_console_string[i] = ' ';
                     
                     printAddressLine(assemblyAddress);
                     
@@ -539,9 +621,15 @@ void functionAsm(uint8_t* param, uint8_t param_length) {
                 }
                 
                 if ((opCode[0] == 'n') & (opCode[1] == 'o') & (opCode[2] == 'p')) {fileBuffer[assemblyAddress] = 0x90; assemblyAddress += 1; argCount = 0;}
+                // IO
+                if ((opCode[0] == 'i') & (opCode[1] == 'n') & (opCode[2] == ' ')) {fileBuffer[assemblyAddress] = 0x85; assemblyAddress += 5; argCount = 4;}
+                if ((opCode[0] == 'o') & (opCode[1] == 'u') & (opCode[2] == 't')) {fileBuffer[assemblyAddress] = 0x84; assemblyAddress += 5; argCount = 4;}
+                // Mem
                 if ((opCode[0] == 'l') & (opCode[1] == 'd') & (opCode[2] == 'a')) {fileBuffer[assemblyAddress] = 0x86; assemblyAddress += 5; argCount = 4;}
                 if ((opCode[0] == 's') & (opCode[1] == 't') & (opCode[2] == 'a')) {fileBuffer[assemblyAddress] = 0x87; assemblyAddress += 5; argCount = 4;}
+                
                 if ((opCode[0] == 'm') & (opCode[1] == 'o') & (opCode[2] == 'v')) {fileBuffer[assemblyAddress] = 0x88; assemblyAddress += 3; argCount = 2;}
+                // Math
                 if ((opCode[0] == 'i') & (opCode[1] == 'n') & (opCode[2] == 'c')) {fileBuffer[assemblyAddress] = 0xFD; assemblyAddress += 2; argCount = 1;}
                 if ((opCode[0] == 'd') & (opCode[1] == 'e') & (opCode[2] == 'c')) {fileBuffer[assemblyAddress] = 0xFC; assemblyAddress += 2; argCount = 1;}
                 
@@ -549,20 +637,27 @@ void functionAsm(uint8_t* param, uint8_t param_length) {
                 if ((opCode[0] == 's') & (opCode[1] == 'u') & (opCode[2] == 'b')) {fileBuffer[assemblyAddress] = 0x80; assemblyAddress += 1; argCount = 0;}
                 if ((opCode[0] == 'm') & (opCode[1] == 'u') & (opCode[2] == 'l')) {fileBuffer[assemblyAddress] = 0xF6; assemblyAddress += 1; argCount = 0;}
                 if ((opCode[0] == 'd') & (opCode[1] == 'i') & (opCode[2] == 'v')) {fileBuffer[assemblyAddress] = 0xF4; assemblyAddress += 1; argCount = 0;}
-                
+                // Stack
                 if ((opCode[0] == 'p') & (opCode[1] == 'o') & (opCode[2] == 'p')) {fileBuffer[assemblyAddress] = 0x0F; assemblyAddress += 2; argCount = 1;}
-                if ((opCode[0] == 'p') & (opCode[1] == 'u') & (opCode[2] == 's') & (opCode[3] == 'h')) {fileBuffer[assemblyAddress] = 0xF0; assemblyAddress += 2; argCount = 1;}
-                
+                if ((opCode[0] == 'p') & (opCode[1] == 'u') & (opCode[2] == 's') & 
+                                                              (opCode[3] == 'h')) {fileBuffer[assemblyAddress] = 0xF0; assemblyAddress += 2; argCount = 1;}
+                // Compare
+                if ((opCode[0] == 'c') & (opCode[1] == 'm') & (opCode[2] == 'p')) {fileBuffer[assemblyAddress] = 0x3C; assemblyAddress += 3; argCount = 2;}
+                // Jump / calls
                 if ((opCode[0] == 'j') & (opCode[1] == 'm') & (opCode[2] == 'p')) {fileBuffer[assemblyAddress] = 0xFE; assemblyAddress += 5; argCount = 4;}
-                if ((opCode[0] == 'c') & (opCode[1] == 'a') & (opCode[2] == 'l') & (opCode[3] == 'l')) {fileBuffer[assemblyAddress] = 0x9A; assemblyAddress += 5; argCount = 4;}
+                if ((opCode[0] == 'c') & (opCode[1] == 'a') & (opCode[2] == 'l') & 
+                                                              (opCode[3] == 'l')) {fileBuffer[assemblyAddress] = 0x9A; assemblyAddress += 5; argCount = 4;}
                 
                 if ((opCode[0] == 'r') & (opCode[1] == 'e') & (opCode[2] == 't')) {fileBuffer[assemblyAddress] = 0xCB; assemblyAddress += 1; argCount = 0;}
-                
+                // Interrupts
                 if ((opCode[0] == 'i') & (opCode[1] == 'n') & (opCode[2] == 't')) {fileBuffer[assemblyAddress] = 0xCC; assemblyAddress += 2; argCount = 1;}
                 if ((opCode[0] == 'c') & (opCode[1] == 'l') & (opCode[2] == 'i')) {fileBuffer[assemblyAddress] = 0xFA; assemblyAddress += 1; argCount = 0;}
                 if ((opCode[0] == 's') & (opCode[1] == 't') & (opCode[2] == 'i')) {fileBuffer[assemblyAddress] = 0xFB; assemblyAddress += 1; argCount = 0;}
                 
-                // Arguments
+                //
+                // Gather arguments
+                //
+                
                 uint8_t argA[4] = {0, 0, 0, 0};
                 uint8_t argB[4] = {0, 0, 0, 0};
                 uint8_t argAIsHex = 0;
@@ -634,21 +729,20 @@ void functionAsm(uint8_t* param, uint8_t param_length) {
                 // Disassemble the opcode arguments
                 //
                 
-                
                 //
                 // Set argument A
                 
                 if (argCount == 1) {
                     uint8_t regIndex = 0;
                     
-                    if ((argA[0] == 'a') & (argA[1] == 'x')) {regIndex = 0;}
-                    if ((argA[0] == 'b') & (argA[1] == 'x')) {regIndex = 1;}
-                    if ((argA[0] == 'c') & (argA[1] == 'x')) {regIndex = 2;}
-                    if ((argA[0] == 'd') & (argA[1] == 'x')) {regIndex = 3;}
-                    if ((argA[0] == 'e') & (argA[1] == 'x')) {regIndex = 4;}
-                    if ((argA[0] == 'f') & (argA[1] == 'x')) {regIndex = 5;}
-                    if ((argA[0] == 'g') & (argA[1] == 'x')) {regIndex = 6;}
-                    if ((argA[0] == 'h') & (argA[1] == 'x')) {regIndex = 7;}
+                    if ((argA[0] == 'a') & (argA[1] == 'l')) {regIndex = 0;}
+                    if ((argA[0] == 'a') & (argA[1] == 'h')) {regIndex = 1;}
+                    if ((argA[0] == 'b') & (argA[1] == 'l')) {regIndex = 2;}
+                    if ((argA[0] == 'b') & (argA[1] == 'h')) {regIndex = 3;}
+                    if ((argA[0] == 'c') & (argA[1] == 'l')) {regIndex = 4;}
+                    if ((argA[0] == 'c') & (argA[1] == 'h')) {regIndex = 5;}
+                    if ((argA[0] == 'd') & (argA[1] == 'l')) {regIndex = 6;}
+                    if ((argA[0] == 'd') & (argA[1] == 'h')) {regIndex = 7;}
                     
                     //
                     // Argument A is hex
@@ -673,23 +767,23 @@ void functionAsm(uint8_t* param, uint8_t param_length) {
                     uint8_t regIndexA = 0;
                     uint8_t regIndexB = 0;
                     
-                    if ((argA[0] == 'a') & (argA[1] == 'x')) {regIndexA = 0;}
-                    if ((argA[0] == 'b') & (argA[1] == 'x')) {regIndexA = 1;}
-                    if ((argA[0] == 'c') & (argA[1] == 'x')) {regIndexA = 2;}
-                    if ((argA[0] == 'd') & (argA[1] == 'x')) {regIndexA = 3;}
-                    if ((argA[0] == 'e') & (argA[1] == 'x')) {regIndexA = 4;}
-                    if ((argA[0] == 'f') & (argA[1] == 'x')) {regIndexA = 5;}
-                    if ((argA[0] == 'g') & (argA[1] == 'x')) {regIndexA = 6;}
-                    if ((argA[0] == 'h') & (argA[1] == 'x')) {regIndexA = 7;}
+                    if ((argA[0] == 'a') & (argA[1] == 'l')) {regIndexA = 0;}
+                    if ((argA[0] == 'a') & (argA[1] == 'h')) {regIndexA = 1;}
+                    if ((argA[0] == 'b') & (argA[1] == 'l')) {regIndexA = 2;}
+                    if ((argA[0] == 'b') & (argA[1] == 'h')) {regIndexA = 3;}
+                    if ((argA[0] == 'c') & (argA[1] == 'l')) {regIndexA = 4;}
+                    if ((argA[0] == 'c') & (argA[1] == 'h')) {regIndexA = 5;}
+                    if ((argA[0] == 'd') & (argA[1] == 'l')) {regIndexA = 6;}
+                    if ((argA[0] == 'd') & (argA[1] == 'h')) {regIndexA = 7;}
                     
-                    if ((argB[0] == 'a') & (argB[1] == 'x')) {regIndexB = 0;}
-                    if ((argB[0] == 'b') & (argB[1] == 'x')) {regIndexB = 1;}
-                    if ((argB[0] == 'c') & (argB[1] == 'x')) {regIndexB = 2;}
-                    if ((argB[0] == 'd') & (argB[1] == 'x')) {regIndexB = 3;}
-                    if ((argB[0] == 'e') & (argB[1] == 'x')) {regIndexB = 4;}
-                    if ((argB[0] == 'f') & (argB[1] == 'x')) {regIndexB = 5;}
-                    if ((argB[0] == 'g') & (argB[1] == 'x')) {regIndexB = 6;}
-                    if ((argB[0] == 'h') & (argB[1] == 'x')) {regIndexB = 7;}
+                    if ((argB[0] == 'a') & (argB[1] == 'l')) {regIndexB = 0;}
+                    if ((argB[0] == 'a') & (argB[1] == 'h')) {regIndexB = 1;}
+                    if ((argB[0] == 'b') & (argB[1] == 'l')) {regIndexB = 2;}
+                    if ((argB[0] == 'b') & (argB[1] == 'h')) {regIndexB = 3;}
+                    if ((argB[0] == 'c') & (argB[1] == 'l')) {regIndexB = 4;}
+                    if ((argB[0] == 'c') & (argB[1] == 'h')) {regIndexB = 5;}
+                    if ((argB[0] == 'd') & (argB[1] == 'l')) {regIndexB = 6;}
+                    if ((argB[0] == 'd') & (argB[1] == 'h')) {regIndexB = 7;}
                     
                     //
                     // Argument B is hex

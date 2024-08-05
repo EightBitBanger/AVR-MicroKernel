@@ -9,6 +9,7 @@ void functionLD(uint8_t* param, uint8_t param_length) {
     uint8_t msgDriverLoaded[]      = "Driver loaded";
     uint8_t msgDriverNotFound[]    = "File not found";
     uint8_t msgInvalidDriver[]     = "Invalid driver";
+    uint8_t msgAlreadyLoaded[]     = "Already loaded";
     
     int8_t libState = LoadLibrary(param, param_length);
     
@@ -27,6 +28,12 @@ void functionLD(uint8_t* param, uint8_t param_length) {
     if (libState == -1) {
         
         print(msgInvalidDriver, sizeof(msgInvalidDriver));
+        printLn();
+    }
+    
+    if (libState == -2) {
+        
+        print(msgAlreadyLoaded, sizeof(msgAlreadyLoaded));
         printLn();
     }
     

@@ -18,10 +18,42 @@ void functionNet(uint8_t* param, uint8_t param_length) {
     uint8_t msgNoHostResponce[]   = "Cannot reach host";
     uint8_t msgRequestTimedOut[]  = "Request timed out";
     uint8_t msgNoMessages[]       = "0 messages";
+    uint8_t msgDeviceNoInit[]     = "Device driver error";
     
     // Lower case the string
     for (uint8_t i=0; i < 4; i++) 
         lowercase( &param[i] );
+    
+    //
+    // Initiate the network card
+    //
+    
+    if ((param[0] == 'i') & (param[1] == 'n') & (param[2] == 'i') & (param[3] == 't')) {
+        
+        if (ntCheckInitiated() == 0) {
+            uint8_t msgInitiated[] = "Device initiated";
+            print(msgInitiated, sizeof(msgInitiated));
+        } else {
+            uint8_t msgInitiated[] = "Device re-initiated";
+            print(msgInitiated, sizeof(msgInitiated));
+        }
+        
+        ntInit();
+        
+        printLn();
+        
+        return;
+    }
+    
+    
+    //
+    // Check device initiated
+    
+    if (ntCheckInitiated() == 0) {
+        print(msgDeviceNoInit, sizeof(msgDeviceNoInit));
+        printLn();
+        return;
+    }
     
     
     //

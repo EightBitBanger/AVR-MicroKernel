@@ -10,13 +10,60 @@ void functionDevice(uint8_t* param, uint8_t param_length) {
     
     uint8_t lineCount = 0;
     
+    if ((param[0] == 'd') & 
+        (param[1] == 'e') & 
+        (param[2] == 'v')) {
+        
+        uint8_t numberOfDevices = GetNumberOfDevices();
+        
+        for (uint8_t i=0; i < numberOfDevices; i++) {
+            
+            struct Device* devicePtr = GetHardwareDeviceByIndex(i);
+            
+            if (is_letter(&devicePtr->device_name[0]) == 0) 
+                continue;
+            
+            for (uint8_t a=0; a < DEVICE_NAME_LENGTH; a++) 
+                printChar(devicePtr->device_name[a]);
+            
+            printLn();
+            
+            if (lineCount > 1) {
+                
+                print(msgPressAnyKey, sizeof(msgPressAnyKey));
+                
+                ConsoleSetCursorPosition( sizeof(msgPressAnyKey) - 1 );
+                
+                uint8_t keypress = ConsoleWait();
+                
+                ConsoleSetCursorPosition(0);
+                
+                for (uint8_t a=0; a < sizeof(msgPressAnyKey); a++) 
+                    printChar(' ');
+                
+                ConsoleSetCursorPosition(0);
+                
+                lineCount = 0;
+                
+                if (keypress == 'c') 
+                    return;
+                
+                continue;
+            }
+            
+            lineCount++;
+        }
+        
+        return;
+    }
+    
+    
     //
     // Display linked drivers
     
-    if ((param[0] == '-') & 
-        (param[1] == 'd') & 
-        (param[2] == 'r') & 
-        (param[3] == 'v')) {
+    if ((param[0] == 'd') & 
+        (param[1] == 'r') & 
+        (param[2] == 'v')) {
         
         uint8_t numberOfDrivers = GetNumberOfDrivers();
         
@@ -24,10 +71,9 @@ void functionDevice(uint8_t* param, uint8_t param_length) {
             
             struct Driver* drv = GetDriverByIndex( i );
             
-            if ((param[4] == ' ') & 
-                (param[5] == 'l') & 
-                (param[6] == 'n') & 
-                (param[7] == 'k')) {
+            if ((param[3] == 'l') & 
+                (param[4] == 'n') & 
+                (param[5] == 'k')) {
                 
                 if (drv->is_linked == 0) 
                     continue;
@@ -88,9 +134,12 @@ void functionDevice(uint8_t* param, uint8_t param_length) {
     
     uint8_t msgHelpA[] = "-drv";
     uint8_t msgHelpB[] = "-drv lnk";
+    uint8_t msgHelpC[] = "-dev";
     print(msgHelpA, sizeof(msgHelpA));
     printLn();
     print(msgHelpB, sizeof(msgHelpB));
+    printLn();
+    print(msgHelpC, sizeof(msgHelpC));
     printLn();
     
     return;
