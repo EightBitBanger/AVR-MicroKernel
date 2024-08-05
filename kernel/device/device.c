@@ -48,9 +48,19 @@ void InitiateDeviceTable(void) {
         uint32_t hardware_address = PERIPHERAL_ADDRESS_BEGIN + (PERIPHERAL_STRIDE * d);
         
         // Get device name
-        for (uint8_t i=0; i < 10; i++) 
+        for (uint8_t i=0; i < DEVICE_NAME_LENGTH; i++) 
             bus_read_byte(&bus, hardware_address + i + 1, &device_table[index].device_name[i]);
         
+        // Check name correct
+        uint8_t checkFinished = 0;
+        for (uint8_t i=0; i < DEVICE_NAME_LENGTH; i++) {
+            
+            if (device_table[index].device_name[i] == ' ') 
+                checkFinished = 1;
+            
+            if (checkFinished != 0) 
+                device_table[index].device_name[i] = ' ';
+        }
         
         // Get device ID
         bus_read_byte(&bus, hardware_address, &device_table[index].device_id);

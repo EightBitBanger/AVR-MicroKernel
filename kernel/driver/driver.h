@@ -9,7 +9,6 @@
 #define DRIVER_REGISTRY_SIZE   24
 #define NUMBER_OF_DRIVERS  8
 
-
 struct Driver {
     
     /// Device associated with this driver

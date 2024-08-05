@@ -16,8 +16,8 @@ void* driver_registry[ DRIVER_REGISTRY_SIZE ];
 uint8_t number_of_drivers = 0;
 
 /*
-  
-  Driver file layout
+ 
+ Driver file layout
     
     Driver file ID         2 byte
     
@@ -35,6 +35,7 @@ uint8_t number_of_drivers = 0;
       Type 1 - Memory bus
       Type 2 - IO bus
     
+    Hardware address       4 bytes
     
 */
 
@@ -58,20 +59,33 @@ int8_t LoadLibrary(uint8_t* filename, uint8_t filenameLength) {
     
     fsFileClose();
     
+    // Check driver header bytes
+    if ((fileBuffer[0] != 'K') & 
+        (fileBuffer[1] != 'D')) 
+        return -1;
+    
+    // Check marker byte
+    if (fileBuffer[DEVICE_NAME_LENGTH + 2] != '$') 
+        return -1;
+    
+    // Check driver already loaded
+    for (uint8_t i=0; i < NUMBER_OF_DRIVERS; i++) {
+        
+        if (loaded_drivers[i].device.device_id == 0) 
+            continue;
+        
+        // Check driver name
+        if (StringCompare(loaded_drivers[i].device.device_name, DEVICE_NAME_LENGTH, &fileBuffer[2], DEVICE_NAME_LENGTH)) 
+            return -2;
+        
+        continue;
+    }
+    
     // Check for an available driver slot
     for (uint8_t i=0; i < NUMBER_OF_DRIVERS; i++) {
         
         if (loaded_drivers[i].device.device_id != 0) 
             continue;
-        
-        // Check driver header bytes
-        if ((fileBuffer[0] != 'K') & 
-            (fileBuffer[1] != 'D')) 
-            return -1;
-        
-        // Check marker byte
-        if (fileBuffer[DEVICE_NAME_LENGTH + 2] != '$') 
-            return -1;
         
         // Load the driver
         
@@ -79,16 +93,21 @@ int8_t LoadLibrary(uint8_t* filename, uint8_t filenameLength) {
         for (uint8_t a=0; a < DEVICE_NAME_LENGTH; a++) 
             loaded_drivers[i].device.device_name[a] = fileBuffer[a + 2];
         
-        loaded_drivers[i].device.device_id = fileBuffer[DEVICE_NAME_LENGTH + 3];
-        
-        // Will be set upon hardware recognition
+        // Default non-linked driver
+        loaded_drivers[i].is_linked = 0;
         loaded_drivers[i].device.hardware_slot = 0;
-        loaded_drivers[i].device.hardware_address = 0;
         
         // Set the bus interface type
+        loaded_drivers[i].device.device_id          = fileBuffer[DEVICE_NAME_LENGTH + 3];
         loaded_drivers[i].interface.read_waitstate  = fileBuffer[DEVICE_NAME_LENGTH + 4];
         loaded_drivers[i].interface.write_waitstate = fileBuffer[DEVICE_NAME_LENGTH + 5];
-        loaded_drivers[i].interface.bus_type = fileBuffer[DEVICE_NAME_LENGTH + 6];
+        loaded_drivers[i].interface.bus_type        = fileBuffer[DEVICE_NAME_LENGTH + 6];
+        
+        // Check bus type
+        if ((loaded_drivers[i].interface.bus_type != 0) & 
+            (loaded_drivers[i].interface.bus_type != 1) & 
+            (loaded_drivers[i].interface.bus_type != 2))
+            return -1;
         
         switch (loaded_drivers[i].interface.bus_type) {
         
@@ -111,7 +130,33 @@ int8_t LoadLibrary(uint8_t* filename, uint8_t filenameLength) {
             
         }
         
-        loaded_drivers[i].is_linked = 1;
+        // Driver address pointer
+        union Pointer addrPtr;
+        addrPtr.byte_t[0] = fileBuffer[DEVICE_NAME_LENGTH + 7];
+        addrPtr.byte_t[1] = fileBuffer[DEVICE_NAME_LENGTH + 8];
+        addrPtr.byte_t[2] = fileBuffer[DEVICE_NAME_LENGTH + 9];
+        addrPtr.byte_t[3] = fileBuffer[DEVICE_NAME_LENGTH + 10];
+        
+        loaded_drivers[i].device.hardware_address = addrPtr.address;
+        
+        
+        // Link the driver
+        uint8_t numberOfDevices = GetNumberOfDevices();
+        
+        for (uint8_t d=0; d < numberOfDevices; d++) {
+            
+            struct Device* devicePtr = GetHardwareDeviceByIndex(d);
+            
+            if (!StringCompare(devicePtr->device_name, DEVICE_NAME_LENGTH, &fileBuffer[2], DEVICE_NAME_LENGTH)) 
+                continue;
+            
+            loaded_drivers[i].is_linked = 1;
+            
+            loaded_drivers[i].device.hardware_slot    = devicePtr->hardware_slot;
+            loaded_drivers[i].device.hardware_address = devicePtr->hardware_address;
+            
+            break;
+        }
         
         RegisterDriver( (void*)&loaded_drivers[i] );
         
