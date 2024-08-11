@@ -12,6 +12,8 @@
   #include <kernel/command/edit/edit.h>
   // Assembler
   #include <kernel/command/asm/asm.h>
+  // System diagnostics
+  #include <kernel/command/diag/diag.h>
   
   #include <kernel/command/list/list.h>
   #include <kernel/command/device/device.h>

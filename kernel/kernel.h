@@ -34,6 +34,8 @@
 
 // System subroutine calls
 #include <kernel/syscalls/print/print.h>
+#include <kernel/syscalls/beep/beep.h>
+#include <kernel/syscalls/switch/switch.h>
 
 
 void kInit(void);

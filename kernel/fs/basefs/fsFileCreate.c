@@ -39,17 +39,17 @@ uint32_t fsFileCreate(uint8_t* name, uint8_t nameLength, uint32_t fileSize) {
         // Get the number of files in the working directory
         union Pointer fileCountPtr;
         for (uint8_t i=0; i < 4; i++) 
-            fs_read_byte(fsGetWorkingDirectoryAddress() + DIRECTORY_OFFSET_SIZE + i, &fileCountPtr.byte_t[i]);
+            fs_read_byte(fsWorkingDirectoryGetAddress() + DIRECTORY_OFFSET_SIZE + i, &fileCountPtr.byte_t[i]);
         
         // Get directory file size
         union Pointer directorySize;
         for (uint8_t i=0; i < 4; i++) 
-            fs_read_byte(fsGetWorkingDirectoryAddress() + FILE_OFFSET_SIZE + i, &directorySize.byte_t[i]);
+            fs_read_byte(fsWorkingDirectoryGetAddress() + FILE_OFFSET_SIZE + i, &directorySize.byte_t[i]);
         
         //
         // Add file reference to the directory
         
-        fsFileOpen(fsGetWorkingDirectoryAddress());
+        fsFileOpen(fsWorkingDirectoryGetAddress());
         
         uint8_t bufferRefs[directorySize.address];
         
@@ -71,7 +71,7 @@ uint32_t fsFileCreate(uint8_t* name, uint8_t nameLength, uint32_t fileSize) {
         
         // Set the number of files to the working directory
         for (uint8_t i=0; i < 4; i++) 
-            fs_write_byte(fsGetWorkingDirectoryAddress() + DIRECTORY_OFFSET_SIZE + i, fileCountPtr.byte_t[i]);
+            fs_write_byte(fsWorkingDirectoryGetAddress() + DIRECTORY_OFFSET_SIZE + i, fileCountPtr.byte_t[i]);
         
         // Finalize directory buffer
         fsFileWrite(bufferRefs, directorySize.address);

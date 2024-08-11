@@ -11,6 +11,9 @@
 // --------------------------------------------
 // Boot options
 
+//#define _BOOT_SAFEMODE__
+#define _BOOT_DETAILS__
+
 #define _KERNEL_ALLOCATE_EXTERNAL_MEMORY__
 #define _KERNEL_PRINT_VERSION_INFORMATION__
 

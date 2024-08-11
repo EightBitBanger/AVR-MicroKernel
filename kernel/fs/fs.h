@@ -123,32 +123,27 @@ uint32_t fsFileGetSize(void);
 
 // Working directory
 
-uint32_t fsDirectoryGetParent(void);
+uint32_t fsWorkingDirectoryGetParent(void);
 uint8_t  fsSetWorkingDirectoryToParent(void);
 
-void     fsSetWorkingDirectoryAddress(uint32_t address);
-uint32_t fsGetWorkingDirectoryAddress(void);
+void     fsWorkingDirectorySetAddress(uint32_t address);
+uint32_t fsWorkingDirectoryGetAddress(void);
 
-uint8_t fsGetDirectoryStack(void);
-void    fsSetDirectoryStack(uint8_t amount);
+uint8_t fsWorkingDirectoryGetStack(void);
+void    fsWorkingDirectorySetStack(uint8_t amount);
 
 uint8_t fsGetWorkingDirectory(uint8_t* directoryName);
 uint8_t fsSetWorkingDirectory(uint32_t directoryAddress);
 uint8_t fsChangeWorkingDirectory(uint8_t* directoryName, uint8_t nameLength);
 
-uint8_t fsGetWorkingDirectoryLength(void);
+uint32_t fsWorkingDirectoryGetFileCount(void);
+uint32_t fsWorkingDirectoryFind(uint8_t index);
+
+uint8_t fsWorkingDirectoryGetLength(void);
 
 uint8_t fsCheckWorkingDirectory(void);
 
 void fsClearWorkingDirectory(void);
-
-
-
-
-
-
-
-
 
 
 

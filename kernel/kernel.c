@@ -38,7 +38,20 @@ void kInit(void) {
     // Executable example
     
     uint8_t versionFileName[]  = "ver";
-    uint32_t versionFileAddress = fsFileCreate(versionFileName, sizeof(versionFileName), 80);
+    
+    uint8_t bufferTest[] = {0x89, 0x01,  9,   // Call to print a string to the display
+                            0x89, 0x06,  0,   // High byte offset to data start address
+                            0x89, 0x07, 13,   // Low byte offset to data start address
+                            0xcc, 0x10,       // Run display routine
+                            0xcc, 0x20,       // Return to the shell
+                            
+                            'V', 'e', 'r', 's', 'i', 'o', 'n', ' ',
+                            
+                            ' ',' ',' ',' ',' ','\0','\0','\0'
+                            
+                            };
+    
+    uint32_t versionFileAddress = fsFileCreate(versionFileName, sizeof(versionFileName), sizeof(bufferTest));
     
     struct FSAttribute attribTest;
     attribTest.executable = 'x';
@@ -57,17 +70,6 @@ void kInit(void) {
     uint8_t patLen = int_to_string( _KERNEL_VERSION_PATCH__, versionPatchStr );
     
     fsFileOpen(versionFileAddress);
-    uint8_t bufferTest[] = {0x89, 0x01,  9,   // Call to print a string to the display
-                            0x89, 0x06,  0,   // High byte offset to data start address
-                            0x89, 0x07, 13,   // Low byte offset to data start address
-                            0xcc, 0x10,       // Run display routine
-                            0xcc, 0x20,       // Return to the shell
-                            
-                            'V', 'e', 'r', 's', 'i', 'o', 'n', ' ',
-                            
-                            ' ',' ',' ',' ',' ','\0','\0','\0'
-                            
-                            };
     
     uint8_t currentChar = 0;
     

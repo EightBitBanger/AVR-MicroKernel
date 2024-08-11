@@ -13,20 +13,20 @@ uint32_t fsFileExists(uint8_t* name, uint8_t nameLength) {
         // Get file size
 		union Pointer fileSizePtr;
 		for (uint8_t i=0; i < 4; i++) 
-            fs_read_byte(fsGetWorkingDirectoryAddress() + FILE_OFFSET_SIZE + i, &fileSizePtr.byte_t[i]);
+            fs_read_byte(fsWorkingDirectoryGetAddress() + FILE_OFFSET_SIZE + i, &fileSizePtr.byte_t[i]);
         
 		uint32_t directorySize = fileSizePtr.address;
 		
 		// Get number of files
 		union Pointer directorySizePtr;
 		for (uint8_t i=0; i < 4; i++) 
-            fs_read_byte(fsGetWorkingDirectoryAddress() + DIRECTORY_OFFSET_SIZE + i, &directorySizePtr.byte_t[i]);
+            fs_read_byte(fsWorkingDirectoryGetAddress() + DIRECTORY_OFFSET_SIZE + i, &directorySizePtr.byte_t[i]);
         
 		uint32_t numberOfFiles = directorySizePtr.address;
 		
         if (numberOfFiles > 0) {
             
-            fsFileOpen(fsGetWorkingDirectoryAddress());
+            fsFileOpen(fsWorkingDirectoryGetAddress());
             
             uint8_t bufferDir[directorySize];
             fsFileRead(bufferDir, directorySize);

@@ -8,16 +8,16 @@ uint8_t fsFileDelete(uint8_t* name, uint8_t nameLength) {
         // Get file size
         union Pointer fileSize;
         for (uint8_t i=0; i < 4; i++) 
-            fs_read_byte(fsGetWorkingDirectoryAddress() + FILE_OFFSET_SIZE + i, &fileSize.byte_t[i]);
+            fs_read_byte(fsWorkingDirectoryGetAddress() + FILE_OFFSET_SIZE + i, &fileSize.byte_t[i]);
         
         // Number of files in directory
         union Pointer directorySize;
         for (uint8_t i=0; i < 4; i++) 
-            fs_read_byte(fsGetWorkingDirectoryAddress() + DIRECTORY_OFFSET_SIZE + i, &directorySize.byte_t[i]);
+            fs_read_byte(fsWorkingDirectoryGetAddress() + DIRECTORY_OFFSET_SIZE + i, &directorySize.byte_t[i]);
         
         // Get directory file pointers
         uint8_t fileBuffer[fileSize.address];
-        fsFileOpen(fsGetWorkingDirectoryAddress());
+        fsFileOpen(fsWorkingDirectoryGetAddress());
         
         fsFileRead(fileBuffer, fileSize.address);
         
@@ -61,7 +61,7 @@ uint8_t fsFileDelete(uint8_t* name, uint8_t nameLength) {
                 directorySize.address--;
                 
                 for (uint8_t s=0; s < 4; s++) 
-                    fs_write_byte(fsGetWorkingDirectoryAddress() + DIRECTORY_OFFSET_SIZE + s, directorySize.byte_t[s]);
+                    fs_write_byte(fsWorkingDirectoryGetAddress() + DIRECTORY_OFFSET_SIZE + s, directorySize.byte_t[s]);
                 
                 fsFileWrite(fileBuffer, fileSize.address);
                 

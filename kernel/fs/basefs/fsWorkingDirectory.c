@@ -6,6 +6,8 @@ uint8_t  fs_working_directory[FILE_NAME_LENGTH];
 uint8_t  fs_working_directory_length;
 uint32_t fs_working_directory_address;
 
+uint32_t fs_working_directory_size;
+
 uint8_t fs_directory_stack_ptr;
 
 
@@ -23,7 +25,7 @@ struct Directory directoryStack[WORKNG_DIRECTORY_STACK_SIZE];
 uint8_t fs_directory_stack_ptr;
 
 
-uint32_t fsDirectoryGetParent(void) {
+uint32_t fsWorkingDirectoryGetParent(void) {
     
     if (fs_directory_stack_ptr > 1) 
         return directoryStack[fs_directory_stack_ptr - 1].address;
@@ -63,14 +65,14 @@ uint8_t fsCheckWorkingDirectory(void) {
     return 0;
 }
 
-void fsSetDirectoryStack(uint8_t amount) {
+void fsWorkingDirectorySetStack(uint8_t amount) {
     
     fs_directory_stack_ptr = amount;
     
     return;
 }
 
-uint8_t fsGetDirectoryStack(void) {
+uint8_t fsWorkingDirectoryGetStack(void) {
     
     return fs_directory_stack_ptr;
 }
@@ -115,6 +117,12 @@ uint8_t fsChangeWorkingDirectory(uint8_t* directoryName, uint8_t nameLength) {
     if (directoryAddress == 0) 
         return 0;
     
+    union Pointer directorySizePtr;
+	for (uint8_t i=0; i < 4; i++) 
+        fs_read_byte(directoryAddress + DIRECTORY_OFFSET_SIZE + i, &directorySizePtr.byte_t[i]);
+    
+	fs_working_directory_size = directorySizePtr.address;
+    
     return fsSetWorkingDirectory(directoryAddress);
 }
 
@@ -126,17 +134,22 @@ uint8_t fsGetWorkingDirectory(uint8_t* directoryName) {
     return fs_working_directory_length;
 }
 
-uint8_t fsGetWorkingDirectoryLength(void) {
+uint8_t fsWorkingDirectoryGetLength(void) {
     
     return fs_working_directory_length;
 }
 
-uint32_t fsGetWorkingDirectoryAddress(void) {
+uint32_t fsWorkingDirectoryGetFileCount(void) {
+    
+    return fs_working_directory_size;
+}
+
+uint32_t fsWorkingDirectoryGetAddress(void) {
     
     return fs_working_directory_address;
 }
 
-void fsSetWorkingDirectoryAddress(uint32_t address) {
+void fsWorkingDirectorySetAddress(uint32_t address) {
     
     fs_working_directory_address = address;
     

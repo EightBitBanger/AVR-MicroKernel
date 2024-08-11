@@ -1,27 +1,6 @@
 #include <kernel/main.h>
 
 
-void spk_beep(uint16_t duration, uint16_t frequency) {
-    
-    struct Bus spkBus;
-    spkBus.read_waitstate  = 1000;
-    spkBus.write_waitstate = 1000;
-    
-    
-    for (uint16_t i=0; i < duration; i++) {
-        
-        bus_write_io(&spkBus, 0x60000, 0xff);
-        
-        for (uint16_t i=0; i < frequency / 16; i++) 
-            __asm__("nop");
-        
-        continue;
-    }
-    
-    return;
-}
-
-
 int main(void) {
     
     // Zero the system bus
@@ -63,27 +42,26 @@ int main(void) {
 #endif
     
     //
-    // Speaker beep
+    // Speaker beep error codes
     //
     
 #ifdef BOARD_RETRO_AVR_X4_REV1
-    uint16_t frequency      = 14000;
-    uint16_t duration       = 300;
-    uint16_t duration_long  = 2000;
     
     // Check RAM error
     if (kAllocGetTotal() == 0) {
         
-        spk_beep(duration_long, frequency);
+        for (uint8_t a=0; a < 7; a++) 
+            sysbeep();
         
         _delay_ms(500);
-        spk_beep(duration, frequency);
+        sysbeep();
+        
         _delay_ms(500);
         
     }
     
     // Normal beep, all clear to continue
-    spk_beep(duration, frequency);
+    sysbeep();
     
 #endif
     
@@ -116,7 +94,7 @@ int main(void) {
     //registerCommandLD();
     
     //registerCommandEDIT();
-    registerCommandAssembly();
+    //registerCommandAssembly();
     
     //registerCommandCLS();
     
@@ -124,7 +102,7 @@ int main(void) {
     
   #ifdef INCLUDE_NETWORK_APPLICATIONS
     
-    //registerCommandNet();
+    registerCommandNet();
     //registerCommandFTP();
     
   #endif
@@ -136,7 +114,7 @@ int main(void) {
     registerCommandCD();
     
     //registerCommandMK();
-    registerCommandRM();
+    //registerCommandRM();
     //registerCommandRN();
     //registerCommandMKDIR();
     //registerCommandRMDIR();
@@ -152,6 +130,118 @@ int main(void) {
     //
     // Boot the kernel
     // 
+    
+#ifndef _BOOT_SAFEMODE__
+    
+    // Boot from device
+    uint8_t driversDirName[] = "drivers";
+    
+    for (uint8_t i=0; i < NUMBER_OF_PERIPHERALS; i++) {
+        
+        fsSetDeviceLetter(i + 'a');
+        
+        if (fsCheckDeviceReady() == 0) 
+            continue;
+        
+        // Locate drivers directory
+        uint32_t directoryAddress = fsDirectoryExists(driversDirName, sizeof(driversDirName)-1);
+        
+        // Directory does not exist
+        if (directoryAddress == 0) 
+            continue;
+        
+        fsChangeWorkingDirectory(driversDirName, sizeof(driversDirName));
+        
+        uint32_t numberOfFiles = fsWorkingDirectoryGetFileCount();
+        
+        for (uint32_t f=0; f < numberOfFiles; f++) {
+            
+            uint32_t fileAddress = fsWorkingDirectoryFind(f);
+            
+            if (fileAddress == 0) 
+                continue;
+            
+            uint8_t driverBuffer[30];
+            
+            fsFileOpen(fileAddress);
+            
+            fsFileRead(driverBuffer, 30);
+            
+            fsFileClose();
+            
+            uint8_t driverFilename[10];
+            uint8_t driverFilenameLength=0;
+            
+            for (uint32_t n=0; n < 10; n++) {
+                
+                fs_read_byte(fileAddress + FILE_OFFSET_NAME + n, &driverFilename[n]);
+                
+                if (driverFilename[n] == ' ') {
+                    driverFilenameLength = n;
+                    break;
+                }
+                
+            }
+            
+#ifdef _BOOT_DETAILS__
+            
+            for (uint32_t n=0; n < 10; n++) {
+                
+                printChar( driverBuffer[n + 2] );
+                
+                if (driverBuffer[n + 2] == ' ') 
+                    break;
+            }
+            
+#endif
+            
+            // Load the driver
+            uint8_t libState = LoadLibrary(driverFilename, driverFilenameLength);
+            
+#ifdef _BOOT_DETAILS__
+            
+            if (libState <= 0) {
+                uint8_t msgFailedToLoad[] = "... failed";
+                print(msgFailedToLoad, sizeof(msgFailedToLoad));
+            }
+            
+            printLn();
+            
+#endif
+            
+#ifndef _BOOT_DETAILS__
+            
+            if (libState <= 0) {
+                
+                for (uint32_t n=0; n < 10; n++) {
+                    
+                    printChar( driverBuffer[n + 2] );
+                    
+                    if (driverBuffer[n + 2] == ' ') 
+                        break;
+                }
+                
+                uint8_t msgFailedToLoad[] = "... failed";
+                
+                print(msgFailedToLoad, sizeof(msgFailedToLoad));
+                printLn();
+                
+            }
+            
+#endif
+            
+            continue;
+        }
+        
+        continue;
+    }
+    
+    fsSetDeviceLetter('x');
+    fsClearWorkingDirectory();
+    
+#endif
+    
+    
     
 #ifdef _KERNEL_PRINT_VERSION_INFORMATION__
     ConsoleSetBlinkRate( CURSOR_BLINK_RATE );
