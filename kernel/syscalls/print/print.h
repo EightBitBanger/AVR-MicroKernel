@@ -1,5 +1,5 @@
-#ifndef __PRINT_SYSCALL_
-#define __PRINT_SYSCALL_
+#ifndef __SYSCALL_PRINT_
+#define __SYSCALL_PRINT_
 
 #include <kernel/kernel.h>
 

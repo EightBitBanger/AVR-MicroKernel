@@ -12,6 +12,9 @@ extern uint8_t console_line;
 
 extern uint8_t console_prompt_length;
 
+extern uint16_t displayRows;
+extern uint16_t displayColumbs;
+
 extern struct Driver* displayDevice;
 extern struct Driver* keyboadDevice;
 
@@ -24,17 +27,19 @@ void printk(uint8_t* string) {
     for (uint16_t i=0; i < 1024; i++) {
         
         // Null terminate
-        if (string[i] == '\0') {
+        if (string[i] == '\0') 
             return;
-        }
         
         // New line
         if (string[i] == '\n') {
             
             if (line < 3) {
+                
                 line++;
                 displayDevice->write( 160, line);
+                
             } else {
+                
                 // Otherwise shift the frame down
                 displayDevice->write( 169, 0x01);
                 _delay_ms(40);
@@ -45,7 +50,7 @@ void printk(uint8_t* string) {
             continue;
         }
         
-        displayDevice->write( pos + (20 * line), string[i] );
+        displayDevice->write( pos + (displayColumbs * line), string[i] );
         
         pos++;
         
@@ -61,12 +66,11 @@ void print(uint8_t* string, uint8_t length) {
     
     for (uint8_t i=0; i < length - 1; i++) {
         
-        displayDevice->write( console_position + (20 * console_line) + i, string[i] );
+        displayDevice->write( console_position + (displayColumbs * console_line), string[i] );
         
-        continue;
+        console_position++;
+        
     }
-    
-    console_position += length - 1;
     
     ConsoleSetCursorPosition(console_position);
     
@@ -88,12 +92,8 @@ void printInt(uint32_t integer) {
         
     } else {
         
-        for (uint8_t i=0; i < place; i++) {
-            
-            displayDevice->write( console_position + (20 * console_line) + i, string[i] );
-            
-            continue;
-        }
+        for (uint8_t i=0; i < place; i++) 
+            displayDevice->write( console_position + (displayColumbs * console_line) + i, string[i] );
         
     }
     
@@ -108,7 +108,9 @@ void printc(char* string, uint8_t length) {
     
     for (uint8_t i=0; i < length - 1; i++) {
         
-        displayDevice->write( console_position + (20 * console_line) + i, string[i] );
+        displayDevice->write( console_position + (displayColumbs * console_line), string[i] );
+        
+        console_position++;
         
         continue;
     }
@@ -122,16 +124,16 @@ void printc(char* string, uint8_t length) {
 
 void printChar(uint8_t character) {
     
-    displayDevice->write( console_position + (20 * console_line), character );
+    displayDevice->write( console_position + (displayColumbs * console_line), character );
     
     console_position++;
     
-    if (console_position > 19) {
+    if (console_position > (displayColumbs - 1)) {
         console_position = 0;
         console_line++;
     }
     
-    if (console_line > 3) {
+    if (console_line > (displayRows - 1)) {
         console_line = 3;
         printLn();
     }
@@ -170,7 +172,7 @@ void printSpace(uint8_t numberOfSpaces) {
     
     for (uint8_t i=0; i < numberOfSpaces; i++) {
         
-        displayDevice->write( console_position + (20 * console_line), ' ' );
+        displayDevice->write( console_position + (displayColumbs * console_line), ' ' );
         
         console_position++;
     }
@@ -184,7 +186,7 @@ void printPrompt(void) {
     
     // Print prompt string
     for (uint8_t i=0; i < console_prompt_length - 1; i++) 
-        displayDevice->write( (20 * console_line) + i, console_prompt[i] );
+        displayDevice->write( (displayColumbs * console_line) + i, console_prompt[i] );
     
     console_position = console_prompt_length - 1;
     
