@@ -1,7 +1,7 @@
 #include <drivers/network/NIC/main.h>
 
 #include <kernel/kernel.h>
-
+/*
 struct NetworkDeviceDriver networkDeviceDriver;
 
 struct NetworkDeviceDriver* networkDriver = &networkDeviceDriver;
@@ -17,9 +17,8 @@ void initiateNetworkDriver(void) {
     
     uint8_t deviceName[] = "network";
     
-    for (unsigned int i=0; i < sizeof(deviceName); i++) {
+    for (unsigned int i=0; i < sizeof(deviceName); i++) 
         networkDriver->device.device_name[i] = deviceName[i];
-    }
     
     // Register the driver with the kernel
 	RegisterDriver( (void*)networkDriver );
@@ -50,3 +49,4 @@ void __write_network_device(uint32_t address, uint8_t buffer) {
     bus_write_byte( &networkDriver->interface, networkDriver->device.hardware_address + address, buffer );
     return;
 }
+*/

@@ -38,8 +38,8 @@ void initiatePS2Driver(void) {
 	
 	keyboardDriver->device.device_id = 0x01;
 	
-	keyboardDriver->interface.read_waitstate  = 10;
-	keyboardDriver->interface.write_waitstate = 10;
+	keyboardDriver->interface.read_waitstate  = 2;
+	keyboardDriver->interface.write_waitstate = 2;
     
     
     keyboardDriver->read  = __read_ps2_device;
@@ -147,7 +147,7 @@ uint8_t kbDecodeScanCode(uint8_t scancode_low, uint8_t scancode_high) {
 		if (scancode_high == 0xE9) {return 0x5c;} // Backslash
 		if (scancode_high == 0x83) {return 0xf1;} // Function F1
 		if (scancode_high == 0x01) {return 0xf9;} // Function F9
-		if (scancode_high == 0x43) {return 0xfa;}// Function F10
+		if (scancode_high == 0x43) {return 0xfa;} // Function F10
 		if (scancode_high == 0x89) {return '0';}
 		if (scancode_high == 0xF1) {return '7';}
 		if (scancode_high == 0x91) {return '4';}
