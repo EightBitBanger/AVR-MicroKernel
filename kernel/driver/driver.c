@@ -37,6 +37,15 @@ uint8_t number_of_drivers = 0;
     
     Hardware address       4 bytes
     
+    
+    Number of addresses    4 bytes
+    
+    [address a][address b][address c]...
+    
+    [begin address a] ... [return]
+    [begin address b] ... [return]
+    [begin address c] ... [return]
+    
 */
 
 int8_t LoadLibrary(uint8_t* filename, uint8_t filenameLength) {
