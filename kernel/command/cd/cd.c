@@ -97,7 +97,7 @@ void functionCD(uint8_t* param, uint8_t param_length) {
                     break;
             }
             
-            fsSetWorkingDirectoryAddress( directoryStack[fs_directory_stack_ptr].address );
+            fsWorkingDirectorySetAddress( directoryStack[fs_directory_stack_ptr].address );
             
             // Set the parent directory
             fsChangeWorkingDirectory(filename, filenameLength - 1);

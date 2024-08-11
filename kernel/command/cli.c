@@ -31,6 +31,9 @@ uint8_t console_prompt_length = 1;
 
 uint8_t cursor_blink_rate = 35;
 
+uint16_t displayRows    = 4;
+uint16_t displayColumbs = 20;
+
 struct Driver* displayDevice;
 struct Driver* keyboadDevice;
 
@@ -84,15 +87,14 @@ void cliInit(void) {
     
     lastChar = kbDecodeScanCode(oldScanCodeLow, oldScanCodeHigh);
     
-    for (uint8_t i=0; i < CONSOLE_STRING_LENGTH; i++) {
+    for (uint8_t i=0; i < CONSOLE_STRING_LENGTH; i++) 
         console_string[i] = ' ';
-    }
     
+    // Clear the function table
 	for (uint8_t i=0; i < CONSOLE_FUNCTION_TABLE_SIZE; i++) {
         
-        for (uint8_t n=0; n < CONSOLE_FUNCTION_NAME_LENGTH; n++) {
+        for (uint8_t n=0; n < CONSOLE_FUNCTION_NAME_LENGTH; n++) 
             CommandRegistry[i].name[n] = ' ';
-        }
         
         CommandRegistry[i].function = nullptr;
         
@@ -264,7 +266,6 @@ void ConsoleSetPrompt(uint8_t* prompt, uint8_t length) {
 
 void ConsoleClearScreen(void) {
     
-    // Clear display frame buffer
     displayDevice->write( 165, 0x01 );
     
     _delay_ms(40);

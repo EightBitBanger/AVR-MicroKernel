@@ -29,6 +29,9 @@ extern uint8_t console_prompt_length;
 
 extern uint8_t cursor_blink_rate;
 
+extern uint16_t displayRows;
+extern uint16_t displayColumbs;
+
 extern struct Driver* displayDevice;
 extern struct Driver* keyboadDevice;
 
@@ -48,14 +51,12 @@ void cliRunShell(void) {
     //
     
     // Shift pressed
-    if (scanCode == 0x11) {
+    if (scanCode == 0x11) 
         shiftState = 1;
-    }
     
     // Shift released
-    if (scanCode == 0x12) {
+    if (scanCode == 0x12) 
         shiftState = 0;
-    }
     
     //
     // Function F3 - Repeat last command
@@ -87,14 +88,14 @@ void cliRunShell(void) {
             
             if (console_position == 0) {
                 console_line--;
-                console_position = 20;
+                console_position = displayColumbs;
             }
             
             // Remove last character from the console string
             console_string[ console_string_length - 1 ] = ' ';
             
             // Remove the character from the display
-            displayDevice->write( console_position + (20 * console_line) - 1, ' ' );
+            displayDevice->write( console_position + (displayColumbs * console_line) - 1, ' ' );
             
             // Decrement the console string length
             console_string_length--;
@@ -151,7 +152,7 @@ void cliRunShell(void) {
                 ConsoleClearKeyboardString();
                 
                 fsClearWorkingDirectory();
-                fsSetDirectoryStack(0);
+                fsWorkingDirectorySetStack(0);
                 
                 console_string_length = 0;
                 
@@ -161,26 +162,6 @@ void cliRunShell(void) {
             
             return;
         }
-        
-        
-        /*
-        
-        //
-        // Check device ready
-        
-        if (fsCheckDeviceReady() == 0) {
-            
-            uint8_t msgDeviceNotReady[] = "Device not ready";
-            
-            print(msgDeviceNotReady, sizeof(msgDeviceNotReady));
-            printLn();
-            
-            printPrompt();
-            
-            return;
-        }
-        */
-        
         
         // Look up function name
         for (uint8_t i=0; i < CONSOLE_FUNCTION_TABLE_SIZE; i++) {
@@ -374,26 +355,7 @@ void cliRunShell(void) {
             
             printChar(scanCode);
             
-            
-            
-            if (ConsoleGetCursorPosition() > 19) {
-                
-                if (ConsoleGetCursorLine() < 3) {
-                    
-                    //printLn();
-                    
-                    //ConsoleSetCursor(console_line, console_position);
-                    
-                } else {
-                    
-                    //printLn();
-                    
-                    //ConsoleSetCursorPosition(0);
-                    
-                }
-                
-            }
-            
+            ConsoleSetCursor(console_line, console_position);
             
         }
         

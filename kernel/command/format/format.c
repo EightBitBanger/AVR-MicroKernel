@@ -47,14 +47,12 @@ void functionFORMAT(uint8_t* param, uint8_t param_length) {
     print(devicePressToContinue, sizeof(devicePressToContinue));
     printLn();
     
-    ConsoleSetCursorPosition(0);
+    ConsoleSetCursor(3, 0);
     
     if (ConsoleWait() != 'y') 
         return;
     
     uint32_t deviceCapacityBytes = (deviceCapacityCurrent * 1024);
-    
-    uint32_t currentDevice = fsGetDevice();
     
     uint32_t cyclesPerPercent = (deviceCapacityCurrent * 1024) / 100;
     
@@ -79,7 +77,7 @@ void functionFORMAT(uint8_t* param, uint8_t param_length) {
     
     for (uint16_t i=0; i <= 1000; i++) {
         
-        ConsoleSetCursorPosition(0);
+        ConsoleSetCursor(3, 0);
         
         uint8_t place = int_to_string(percentage, &percentageString[0]);
         
@@ -99,10 +97,10 @@ void functionFORMAT(uint8_t* param, uint8_t param_length) {
             sector++;
             
             if (sectorCounter < (SECTOR_SIZE - 1)) {
-                fs_write_byte(currentDevice + sector, ' ');
+                fs_write_byte(sector, ' ');
                 sectorCounter++;
             } else {
-                fs_write_byte(currentDevice + sector, 0x00);
+                fs_write_byte(sector, 0x00);
                 sectorCounter = 0;
             }
             
@@ -127,9 +125,9 @@ void functionFORMAT(uint8_t* param, uint8_t param_length) {
     _delay_ms(10);
     
     // Initiate first sector
-    fs_write_byte(currentDevice    , 0x13);
-    fs_write_byte(currentDevice + 1, 'f');
-    fs_write_byte(currentDevice + 2, 's');
+    fs_write_byte(0, 0x13);
+    fs_write_byte(1, 'f');
+    fs_write_byte(2, 's');
     
     // Device total capacity
     union Pointer deviceSize;
@@ -137,7 +135,7 @@ void functionFORMAT(uint8_t* param, uint8_t param_length) {
     deviceSize.address = deviceCapacityBytes;
     
     for (uint8_t i=0; i < 4; i++) 
-        fs_write_byte(currentDevice + DEVICE_CAPACITY_OFFSET + i, deviceSize.byte_t[i] );
+        fs_write_byte(DEVICE_CAPACITY_OFFSET + i, deviceSize.byte_t[i] );
     
     // Finish as 100%
     ConsoleSetCursorPosition(0);

@@ -29,7 +29,7 @@ void functionLS(uint8_t* param, uint8_t param_length) {
     if (fsCheckWorkingDirectory() == 1) {
         
         // Check if the current working directory is valid
-        uint32_t directoryAddress = fsGetWorkingDirectoryAddress();
+        uint32_t directoryAddress = fsWorkingDirectoryGetAddress();
 		
 		if (directoryAddress == 0) {
             
