@@ -185,6 +185,7 @@ void bus_write_io(struct Bus* bus, uint32_t address, uint8_t byte) {
     for (uint16_t wait=0; wait < bus->write_waitstate; wait++) 
         __asm__("nop");
     
+    
     PORTD = 0b11111011; // Finalize the write cycle
     
     PORTA = 0xff;
