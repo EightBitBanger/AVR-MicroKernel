@@ -61,13 +61,13 @@ void fsSetDevice(uint32_t device_address) {
 
 void fsInit(void) {
     
-    fsSetDeviceTypeMEM();
     fs_device_address = 0;
     
+    fsSetDeviceTypeMEM();
     fsSetDeviceRoot('X');
     
-    fs_bus.read_waitstate  = 5;
-    fs_bus.write_waitstate = 5;
+    fs_bus.read_waitstate  = 8;
+    fs_bus.write_waitstate = 8;
     
     return;
 }

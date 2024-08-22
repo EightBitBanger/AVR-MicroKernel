@@ -1,5 +1,6 @@
 #include <kernel/main.h>
 
+extern uint8_t console_prompt[16];
 
 int main(void) {
     
@@ -18,6 +19,7 @@ int main(void) {
 	initiateDeviceTable();        // Hardware device table
     kernelVectorTableInit();      // Hardware interrupt vector table
     schedulerInit();              // Scheduler sub system
+    driverInit();                 // Driver hot loader
     
 #ifdef NETWORK_APPLICATION_PACKET_ROUTER
     
@@ -29,7 +31,6 @@ int main(void) {
     
     // Command line interpreter
     cliInit();
-    
     
     //
     // Allocate external memory
@@ -70,7 +71,6 @@ int main(void) {
     
     fsInit();         // File system
     kInit();          // Setup the kernel environment
-    driverInit();     // Driver hot loader
     
     
 #ifdef NETWORK_APPLICATION_SERVER
@@ -87,16 +87,16 @@ int main(void) {
     
     //registerCommandDevice();
     //registerCommandCAP();
-    registerCommandList();
+    //registerCommandList();
     //registerCommandTASK();
     //registerCommandType();
     
-    //registerCommandLD();
+    registerCommandLD();
     
     //registerCommandEDIT();
     //registerCommandAssembly();
     
-    //registerCommandCLS();
+    registerCommandCLS();
     
   #endif
     
@@ -119,7 +119,7 @@ int main(void) {
     //registerCommandMKDIR();
     //registerCommandRMDIR();
     
-    //registerCommandAttrib();
+    //registerCommandAttribute();
     //registerCommandRepair();
     //registerCommandFormat();
     
@@ -135,6 +135,13 @@ int main(void) {
     
     // Boot from device
     uint8_t driversDirName[] = "drivers";
+    uint8_t kconfigDirName[] = "kconfig";
+    
+    uint8_t bootDeviceLetter = 0;
+    
+    
+    //
+    // Check any active storage devices
     
     for (uint8_t i=0; i < NUMBER_OF_PERIPHERALS; i++) {
         
@@ -143,12 +150,37 @@ int main(void) {
         if (fsCheckDeviceReady() == 0) 
             continue;
         
+        //
+        // Check KCONFIG
+        
+        uint32_t kconfigAddress = fsFileExists(kconfigDirName, sizeof(kconfigDirName)-1);
+        if (kconfigAddress == 0) 
+            continue;
+        
+        uint8_t kconfigBuffer[80];
+        
+        fsFileOpen(kconfigAddress);
+        
+        fsFileRead(kconfigBuffer, 30);
+        
+        fsFileClose();
+        
+        // Configuration settings
+        
+        
+        
+        
+        
+        
         // Locate drivers directory
         uint32_t directoryAddress = fsDirectoryExists(driversDirName, sizeof(driversDirName)-1);
         
         // Directory does not exist
         if (directoryAddress == 0) 
             continue;
+        
+        if (bootDeviceLetter == 0) 
+            bootDeviceLetter = i + 'A';
         
         fsChangeWorkingDirectory(driversDirName, sizeof(driversDirName));
         
@@ -230,13 +262,33 @@ int main(void) {
             
 #endif
             
+            if (bootDeviceLetter != 0) 
+                break;
+            
             continue;
+        }
+        
+        // Set current directory
+        
+        if (bootDeviceLetter != 0) {
+            
+            console_prompt[0] = bootDeviceLetter;
+            
+            fsSetDeviceLetter(bootDeviceLetter);
+            
+            break;
+        } else {
+            
+            bootDeviceLetter = 'x';
+            
+            fsSetDeviceLetter('x');
         }
         
         continue;
     }
     
-    fsSetDeviceLetter('x');
+    fsSetDeviceLetter(bootDeviceLetter);
+    
     fsClearWorkingDirectory();
     
 #endif

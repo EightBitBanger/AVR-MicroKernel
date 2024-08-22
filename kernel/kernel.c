@@ -181,6 +181,9 @@ void kInit(void) {
     
     
     
+    */
+    
+    
     fsClearWorkingDirectory();
     
     
@@ -189,7 +192,7 @@ void kInit(void) {
     // Document example
     
     uint8_t docFileName[]  = "doc";
-    uint32_t docFileAddress = fsFileCreate(docFileName, sizeof(docFileName), 80);
+    uint32_t docFileAddress = fsFileCreate(docFileName, sizeof(docFileName), 140);
     
     struct FSAttribute attribDoc;
     attribDoc.executable = ' ';
@@ -200,13 +203,12 @@ void kInit(void) {
     fsFileSetAttributes(docFileAddress, &attribDoc);
     
     fsFileOpen(docFileAddress);
-    uint8_t bufferDoc[] = "Line A\nNext Line\nLine C\nLast Line\n\0";
+    uint8_t bufferDoc[] = "Line A\nNext Line\nLine C\nText chars\nLast Line\n\0";
     
     fsFileWrite(bufferDoc, sizeof(bufferDoc));
     fsFileClose();
     
     
-    */
     
     
     

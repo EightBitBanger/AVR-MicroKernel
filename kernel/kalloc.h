@@ -4,6 +4,7 @@
 #include <avr/io.h>
 
 #include <kernel/kernel.h>
+#include <kernel/delay.h>
 
 uint32_t kAllocGetTotal(void);
 
