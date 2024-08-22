@@ -118,7 +118,7 @@ void functionATTRIB(uint8_t* param, uint8_t param_length) {
     return;
 }
 
-void registerCommandAttrib(void) {
+void registerCommandAttribute(void) {
     
     uint8_t attribCommandName[] = "attrib";
     

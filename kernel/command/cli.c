@@ -29,7 +29,7 @@ uint8_t shiftState = 0;
 uint8_t console_prompt[16];
 uint8_t console_prompt_length = 1;
 
-uint8_t cursor_blink_rate = 35;
+uint8_t cursor_blink_rate = CURSOR_BLINK_RATE;
 
 uint16_t displayRows    = 4;
 uint16_t displayColumbs = 20;
@@ -102,7 +102,10 @@ void cliInit(void) {
 	
 	uint8_t promptDeviceString[] = "A>";
 	
-	ConsoleSetPrompt( promptDeviceString, sizeof(promptDeviceString) );
+	displayDevice->write(3, 60);
+    displayDevice->write(4, '_');
+    
+    ConsoleSetPrompt( promptDeviceString, sizeof(promptDeviceString) );
 	
 	return;
 }
@@ -140,7 +143,7 @@ uint8_t ConsoleGetLastChar(void) {
     keyboadDevice->read( 0x00001, &scanCodeHigh );
 #endif
     
-    if ((oldScanCodeLow == scanCodeLow) | 
+    if ((oldScanCodeLow == scanCodeLow) & 
         (oldScanCodeHigh == scanCodeHigh)) 
         return 0;
     
@@ -149,8 +152,8 @@ uint8_t ConsoleGetLastChar(void) {
     
     uint8_t scanCode = kbDecodeScanCode(scanCodeLow, scanCodeHigh);
     
-    if (scanCode == 0x00) 
-        return 0x00;
+    if (scanCode == 0) 
+        return 0;
     
     lastChar = scanCode;
     
@@ -214,7 +217,7 @@ void ConsoleSetBlinkRate(uint8_t rate) {
     
     cursor_blink_rate = rate;
     
-    displayDevice->write( 163, rate);
+    displayDevice->write( 3, rate);
     
     return;
 }
@@ -225,8 +228,8 @@ void ConsoleSetCursor(uint8_t line, uint8_t position) {
     
     console_position = position;
     
-    displayDevice->write( 160, console_line );
-    displayDevice->write( 161, console_position );
+    displayDevice->write( 1, console_line );
+    displayDevice->write( 2, console_position );
     
     return;
 }
@@ -235,21 +238,21 @@ void ConsoleSetCursorPosition(uint8_t position) {
     
     console_position = position;
     
-    displayDevice->write( 161, console_position );
+    displayDevice->write( 2, console_position );
     
     return;
 }
 
 void ConsoleCursorEnable(void) {
     
-    displayDevice->write( 163, cursor_blink_rate);
+    displayDevice->write( 3, cursor_blink_rate);
     
     return;
 }
 
 void ConsoleCursorDisable(void) {
     
-    displayDevice->write( 163, 0);
+    displayDevice->write( 3, 0);
     
     return;
 }
@@ -266,9 +269,15 @@ void ConsoleSetPrompt(uint8_t* prompt, uint8_t length) {
 
 void ConsoleClearScreen(void) {
     
-    displayDevice->write( 165, 0x01 );
-    
-    _delay_ms(40);
+    for (uint8_t l=0; l < 8; l++) {
+        
+        displayDevice->write(0x00001, l);
+        displayDevice->write(0x00002, 0);
+        
+        for (uint8_t c=0; c < 21; c++) 
+            displayDevice->write( 0x0000a + c, ' ' );
+        
+    }
     
     return;
 }

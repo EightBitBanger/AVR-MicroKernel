@@ -62,16 +62,24 @@ void functionEDIT(uint8_t* param, uint8_t param_length) {
     }
     
     // Editor buffer
-    uint8_t textLineA[40];
-    uint8_t textLineB[40];
-    uint8_t textLineC[40];
-    uint8_t textLineD[40];
+    uint8_t textLineA[30];
+    uint8_t textLineB[30];
+    uint8_t textLineC[30];
+    uint8_t textLineD[30];
+    uint8_t textLineE[30];
+    uint8_t textLineF[30];
+    uint8_t textLineG[30];
+    uint8_t textLineH[30];
     
     for (uint8_t i=0; i < 21; i++) {
         textLineA[i] = ' ';
         textLineB[i] = ' ';
         textLineC[i] = ' ';
         textLineD[i] = ' ';
+        textLineE[i] = ' ';
+        textLineF[i] = ' ';
+        textLineG[i] = ' ';
+        textLineH[i] = ' ';
     }
     
     uint8_t textBuffer[fileSize];
@@ -83,17 +91,17 @@ void functionEDIT(uint8_t* param, uint8_t param_length) {
     
     uint8_t doUpdateFrame  = 1;
     uint8_t doLoadPage     = 1;
-    uint16_t pageNumber     = 0;
-    uint16_t pageOffset     = 0;
+    uint16_t pageNumber    = 0;
+    uint16_t pageOffset    = 0;
     
-    uint8_t line             = 0;
-    uint8_t position         = 0;
+    uint8_t line           = 0;
+    uint8_t position       = 0;
     
-    uint8_t flagEOF   = 0;
+    //uint8_t flagEOF   = 0;
     
+    uint8_t shiftState = 0;
     
     ConsoleClearScreen();
-    
     ConsoleSetCursor(0, 0);
     
     uint8_t isActive = 1;
@@ -122,9 +130,12 @@ void functionEDIT(uint8_t* param, uint8_t param_length) {
                     
                     // Check end of file
                     if (i < fileSize-1) {
-                        flagEOF = 0;
+                        
+                        //flagEOF = 0;
+                        
                     } else {
-                        flagEOF = 1;
+                        
+                        //flagEOF = 1;
                     }
                     
                     if (textBuffer[i] != '\n') 
@@ -157,7 +168,7 @@ void functionEDIT(uint8_t* param, uint8_t param_length) {
             // Split file text into lines
             for (uint16_t i=pageOffset; i < fileSize; i++) {
                 
-                if (line > 3) 
+                if (line > 7) 
                     break;
                 
                 uint8_t* textLine = textLineA;
@@ -165,6 +176,10 @@ void functionEDIT(uint8_t* param, uint8_t param_length) {
                 if (line == 1) textLine = textLineB;
                 if (line == 2) textLine = textLineC;
                 if (line == 3) textLine = textLineD;
+                if (line == 4) textLine = textLineE;
+                if (line == 5) textLine = textLineF;
+                if (line == 6) textLine = textLineG;
+                if (line == 7) textLine = textLineH;
                 
                 textLine[position] = textBuffer[i];
                 
@@ -203,32 +218,67 @@ void functionEDIT(uint8_t* param, uint8_t param_length) {
             }
             
             // Check line count
+            if (activeLines == 7) {
+                textLineH[0] = '\n';
+            }
+            
+            if (activeLines == 6) {
+                textLineH[0] = '\n';
+                textLineG[0] = '\n';
+            }
+            
+            if (activeLines == 5) {
+                textLineH[0] = '\n';
+                textLineG[0] = '\n';
+                textLineF[0] = '\n';
+            }
+            
+            if (activeLines == 4) {
+                textLineH[0] = '\n';
+                textLineG[0] = '\n';
+                textLineF[0] = '\n';
+                textLineE[0] = '\n';
+            }
+            
             if (activeLines == 3) {
+                textLineH[0] = '\n';
+                textLineG[0] = '\n';
+                textLineF[0] = '\n';
+                textLineE[0] = '\n';
                 textLineD[0] = '\n';
-                activeLines = 4;
             }
             
             if (activeLines == 2) {
-                textLineC[0] = '\n';
+                textLineH[0] = '\n';
+                textLineG[0] = '\n';
+                textLineF[0] = '\n';
+                textLineE[0] = '\n';
                 textLineD[0] = '\n';
-                activeLines = 4;
+                textLineC[0] = '\n';
             }
             
             if (activeLines == 1) {
-                textLineB[0] = '\n';
-                textLineC[0] = '\n';
+                textLineH[0] = '\n';
+                textLineG[0] = '\n';
+                textLineF[0] = '\n';
+                textLineE[0] = '\n';
                 textLineD[0] = '\n';
-                activeLines = 4;
+                textLineC[0] = '\n';
+                textLineB[0] = '\n';
             }
             
             if (activeLines == 0) {
-                textLineA[0] = '\n';
-                textLineB[0] = '\n';
-                textLineC[0] = '\n';
+                textLineH[0] = '\n';
+                textLineG[0] = '\n';
+                textLineF[0] = '\n';
+                textLineE[0] = '\n';
                 textLineD[0] = '\n';
-                activeLines = 4;
+                textLineC[0] = '\n';
+                textLineB[0] = '\n';
+                textLineA[0] = '\n';
             }
             
+            activeLines = 8;
         }
         
         
@@ -242,13 +292,17 @@ void functionEDIT(uint8_t* param, uint8_t param_length) {
             
             ConsoleSetCursor(0, 0);
             
-            for (uint8_t i=0; i < 4; i++) {
+            for (uint8_t i=0; i < 8; i++) {
                 uint8_t* textLine = textLineA;
                 
                 if (i == 0) textLine = textLineA;
                 if (i == 1) textLine = textLineB;
                 if (i == 2) textLine = textLineC;
                 if (i == 3) textLine = textLineD;
+                if (i == 4) textLine = textLineE;
+                if (i == 5) textLine = textLineF;
+                if (i == 6) textLine = textLineG;
+                if (i == 7) textLine = textLineH;
                 
                 for (uint8_t p=0; p < 20; p++) {
                     
@@ -271,8 +325,7 @@ void functionEDIT(uint8_t* param, uint8_t param_length) {
                     printChar( textLine[p] );
                 }
                 
-                if (i < 3) printLn();
-                
+                if (i < 7) printLn();
                 
             }
             
@@ -280,6 +333,46 @@ void functionEDIT(uint8_t* param, uint8_t param_length) {
         }
         
         uint8_t currentChar = ConsoleGetRawChar();
+        
+        // Shift UPPERCASE
+        if (shiftState == 1) {
+            
+            if (is_letter(&currentChar) == 1) {
+                
+                currentChar -= 0x20;
+                
+            } else {
+                
+                if ((currentChar == '[') | (currentChar == ']')) currentChar += 0x20;
+                
+                if (currentChar == 0x3B) currentChar--;
+                
+                if (currentChar == '-')  currentChar = '_';
+                if (currentChar == '=')  currentChar = '+';
+                if (currentChar == '\\') currentChar = '|';
+                if (currentChar == 0x27) currentChar = 0x22;
+                if (currentChar == ',')  currentChar = '<';
+                if (currentChar == '.')  currentChar = '>';
+                if (currentChar == '/')  currentChar = '?';
+                
+            }
+            
+            if (is_number(&currentChar) == 1) {
+                
+                if (currentChar == '0') currentChar = ')';
+                if (currentChar == '1') currentChar = '!';
+                if (currentChar == '2') currentChar = '@';
+                if (currentChar == '3') currentChar = '#';
+                if (currentChar == '4') currentChar = '$';
+                if (currentChar == '5') currentChar = '%';
+                if (currentChar == '6') currentChar = '^';
+                if (currentChar == '7') currentChar = '&';
+                if (currentChar == '8') currentChar = '*';
+                if (currentChar == '9') currentChar = '(';
+                
+            }
+            
+        }
         
         // Check incoming character
         if (lastChar == currentChar) 
@@ -290,6 +383,7 @@ void functionEDIT(uint8_t* param, uint8_t param_length) {
         
         
         // Page up
+        /*
         if (lastChar == 0xF5) {
             
             doLoadPage = 1;
@@ -311,8 +405,7 @@ void functionEDIT(uint8_t* param, uint8_t param_length) {
                     pageNumber++;
             
         }
-        
-        
+        */
         
         // Toggle line ending characters
         if (lastChar == 0xF1) {
@@ -325,7 +418,7 @@ void functionEDIT(uint8_t* param, uint8_t param_length) {
         // Cursor down
         if (lastChar == 0x04) {
             
-            if (((cursorLine+1) < activeLines) & (cursorLine < 3)) 
+            if (((cursorLine+1) < activeLines) & (cursorLine < 7)) 
                 cursorLine++;
             
             doUpdateFrame = 1;
@@ -356,12 +449,24 @@ void functionEDIT(uint8_t* param, uint8_t param_length) {
             if (cursorPos < 19) {
                 cursorPos++;
             } else {
-                if (cursorLine < 3) {
+                if (cursorLine < 8) {
                     cursorPos = 0;
                     cursorLine++;
                 }
             }
             doUpdateFrame = 1;
+        }
+        
+        // Shift pressed
+        if (lastChar == 0x11) {
+            
+            shiftState = 1;
+        }
+        
+        // Shift released
+        if (lastChar == 0x12) {
+            
+            shiftState = 0;
         }
         
         // Check cursor EOL
@@ -372,6 +477,10 @@ void functionEDIT(uint8_t* param, uint8_t param_length) {
         if (cursorLine == 1) textLineEOL = textLineB;
         if (cursorLine == 2) textLineEOL = textLineC;
         if (cursorLine == 3) textLineEOL = textLineD;
+        if (cursorLine == 4) textLineEOL = textLineE;
+        if (cursorLine == 5) textLineEOL = textLineF;
+        if (cursorLine == 6) textLineEOL = textLineG;
+        if (cursorLine == 7) textLineEOL = textLineH;
         
         for (uint8_t i=0; i < 21; i++) {
             
@@ -399,6 +508,10 @@ void functionEDIT(uint8_t* param, uint8_t param_length) {
             if (cursorLine == 1) textLine = textLineB;
             if (cursorLine == 2) textLine = textLineC;
             if (cursorLine == 3) textLine = textLineD;
+            if (cursorLine == 4) textLine = textLineE;
+            if (cursorLine == 5) textLine = textLineF;
+            if (cursorLine == 6) textLine = textLineG;
+            if (cursorLine == 7) textLine = textLineH;
             
             if (textLine[0] != '\n') {
                 
@@ -444,6 +557,10 @@ void functionEDIT(uint8_t* param, uint8_t param_length) {
             if (cursorLine == 1) textLine = textLineB;
             if (cursorLine == 2) textLine = textLineC;
             if (cursorLine == 3) textLine = textLineD;
+            if (cursorLine == 4) textLine = textLineE;
+            if (cursorLine == 5) textLine = textLineF;
+            if (cursorLine == 6) textLine = textLineG;
+            if (cursorLine == 7) textLine = textLineH;
             
             // Shift down the EOL character
             
@@ -494,12 +611,17 @@ void functionEDIT(uint8_t* param, uint8_t param_length) {
             ConsoleSetCursor(0, 0);
             print(filename, filename_length + 1);
             
+            printSpace(2);
+            
             // File size
+            /*
             if (fileSize > 99) {
                 printSpace(13);
             } else {
                 printSpace(14);
             }
+            */
+            
             printInt( fileSize );
             printChar('b');
             
@@ -508,6 +630,7 @@ void functionEDIT(uint8_t* param, uint8_t param_length) {
             for (uint8_t i=0; i < 20; i++) 
                 printChar('=');
             
+            ConsoleSetCursor(2, 0);
             print(msgSaveQuit, sizeof(msgSaveQuit));
             
             
@@ -534,7 +657,7 @@ void functionEDIT(uint8_t* param, uint8_t param_length) {
                     
                     uint8_t saveIndex = 0;
                     
-                    for (uint8_t i=0; i < 4; i++) {
+                    for (uint8_t i=0; i < 8; i++) {
                         
                         uint8_t* textSource = textLineA;
                         
@@ -542,6 +665,10 @@ void functionEDIT(uint8_t* param, uint8_t param_length) {
                         if (i == 1) textSource = textLineB;
                         if (i == 2) textSource = textLineC;
                         if (i == 3) textSource = textLineD;
+                        if (i == 4) textSource = textLineE;
+                        if (i == 5) textSource = textLineF;
+                        if (i == 6) textSource = textLineG;
+                        if (i == 7) textSource = textLineH;
                         
                         for (uint8_t a=0; a <= 21; a++) {
                             saveBuffer[saveIndex] = textSource[a];

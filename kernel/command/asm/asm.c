@@ -182,6 +182,8 @@ void functionAsm(uint8_t* param, uint8_t param_length) {
     // Application entry point
     //
     
+    ConsoleCursorDisable();
+    
     while(1) {
         
         uint8_t currentChar = ConsoleGetRawChar();
@@ -208,6 +210,8 @@ void functionAsm(uint8_t* param, uint8_t param_length) {
                 if ((asm_console_string[0] == 'q') & (asm_console_string[1] == ' ')) {
                     
                     fsFileClose();
+                    
+                    ConsoleCursorEnable();
                     
                     return;
                 }
@@ -332,7 +336,7 @@ void functionAsm(uint8_t* param, uint8_t param_length) {
                     getInputAddress(&disassemblyAddress);
                     
                     // Print the lines
-                    for (uint8_t i=0; i < 3; i++) {
+                    for (uint8_t i=0; i < 7; i++) {
                         
                         printAddressLine(disassemblyAddress);
                         
@@ -544,32 +548,53 @@ void functionAsm(uint8_t* param, uint8_t param_length) {
                 if (asm_console_string[0] == 'd') {
                     asm_console_string[0] = ' ';
                     
-                    getInputAddress(&dumpAddress);
+                    for (uint8_t l=0; l < 7; l++) {
+                        
+                        getInputAddress(&dumpAddress);
+                        
+                        uint8_t hexString[17];
+                        
+                        hexString[8] = '-';
+                        
+                        for (uint8_t i=0; i < 4; i++) int_to_hex_string( fileBuffer[i +      dumpAddress], &hexString[ i * 2] );
+                        for (uint8_t i=0; i < 4; i++) int_to_hex_string( fileBuffer[i + 4  + dumpAddress], &hexString[(i * 2) + 9] );
+                        
+                        dumpAddress += 8;
+                        
+                        print(hexString, sizeof(hexString)+1);
+                        printLn();
+                        
+                    }
                     
-                    uint8_t hexStringA[17];
-                    uint8_t hexStringB[17];
-                    uint8_t hexStringC[17];
+                    /*
                     
-                    hexStringA[8] = '-';
-                    hexStringB[8] = '-';
-                    hexStringC[8] = '-';
-                    
-                    for (uint8_t i=0; i < 4; i++) int_to_hex_string( fileBuffer[i + dumpAddress], &hexStringA[i * 2] );
-                    for (uint8_t i=0; i < 4; i++) int_to_hex_string( fileBuffer[i + 4  + dumpAddress], &hexStringA[(i * 2) + 9] );
-                    for (uint8_t i=0; i < 4; i++) int_to_hex_string( fileBuffer[i + 8  + dumpAddress], &hexStringB[(i * 2)] );
-                    for (uint8_t i=0; i < 4; i++) int_to_hex_string( fileBuffer[i + 12 + dumpAddress], &hexStringB[(i * 2) + 9] );
-                    for (uint8_t i=0; i < 4; i++) int_to_hex_string( fileBuffer[i + 16 + dumpAddress], &hexStringC[(i * 2)] );
-                    for (uint8_t i=0; i < 4; i++) int_to_hex_string( fileBuffer[i + 20 + dumpAddress], &hexStringC[(i * 2) + 9] );
-                    
-                    dumpAddress += 24;
-                    
-                    print(hexStringA, sizeof(hexStringA)+1);
-                    printLn();
-                    print(hexStringB, sizeof(hexStringB)+1);
-                    printLn();
-                    print(hexStringC, sizeof(hexStringC)+1);
-                    printLn();
-                    
+                        getInputAddress(&dumpAddress);
+                        
+                        uint8_t hexStringA[17];
+                        uint8_t hexStringB[17];
+                        uint8_t hexStringC[17];
+                        
+                        hexStringA[8] = '-';
+                        hexStringB[8] = '-';
+                        hexStringC[8] = '-';
+                        
+                        for (uint8_t i=0; i < 4; i++) int_to_hex_string( fileBuffer[i + dumpAddress], &hexStringA[i * 2] );
+                        for (uint8_t i=0; i < 4; i++) int_to_hex_string( fileBuffer[i + 4  + dumpAddress], &hexStringA[(i * 2) + 9] );
+                        for (uint8_t i=0; i < 4; i++) int_to_hex_string( fileBuffer[i + 8  + dumpAddress], &hexStringB[(i * 2)] );
+                        for (uint8_t i=0; i < 4; i++) int_to_hex_string( fileBuffer[i + 12 + dumpAddress], &hexStringB[(i * 2) + 9] );
+                        for (uint8_t i=0; i < 4; i++) int_to_hex_string( fileBuffer[i + 16 + dumpAddress], &hexStringC[(i * 2)] );
+                        for (uint8_t i=0; i < 4; i++) int_to_hex_string( fileBuffer[i + 20 + dumpAddress], &hexStringC[(i * 2) + 9] );
+                        
+                        dumpAddress += 24;
+                        
+                        print(hexStringA, sizeof(hexStringA)+1);
+                        printLn();
+                        print(hexStringB, sizeof(hexStringB)+1);
+                        printLn();
+                        print(hexStringC, sizeof(hexStringC)+1);
+                        printLn();
+                        
+                    */
                 }
                 
                 

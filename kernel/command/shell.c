@@ -37,6 +37,8 @@ extern struct Driver* keyboadDevice;
 
 extern struct ConsoleCommand CommandRegistry[CONSOLE_FUNCTION_TABLE_SIZE];
 
+uint8_t new_line = 0;
+
 
 void cliRunShell(void) {
     
@@ -46,10 +48,6 @@ void cliRunShell(void) {
     if (scanCode == 0) 
         return;
     
-    //
-    // Shift state
-    //
-    
     // Shift pressed
     if (scanCode == 0x11) 
         shiftState = 1;
@@ -57,56 +55,6 @@ void cliRunShell(void) {
     // Shift released
     if (scanCode == 0x12) 
         shiftState = 0;
-    
-    //
-    // Function F3 - Repeat last command
-    //
-    
-    if (scanCode == 0xf3) {
-        
-        console_string_length = console_string_length_old;
-        ConsoleSetCursorPosition(console_prompt_length - 1);
-        
-        for (uint8_t i=0; i < console_string_length; i++) {
-            console_string[i] = console_string_old[i];
-            printChar( console_string[i] );
-        }
-        
-        ConsoleSetCursorPosition( console_prompt_length + console_string_length - 1 );
-        
-        return;
-    }
-    
-    
-    //
-    // Backspace
-    //
-    
-    if (scanCode == 0x01) {
-        
-        if (console_string_length > 0) {
-            
-            if (console_position == 0) {
-                console_line--;
-                console_position = displayColumbs;
-            }
-            
-            // Remove last character from the console string
-            console_string[ console_string_length - 1 ] = ' ';
-            
-            // Remove the character from the display
-            displayDevice->write( console_position + (displayColumbs * console_line) - 1, ' ' );
-            
-            // Decrement the console string length
-            console_string_length--;
-            console_position--;
-            
-            ConsoleSetCursor(console_line, console_position);
-            
-        }
-        
-    }
-    
     
     //
     // Return
@@ -276,7 +224,6 @@ void cliRunShell(void) {
             
         }
         
-        
         //
         // Bad command or filename
         
@@ -302,63 +249,91 @@ void cliRunShell(void) {
     
     
     //
-    // Add letter or number
+    // Backspace
     //
     
-    if (scanCode > 0x19) {
+    if (scanCode == 0x01) {
         
-        if (console_string_length < CONSOLE_STRING_LENGTH) {
+        if (console_string_length > 0) {
             
-            if (shiftState == 1) {
-                
-                if (is_letter(&scanCode) == 1) {
-                    
-                    scanCode -= 0x20;
-                    
-                } else {
-                    
-                    if ((scanCode == '[') | (scanCode == ']')) scanCode += 0x20;
-                    
-                    if (scanCode == 0x3B) scanCode--;
-                    
-                    if (scanCode == '-')  scanCode = '_';
-                    if (scanCode == '=')  scanCode = '+';
-                    if (scanCode == '\\') scanCode = '|';
-                    if (scanCode == 0x27) scanCode = 0x22;
-                    if (scanCode == ',')  scanCode = '<';
-                    if (scanCode == '.')  scanCode = '>';
-                    if (scanCode == '/')  scanCode = '?';
-                    
-                }
-                
-                if (is_number(&scanCode) == 1) {
-                    
-                    if (scanCode == '0') scanCode = ')';
-                    if (scanCode == '1') scanCode = '!';
-                    if (scanCode == '2') scanCode = '@';
-                    if (scanCode == '3') scanCode = '#';
-                    if (scanCode == '4') scanCode = '$';
-                    if (scanCode == '5') scanCode = '%';
-                    if (scanCode == '6') scanCode = '^';
-                    if (scanCode == '7') scanCode = '&';
-                    if (scanCode == '8') scanCode = '*';
-                    if (scanCode == '9') scanCode = '(';
-                    
-                }
-                
-            }
+            // Remove last character from the console string
+            console_string[ console_string_length - 1 ] = ' ';
             
-            // Print the character
-            console_string[console_string_length] = scanCode;
+            // Decrement the console string length
+            console_string_length--;
+            console_position--;
             
-            console_string_length++;
-            
-            printChar(scanCode);
-            
-            ConsoleSetCursor(console_line, console_position);
+            displayDevice->write( 0x00002, console_position);
+            displayDevice->write( 0x0000a, ' ');
+            displayDevice->write( 0x00002, console_position);
             
         }
         
+    }
+    
+    //
+    // Add the character
+    
+    if (scanCode > 0x19) {
+        
+        if (shiftState == 1) {
+            
+            if (is_letter(&scanCode) == 1) {
+                
+                scanCode -= 0x20;
+                
+            } else {
+                
+                if ((scanCode == '[') | (scanCode == ']')) scanCode += 0x20;
+                
+                if (scanCode == 0x3B) scanCode--;
+                
+                if (scanCode == '-')  scanCode = '_';
+                if (scanCode == '=')  scanCode = '+';
+                if (scanCode == '\\') scanCode = '|';
+                if (scanCode == 0x27) scanCode = 0x22;
+                if (scanCode == ',')  scanCode = '<';
+                if (scanCode == '.')  scanCode = '>';
+                if (scanCode == '/')  scanCode = '?';
+                
+            }
+            
+            if (is_number(&scanCode) == 1) {
+                
+                if (scanCode == '0') scanCode = ')';
+                if (scanCode == '1') scanCode = '!';
+                if (scanCode == '2') scanCode = '@';
+                if (scanCode == '3') scanCode = '#';
+                if (scanCode == '4') scanCode = '$';
+                if (scanCode == '5') scanCode = '%';
+                if (scanCode == '6') scanCode = '^';
+                if (scanCode == '7') scanCode = '&';
+                if (scanCode == '8') scanCode = '*';
+                if (scanCode == '9') scanCode = '(';
+                
+            }
+            
+        }
+        
+        console_string[console_string_length] = scanCode;
+        
+        displayDevice->write( 0x0000a, scanCode);
+        
+        console_string_length++;
+        
+        console_position++;
+        displayDevice->write( 0x00002, console_position);
+        
+        if (console_position >= 21) {
+            
+            printLn();
+            
+            console_position = 0;
+            displayDevice->write( 0x00002, console_position);
+            
+        }
+        
+        return;
     }
     
     return;

@@ -30,15 +30,17 @@ void functionNet(uint8_t* param, uint8_t param_length) {
     
     if ((param[0] == 'i') & (param[1] == 'n') & (param[2] == 'i') & (param[3] == 't')) {
         
-        if (ntCheckInitiated() == 0) {
-            uint8_t msgInitiated[] = "Device initiated";
-            print(msgInitiated, sizeof(msgInitiated));
-        } else {
-            uint8_t msgInitiated[] = "Device re-initiated";
+        uint8_t retval = ntInit();
+        
+        if (retval == 1) {
+            uint8_t msgInitiated[] = "Device ready";
             print(msgInitiated, sizeof(msgInitiated));
         }
         
-        ntInit();
+        if (retval == 0) {
+            uint8_t msgInitiated[] = "Initiation failed";
+            print(msgInitiated, sizeof(msgInitiated));
+        }
         
         printLn();
         
