@@ -10,7 +10,7 @@
 #define NETWORK_BAUD_RATE   12
 
 
-void ntInit(void);
+uint8_t ntInit(void);
 
 
 void ntSend(uint8_t* buffer, uint8_t bufferSize);

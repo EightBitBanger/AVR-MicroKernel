@@ -21,6 +21,8 @@ extern struct Driver* keyboadDevice;
 
 void printk(uint8_t* string) {
     
+    /*
+    
     uint8_t pos = 0;
     uint8_t line = 0;
     
@@ -58,21 +60,21 @@ void printk(uint8_t* string) {
     }
     
     ConsoleSetCursor(console_line, console_position);
+    */
     
     return;
 }
 
 void print(uint8_t* string, uint8_t length) {
     
+    displayDevice->write( 0x00001, console_line );
+    
     for (uint8_t i=0; i < length - 1; i++) {
         
-        displayDevice->write( console_position + (displayColumbs * console_line), string[i] );
+        displayDevice->write( 0x0000a + i, string[i] );
         
         console_position++;
-        
     }
-    
-    ConsoleSetCursorPosition(console_position);
     
     return;
 }
@@ -90,15 +92,15 @@ void printInt(uint32_t integer) {
         
         return;
         
-    } else {
-        
-        for (uint8_t i=0; i < place; i++) 
-            displayDevice->write( console_position + (displayColumbs * console_line) + i, string[i] );
-        
     }
     
-    console_position += place;
+    displayDevice->write( 0x00001, console_line );
+    displayDevice->write( 0x00002, console_position );
     
+    for (uint8_t i=0; i < place; i++) 
+        displayDevice->write( 0x0000a + i, string[i] );
+    
+    console_position += (place / 2) + 1;
     ConsoleSetCursorPosition(console_position);
     
     return;
@@ -106,16 +108,18 @@ void printInt(uint32_t integer) {
 
 void printc(char* string, uint8_t length) {
     
+    displayDevice->write( 0x00001, console_line );
+    
     for (uint8_t i=0; i < length - 1; i++) {
         
-        displayDevice->write( console_position + (displayColumbs * console_line), string[i] );
+        displayDevice->write( 0x00002, console_position );
+        
+        displayDevice->write( 0x0000a, string[i] );
         
         console_position++;
         
         continue;
     }
-    
-    console_position += length - 1;
     
     ConsoleSetCursorPosition(console_position);
     
@@ -124,40 +128,29 @@ void printc(char* string, uint8_t length) {
 
 void printChar(uint8_t character) {
     
-    displayDevice->write( console_position + (displayColumbs * console_line), character );
+    displayDevice->write( 0x00001, console_line );
+    displayDevice->write( 0x00002, console_position );
+    
+    displayDevice->write( 0x0000a, character );
     
     console_position++;
-    
-    if (console_position > (displayColumbs - 1)) {
-        console_position = 0;
-        console_line++;
-    }
-    
-    if (console_line > (displayRows - 1)) {
-        console_line = 3;
-        printLn();
-    }
-    
-    ConsoleSetCursorPosition(console_position);
     
     return;
 }
 
 void printLn(void) {
     
-    // Move down a line
-    if (console_line < 3) {
+    if (console_line < 7) {
         
         console_line++;
         
-        displayDevice->write( 160, console_line);
+        displayDevice->write( 0x00001, console_line);
         
     } else {
         
-        // Otherwise shift the frame down
-        displayDevice->write( 169, 0x01);
+        displayDevice->write( 0x00005, 1);
         
-        _delay_ms(40);
+        _delay_ms(30);
         
     }
     
@@ -170,9 +163,12 @@ void printLn(void) {
 
 void printSpace(uint8_t numberOfSpaces) {
     
+    displayDevice->write( 0x00001, console_line );
+    
     for (uint8_t i=0; i < numberOfSpaces; i++) {
+        displayDevice->write( 0x00002, console_position );
         
-        displayDevice->write( console_position + (displayColumbs * console_line), ' ' );
+        displayDevice->write( 0x0000a + i, ' ' );
         
         console_position++;
     }
@@ -184,9 +180,11 @@ void printSpace(uint8_t numberOfSpaces) {
 
 void printPrompt(void) {
     
-    // Print prompt string
+    displayDevice->write( 0x00001, console_line );
+    displayDevice->write( 0x00002, 0 );
+    
     for (uint8_t i=0; i < console_prompt_length - 1; i++) 
-        displayDevice->write( (displayColumbs * console_line) + i, console_prompt[i] );
+        displayDevice->write( 0x0000a + i, console_prompt[i] );
     
     console_position = console_prompt_length - 1;
     

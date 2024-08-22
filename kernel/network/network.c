@@ -13,13 +13,13 @@ void __write_network_device(uint32_t address, uint8_t buffer);
 uint8_t ntIsInitiated = 0;
 
 
-void ntInit(void) {
+uint8_t ntInit(void) {
     
     uint8_t nameNetwork[] = "network";
 	networkDevice = (struct Driver*)GetDriverByName( nameNetwork, sizeof(nameNetwork) );
 	
 	if (networkDevice == nullptr) 
-        return;
+        return 0;
     
 	networkDevice->interface.read_waitstate  = 10;
 	networkDevice->interface.write_waitstate = 10;
@@ -32,7 +32,7 @@ void ntInit(void) {
 	
 	ntIsInitiated = 1;
     
-	return;
+	return 1;
 }
 
 
