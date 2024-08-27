@@ -33,6 +33,8 @@ void fsSetDeviceLetter(uint8_t letter) {
 
 void fsSetDeviceRoot(uint8_t deviceLetter) {
     
+    lowercase(&deviceLetter);
+    
     fs_device_root = deviceLetter;
     
     return;
