@@ -4,17 +4,6 @@
 
 #include <kernel/driver/driver.h>
 
-// Hot-loaded drivers
-uint8_t number_of_loaded_drivers = 0;
-
-struct Driver loaded_drivers[NUMBER_OF_DRIVERS];
-
-// Registry of drivers
-void* driver_registry[ DRIVER_REGISTRY_SIZE ];
-
-// Number of drivers registered in the kernel
-uint8_t number_of_drivers = 0;
-
 /*
  
  Driver file layout
@@ -38,6 +27,8 @@ uint8_t number_of_drivers = 0;
     Hardware address       4 bytes
     
     
+ Functions
+    
     Number of addresses    4 bytes
     
     [address a][address b][address c]...
@@ -48,6 +39,16 @@ uint8_t number_of_drivers = 0;
     
 */
 
+// List of all loaded drivers
+struct Driver loaded_drivers[DRIVER_TABLE_SIZE];
+
+// Registry of drivers actively running in the kernel
+void* driver_registry[ DRIVER_REGISTRY_SIZE ];
+
+// Number of drivers registered in the kernel
+uint8_t number_of_drivers = 0;
+
+// Load a library from a file
 int8_t LoadLibrary(uint8_t* filename, uint8_t filenameLength) {
     
     uint32_t fileAddress = fsFileExists(filename, filenameLength);
@@ -78,7 +79,7 @@ int8_t LoadLibrary(uint8_t* filename, uint8_t filenameLength) {
         return -1;
     
     // Check driver already loaded
-    for (uint8_t i=0; i < NUMBER_OF_DRIVERS; i++) {
+    for (uint8_t i=0; i < DRIVER_TABLE_SIZE; i++) {
         
         if (loaded_drivers[i].device.device_id == 0) 
             continue;
@@ -91,7 +92,7 @@ int8_t LoadLibrary(uint8_t* filename, uint8_t filenameLength) {
     }
     
     // Check for an available driver slot
-    for (uint8_t i=0; i < NUMBER_OF_DRIVERS; i++) {
+    for (uint8_t i=0; i < DRIVER_TABLE_SIZE; i++) {
         
         if (loaded_drivers[i].device.device_id != 0) 
             continue;
@@ -149,7 +150,7 @@ int8_t LoadLibrary(uint8_t* filename, uint8_t filenameLength) {
         loaded_drivers[i].device.hardware_address = addrPtr.address;
         
         
-        // Link the driver
+        // Link the driver to any associated 
         uint8_t numberOfDevices = GetNumberOfDevices();
         
         for (uint8_t d=0; d < numberOfDevices; d++) {
@@ -167,7 +168,10 @@ int8_t LoadLibrary(uint8_t* filename, uint8_t filenameLength) {
             break;
         }
         
-        RegisterDriver( (void*)&loaded_drivers[i] );
+        // Add the driver to the registry only if
+        // its linked to a hardware device
+        if (loaded_drivers[i].is_linked == 1) 
+            RegisterDriver( (void*)&loaded_drivers[i] );
         
         return 1;
     }
@@ -226,7 +230,7 @@ uint8_t GetNumberOfDrivers(void) {
 
 void driverInit(void) {
     
-    for (uint8_t i=0; i < NUMBER_OF_DRIVERS; i++) {
+    for (uint8_t i=0; i < DRIVER_TABLE_SIZE; i++) {
         
         for (uint8_t a=0; a < DEVICE_NAME_LENGTH; a++) 
             loaded_drivers[i].device.device_name[a] = ' ';

@@ -1,13 +1,17 @@
 #ifndef __DRIVER_TABLE_
 #define __DRIVER_TABLE_
 
-#include <kernel/bus/bus.h>
-#include <kernel/device/device.h>
 
+#include <kernel/bus/bus.h>
 #include <kernel/cstring.h>
 
-#define DRIVER_REGISTRY_SIZE   24
-#define NUMBER_OF_DRIVERS  8
+#include <kernel/device/device.h>
+
+
+#define DRIVER_REGISTRY_SIZE   16
+
+#define DRIVER_TABLE_SIZE  24
+
 
 struct Driver {
     
@@ -17,7 +21,7 @@ struct Driver {
     /// Low level bus interface
     struct Bus interface;
     
-    /// Is the driver currently linked to a device
+    /// Is the driver currently linked to a hardware device
     uint8_t is_linked;
     
     /// Read a byte from the hardware device

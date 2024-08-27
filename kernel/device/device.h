@@ -2,18 +2,15 @@
 #define __DEVICE_TABLE_
 
 #include <kernel/bus/bus.h>
-
 #include <kernel/cstring.h>
+
+#include <kernel/kconfig.h>
 
 
 #define DEVICE_NAME_LENGTH       10
 
-#define DEVICE_TABLE_SIZE        8
+#define DEVICE_TABLE_SIZE        24
 
-#define nullptr          0x00000000
-
-
-#include <kernel/kconfig.h>
 
 struct Device {
     

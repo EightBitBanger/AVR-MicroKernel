@@ -66,7 +66,7 @@ void initiateDeviceTable(void) {
         bus_read_byte(&bus, hardware_address, &device_table[index].device_id);
         
         // Reject device name
-        if (device_table[index].device_name[0] == ' ') 
+        if (is_letter(&device_table[index].device_name[0]) == 0) 
             continue;
         
         if (device_table[index].device_id == 0) 
