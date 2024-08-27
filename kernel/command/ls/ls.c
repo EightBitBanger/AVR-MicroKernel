@@ -58,6 +58,85 @@ void functionLS(uint8_t* param, uint8_t param_length) {
     
     
     
+    void GetAttributes(uint32_t fileAddress, uint8_t* attributes) {
+        for (uint8_t a=0; a < 4; a++) 
+            fs_read_byte(fileAddress + a + FILE_OFFSET_ATTRIBUTES, &attributes[a]);
+        return;
+    }
+    
+    void GetName(uint32_t fileAddress, uint8_t* filename) {
+        for (uint8_t n=0; n < FILE_NAME_LENGTH; n++) 
+            fs_read_byte(fileAddress + n + 1, &filename[n]);
+        return;
+    }
+    
+    
+    
+    void ListFile(uint32_t fileAddress) {
+        
+        // Attributes
+        uint8_t attributes[4];
+        GetAttributes(fileAddress, attributes);
+        
+        print(&attributes[0], 4);
+        printSpace(1);
+        
+        // Name
+        uint8_t filename[FILE_NAME_LENGTH];
+        GetName(fileAddress, filename);
+        
+        print(filename, sizeof(filename) + 1);
+        printSpace(1);
+        
+        // Size in bytes
+        union Pointer ptr;
+        
+        for (uint8_t s=0; s < 4; s++) 
+            fs_read_byte(fileAddress + s + FILE_OFFSET_SIZE, &ptr.byte_t[s]);
+        
+        uint8_t filesizeString[10];
+        
+        uint8_t len = int_to_string( ptr.address, filesizeString ) + 1;
+        
+        if (len > 6) 
+            len = 6;
+        
+        uint8_t offset = 6 - len;
+        
+        if (offset > 5) 
+            offset = 5;
+        
+        printSpace(offset);
+        print(filesizeString, len);
+        
+        return;
+    }
+    
+    
+    void ListDirectory(uint32_t fileAddress) {
+        
+        // Attributes
+        uint8_t attributes[4];
+        GetAttributes(fileAddress, attributes);
+        
+        printChar(attributes[0]);
+        printChar(attributes[1]);
+        printChar(attributes[2]);
+        printChar(attributes[3]);
+        printSpace(1);
+        
+        // Name
+        uint8_t filename[FILE_NAME_LENGTH];
+        GetName(fileAddress, filename);
+        
+        print(filename, sizeof(filename) + 1);
+        printSpace(1);
+        
+        print(msgDirectoryListing, sizeof(msgDirectoryListing));
+        
+        return;
+    }
+    
     
     
     //
@@ -102,9 +181,6 @@ void functionLS(uint8_t* param, uint8_t param_length) {
             
             union Pointer fileAddressPtr;
             
-            uint8_t attributes[4] = {' ',' ',' ',' '};
-            uint8_t filename[10];
-            
             // List directories first
             for (uint8_t i=0; i < numberOfFiles; i++) {
                 
@@ -115,28 +191,14 @@ void functionLS(uint8_t* param, uint8_t param_length) {
                 uint32_t fileAddress = fileAddressPtr.address;
                 
                 // Attributes
-                for (uint8_t a=0; a < 4; a++) 
-                    fs_read_byte(fileAddress + a + FILE_OFFSET_ATTRIBUTES, &attributes[a]);
+                uint8_t attributes[4];
+                GetAttributes(fileAddress, attributes);
                 
+                // Check is directory
                 if (attributes[3] != 'd') 
                     continue;
                 
-                printChar(attributes[0]);
-                printChar(attributes[1]);
-                printChar(attributes[2]);
-                printChar(attributes[3]);
-                printSpace(1);
-                
-                // Name
-                for (uint8_t n=0; n < 10; n++) 
-                    fs_read_byte(fileAddress + n + 1, &filename[n]);
-                
-                print(filename, sizeof(filename) + 1);
-                printSpace(1);
-                
-                // Check is directory
-                
-                print(msgDirectoryListing, sizeof(msgDirectoryListing));
+                ListDirectory(fileAddress);
                 
                 numberOfDirs++;
                 
@@ -159,49 +221,21 @@ void functionLS(uint8_t* param, uint8_t param_length) {
                 uint32_t fileAddress = fileAddressPtr.address;
                 
                 // Attributes
-                for (uint8_t a=0; a < 4; a++) 
-                    fs_read_byte(fileAddress + a + FILE_OFFSET_ATTRIBUTES, &attributes[a]);
+                uint8_t attributes[4];
+                GetAttributes(fileAddress, attributes);
                 
                 // Check is directory
                 if (attributes[3] == 'd') 
                     continue;
                 
-                print(&attributes[0], 4);
-                printSpace(1);
+                ListFile(fileAddress);
                 
-                // Name
-                for (uint8_t n=0; n < 10; n++) 
-                    fs_read_byte(fileAddress + n + 1, &filename[n]);
-                
-                print(filename, sizeof(filename) + 1);
-                printSpace(1);
-                
-                // Size in bytes
-                union Pointer ptr;
-                
-                for (uint8_t s=0; s < 4; s++) 
-                    fs_read_byte(fileAddress + s + FILE_OFFSET_SIZE, &ptr.byte_t[s]);
-                
-                uint8_t filesizeString[10];
-                
-                uint8_t len = int_to_string( ptr.address, filesizeString ) + 1;
-                
-                if (len > 6) 
-                    len = 6;
-                
-                uint8_t offset = 6 - len;
-                
-                if (offset > 5) 
-                    offset = 5;
-                
-                printSpace(offset);
-                print(filesizeString, len);
-                
-                if (printPause() == 1) 
-                    return;
+                printLn();
                 
                 continue;
             }
+            
+            numberOfFiles -= numberOfDirs;
             
         }
         
@@ -222,8 +256,6 @@ void functionLS(uint8_t* param, uint8_t param_length) {
     }
     
     uint8_t flagClaimed = 0;
-    uint8_t attributes[4] = {' ',' ',' ',' '};
-    uint8_t filename[10];
     
     
     //
@@ -244,30 +276,14 @@ void functionLS(uint8_t* param, uint8_t param_length) {
 		if (flagClaimed != 0) 
             continue;
         
-        // Attributes
-        
-        for (uint8_t a=0; a < 4; a++) 
-            fs_read_byte(fileAddress + a + FILE_OFFSET_ATTRIBUTES, &attributes[a]);
-        
         // Check is directory
+        uint8_t attributes[4];
+        GetAttributes(fileAddress, attributes);
+        
         if (attributes[3] != 'd') 
             continue;
         
-        print(&attributes[0], 4);
-        printSpace(1);
-        
-        // Name
-        for (uint8_t n=0; n < 10; n++) 
-            filename[n] = ' ';
-        
-        for (uint8_t n=0; n < 10; n++) 
-            fs_read_byte(fileAddress + n + 1, &filename[n]);
-        
-        print(filename, sizeof(filename) + 1);
-        printSpace(1);
-        
-        // Directory listing
-        print(msgDirectoryListing, sizeof(msgDirectoryListing));
+        ListDirectory(fileAddress);
         
         numberOfDirs++;
         
@@ -296,48 +312,14 @@ void functionLS(uint8_t* param, uint8_t param_length) {
 		if (flagClaimed != 0) 
             continue;
         
-        // Attributes
-        
-        for (uint8_t a=0; a < 4; a++) 
-            fs_read_byte(fileAddress + a + FILE_OFFSET_ATTRIBUTES, &attributes[a]);
-        
         // Check is directory
+        uint8_t attributes[4];
+        GetAttributes(fileAddress, attributes);
+        
         if (attributes[3] == 'd') 
             continue;
         
-        print(&attributes[0], 4);
-        printSpace(1);
-        
-        // Name
-        for (uint8_t n=0; n < 10; n++) 
-            filename[n] = ' ';
-        
-        for (uint8_t n=0; n < 10; n++) 
-            fs_read_byte(fileAddress + n + 1, &filename[n]);
-        
-        print(filename, sizeof(filename) + 1);
-        printSpace(1);
-        
-        // Size in bytes
-        union Pointer ptr;
-        
-        for (uint8_t s=0; s < 4; s++) 
-            fs_read_byte(fileAddress + s + FILE_OFFSET_SIZE, &ptr.byte_t[s]);
-        
-        uint8_t filesizeString[10];
-        
-        uint8_t len = int_to_string( ptr.address, filesizeString ) + 1;
-        
-        if (len > 6) 
-            len = 6;
-        
-        uint8_t offset = 6 - len;
-        
-        if (offset > 5) 
-            offset = 5;
-        
-        printSpace(offset);
-        print(filesizeString, len);
+        ListFile(fileAddress);
         
         numberOfFiles++;
         

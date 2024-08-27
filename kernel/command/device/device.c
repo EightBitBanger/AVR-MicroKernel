@@ -6,53 +6,48 @@
 
 void functionDevice(uint8_t* param, uint8_t param_length) {
     
-    uint8_t msgPressAnyKey[]   = "Press any key...";
     
     uint8_t lineCount = 0;
     
-    if ((param[0] == 'd') & 
-        (param[1] == 'e') & 
-        (param[2] == 'v')) {
+    if ((param[0] == 'l') & 
+        (param[1] == 's')) {
         
-        uint8_t numberOfDevices = GetNumberOfDevices();
-        
-        for (uint8_t i=0; i < numberOfDevices; i++) {
+        //
+        // List device detected on the bus
+        if ((param[0] == 'l') & 
+            (param[1] == 's')) {
             
-            struct Device* devicePtr = GetHardwareDeviceByIndex(i);
+            uint8_t numberOfDevices = GetNumberOfDevices();
             
-            if (is_letter(&devicePtr->device_name[0]) == 0) 
-                continue;
-            
-            for (uint8_t a=0; a < DEVICE_NAME_LENGTH; a++) 
-                printChar(devicePtr->device_name[a]);
-            
-            printLn();
-            
-            if (lineCount > 1) {
+            for (uint8_t i=0; i < numberOfDevices; i++) {
                 
-                print(msgPressAnyKey, sizeof(msgPressAnyKey));
+                struct Device* devicePtr = GetHardwareDeviceByIndex(i);
                 
-                ConsoleSetCursorPosition( sizeof(msgPressAnyKey) - 1 );
+                if (is_letter(&devicePtr->device_name[0]) == 0) 
+                    continue;
                 
-                uint8_t keypress = ConsoleWait();
+                for (uint8_t a=0; a < DEVICE_NAME_LENGTH; a++) 
+                    printChar(devicePtr->device_name[a]);
                 
-                ConsoleSetCursorPosition(0);
+                printLn();
                 
-                for (uint8_t a=0; a < sizeof(msgPressAnyKey); a++) 
-                    printChar(' ');
+                lineCount++;
+                if (lineCount > 6) {
+                    
+                    if (printPause() == 1) 
+                        break;
+                    
+                    lineCount = 0;
+                    
+                    continue;
+                }
                 
-                ConsoleSetCursorPosition(0);
-                
-                lineCount = 0;
-                
-                if (keypress == 'c') 
-                    return;
-                
-                continue;
             }
             
-            lineCount++;
+            lineCount = 0;
         }
+        
+        
         
         return;
     }
@@ -61,9 +56,8 @@ void functionDevice(uint8_t* param, uint8_t param_length) {
     //
     // Display linked drivers
     
-    if ((param[0] == 'd') & 
-        (param[1] == 'r') & 
-        (param[2] == 'v')) {
+    if ((param[0] == 'l') & 
+        (param[1] == 's')) {
         
         uint8_t numberOfDrivers = GetNumberOfDrivers();
         
@@ -100,32 +94,18 @@ void functionDevice(uint8_t* param, uint8_t param_length) {
             
             printLn();
             
-            if (lineCount > 1) {
+            if (lineCount > 6) {
                 
-                print(msgPressAnyKey, sizeof(msgPressAnyKey));
-                
-                ConsoleSetCursorPosition( sizeof(msgPressAnyKey) - 1 );
-                
-                uint8_t keypress = ConsoleWait();
-                
-                ConsoleSetCursorPosition(0);
-                
-                for (uint8_t a=0; a < sizeof(msgPressAnyKey); a++) 
-                    printChar(' ');
-                
-                ConsoleSetCursorPosition(0);
-                
-                lineCount = 0;
-                
-                if (keypress == 'c') 
-                    return;
+                printPause();
                 
                 continue;
             }
             
             lineCount++;
+            
         }
         
+        lineCount = 0;
         return;
     }
     

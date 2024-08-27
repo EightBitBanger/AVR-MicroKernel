@@ -31,8 +31,8 @@ uint8_t console_prompt_length = 1;
 
 uint8_t cursor_blink_rate = CURSOR_BLINK_RATE;
 
-uint16_t displayRows    = 4;
-uint16_t displayColumbs = 20;
+uint16_t displayRows    = 8;
+uint16_t displayColumbs = 21;
 
 struct Driver* displayDevice;
 struct Driver* keyboadDevice;

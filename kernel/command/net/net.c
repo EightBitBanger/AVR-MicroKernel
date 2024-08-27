@@ -10,6 +10,7 @@
 
 uint8_t clientAddress[2] = {24, 0};
 uint8_t targetAddress[2] = {0x80, 0x80};
+uint8_t isInitiated = 0;
 
 void functionNet(uint8_t* param, uint8_t param_length) {
     
@@ -28,25 +29,21 @@ void functionNet(uint8_t* param, uint8_t param_length) {
     // Initiate the network card
     //
     
-    if ((param[0] == 'i') & (param[1] == 'n') & (param[2] == 'i') & (param[3] == 't')) {
+    if (isInitiated == 0) {
         
-        uint8_t retval = ntInit();
-        
-        if (retval == 1) {
-            uint8_t msgInitiated[] = "Device ready";
-            print(msgInitiated, sizeof(msgInitiated));
-        }
-        
-        if (retval == 0) {
+        if (ntInit() == 0) {
+            
             uint8_t msgInitiated[] = "Initiation failed";
             print(msgInitiated, sizeof(msgInitiated));
+            
+            printLn();
+            
+            return;
         }
         
-        printLn();
+        isInitiated = 1;
         
-        return;
     }
-    
     
     //
     // Check device initiated
@@ -90,6 +87,8 @@ void functionNet(uint8_t* param, uint8_t param_length) {
             if (param[5] == '9') {msg[11] = '1'; msg[12] = '2'; msg[13] = '5'; msg[14] = 'K'; ntSetBaudRate(9);}
             
         }
+        
+        ConsoleSetCursorPosition();
         
         print(msg, sizeof(msg));
         printLn();
@@ -327,16 +326,19 @@ void functionNet(uint8_t* param, uint8_t param_length) {
                     uint8_t addrStrLow[8];
                     uint8_t addrStrHigh[8];
                     
-                    int_to_string(packet.addr_d[0], addrStrLow);
-                    int_to_string(packet.addr_d[1], addrStrHigh);
+                    uint8_t lenA = int_to_string(packet.addr_d[0], addrStrLow);
+                    uint8_t lenB = int_to_string(packet.addr_d[1], addrStrHigh);
                     
                     print(msgReplyFrom, sizeof(msgReplyFrom));
-                     
+                    
+                    ConsoleSetCursorPosition(sizeof(msgReplyFrom)-1);
                     print(addrStrLow, 4);
                     
+                    ConsoleSetCursorPosition(sizeof(msgReplyFrom)+lenA-1);
                     uint8_t msgPeriod[] = ".";
                     print(msgPeriod, sizeof(msgPeriod));
                     
+                    ConsoleSetCursorPosition(sizeof(msgReplyFrom)+lenA+lenB-3);
                     print(addrStrHigh, 4);
                     
                     printLn();
@@ -408,7 +410,7 @@ void functionNet(uint8_t* param, uint8_t param_length) {
     
     
     //
-    // Check for any packets
+    // Source and destination
     //
     
     if ((param[0] == 's') & (param[1] == 'r') & (param[2] == 'c')) {
@@ -452,8 +454,10 @@ void functionNet(uint8_t* param, uint8_t param_length) {
         if (placeDstB == 0) placeDstB++;
         
         print(msgAddressDestA, placeDstA+1);
+        ConsoleSetCursorPosition(placeDstA);
         uint8_t msgPeriod[] = ".";
         print(msgPeriod, sizeof(msgPeriod));
+        ConsoleSetCursorPosition(placeDstA+1);
         print(msgAddressDestB, placeDstB+1);
         
         printLn();
@@ -502,8 +506,10 @@ void functionNet(uint8_t* param, uint8_t param_length) {
         if (placeDstB == 0) placeDstB++;
         
         print(msgAddressDestA, placeDstA+1);
+        ConsoleSetCursorPosition(placeDstA);
         uint8_t msgPeriod[] = ".";
         print(msgPeriod, sizeof(msgPeriod));
+        ConsoleSetCursorPosition(placeDstA+1);
         print(msgAddressDestB, placeDstB+1);
         
         printLn();

@@ -4,6 +4,9 @@
 
 #include <kernel/command/cli.h>
 
+uint8_t msgDeviceNotReady[] = "Device not ready";
+uint8_t msgBadCommand[] = "Bad cmd or filename";
+
 extern uint32_t fs_working_directory_address;
 
 extern uint16_t display_width;
@@ -37,8 +40,6 @@ extern struct Driver* keyboadDevice;
 
 extern struct ConsoleCommand CommandRegistry[CONSOLE_FUNCTION_TABLE_SIZE];
 
-uint8_t new_line = 0;
-
 
 void cliRunShell(void) {
     
@@ -56,6 +57,7 @@ void cliRunShell(void) {
     if (scanCode == 0x12) 
         shiftState = 0;
     
+    
     //
     // Return
     //
@@ -65,14 +67,30 @@ void cliRunShell(void) {
         printLn();
         ConsoleSetCursorPosition(0);
         
-        uint8_t isRightFunction = 0;
-        uint8_t parameters_begin = 0;
-        
         // Save last entered command string
         for (uint8_t a=0; a <= console_string_length; a++) 
             console_string_old[a] = console_string[a];
         
         console_string_length_old = console_string_length;
+        
+        // Get the filename and parameters
+        uint8_t filename_length = 0;
+        uint8_t parameters_begin = 0;
+        
+        for (uint8_t i=0; i <= console_string_length; i++) {
+            
+            if (console_string[i] != ' ') 
+                continue;
+            
+            filename_length  = i + 1;
+            parameters_begin = i + 1;
+            
+            if (filename_length > FILE_NAME_LENGTH) 
+                filename_length = FILE_NAME_LENGTH;
+            
+            break;
+        }
+        
         
         //
         // Check special character functionality
@@ -90,32 +108,28 @@ void cliRunShell(void) {
                 
                 fsSetDeviceLetter( console_string[0] );
                 
-                uint8_t consolePrompt[2];
-                consolePrompt[0] = console_string[0];
-                consolePrompt[1] = '>';
+                uint8_t consolePrompt[] = {console_string[0], '>'};
                 
                 ConsoleSetPrompt(consolePrompt, 3);
                 
                 ConsoleSetCursorPosition(2);
-                ConsoleClearKeyboardString();
                 
                 fsClearWorkingDirectory();
                 fsWorkingDirectorySetStack(0);
                 
                 console_string_length = 0;
-                
             }
             
-            printPrompt();
-            
-            return;
         }
         
+        
+        //
         // Look up function name
+        
+        uint8_t bad_command = 1;
+        uint8_t parameters_begin_chk = 0;
+        
         for (uint8_t i=0; i < CONSOLE_FUNCTION_TABLE_SIZE; i++) {
-            
-            isRightFunction = 1;
-            parameters_begin = 0;
             
             for (uint8_t n=0; n < CONSOLE_FUNCTION_NAME_LENGTH; n++) {
                 
@@ -123,102 +137,86 @@ void cliRunShell(void) {
                 lowercase(&consoleChar);
                 
                 if (CommandRegistry[i].name[n] != consoleChar) {
+                    bad_command = 1;
+                    break;
+                }
+                
+                
+                if ((is_symbol(&console_string[n+1]) == 1) | 
+                    (CommandRegistry[i].name[n] == ' ')) {
                     
-                    isRightFunction = 0;
-                    parameters_begin = 0;
+                    if (parameters_begin_chk == 0) 
+                        parameters_begin_chk = n + 1;
                     
                     break;
                 }
                 
-                if (CommandRegistry[i].name[n] == ' ') {
-                    
-                    if (parameters_begin == 0) 
-                        parameters_begin = n + 1;
-                    
-                    break;
-                }
-                
-                if (is_symbol(&console_string[n+1]) == 1) {
-                    
-                    if (parameters_begin == 0) 
-                        parameters_begin = n + 1;
-                    
-                    break;
-                }
-                
-                continue;
+                bad_command = 0;
             }
             
-            if (isRightFunction == 0)
+            if (bad_command == 1) 
                 continue;
+            
+            if (parameters_begin_chk != 0) 
+                parameters_begin = parameters_begin_chk;
             
             // Run the function
             if (CommandRegistry[i].function != nullptr) 
                 CommandRegistry[i].function( &console_string[parameters_begin], (console_string_length + 1) - parameters_begin );
             
-            console_string_length = 0;
-            
-            printPrompt();
-            
-            ConsoleClearKeyboardString();
-            
             break;
         }
-        
         
         //
         // Check file executable
         
-        // Get parameters
-        uint8_t filename[CONSOLE_STRING_LENGTH];
-        for (uint8_t i=0; i < CONSOLE_STRING_LENGTH; i++) 
-            filename[i] = ' ';
-        
-        for (uint8_t i=0; i < CONSOLE_STRING_LENGTH; i++) {
+        if ((bad_command == 1) & (console_string_length > 0)) {
             
-            filename[i] = console_string[i];
+            // Check the device is ready
+            if (fsCheckDeviceReady() == 0) {
+                
+                print(msgDeviceNotReady, sizeof(msgDeviceNotReady));
+                printLn();
+                
+                ConsoleClearKeyboardString();
+                console_string_length = 0;
+                printPrompt();
+                
+                return;
+            }
             
-            if (console_string[i] != ' ') 
-                continue;
+            // Check file exists in working directory
+            uint32_t fileAddress = fsFileExists(console_string, filename_length);
             
-            parameters_begin = i + 1;
-            break;
-        }
-        
-        if (parameters_begin > FILE_NAME_LENGTH) 
-            parameters_begin = FILE_NAME_LENGTH;
-        
-        // Check file exists in working directory
-        uint32_t fileAddress = fsFileExists(filename, parameters_begin);
-        
-        if (fileAddress > 0) {
-            
-            // Check file is executable
-            struct FSAttribute attribute;
-            fsFileGetAttributes(fileAddress, &attribute);
-            
-            // Check executable
-            if (attribute.executable == 'x') {
+            if (fileAddress > 0) {
                 
-                fsFileOpen(fileAddress);
+                // Check file is executable
+                struct FSAttribute attribute;
+                fsFileGetAttributes(fileAddress, &attribute);
                 
-                union Pointer fileSizePtr;
-                for (uint8_t i=0; i < 4; i++) 
-                    fs_read_byte(fileAddress + FILE_OFFSET_SIZE + i, &fileSizePtr.byte_t[i]);
-                
-                uint32_t programSize = fileSizePtr.address;
-                
-                uint8_t programBuffer[programSize];
-                
-                // Load the file
-                fsFileRead(programBuffer, programSize);
-                
-                fsFileClose();
-                
-                // Emulate the code
-                EmulateX4(&programBuffer[0], programSize);
-                
-                isRightFunction = 1;
+                // Check executable
+                if (attribute.executable == 'x') {
+                    
+                    fsFileOpen(fileAddress);
+                    
+                    union Pointer fileSizePtr;
+                    for (uint8_t i=0; i < 4; i++) 
+                        fs_read_byte(fileAddress + FILE_OFFSET_SIZE + i, &fileSizePtr.byte_t[i]);
+                    
+                    uint32_t programSize = fileSizePtr.address;
+                    
+                    uint8_t programBuffer[programSize];
+                    
+                    // Load the file
+                    fsFileRead(programBuffer, programSize);
+                    
+                    fsFileClose();
+                    
+                    // Emulate the code
+                    EmulateX4(&programBuffer[0], programSize);
+                    
+                    bad_command = 0;
+                }
                 
             }
             
@@ -227,12 +225,11 @@ void cliRunShell(void) {
         //
         // Bad command or filename
         
-        if ((isRightFunction == 0) & (console_string_length > 0)) {
+        if ((bad_command == 1) & (console_string_length > 0)) {
             
             ConsoleSetCursor(console_line, 0);
             
-            uint8_t badCommandOrFilename[] = "Bad cmd or filename";
-            print( badCommandOrFilename, sizeof(badCommandOrFilename) );
+            print( msgBadCommand, sizeof(msgBadCommand) );
             
             printLn();
             
@@ -260,6 +257,15 @@ void cliRunShell(void) {
             console_string[ console_string_length - 1 ] = ' ';
             
             // Decrement the console string length
+            if (console_position == 0) {
+                
+                console_line--;
+                console_position=21;
+                
+                displayDevice->write( 0x00001, console_line);
+                
+            }
+            
             console_string_length--;
             console_position--;
             
@@ -271,18 +277,19 @@ void cliRunShell(void) {
         
     }
     
+    
     //
     // Add the character
+    //
     
     if (scanCode > 0x19) {
         
+        if (console_string_length >= CONSOLE_STRING_LENGTH) 
+            return;
+        
         if (shiftState == 1) {
             
-            if (is_letter(&scanCode) == 1) {
-                
-                scanCode -= 0x20;
-                
-            } else {
+            if (is_letter(&scanCode) == 0) {
                 
                 if ((scanCode == '[') | (scanCode == ']')) scanCode += 0x20;
                 
@@ -316,20 +323,18 @@ void cliRunShell(void) {
         }
         
         console_string[console_string_length] = scanCode;
-        
-        displayDevice->write( 0x0000a, scanCode);
+        printChar(scanCode);
         
         console_string_length++;
         
-        console_position++;
-        displayDevice->write( 0x00002, console_position);
+        ConsoleSetCursorPosition(console_position);
         
-        if (console_position >= 21) {
+        if (console_position >= displayColumbs) {
             
             printLn();
             
             console_position = 0;
-            displayDevice->write( 0x00002, console_position);
+            ConsoleSetCursorPosition(console_position);
             
         }
         
