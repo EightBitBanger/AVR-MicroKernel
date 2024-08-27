@@ -18,8 +18,7 @@ void (*interrupt_vector_table[INTERRUPT_VECTOR_TABLE_SIZE])(uint8_t);
 void kInit(void) {
     
     // Initiate console prompt
-    uint8_t prompt[] = " >";
-    prompt[0] = fsGetDeviceRoot();
+    uint8_t prompt[] = {fsGetDeviceRoot(), '>'};
     
     ConsoleSetPrompt(prompt, sizeof(prompt));
     
@@ -33,10 +32,9 @@ void kInit(void) {
     
     
     
-    
     //
     // Executable example
-    
+    /*
     uint8_t versionFileName[]  = "ver";
     
     uint8_t bufferTest[] = {0x89, 0x01,  9,   // Call to print a string to the display
@@ -108,6 +106,7 @@ void kInit(void) {
     fsFileWrite(bufferTest, sizeof(bufferTest));
     fsFileClose();
     
+    */
     
     
     
@@ -183,34 +182,233 @@ void kInit(void) {
     
     */
     
+    fsClearWorkingDirectory();
+    
+    
+    //
+    // Create devices directory
     
     fsClearWorkingDirectory();
+    
+    uint8_t devicesSubDirName[] = "devices";
+    fsDirectoryCreate(devicesSubDirName, sizeof(devicesSubDirName));
+    
+    fsChangeWorkingDirectory(devicesSubDirName, sizeof(devicesSubDirName));
     
     
     
     //
-    // Document example
+    // Create a file representation of devices on the bus
+    uint8_t numberOfDevices = GetNumberOfDevices();
     
-    uint8_t docFileName[]  = "doc";
-    uint32_t docFileAddress = fsFileCreate(docFileName, sizeof(docFileName), 140);
+    for (uint8_t i=0; i < numberOfDevices; i++) {
+        
+        struct Device* devicePtr = GetHardwareDeviceByIndex(i);
+        
+        if (devicePtr->device_name[0] == ' ') 
+            continue;
+        
+        if (devicePtr->device_id == 0) 
+            continue;
+        
+        uint8_t fileName[DEVICE_NAME_LENGTH];
+        uint8_t nameLength;
+        for (nameLength=0; nameLength < DEVICE_NAME_LENGTH; nameLength++) 
+            fileName[nameLength] = devicePtr->device_name[nameLength];
+        
+        uint32_t fileAddress = fsFileCreate(fileName, nameLength, 140);
+        
+        struct FSAttribute attribDoc;
+        attribDoc.executable = ' ';
+        attribDoc.readable   = 'r';
+        attribDoc.writeable  = ' ';
+        attribDoc.type       = ' ';
+        
+        fsFileSetAttributes(fileAddress, &attribDoc);
+        
+        fsFileOpen(fileAddress);
+        
+        // Device details
+        
+        uint8_t bufferDoc[] = "int 0x00\naddr 0x00000\n\0";
+        uint8_t addrString[2];
+        
+        // Int vector offset
+        int_to_hex_string(devicePtr->device_id, addrString);
+        bufferDoc[6] = addrString[0];
+        bufferDoc[7] = addrString[1];
+        // Hardware address
+        bufferDoc[16] = ('0' + (PERIPHERAL_ADDRESS_BEGIN / PERIPHERAL_STRIDE)) + devicePtr->hardware_slot;
+        
+        fsFileWrite(bufferDoc, sizeof(bufferDoc));
+        fsFileClose();
+        
+        continue;
+    }
     
-    struct FSAttribute attribDoc;
-    attribDoc.executable = ' ';
-    attribDoc.readable   = 'r';
-    attribDoc.writeable  = 'w';
-    attribDoc.type       = ' ';
     
-    fsFileSetAttributes(docFileAddress, &attribDoc);
+    fsClearWorkingDirectory();
     
-    fsFileOpen(docFileAddress);
-    uint8_t bufferDoc[] = "Line A\nNext Line\nLine C\nText chars\nLast Line\n\0";
+    uint8_t selectedDevice = 'x';
     
-    fsFileWrite(bufferDoc, sizeof(bufferDoc));
-    fsFileClose();
+#ifndef _BOOT_SAFEMODE__
     
+    // Boot from device
+    uint8_t driversDirName[] = "drivers";
+    uint8_t kconfigDirName[] = "kconfig";
     
+    //
+    // Check any active storage devices
+    for (uint8_t i=0; i < NUMBER_OF_PERIPHERALS; i++) {
+        
+        uint8_t currentDevice = i + 'a';
+        
+        fsSetDeviceLetter(currentDevice);
+        
+        if (fsCheckDeviceReady() == 0) 
+            continue;
+        
+        //
+        // Check KCONFIG
+        //
+        
+        uint32_t kconfigAddress = fsFileExists(kconfigDirName, sizeof(kconfigDirName)-1);
+        
+        if (kconfigAddress == 0) {
+            fsSetDeviceLetter('x');
+            continue;
+        }
+        
+        uint8_t kconfigBuffer[80];
+        
+        fsFileOpen(kconfigAddress);
+        
+        fsFileRead(kconfigBuffer, 30);
+        
+        fsFileClose();
+        
+        // Apply configuration settings from kconfig
+        
+        
+        
+        
+        //
+        // Locate drivers directory
+        //
+        
+        uint32_t directoryAddress = fsDirectoryExists(driversDirName, sizeof(driversDirName)-1);
+        
+        // Directory does not exist
+        if (directoryAddress == 0) 
+            continue;
+        
+        fsChangeWorkingDirectory(driversDirName, sizeof(driversDirName));
+        
+        uint32_t numberOfFiles = fsWorkingDirectoryGetFileCount();
+        
+        for (uint32_t f=0; f < numberOfFiles; f++) {
+            
+            uint32_t fileAddress = fsWorkingDirectoryFind(f);
+            
+            if (fileAddress == 0) 
+                continue;
+            
+            uint8_t driverBuffer[30];
+            
+            fsFileOpen(fileAddress);
+            
+            fsFileRead(driverBuffer, 30);
+            
+            fsFileClose();
+            
+            uint8_t driverFilename[10];
+            uint8_t driverFilenameLength=0;
+            
+            for (uint32_t n=0; n < 10; n++) {
+                
+                fs_read_byte(fileAddress + FILE_OFFSET_NAME + n, &driverFilename[n]);
+                
+                if (driverFilename[n] == ' ') {
+                    driverFilenameLength = n;
+                    break;
+                }
+                
+            }
+            
+#ifdef _BOOT_DETAILS__
+            
+            for (uint32_t n=0; n < 10; n++) {
+                
+                printChar( driverBuffer[n + 2] );
+                
+                if (driverBuffer[n + 2] == ' ') 
+                    break;
+            }
+            
+#endif
+            
+            // Load the driver
+            uint8_t libState = LoadLibrary(driverFilename, driverFilenameLength);
+            
+#ifdef _BOOT_DETAILS__
+            
+            if (libState <= 0) {
+                uint8_t msgFailedToLoad[] = "... failed";
+                print(msgFailedToLoad, sizeof(msgFailedToLoad));
+            }
+            
+            printLn();
+            
+#endif
+            
+#ifndef _BOOT_DETAILS__
+            
+            if (libState <= 0) {
+                
+                for (uint32_t n=0; n < 10; n++) {
+                    
+                    printChar( driverBuffer[n + 2] );
+                    
+                    if (driverBuffer[n + 2] == ' ') 
+                        break;
+                }
+                
+                uint8_t msgFailedToLoad[] = "... failed";
+                
+                print(msgFailedToLoad, sizeof(msgFailedToLoad));
+                printLn();
+                
+            }
+            
+#endif
+            
+            continue;
+        }
+        
+        selectedDevice = currentDevice;
+        
+        break;
+    }
     
+#endif
     
+    uint8_t promptDevLetter[] = "X>";
+    
+    if (selectedDevice == 0) {
+        
+        fsSetDeviceLetter('x');
+        
+    } else {
+        
+        fsSetDeviceLetter(selectedDevice);
+        uppercase(&selectedDevice);
+        
+        promptDevLetter[0] = selectedDevice;
+    }
+    
+    ConsoleSetPrompt(promptDevLetter, sizeof(promptDevLetter));
+    
+    fsClearWorkingDirectory();
     
     return;
 }

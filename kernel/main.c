@@ -1,7 +1,5 @@
 #include <kernel/main.h>
 
-extern uint8_t console_prompt[16];
-
 int main(void) {
     
     // Zero the system bus
@@ -85,18 +83,19 @@ int main(void) {
     
   #ifdef INCLUDE_KERNEL_APPLICATIONS
     
-    //registerCommandDevice();
     //registerCommandCAP();
     //registerCommandList();
     //registerCommandTASK();
     //registerCommandType();
     
-    registerCommandLD();
+    //registerCommandLD();
     
     //registerCommandEDIT();
     //registerCommandAssembly();
     
     registerCommandCLS();
+    
+    //registerCommandGRAPHICS();
     
   #endif
     
@@ -127,173 +126,10 @@ int main(void) {
     
 #endif
     
+    
     //
     // Boot the kernel
     // 
-    
-#ifndef _BOOT_SAFEMODE__
-    
-    // Boot from device
-    uint8_t driversDirName[] = "drivers";
-    uint8_t kconfigDirName[] = "kconfig";
-    
-    uint8_t bootDeviceLetter = 0;
-    
-    
-    //
-    // Check any active storage devices
-    
-    for (uint8_t i=0; i < NUMBER_OF_PERIPHERALS; i++) {
-        
-        fsSetDeviceLetter(i + 'a');
-        
-        if (fsCheckDeviceReady() == 0) 
-            continue;
-        
-        //
-        // Check KCONFIG
-        
-        uint32_t kconfigAddress = fsFileExists(kconfigDirName, sizeof(kconfigDirName)-1);
-        if (kconfigAddress == 0) 
-            continue;
-        
-        uint8_t kconfigBuffer[80];
-        
-        fsFileOpen(kconfigAddress);
-        
-        fsFileRead(kconfigBuffer, 30);
-        
-        fsFileClose();
-        
-        // Configuration settings
-        
-        
-        
-        
-        
-        
-        // Locate drivers directory
-        uint32_t directoryAddress = fsDirectoryExists(driversDirName, sizeof(driversDirName)-1);
-        
-        // Directory does not exist
-        if (directoryAddress == 0) 
-            continue;
-        
-        if (bootDeviceLetter == 0) 
-            bootDeviceLetter = i + 'A';
-        
-        fsChangeWorkingDirectory(driversDirName, sizeof(driversDirName));
-        
-        uint32_t numberOfFiles = fsWorkingDirectoryGetFileCount();
-        
-        for (uint32_t f=0; f < numberOfFiles; f++) {
-            
-            uint32_t fileAddress = fsWorkingDirectoryFind(f);
-            
-            if (fileAddress == 0) 
-                continue;
-            
-            uint8_t driverBuffer[30];
-            
-            fsFileOpen(fileAddress);
-            
-            fsFileRead(driverBuffer, 30);
-            
-            fsFileClose();
-            
-            uint8_t driverFilename[10];
-            uint8_t driverFilenameLength=0;
-            
-            for (uint32_t n=0; n < 10; n++) {
-                
-                fs_read_byte(fileAddress + FILE_OFFSET_NAME + n, &driverFilename[n]);
-                
-                if (driverFilename[n] == ' ') {
-                    driverFilenameLength = n;
-                    break;
-                }
-                
-            }
-            
-#ifdef _BOOT_DETAILS__
-            
-            for (uint32_t n=0; n < 10; n++) {
-                
-                printChar( driverBuffer[n + 2] );
-                
-                if (driverBuffer[n + 2] == ' ') 
-                    break;
-            }
-            
-#endif
-            
-            // Load the driver
-            uint8_t libState = LoadLibrary(driverFilename, driverFilenameLength);
-            
-#ifdef _BOOT_DETAILS__
-            
-            if (libState <= 0) {
-                uint8_t msgFailedToLoad[] = "... failed";
-                print(msgFailedToLoad, sizeof(msgFailedToLoad));
-            }
-            
-            printLn();
-            
-#endif
-            
-#ifndef _BOOT_DETAILS__
-            
-            if (libState <= 0) {
-                
-                for (uint32_t n=0; n < 10; n++) {
-                    
-                    printChar( driverBuffer[n + 2] );
-                    
-                    if (driverBuffer[n + 2] == ' ') 
-                        break;
-                }
-                
-                uint8_t msgFailedToLoad[] = "... failed";
-                
-                print(msgFailedToLoad, sizeof(msgFailedToLoad));
-                printLn();
-                
-            }
-            
-#endif
-            
-            if (bootDeviceLetter != 0) 
-                break;
-            
-            continue;
-        }
-        
-        // Set current directory
-        
-        if (bootDeviceLetter != 0) {
-            
-            console_prompt[0] = bootDeviceLetter;
-            
-            fsSetDeviceLetter(bootDeviceLetter);
-            
-            break;
-        } else {
-            
-            bootDeviceLetter = 'x';
-            
-            fsSetDeviceLetter('x');
-        }
-        
-        continue;
-    }
-    
-    fsSetDeviceLetter(bootDeviceLetter);
-    
-    fsClearWorkingDirectory();
-    
-#endif
-    
-    
     
 #ifdef _KERNEL_PRINT_VERSION_INFORMATION__
     ConsoleSetBlinkRate( CURSOR_BLINK_RATE );

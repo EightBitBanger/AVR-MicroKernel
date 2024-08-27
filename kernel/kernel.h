@@ -37,6 +37,8 @@
 #include <kernel/syscalls/beep/beep.h>
 #include <kernel/syscalls/switch/switch.h>
 
+#define nullptr          0x00000000
+
 
 void kInit(void);
 

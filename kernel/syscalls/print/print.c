@@ -19,52 +19,6 @@ extern struct Driver* displayDevice;
 extern struct Driver* keyboadDevice;
 
 
-void printk(uint8_t* string) {
-    
-    /*
-    
-    uint8_t pos = 0;
-    uint8_t line = 0;
-    
-    for (uint16_t i=0; i < 1024; i++) {
-        
-        // Null terminate
-        if (string[i] == '\0') 
-            return;
-        
-        // New line
-        if (string[i] == '\n') {
-            
-            if (line < 3) {
-                
-                line++;
-                displayDevice->write( 160, line);
-                
-            } else {
-                
-                // Otherwise shift the frame down
-                displayDevice->write( 169, 0x01);
-                _delay_ms(40);
-            }
-            
-            pos = 0;
-            
-            continue;
-        }
-        
-        displayDevice->write( pos + (displayColumbs * line), string[i] );
-        
-        pos++;
-        
-        continue;
-    }
-    
-    ConsoleSetCursor(console_line, console_position);
-    */
-    
-    return;
-}
-
 void print(uint8_t* string, uint8_t length) {
     
     displayDevice->write( 0x00001, console_line );
@@ -91,7 +45,6 @@ void printInt(uint32_t integer) {
         printChar('0');
         
         return;
-        
     }
     
     displayDevice->write( 0x00001, console_line );
@@ -140,7 +93,7 @@ void printChar(uint8_t character) {
 
 void printLn(void) {
     
-    if (console_line < 7) {
+    if (console_line < (displayRows - 1)) {
         
         console_line++;
         
@@ -191,5 +144,24 @@ void printPrompt(void) {
     ConsoleSetCursorPosition(console_position);
     
     return;
+}
+
+uint8_t printPause(void) {
+    
+    uint8_t msgPressAnyKey[]   = "Press any key...";
+    print(msgPressAnyKey, sizeof(msgPressAnyKey));
+    
+    ConsoleSetCursorPosition( sizeof(msgPressAnyKey) - 1 );
+    
+    uint8_t keypress = ConsoleWait();
+    
+    ConsoleSetCursorPosition(0);
+    
+    for (uint8_t a=0; a < sizeof(msgPressAnyKey); a++) 
+        printChar(' ');
+    
+    ConsoleSetCursorPosition(0);
+    
+    return keypress;
 }
 

@@ -24,6 +24,8 @@
   
   #include <kernel/command/type/type.h>
   
+  #include <kernel/command/graph/graph.h>
+  
 #endif
 
 
