@@ -84,7 +84,7 @@ int main(void) {
   #ifdef INCLUDE_KERNEL_APPLICATIONS
     
     //registerCommandCAP();
-    //registerCommandList();
+    registerCommandList();
     //registerCommandTASK();
     //registerCommandType();
     
@@ -112,8 +112,8 @@ int main(void) {
     //registerCommandCOPY();
     registerCommandCD();
     
-    //registerCommandMK();
-    //registerCommandRM();
+    registerCommandMK();
+    registerCommandRM();
     //registerCommandRN();
     //registerCommandMKDIR();
     //registerCommandRMDIR();
