@@ -16,6 +16,8 @@ uint32_t fsAllocate(uint32_t size) {
 	for (uint32_t i=0; i < size; i += (SECTOR_SIZE - 1)) 
 		totalSectors++;
 	
+	// Does not work - totalSectors = (size / (SECTOR_SIZE - 1));
+	
 	// Minimum of one sector
 	if (totalSectors == 0) 
 		totalSectors = 1;
