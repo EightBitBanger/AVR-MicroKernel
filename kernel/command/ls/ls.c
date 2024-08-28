@@ -122,7 +122,6 @@ void functionLS(uint8_t* param, uint8_t param_length) {
         printChar(attributes[0]);
         printChar(attributes[1]);
         printChar(attributes[2]);
-        printChar(attributes[3]);
         printSpace(1);
         
         // Name
@@ -130,7 +129,7 @@ void functionLS(uint8_t* param, uint8_t param_length) {
         GetName(fileAddress, filename);
         
         print(filename, sizeof(filename) + 1);
-        printSpace(1);
+        printSpace(2);
         
         print(msgDirectoryListing, sizeof(msgDirectoryListing));
         

@@ -88,7 +88,7 @@ void functionNet(uint8_t* param, uint8_t param_length) {
             
         }
         
-        ConsoleSetCursorPosition();
+        //ConsoleSetCursorPosition();
         
         print(msg, sizeof(msg));
         printLn();

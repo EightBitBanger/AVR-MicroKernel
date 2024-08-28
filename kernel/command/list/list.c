@@ -28,11 +28,11 @@ void functionList(uint8_t* param, uint8_t param_length) {
     }
     
     
-    uint8_t buffer[60];
+    uint8_t buffer[200];
     
-    uint8_t pageSize = 60;
+    uint8_t pageSize = 20 * 8;
     
-    for (uint8_t i=0; i < 60; i++) {
+    for (uint8_t i=0; i < pageSize; i++) {
         
         fs_read_byte((page * pageSize) + i, &buffer[i]);
         
@@ -63,7 +63,7 @@ void functionList(uint8_t* param, uint8_t param_length) {
         
         // Print as text
         
-        for (uint8_t i=0; i < 3; i++) {
+        for (uint8_t i=0; i < 7; i++) {
             
             print( &buffer[20 * i], 21 );
             
