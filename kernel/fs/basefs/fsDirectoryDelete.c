@@ -33,7 +33,7 @@ uint8_t fsDirectoryDelete(uint8_t* name, uint8_t nameLength) {
         for (uint8_t f=0; f < 4; f++) 
             filePtr.byte_t[f] = fileBuffer[(i * 4) + f];
         
-        fs_write_byte(filePtr.address + DIRECTORY_OFFSET_FLAG, 0);
+        fs_write_byte(filePtr.address + DIRECTORY_FLAG, 0);
         
         continue;
     }

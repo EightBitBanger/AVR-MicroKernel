@@ -90,7 +90,7 @@ uint32_t fsFileExists(uint8_t* name, uint8_t nameLength) {
         
         // Check file belongs to root
         uint8_t flag = 0;
-        fs_read_byte(currentSector + DIRECTORY_OFFSET_FLAG, &flag);
+        fs_read_byte(currentSector + DIRECTORY_FLAG, &flag);
         
         if (flag != 0) 
             continue;

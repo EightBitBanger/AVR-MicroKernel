@@ -32,7 +32,7 @@
 #define FILE_OFFSET_ATTRIBUTES    15 // 4 bytes
 
 #define DIRECTORY_OFFSET_SIZE     19 // uint32
-#define DIRECTORY_OFFSET_FLAG     23 // uint8
+#define DIRECTORY_FLAG            23 // uint8
 
 // Attributes
 
