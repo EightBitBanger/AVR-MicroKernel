@@ -26,6 +26,8 @@
   
   #include <kernel/command/graph/graph.h>
   
+  #include <kernel/command/mandelbrot/mandelbrot.h>
+  
 #endif
 
 
@@ -56,11 +58,4 @@
   #include <kernel/command/format/format.h>
   
 #endif
-
-
-//
-// Included drivers
-
-#include <drivers/display/LiquidCrystalDisplayController/main.h>
-#include <drivers/keyboard/ps2/main.h>
 

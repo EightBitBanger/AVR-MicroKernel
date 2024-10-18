@@ -5,19 +5,19 @@ int main(void) {
     // Zero the system bus
     bus_control_zero();
     bus_address_zero();
+    bus_initiate();
     
     // Allow board some time to stabilize
     _delay_ms(1000);
     
-    // Device drivers
-	initiateDisplayDriver();      // 20x4 LCD Display
-	initiatePS2Driver();          // PS/2 Port
+    // Kernel baked device drivers
+	initBakedDrivers();
 	
 	// Initiate core kernel systems
 	initiateDeviceTable();        // Hardware device table
     kernelVectorTableInit();      // Hardware interrupt vector table
     schedulerInit();              // Scheduler sub system
-    driverInit();                 // Driver hot loader
+    DriverTableInit();            // Driver hot loader
     
 #ifdef NETWORK_APPLICATION_PACKET_ROUTER
     
@@ -79,23 +79,33 @@ int main(void) {
     
 #endif
     
+    
+    //registerCommandEDIT();
+    
+    /*
+    registerCommandList();
+    
+    registerCommandLS();
+    registerCommandCD();
+    
+    #define DONT_INCLUDE_CONSOLE_COMMANDS
+    */
+    
 #ifndef DONT_INCLUDE_CONSOLE_COMMANDS
     
   #ifdef INCLUDE_KERNEL_APPLICATIONS
     
-    //registerCommandCAP();
+    registerCommandCAP();
     registerCommandList();
-    //registerCommandTASK();
-    //registerCommandType();
+    registerCommandTASK();
+    registerCommandType();
     
-    //registerCommandLD();
+    registerCommandLD();
     
     //registerCommandEDIT();
     //registerCommandAssembly();
     
     registerCommandCLS();
-    
-    //registerCommandGRAPHICS();
     
   #endif
     
@@ -109,18 +119,18 @@ int main(void) {
   #ifdef INCLUDE_FILE_SYSTEM_APPLICATIONS
     
     registerCommandLS();
-    //registerCommandCOPY();
+    registerCommandCOPY();
     registerCommandCD();
     
     registerCommandMK();
     registerCommandRM();
-    //registerCommandRN();
-    //registerCommandMKDIR();
-    //registerCommandRMDIR();
+    registerCommandRN();
+    registerCommandMKDIR();
+    registerCommandRMDIR();
     
-    //registerCommandAttribute();
+    registerCommandAttribute();
     //registerCommandRepair();
-    //registerCommandFormat();
+    registerCommandFormat();
     
   #endif
     
@@ -152,6 +162,7 @@ int main(void) {
     printLn();
     
 #endif
+    
     
     // Drop the initial command prompt
     printPrompt();

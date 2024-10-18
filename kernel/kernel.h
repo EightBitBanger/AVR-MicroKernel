@@ -18,6 +18,8 @@
 #include <kernel/device/device.h>
 #include <kernel/driver/driver.h>
 
+#include <kernel/drivers.h>
+
 #include <kernel/cstring.h>
 
 #include <kernel/fs/fs.h>
@@ -33,11 +35,12 @@
 #include <kernel/scheduler.h>
 
 // System subroutine calls
+#include <kernel/syscalls/alloc/new.h>
 #include <kernel/syscalls/print/print.h>
 #include <kernel/syscalls/beep/beep.h>
 #include <kernel/syscalls/switch/switch.h>
 
-#define nullptr          0x00000000
+#define nullptr  0x00000000
 
 
 void kInit(void);

@@ -22,12 +22,8 @@ void kInit(void) {
     
     ConsoleSetPrompt(prompt, sizeof(prompt));
     
-    // Initiate temporary storage
+    // Initiate external storage
     fsFormat(0, FORMAT_CAPACITY_8K);
-    
-    
-    
-    
     
     
     
@@ -274,8 +270,12 @@ void kInit(void) {
         
         uint32_t kconfigAddress = fsFileExists(kconfigDirName, sizeof(kconfigDirName)-1);
         
+        // Do not boot from device without
+        // a kconfig settings file
         if (kconfigAddress == 0) {
+            
             fsSetDeviceLetter('x');
+            
             continue;
         }
         
