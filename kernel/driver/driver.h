@@ -30,6 +30,9 @@ struct Driver {
     /// write a byte to the hardware device
     void(*write)(uint32_t address, uint8_t buffer);
     
+    /// Hardware interrupt callback
+    void(*interrupt_handler)(void);
+    
 };
 
 
@@ -42,7 +45,7 @@ struct Driver* GetDriverByIndex(uint8_t index);
 
 uint8_t RegisterDriver(void* deviceDriverPtr);
 
-void driverInit(void);
+void DriverTableInit(void);
 
 
 uint8_t GetNumberOfDrivers(void);

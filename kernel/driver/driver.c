@@ -8,7 +8,7 @@
  
  Driver file layout
     
-    Driver file ID         2 byte
+    Driver file ID         2 bytes 'KD'
     
     Driver name           10 Bytes
     
@@ -27,7 +27,7 @@
     Hardware address       4 bytes
     
     
- Functions
+ Function blocks
     
     Number of addresses    4 bytes
     
@@ -228,7 +228,7 @@ uint8_t GetNumberOfDrivers(void) {
     return number_of_drivers;
 }
 
-void driverInit(void) {
+void DriverTableInit(void) {
     
     for (uint8_t i=0; i < DRIVER_TABLE_SIZE; i++) {
         

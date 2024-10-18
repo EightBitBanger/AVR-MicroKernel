@@ -270,7 +270,7 @@ void functionLS(uint8_t* param, uint8_t param_length) {
         // List the file
         
         // Check if the file is claimed by a directory
-        fs_read_byte(fileAddress + DIRECTORY_OFFSET_FLAG, &flagClaimed);
+        fs_read_byte(fileAddress + DIRECTORY_FLAG, &flagClaimed);
 		
 		if (flagClaimed != 0) 
             continue;
@@ -306,7 +306,7 @@ void functionLS(uint8_t* param, uint8_t param_length) {
         // List the file
         
         // Check if the file is claimed by a directory
-        fs_read_byte(fileAddress + DIRECTORY_OFFSET_FLAG, &flagClaimed);
+        fs_read_byte(fileAddress + DIRECTORY_FLAG, &flagClaimed);
 		
 		if (flagClaimed != 0) 
             continue;

@@ -46,7 +46,7 @@ uint8_t ConsoleRegisterCommand(uint8_t* name, uint8_t nameLength, void(*function
     uint8_t index = 0;
     for (uint8_t i=0; i < CONSOLE_FUNCTION_TABLE_SIZE; i++) {
         
-        // Is set to a valid value
+        // Check valid value
         if ((is_letter( &CommandRegistry[i].name[0] ) == 1) | 
             (is_number( &CommandRegistry[i].name[0] ) == 1))
             continue;
@@ -87,17 +87,16 @@ void cliInit(void) {
     
     lastChar = kbDecodeScanCode(oldScanCodeLow, oldScanCodeHigh);
     
-    for (uint8_t i=0; i < CONSOLE_STRING_LENGTH; i++) 
+    for (uint8_t i=0; i < CONSOLE_STRING_LENGTH; i++) {
         console_string[i] = ' ';
+    }
     
-    // Clear the function table
 	for (uint8_t i=0; i < CONSOLE_FUNCTION_TABLE_SIZE; i++) {
         
         for (uint8_t n=0; n < CONSOLE_FUNCTION_NAME_LENGTH; n++) 
             CommandRegistry[i].name[n] = ' ';
         
         CommandRegistry[i].function = nullptr;
-        
 	}
 	
 	uint8_t promptDeviceString[] = "A>";

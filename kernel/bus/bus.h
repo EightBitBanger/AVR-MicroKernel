@@ -1,22 +1,27 @@
 #ifndef __BUS_INTERFACE_
 #define __BUS_INTERFACE_
 
+struct Bus {
+    
+    /// Number of wait cycles to perform during the read operation
+    uint16_t read_waitstate;
+    
+    /// Number of wait cycles to perform during the write operation
+    uint16_t write_waitstate;
+    
+    /// Interface type
+    uint8_t bus_type;
+    
+};
+
+/// Initiate the bus for interfacing.
+void bus_initiate(void);
+
 /// Zero the control logic IO port.
 void bus_control_zero(void);
 
 /// Zero the address bus IO ports.
 void bus_address_zero(void);
-
-/// General purpose bus interface
-struct Bus {
-    
-    uint16_t read_waitstate;
-    
-    uint16_t write_waitstate;
-    
-    uint8_t bus_type;
-    
-};
 
 /// Read a byte from an address using the given bus.
 void bus_read_byte(struct Bus* bus, uint32_t address, uint8_t* buffer);

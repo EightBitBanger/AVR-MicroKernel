@@ -15,6 +15,12 @@
 
 #include <kernel/bus/bus.h>
 
+void bus_initiate(void) {
+    bus_control_zero();
+    bus_address_zero();
+    return;
+}
+
 void bus_control_zero(void) {
     
     DDRB = 0b00011001;
