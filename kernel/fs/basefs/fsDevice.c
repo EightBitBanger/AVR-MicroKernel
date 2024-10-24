@@ -68,8 +68,8 @@ void fsInit(void) {
     fsSetDeviceTypeMEM();
     fsSetDeviceRoot('X');
     
-    fs_bus.read_waitstate  = 8;
-    fs_bus.write_waitstate = 8;
+    fs_bus.read_waitstate  = 2;
+    fs_bus.write_waitstate = 2;
     
     return;
 }
@@ -100,6 +100,14 @@ void fsSetDeviceTypeMEM(void) {
     
     __fs_read_byte  = bus_read_memory;
     __fs_write_byte = bus_write_memory;
+    
+    return;
+}
+
+void fsSetDeviceTypeMEMDirect(void) {
+    
+    __fs_read_byte  = bus_raw_read_memory;
+    __fs_write_byte = bus_raw_write_memory;
     
     return;
 }

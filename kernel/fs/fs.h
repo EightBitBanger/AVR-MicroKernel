@@ -1,6 +1,8 @@
 #ifndef _FILE_SYSTEM_BASE__
 #define _FILE_SYSTEM_BASE__
 
+#include <kernel/fs/fsAttribute.h>
+
 //
 // File system selection
 
@@ -32,14 +34,7 @@
 #define FILE_OFFSET_ATTRIBUTES    15 // 4 bytes
 
 #define DIRECTORY_OFFSET_SIZE     19 // uint32
-#define DIRECTORY_FLAG            23 // uint8
-
-// Attributes
-
-#define FILE_ATTRIBUTE_FILETYPE   15
-#define FILE_ATTRIBUTE_READ       16
-#define FILE_ATTRIBUTE_WRITE      17
-#define FILE_ATTRIBUTE_SPECIAL    18
+#define DIRECTORY_OFFSET_FLAG     23 // uint8
 
 // Working directory
 #define WORKNG_DIRECTORY_STACK_SIZE    16
@@ -58,6 +53,7 @@ void fsSetDevice(uint32_t device_address);
 
 void fsSetDeviceTypeIO(void);
 void fsSetDeviceTypeMEM(void);
+void fsSetDeviceTypeMEMDirect(void);
 
 uint32_t fsGetDeviceCapacity(void);
 uint8_t fsCheckDeviceReady(void);
@@ -93,20 +89,6 @@ uint32_t fsDirectoryCreate(uint8_t* name, uint8_t nameLength);
 uint8_t fsDirectoryDelete(uint8_t* name, uint8_t nameLength);
 
 uint32_t fsDirectoryExists(uint8_t* name, uint8_t nameLength);
-
-
-
-// Attributes
-struct FSAttribute {
-    uint8_t executable;
-    uint8_t readable;
-    uint8_t writeable;
-    uint8_t type;
-};
-
-uint8_t fsFileSetAttributes(uint32_t address, struct FSAttribute* attributes);
-uint8_t fsFileGetAttributes(uint32_t address, struct FSAttribute* attributes);
-
 
 
 // IO

@@ -7,16 +7,13 @@ uint32_t fsAllocate(uint32_t size) {
     
     uint32_t currentCapacity = fsGetDeviceCapacity() / SECTOR_SIZE;
     
-    if (size == 0) 
+    if (size < 0) 
         size = 1;
     
     // Calculate sectors required to fit the file
-    // TODO: This is slow, optimize this out
     uint32_t totalSectors=0;
 	for (uint32_t i=0; i < size; i += (SECTOR_SIZE - 1)) 
 		totalSectors++;
-	
-	// Does not work - totalSectors = (size / (SECTOR_SIZE - 1));
 	
 	// Minimum of one sector
 	if (totalSectors == 0) 
@@ -64,7 +61,6 @@ uint32_t fsAllocate(uint32_t size) {
 			continue;
 		
         // Mark following sectors as taken
-        
         for (uint32_t i = 0; i <= totalSectors; i++) 
             fs_write_byte(fileTargetAddress + (i * SECTOR_SIZE), 0xff);
         
@@ -76,7 +72,7 @@ uint32_t fsAllocate(uint32_t size) {
 		fs_write_byte(fileTargetAddress, fileStartbyte);
 		
 		// Blank the file name
-		for (uint8_t i=0; i < 10; i++) 
+		for (uint8_t i=0; i < FILE_NAME_LENGTH; i++) 
             fs_write_byte(fileTargetAddress + i + FILE_OFFSET_NAME, ' ');
         
         // Set file size

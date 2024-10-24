@@ -81,7 +81,7 @@ uint32_t fsFileCreate(uint8_t* name, uint8_t nameLength, uint32_t fileSize) {
         flagClaimed = 1;
     }
     
-    fs_write_byte(fileAddress + DIRECTORY_FLAG, flagClaimed);
+    fs_write_byte(fileAddress + DIRECTORY_OFFSET_FLAG, flagClaimed);
     
     return fileAddress;
 }

@@ -3,8 +3,13 @@
 
 #include <kernel/kernel.h>
 
-uint32_t new(uint32_t size);
+uint32_t __new__(uint32_t size);
 
-void delete(uint32_t ptr);
+void __delete__(uint32_t ptr);
+
+
+#define new(sz)  __new__(sz)
+
+#define delete(ptr)  __delete__(ptr)
 
 #endif
