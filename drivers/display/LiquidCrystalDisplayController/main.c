@@ -28,8 +28,8 @@ void initiateDisplayDriver(void) {
 	
 	displayDriver->device.device_id = 0x10;
 	
-	displayDriver->interface.read_waitstate  = 10;
-	displayDriver->interface.write_waitstate = 10;
+	displayDriver->interface.read_waitstate  = 8;
+	displayDriver->interface.write_waitstate = 8;
     
     displayDriver->read  = __read_display_device;
     displayDriver->write = __write_display_device;
