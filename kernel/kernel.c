@@ -23,7 +23,7 @@ void kInit(void) {
     ConsoleSetPrompt(prompt, sizeof(prompt));
     
     // Initiate external storage
-    fsFormat(0, FORMAT_CAPACITY_8K);
+    fsFormat(0, FORMAT_CAPACITY_32K);
     
     
     
@@ -102,21 +102,6 @@ void kInit(void) {
     fsFileWrite(bufferTest, sizeof(bufferTest));
     fsFileClose();
     
-    */
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    /*
-    
     
     
     //
@@ -126,9 +111,6 @@ void kInit(void) {
     fsDirectoryCreate(directoryName, sizeof(directoryName));
     
     fsChangeWorkingDirectory(directoryName, sizeof(directoryName));
-    
-    
-    
     
     
     
@@ -174,12 +156,15 @@ void kInit(void) {
     fsFileWrite(bufferDrvNic, sizeof(bufferDrvNic));
     fsFileClose();
     
-    
-    
     */
     
-    fsClearWorkingDirectory();
     
+    
+    
+    
+    
+    
+    fsClearWorkingDirectory();
     
     //
     // Create devices directory
@@ -187,7 +172,7 @@ void kInit(void) {
     fsClearWorkingDirectory();
     
     uint8_t devicesSubDirName[] = "devices";
-    fsDirectoryCreate(devicesSubDirName, sizeof(devicesSubDirName));
+    uint32_t devicesDirectoryAddress = fsDirectoryCreate(devicesSubDirName, sizeof(devicesSubDirName));
     
     fsChangeWorkingDirectory(devicesSubDirName, sizeof(devicesSubDirName));
     
@@ -242,6 +227,13 @@ void kInit(void) {
         continue;
     }
     
+    struct FSAttribute attribDeviceDir;
+    attribDeviceDir.executable = ' ';
+    attribDeviceDir.readable   = 'r';
+    attribDeviceDir.writeable  = ' ';
+    attribDeviceDir.type       = 'd';
+    
+    fsFileSetAttributes(devicesDirectoryAddress, &attribDeviceDir);
     
     fsClearWorkingDirectory();
     
@@ -391,6 +383,7 @@ void kInit(void) {
     }
     
 #endif
+    
     
     uint8_t promptDevLetter[] = "X>";
     

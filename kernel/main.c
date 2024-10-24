@@ -70,7 +70,6 @@ int main(void) {
     fsInit();         // File system
     kInit();          // Setup the kernel environment
     
-    
 #ifdef NETWORK_APPLICATION_SERVER
     
     ntInit();
@@ -81,15 +80,19 @@ int main(void) {
     
     
     //registerCommandEDIT();
+    //registerCommandMandelbrot();
     
-    /*
-    registerCommandList();
     
     registerCommandLS();
     registerCommandCD();
+    //registerCommandRM();
+    //registerCommandCOPY();
+    registerCommandList();
+    
+    registerCommandTest();
     
     #define DONT_INCLUDE_CONSOLE_COMMANDS
-    */
+    
     
 #ifndef DONT_INCLUDE_CONSOLE_COMMANDS
     
@@ -106,6 +109,8 @@ int main(void) {
     //registerCommandAssembly();
     
     registerCommandCLS();
+    
+    registerCommandTest();
     
   #endif
     
@@ -167,16 +172,6 @@ int main(void) {
     // Drop the initial command prompt
     printPrompt();
     
-    
-    //
-    // Launch system tasks
-    
-    // Command console
-    //uint8_t taskname[] = "command";
-    //TaskCreate(taskname, sizeof(taskname), cliRunShell, TASK_PRIORITY_REALTIME, TASK_TYPE_SERVICE);
-    
-    
-    //
     // Hardware interrupt handling
     
     // Enable hardware interrupts
@@ -210,3 +205,4 @@ int main(void) {
     
     return 0;
 }
+

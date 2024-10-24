@@ -34,6 +34,8 @@
 
 #include <kernel/scheduler.h>
 
+#include <kernel/virtual/virtual.h>
+
 // System subroutine calls
 #include <kernel/syscalls/alloc/new.h>
 #include <kernel/syscalls/print/print.h>

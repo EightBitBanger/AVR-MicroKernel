@@ -28,6 +28,8 @@
   
   #include <kernel/command/mandelbrot/mandelbrot.h>
   
+  #include <kernel/command/test/test.h>
+  
 #endif
 
 

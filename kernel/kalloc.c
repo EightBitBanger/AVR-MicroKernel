@@ -29,8 +29,8 @@ void AllocateExternalMemory(void) {
     
     for (address=0x00000000; address < 0xffffffff; address+=512) {
         
-        bus_write_memory(&memoryBus, address, 0x55);
-        bus_read_memory(&memoryBus, address, &buffer);
+        bus_raw_write_memory(&memoryBus, address, 0x55);
+        bus_raw_read_memory(&memoryBus, address, &buffer);
         
         if (buffer != 0x55) 
             break;
