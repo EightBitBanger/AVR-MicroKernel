@@ -2,7 +2,7 @@
 
 extern "C" {
 #include <kernel/kernel.h>
-#include <kernel/string.h>
+#include <kernel/string.hpp>
 }
 
 string::string() : 
