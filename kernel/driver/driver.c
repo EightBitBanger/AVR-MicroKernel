@@ -97,8 +97,6 @@ int8_t LoadLibrary(uint8_t* filename, uint8_t filenameLength) {
         if (loaded_drivers[i].device.device_id != 0) 
             continue;
         
-        // Load the driver
-        
         // Name
         for (uint8_t a=0; a < DEVICE_NAME_LENGTH; a++) 
             loaded_drivers[i].device.device_name[a] = fileBuffer[a + 2];

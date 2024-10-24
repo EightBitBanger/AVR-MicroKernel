@@ -9,11 +9,8 @@ uint8_t mode = 0;
 
 void functionList(uint8_t* param, uint8_t param_length) {
     
-    if (is_number(&param[0]) == 1) {
-        
+    if (is_number(&param[0]) == 1) 
         page = param[0] - '0';
-        
-    }
     
     if (is_letter(&param[0]) == 1) {
         
@@ -32,11 +29,8 @@ void functionList(uint8_t* param, uint8_t param_length) {
     
     uint8_t pageSize = 20 * 8;
     
-    for (uint8_t i=0; i < pageSize; i++) {
-        
+    for (uint8_t i=0; i < pageSize; i++) 
         fs_read_byte((page * pageSize) + i, &buffer[i]);
-        
-    }
     
     page++;
     

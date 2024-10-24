@@ -44,6 +44,13 @@ void bus_read_memory(struct Bus* bus, uint32_t address, uint8_t* buffer);
 void bus_write_memory(struct Bus* bus, uint32_t address, uint8_t byte);
 
 
+/// Write a byte directory to memory bypassing caching.
+void bus_raw_write_memory(struct Bus* bus, uint32_t address, uint8_t byte);
+
+/// Read a byte directory from memory bypassing caching.
+void bus_raw_read_memory(struct Bus* bus, uint32_t address, uint8_t* buffer);
+
+
 /// Write a byte to an address using the given bus.
 /// 5 milliseconds wait state for EEPROM writes
 void bus_write_byte_eeprom(struct Bus* bus, uint32_t address, uint8_t byte);
