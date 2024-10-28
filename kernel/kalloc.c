@@ -19,24 +19,39 @@ void AllocateExternalMemory(void) {
         totalString[i] = 0x20;
     
     struct Bus memoryBus;
-	memoryBus.read_waitstate  = 10;
-	memoryBus.write_waitstate = 10;
+	memoryBus.read_waitstate  = 8;
+	memoryBus.write_waitstate = 8;
 	
     uint32_t address=0;
     uint16_t counter=0;
     
     uint8_t buffer=0;
     
-    for (address=0x00000000; address < 0xffffffff; address+=512) {
+    for (address=0x00000000; address < 0xffffffff; address += 8) {
         
-        bus_raw_write_memory(&memoryBus, address, 0x55);
-        bus_raw_read_memory(&memoryBus, address, &buffer);
+        uint8_t passed = 0;
         
-        if (buffer != 0x55) 
+        for (uint8_t retry=0; retry < 8; retry++) {
+            
+            bus_raw_write_memory(&memoryBus, address, 0x55);
+            bus_raw_read_memory(&memoryBus, address, &buffer);
+            
+            if (buffer == 0x55) {
+                passed = 1;
+                break;
+            }
+            
+            passed = 0;
+            
+            continue;
+        }
+        
+        if (passed == 0) {
             break;
+        }
         
         counter++;
-        if (counter >= 2048) {
+        if (counter >= 256) {
             counter = 0;
             uint8_t place = int_to_string(address, totalString);
             

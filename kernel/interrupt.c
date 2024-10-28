@@ -2,6 +2,7 @@
 #include <avr/interrupt.h>
 
 #include <kernel/interrupt.h>
+#include <kernel/kernel.h>
 
 void dummyFunction(void) {};
 
@@ -48,6 +49,8 @@ void InterruptStartTimeCounter(void) {
 }
 
 void InterruptStartHardware(void) {
+    
+    SetHardwareInterruptService( _ISR_hardware_service_routine );
     
     EICRA = 0b00100000; // Enable INT2 falling edge
     EIMSK = 0b00000100; // Enable INT2 mask

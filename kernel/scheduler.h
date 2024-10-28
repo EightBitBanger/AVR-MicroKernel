@@ -1,7 +1,7 @@
 #ifndef __TASK_SCHEDULER_
 #define __TASK_SCHEDULER_
 
-#define TASK_LIST_SIZE                 10
+#define TASK_LIST_SIZE                 40
 #define TASK_NAME_LENGTH_MAX           10
 
 #define TASK_TYPE_USER                 'u' // User task
@@ -49,7 +49,7 @@ uint8_t TaskKill(uint8_t* name, uint8_t name_length);
 uint8_t GetProcInfo(uint8_t index, struct ProcessDescription* info);
 
 
-void schedulerInit(void);
+void SchedulerInit(void);
 void SchedulerStart(void);
 void SchedulerStop(void);
 

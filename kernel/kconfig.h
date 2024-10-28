@@ -12,7 +12,7 @@
 // Boot options
 
 //#define _BOOT_SAFEMODE__
-#define _BOOT_DETAILS__
+//#define _BOOT_DETAILS__
 
 #define _KERNEL_ALLOCATE_EXTERNAL_MEMORY__
 #define _KERNEL_PRINT_VERSION_INFORMATION__
@@ -24,6 +24,12 @@
 #define INCLUDE_KERNEL_APPLICATIONS
 #define INCLUDE_NETWORK_APPLICATIONS
 #define INCLUDE_FILE_SYSTEM_APPLICATIONS
+
+// --------------------------------------------
+// Virtual memory
+
+#define VIRTUAL_ADDRESS_BEGIN    1024
+
 
 
 // --------------------------------------------

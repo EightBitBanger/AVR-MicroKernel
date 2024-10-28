@@ -3,20 +3,18 @@
 int main(void) {
     
     // Zero the system bus
-    bus_control_zero();
-    bus_address_zero();
     bus_initiate();
     
     // Allow board some time to stabilize
     _delay_ms(1000);
     
     // Kernel baked device drivers
-	initBakedDrivers();
+	InitBakedDrivers();
 	
 	// Initiate core kernel systems
-	initiateDeviceTable();        // Hardware device table
-    kernelVectorTableInit();      // Hardware interrupt vector table
-    schedulerInit();              // Scheduler sub system
+	InitiateDeviceTable();        // Hardware device table
+    KernelVectorTableInit();      // Hardware interrupt vector table
+    SchedulerInit();              // Scheduler sub system
     DriverTableInit();            // Driver hot loader
     
 #ifdef NETWORK_APPLICATION_PACKET_ROUTER
@@ -27,12 +25,7 @@ int main(void) {
     
 #endif
     
-    // Command line interpreter
     cliInit();
-    
-    //
-    // Allocate external memory
-    //
     
 #ifdef _KERNEL_ALLOCATE_EXTERNAL_MEMORY__
     
@@ -40,9 +33,7 @@ int main(void) {
     
 #endif
     
-    //
     // Speaker beep error codes
-    //
     
 #ifdef BOARD_RETRO_AVR_X4_REV1
     
@@ -64,7 +55,6 @@ int main(void) {
     
 #endif
     
-    //
     // Initiate kernel sub systems
     
     fsInit();         // File system
@@ -85,11 +75,16 @@ int main(void) {
     
     registerCommandLS();
     registerCommandCD();
-    //registerCommandRM();
+    //register CommandRM();
     //registerCommandCOPY();
-    registerCommandList();
+    //registerCommandList();
+    //registerCommandCLS();
     
-    registerCommandTest();
+    //registerCommandTest();
+    //registerCommandTASK();
+    
+    //registerCommandNet();
+    //registerCommandFormat();
     
     #define DONT_INCLUDE_CONSOLE_COMMANDS
     
@@ -124,7 +119,6 @@ int main(void) {
   #ifdef INCLUDE_FILE_SYSTEM_APPLICATIONS
     
     registerCommandLS();
-    registerCommandCOPY();
     registerCommandCD();
     
     registerCommandMK();
@@ -132,6 +126,7 @@ int main(void) {
     registerCommandRN();
     registerCommandMKDIR();
     registerCommandRMDIR();
+    registerCommandCOPY();
     
     registerCommandAttribute();
     //registerCommandRepair();
@@ -141,10 +136,7 @@ int main(void) {
     
 #endif
     
-    
-    //
     // Boot the kernel
-    // 
     
 #ifdef _KERNEL_PRINT_VERSION_INFORMATION__
     ConsoleSetBlinkRate( CURSOR_BLINK_RATE );
@@ -168,17 +160,15 @@ int main(void) {
     
 #endif
     
+    // Set interrupt 0 to handle keyboard input
+    SetInterruptVector(0, (void(*)())cliRunShell);
     
     // Drop the initial command prompt
     printPrompt();
     
-    // Hardware interrupt handling
-    
-    // Enable hardware interrupts
+    // Enable hardware interrupt handling
     //  Trigger on the HIGH to LOW transition of PIN2
     InterruptStartHardware();
-    
-    SetHardwareInterruptService( _ISR_hardware_service_routine );
     
     // Prepare the scheduler and its 
     // associated hardware interrupts
@@ -189,12 +179,9 @@ int main(void) {
     
     while(1) {
         
-        ClearInterruptFlag();
+        __asm__("nop");
         
-        cliRunShell();
-        
-        SetInterruptFlag();
-        
+        continue;
     }
     
     InterruptStopTimerCounter();

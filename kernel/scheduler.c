@@ -138,7 +138,7 @@ uint8_t GetProcInfo(uint8_t index, struct ProcessDescription* info) {
 // Interrupt service routines
 //
 
-void schedulerInit(void) {
+void SchedulerInit(void) {
 	
 	for (uint8_t i=0; i < TASK_LIST_SIZE; i++) {
 		

@@ -1,4 +1,5 @@
 #include <kernel/kernel.h>
+
 #include <kernel/delay.h>
 
 #define INT_VECT_0  254
@@ -11,9 +12,10 @@
 #define INT_VECT_7  127
 
 #define INTERRUPT_VECTOR_TABLE_SIZE  8
-void defaultLandingFunction(uint8_t index) {}
+void defaultLandingFunction(void) {}
 
-void (*interrupt_vector_table[INTERRUPT_VECTOR_TABLE_SIZE])(uint8_t);
+void (*interrupt_vector_table[INTERRUPT_VECTOR_TABLE_SIZE])();
+
 
 void kInit(void) {
     
@@ -28,9 +30,15 @@ void kInit(void) {
     
     
     
+    
+    
+    
+    /*
+    
+    
     //
     // Executable example
-    /*
+    
     uint8_t versionFileName[]  = "ver";
     
     uint8_t bufferTest[] = {0x89, 0x01,  9,   // Call to print a string to the display
@@ -104,6 +112,16 @@ void kInit(void) {
     
     
     
+    */
+    
+    
+    
+    
+    
+    /*
+    
+    
+    
     //
     // Create bin directory
     
@@ -125,8 +143,11 @@ void kInit(void) {
     fsChangeWorkingDirectory(directorySubName, sizeof(directorySubName));
     
     
+    */
     
     
+    
+    /*
     
     //
     // Network driver
@@ -156,6 +177,10 @@ void kInit(void) {
     fsFileWrite(bufferDrvNic, sizeof(bufferDrvNic));
     fsFileClose();
     
+    fsClearWorkingDirectory();
+    
+    
+    
     */
     
     
@@ -164,7 +189,35 @@ void kInit(void) {
     
     
     
+    /*
+    
+    
+    
+    //
+    // Kconfig
+    
+    uint8_t kconfigFileName[]  = "kconfig";
+    uint32_t kconfigFileAddress = fsFileCreate(kconfigFileName, sizeof(kconfigFileName), 80);
+    
+    fsFileOpen(kconfigFileAddress);
+    
+    uint8_t bufferKconfig[] = "safemode=0\ndetailboot=0\n\0";
+    fsFileWrite(bufferKconfig, sizeof(bufferKconfig));
+    
+    fsFileClose();
+    
     fsClearWorkingDirectory();
+    
+    
+    
+    */
+    
+    
+    
+    
+    
+    
+    
     
     //
     // Create devices directory
@@ -174,12 +227,12 @@ void kInit(void) {
     uint8_t devicesSubDirName[] = "devices";
     uint32_t devicesDirectoryAddress = fsDirectoryCreate(devicesSubDirName, sizeof(devicesSubDirName));
     
-    fsChangeWorkingDirectory(devicesSubDirName, sizeof(devicesSubDirName));
-    
-    
     
     //
     // Create a file representation of devices on the bus
+    
+    fsChangeWorkingDirectory(devicesSubDirName, sizeof(devicesSubDirName));
+    
     uint8_t numberOfDevices = GetNumberOfDevices();
     
     for (uint8_t i=0; i < numberOfDevices; i++) {
@@ -239,6 +292,7 @@ void kInit(void) {
     
     uint8_t selectedDevice = 'x';
     
+    
 #ifndef _BOOT_SAFEMODE__
     
     // Boot from device
@@ -255,6 +309,7 @@ void kInit(void) {
         
         if (fsCheckDeviceReady() == 0) 
             continue;
+        
         
         //
         // Check KCONFIG
@@ -384,7 +439,6 @@ void kInit(void) {
     
 #endif
     
-    
     uint8_t promptDevLetter[] = "X>";
     
     if (selectedDevice == 0) {
@@ -403,13 +457,27 @@ void kInit(void) {
     
     fsClearWorkingDirectory();
     
+    // Setup environment
+    
+    EnvironmentSetHomeChar( selectedDevice );
+    
+    uint8_t binPath[] = "bin";
+    EnvironmentSetPathBin(binPath, sizeof(binPath));
+    
     return;
 }
 
-void kernelVectorTableInit(void) {
+void KernelVectorTableInit(void) {
     
     for (uint8_t i=0; i < INTERRUPT_VECTOR_TABLE_SIZE; i++) 
         interrupt_vector_table[i] = defaultLandingFunction;
+    
+    return;
+}
+
+void SetInterruptVector(uint8_t index, void(*servicePtr)()) {
+    
+    interrupt_vector_table[ index ] = servicePtr;
     
     return;
 }
@@ -425,14 +493,14 @@ void _ISR_hardware_service_routine(void) {
     
     switch(intVect) {
         
-        case INT_VECT_0: interrupt_vector_table[0](0); break;
-        case INT_VECT_1: interrupt_vector_table[1](1); break;
-        case INT_VECT_2: interrupt_vector_table[2](2); break;
-        case INT_VECT_3: interrupt_vector_table[3](3); break;
-        case INT_VECT_4: interrupt_vector_table[4](4); break;
-        case INT_VECT_5: interrupt_vector_table[5](5); break;
-        case INT_VECT_6: interrupt_vector_table[6](6); break;
-        case INT_VECT_7: interrupt_vector_table[7](7); break;
+        case INT_VECT_0: interrupt_vector_table[0](); break;
+        case INT_VECT_1: interrupt_vector_table[1](); break;
+        case INT_VECT_2: interrupt_vector_table[2](); break;
+        case INT_VECT_3: interrupt_vector_table[3](); break;
+        case INT_VECT_4: interrupt_vector_table[4](); break;
+        case INT_VECT_5: interrupt_vector_table[5](); break;
+        case INT_VECT_6: interrupt_vector_table[6](); break;
+        case INT_VECT_7: interrupt_vector_table[7](); break;
         
         default:
             break;

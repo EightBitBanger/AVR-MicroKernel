@@ -68,7 +68,7 @@ uint8_t int_to_string(uint32_t number, uint8_t* destination_string) {
 	uint8_t mill = 0x30;
 	
 	// Find number of characters
-	uint8_t place=0;
+	uint8_t place=1;
 	if (number > 0)      place = 1;
 	if (number > 9)      place = 2;
 	if (number > 99)     place = 3;

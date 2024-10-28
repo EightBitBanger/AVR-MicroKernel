@@ -47,7 +47,9 @@
 
 void kInit(void);
 
-void kernelVectorTableInit(void);
+void KernelVectorTableInit(void);
+
+void SetInterruptVector(uint8_t index, void(*servicePtr)());
 
 void _ISR_hardware_service_routine(void);
 
