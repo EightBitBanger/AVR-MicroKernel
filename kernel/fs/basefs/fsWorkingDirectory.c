@@ -82,9 +82,11 @@ void fsClearWorkingDirectory(void) {
     for (uint8_t i=0; i < FILE_NAME_LENGTH; i++) 
         fs_working_directory[i] = ' ';
     
+    fs_working_directory_address = 0;
+    
     fs_working_directory_length = 0;
     
-    fs_working_directory_address = 0;
+    fsSetWorkingDirectory( fsFormatGetRootDirectory() );
     
     return;
 }
@@ -137,6 +139,13 @@ uint8_t fsGetWorkingDirectory(uint8_t* directoryName) {
 uint8_t fsWorkingDirectoryGetLength(void) {
     
     return fs_working_directory_length;
+}
+
+void fsWorkingDirectorySetLength(uint8_t length) {
+    
+    fs_working_directory_length = length;
+    
+    return;
 }
 
 uint32_t fsWorkingDirectoryGetFileCount(void) {

@@ -4,31 +4,22 @@ uint32_t fileBeginAddress = 0;
 uint32_t fileSize = 0;
 
 
-uint32_t fsFileGetSize(void) {
-    
-    return fileSize;
-}
-
-uint8_t fsFileOpen(uint32_t address) {
+uint8_t fsFileOpen(uint32_t fileAddress) {
     
     if (fileBeginAddress != 0) 
         return 0;
     
     // Check file header byte
     uint8_t headerByte;
-    fs_read_byte(address, &headerByte);
+    fs_read_byte(fileAddress, &headerByte);
     
     if (headerByte != 0x55) 
         return 0;
     
     // Get file size
-    union Pointer fileSzPtr;
-    for (uint8_t i=0; i < 4; i++) 
-        fs_read_byte(address + FILE_OFFSET_SIZE + i, &fileSzPtr.byte_t[i]);
+    fileSize = fsFileGetSize(fileAddress);
     
-    fileSize = fileSzPtr.address;
-    
-    fileBeginAddress = address;
+    fileBeginAddress = fileAddress;
     
     return 1;
 }

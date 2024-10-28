@@ -8,71 +8,43 @@ uint32_t fsFileExists(uint8_t* name, uint8_t nameLength) {
         return 0;
     
     // Check working directory
-    if (fsCheckWorkingDirectory() == 1) {
-        
-        // Get file size
-		union Pointer fileSizePtr;
-		for (uint8_t i=0; i < 4; i++) 
-            fs_read_byte(fsWorkingDirectoryGetAddress() + FILE_OFFSET_SIZE + i, &fileSizePtr.byte_t[i]);
-        
-		uint32_t directorySize = fileSizePtr.address;
-		
-		// Get number of files
-		union Pointer directorySizePtr;
-		for (uint8_t i=0; i < 4; i++) 
-            fs_read_byte(fsWorkingDirectoryGetAddress() + DIRECTORY_OFFSET_SIZE + i, &directorySizePtr.byte_t[i]);
-        
-		uint32_t numberOfFiles = directorySizePtr.address;
-		
-        if (numberOfFiles > 0) {
-            
-            fsFileOpen(fsWorkingDirectoryGetAddress());
-            
-            uint8_t bufferDir[directorySize];
-            fsFileRead(bufferDir, directorySize);
-            
-            fsFileClose();
-            
-            // List the directory contents
-            for (uint8_t i=0; i < numberOfFiles; i++) {
-                
-                // Get file address offset
-                union Pointer fileAddressPtr;
-                for (uint8_t p=0; p < 4; p++) 
-                    fileAddressPtr.byte_t[p] = bufferDir[ (i * 4) + p ];
-                
-                uint32_t fileAddress = fileAddressPtr.address;
-                
-                // Check file is not a directory
-                uint8_t directoryAttrib;
-                fs_read_byte(fileAddress + FILE_ATTRIBUTE_SPECIAL, &directoryAttrib);
-                
-                if (directoryAttrib == 'd') 
-                    continue;
-                
-                // Attributes
-                uint8_t attributes[4] = {' ',' ',' ',' '};
-                
-                for (uint8_t a=0; a < 4; a++) 
-                    fs_read_byte(fileAddress + a + FILE_OFFSET_ATTRIBUTES, &attributes[a]);
-                
-                // Name
-                uint8_t filename[FILE_NAME_LENGTH];
-                
-                for (uint8_t n=0; n < FILE_NAME_LENGTH; n++) 
-                    fs_read_byte(fileAddress + n + 1, &filename[n]);
-                
-                if (StringCompare(name, nameLength, filename, FILE_NAME_LENGTH) == 1) 
-                    return fileAddress;
-                
-                continue;
-            }
-            
-        }
-        
+    if (fsCheckWorkingDirectory() == 0) {
         return 0;
     }
     
+	// Get number of files
+	uint32_t numberOfFiles = fsDirectoryGetNumberOfFiles( fsWorkingDirectoryGetAddress() );
+	
+    if (numberOfFiles == 0) 
+        return 0;
+    
+    for (uint8_t i=0; i < numberOfFiles; i++) {
+        
+        // Get file address offset
+        uint32_t fileAddress = fsDirectoryGetFile( fsWorkingDirectoryGetAddress(), i );
+        
+        // Check file is not a directory
+        struct FSAttribute attrib;
+        fsFileGetAttributes(fileAddress, &attrib);
+        
+        if (attrib.type == 'd') 
+            continue;
+        
+        // Name
+        uint8_t filename[FILE_NAME_LENGTH];
+        fsFileGetName(fileAddress, filename);
+        
+        if (StringCompare(name, nameLength, filename, FILE_NAME_LENGTH) == 1) 
+            return fileAddress;
+        
+        continue;
+    }
+    
+    
+    /*
+    
+    // Scan the entire volume for file headers
+    //
     
     uint32_t currentCapacity = fsGetDeviceCapacity() / SECTOR_SIZE;
     
@@ -113,6 +85,8 @@ uint32_t fsFileExists(uint8_t* name, uint8_t nameLength) {
         
         continue;
     }
+    
+    */
     
     return 0;
 }

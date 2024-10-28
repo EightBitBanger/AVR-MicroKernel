@@ -18,7 +18,7 @@ void VirtualWrite(uint32_t address, uint8_t* byte, uint32_t size) {
             sector++;
         }
         
-        uint32_t positionOffset = address + SECTOR_SIZE + sector + 1;
+        uint32_t positionOffset = VIRTUAL_ADDRESS_BEGIN + address + SECTOR_SIZE + sector + 1;
         
         fs_write_byte(positionOffset, byte[i]);
         
@@ -48,7 +48,7 @@ void VirtualRead(uint32_t address, uint8_t* byte, uint32_t size) {
             sector++;
         }
         
-        uint32_t positionOffset = address + SECTOR_SIZE + sector + 1;
+        uint32_t positionOffset = VIRTUAL_ADDRESS_BEGIN + address + SECTOR_SIZE + sector + 1;
         
         fs_read_byte(positionOffset, &byte[i]);
         
