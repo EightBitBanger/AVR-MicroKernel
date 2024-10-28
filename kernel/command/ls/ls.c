@@ -13,7 +13,6 @@ void functionLS(uint8_t* param, uint8_t param_length) {
     uint8_t msgDirectoryError[]    = "Invalid directory";
     uint8_t msgDirectoryListing[]  = "<DIR>";
     uint8_t msgPressAnyKey[]       = "Press any key...";
-    uint8_t msgDeviceNotReady[]    = "Device not ready";
     
     uint16_t numberOfFiles = 0;
     uint16_t numberOfDirs  = 0;
@@ -22,6 +21,9 @@ void functionLS(uint8_t* param, uint8_t param_length) {
     
     uint8_t fileCount = 0;
     
+    // Check device ready
+    if (fsCheckDeviceReady() == 0) 
+        return;
     
     uint8_t printPause(void) {
         
@@ -58,32 +60,18 @@ void functionLS(uint8_t* param, uint8_t param_length) {
     
     
     
-    void GetAttributes(uint32_t fileAddress, uint8_t* attributes) {
-        for (uint8_t a=0; a < 4; a++) 
-            fs_read_byte(fileAddress + a + FILE_OFFSET_ATTRIBUTES, &attributes[a]);
-        return;
-    }
-    
-    void GetName(uint32_t fileAddress, uint8_t* filename) {
-        for (uint8_t n=0; n < FILE_NAME_LENGTH; n++) 
-            fs_read_byte(fileAddress + n + 1, &filename[n]);
-        return;
-    }
-    
-    
-    
     void ListFile(uint32_t fileAddress) {
         
         // Attributes
-        uint8_t attributes[4];
-        GetAttributes(fileAddress, attributes);
+        struct FSAttribute attribute;
+        fsFileGetAttributes(fileAddress, &attribute);
         
-        print(&attributes[0], 4);
+        print(&attribute.executable, 4);
         printSpace(1);
         
         // Name
         uint8_t filename[FILE_NAME_LENGTH];
-        GetName(fileAddress, filename);
+        fsFileGetName(fileAddress, filename);
         
         print(filename, sizeof(filename) + 1);
         printSpace(1);
@@ -116,17 +104,17 @@ void functionLS(uint8_t* param, uint8_t param_length) {
     void ListDirectory(uint32_t fileAddress) {
         
         // Attributes
-        uint8_t attributes[4];
-        GetAttributes(fileAddress, attributes);
+        struct FSAttribute attribute;
+        fsFileGetAttributes(fileAddress, &attribute);
         
-        printChar(attributes[0]);
-        printChar(attributes[1]);
-        printChar(attributes[2]);
+        printChar(attribute.executable);
+        printChar(attribute.readable);
+        printChar(attribute.writeable);
         printSpace(1);
         
         // Name
         uint8_t filename[FILE_NAME_LENGTH];
-        GetName(fileAddress, filename);
+        fsFileGetName(fileAddress, filename);
         
         print(filename, sizeof(filename) + 1);
         printSpace(2);
@@ -156,18 +144,10 @@ void functionLS(uint8_t* param, uint8_t param_length) {
 		}
 		
 		// Get file size
-		union Pointer fileSizePtr;
-		for (uint8_t i=0; i < 4; i++) 
-            fs_read_byte(directoryAddress + FILE_OFFSET_SIZE + i, &fileSizePtr.byte_t[i]);
-        
-		directorySize = fileSizePtr.address;
+		directorySize = fsDirectoryGetSize(directoryAddress);
 		
 		// Get number of files
-		union Pointer directorySizePtr;
-		for (uint8_t i=0; i < 4; i++) 
-            fs_read_byte(directoryAddress + DIRECTORY_OFFSET_SIZE + i, &directorySizePtr.byte_t[i]);
-        
-		numberOfFiles = directorySizePtr.address;
+		numberOfFiles = fsDirectoryGetNumberOfFiles(directoryAddress);
 		
         if (numberOfFiles > 0) {
             
@@ -177,24 +157,19 @@ void functionLS(uint8_t* param, uint8_t param_length) {
             fsFileRead(bufferDir, directorySize);
             
             fsFileClose();
-            
-            union Pointer fileAddressPtr;
-            
+             
             // List directories first
             for (uint8_t i=0; i < numberOfFiles; i++) {
                 
                 // Get file address offset
-                for (uint8_t p=0; p < 4; p++) 
-                    fileAddressPtr.byte_t[p] = bufferDir[ (i * 4) + p ];
-                
-                uint32_t fileAddress = fileAddressPtr.address;
+                uint32_t fileAddress = fsDirectoryGetFile(directoryAddress, i);
                 
                 // Attributes
-                uint8_t attributes[4];
-                GetAttributes(fileAddress, attributes);
+                struct FSAttribute attribute;
+                fsFileGetAttributes(fileAddress, &attribute);
                 
                 // Check is directory
-                if (attributes[3] != 'd') 
+                if (attribute.type != 'd') 
                     continue;
                 
                 ListDirectory(fileAddress);
@@ -214,17 +189,14 @@ void functionLS(uint8_t* param, uint8_t param_length) {
             for (uint8_t i=0; i < numberOfFiles; i++) {
                 
                 // Get file address offset
-                for (uint8_t p=0; p < 4; p++) 
-                    fileAddressPtr.byte_t[p] = bufferDir[ (i * 4) + p ];
-                
-                uint32_t fileAddress = fileAddressPtr.address;
+                uint32_t fileAddress = fsDirectoryGetFile(directoryAddress, i);
                 
                 // Attributes
-                uint8_t attributes[4];
-                GetAttributes(fileAddress, attributes);
+                struct FSAttribute attribute;
+                fsFileGetAttributes(fileAddress, &attribute);
                 
                 // Check is directory
-                if (attributes[3] == 'd') 
+                if (attribute.type == 'd') 
                     continue;
                 
                 ListFile(fileAddress);
@@ -239,93 +211,6 @@ void functionLS(uint8_t* param, uint8_t param_length) {
         }
         
         return;
-    }
-    
-    
-    //
-    // List device root contents
-    //
-    
-    if (fsCheckDeviceReady() == 0) {
-        
-        print(msgDeviceNotReady, sizeof(msgDeviceNotReady));
-        printLn();
-        
-        return;
-    }
-    
-    uint8_t flagClaimed = 0;
-    
-    
-    //
-    // List directories
-    
-    for (uint32_t i=0; i < 1024; i++) {
-        
-        uint32_t fileAddress = fsFileFind(i);
-        
-        if (fileAddress == 0) 
-            break;
-        
-        // List the file
-        
-        // Check if the file is claimed by a directory
-        fs_read_byte(fileAddress + DIRECTORY_OFFSET_FLAG, &flagClaimed);
-		
-		if (flagClaimed != 0) 
-            continue;
-        
-        // Check is directory
-        uint8_t attributes[4];
-        GetAttributes(fileAddress, attributes);
-        
-        if (attributes[3] != 'd') 
-            continue;
-        
-        ListDirectory(fileAddress);
-        
-        numberOfDirs++;
-        
-        if (printPause() == 1) 
-            return;
-        
-        continue;
-    }
-    
-    
-    //
-    // List files
-    
-    for (uint32_t i=0; i < 1024; i++) {
-        
-        uint32_t fileAddress = fsFileFind(i);
-        
-        if (fileAddress == 0) 
-            break;
-        
-        // List the file
-        
-        // Check if the file is claimed by a directory
-        fs_read_byte(fileAddress + DIRECTORY_OFFSET_FLAG, &flagClaimed);
-		
-		if (flagClaimed != 0) 
-            continue;
-        
-        // Check is directory
-        uint8_t attributes[4];
-        GetAttributes(fileAddress, attributes);
-        
-        if (attributes[3] == 'd') 
-            continue;
-        
-        ListFile(fileAddress);
-        
-        numberOfFiles++;
-        
-        if (printPause() == 1) 
-            return;
-        
-        continue;
     }
     
     return;

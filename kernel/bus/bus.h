@@ -9,7 +9,7 @@ struct Bus {
     /// Number of wait cycles to perform during the write operation
     uint16_t write_waitstate;
     
-    /// Interface type
+    /// Physical interface type
     uint8_t bus_type;
     
 };

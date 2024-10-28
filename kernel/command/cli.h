@@ -3,7 +3,8 @@
 
 #define CURSOR_BLINK_RATE  60
 #define CONSOLE_STRING_LENGTH  40
-#define CONSOLE_FUNCTION_NAME_LENGTH   11
+#define CONSOLE_FUNCTION_NAME_LENGTH   10
+
 #define CONSOLE_FUNCTION_TABLE_SIZE  32
 
 #include <kernel/kernel.h>
@@ -20,7 +21,7 @@ struct ConsoleCommand {
 };
 
 
-void cliRunShell(void);
+uint8_t cliRunShell(void);
 
 void cliInit(void);
 
@@ -42,5 +43,14 @@ uint8_t ConsoleGetCursorLine(void);
 
 uint8_t ConsoleWait(void);
 void ConsoleClearKeyboardString(void);
+
+
+// Environment variables
+
+void EnvironmentSetPathBin(uint8_t* path, uint8_t length);
+uint8_t EnvironmentGetPathBinLength(void);
+void EnvironmentGetPathBin(uint8_t* path, uint8_t length);
+void EnvironmentSetHomeChar(uint8_t newHomeChar);
+uint8_t EnvironmentGetHomeChar(void);
 
 #endif

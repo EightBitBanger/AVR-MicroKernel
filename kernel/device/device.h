@@ -31,7 +31,7 @@ struct Device {
 };
 
 
-void initiateDeviceTable(void);
+void InitiateDeviceTable(void);
 
 struct Device* GetHardwareDeviceByIndex(uint8_t index);
 

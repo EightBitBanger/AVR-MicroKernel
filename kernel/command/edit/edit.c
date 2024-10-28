@@ -51,7 +51,7 @@ void functionEDIT(uint8_t* param, uint8_t param_length) {
     
     fsFileOpen(fileAddressBegin);
     
-    uint32_t fileSize = fsFileGetSize();
+    uint32_t fileSize = fsFileGetSize(fileAddressBegin);
     
     if (fileAddressBegin == 0) {
         

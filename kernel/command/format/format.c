@@ -47,8 +47,6 @@ void functionFORMAT(uint8_t* param, uint8_t param_length) {
     print(devicePressToContinue, sizeof(devicePressToContinue));
     printLn();
     
-    ConsoleSetCursor(3, 0);
-    
     if (ConsoleWait() != 'y') 
         return;
     
@@ -61,10 +59,9 @@ void functionFORMAT(uint8_t* param, uint8_t param_length) {
     ConsoleCursorDisable();
     
     uint16_t percentage = 0;
-    uint8_t percentageString[10];
+    uint8_t percentageString[10] = {'0'};
     
-    uint8_t percentageSymbole[1];
-    percentageSymbole[0] = '%';
+    uint8_t percentageSymbole[1] = {'%'};
     
     uint8_t sectorCounter = 0;
     
@@ -77,11 +74,12 @@ void functionFORMAT(uint8_t* param, uint8_t param_length) {
     
     for (uint16_t i=0; i <= 1000; i++) {
         
-        ConsoleSetCursor(3, 0);
+        ConsoleSetCursorPosition(0);
         
         uint8_t place = int_to_string(percentage, &percentageString[0]);
         
         print(percentageString, place + 1);
+        ConsoleSetCursorPosition(place);
         print(percentageSymbole, 2);
         
         percentage += 1;
@@ -129,15 +127,14 @@ void functionFORMAT(uint8_t* param, uint8_t param_length) {
     fs_write_byte(1, 'f');
     fs_write_byte(2, 's');
     
+    
     // Device total capacity
-    union Pointer deviceSize;
     
-    deviceSize.address = deviceCapacityBytes;
+    fsFotmatConstructAllocationTable(0, deviceCapacityBytes);
     
-    for (uint8_t i=0; i < 4; i++) 
-        fs_write_byte(DEVICE_CAPACITY_OFFSET + i, deviceSize.byte_t[i] );
     
     // Finish as 100%
+    
     ConsoleSetCursorPosition(0);
     
     uint8_t oneHundredPercentMsg[] = {'1', '0', '0', '%'};

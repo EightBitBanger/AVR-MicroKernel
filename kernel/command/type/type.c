@@ -13,7 +13,7 @@ void functionType(uint8_t* param, uint8_t param_length) {
     
     fsFileOpen(fileAddress);
     
-    uint32_t fileSize = fsFileGetSize();
+    uint32_t fileSize = fsFileGetSize(fileAddress);
     
     if (fileSize == 0) 
         return;

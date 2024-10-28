@@ -8,9 +8,9 @@
 #include <kernel/device/device.h>
 
 
-#define DRIVER_REGISTRY_SIZE   16
+#define DRIVER_REGISTRY_SIZE   8
 
-#define DRIVER_TABLE_SIZE  24
+#define DRIVER_TABLE_SIZE  16
 
 
 struct Driver {
@@ -29,9 +29,6 @@ struct Driver {
     
     /// write a byte to the hardware device
     void(*write)(uint32_t address, uint8_t buffer);
-    
-    /// Hardware interrupt callback
-    void(*interrupt_handler)(void);
     
 };
 

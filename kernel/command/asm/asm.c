@@ -43,7 +43,7 @@ void functionAsm(uint8_t* param, uint8_t param_length) {
     
     fsFileOpen( fileAddress );
     
-    uint32_t fileSize = fsFileGetSize();
+    uint32_t fileSize = fsFileGetSize( fileAddress );
     
     // File data buffer
     uint8_t fileBuffer[1024];

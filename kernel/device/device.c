@@ -12,7 +12,7 @@ struct Device device_table[ DEVICE_TABLE_SIZE ];
 uint8_t number_of_devices = 0;
 
 
-void initiateDeviceTable(void) {
+void InitiateDeviceTable(void) {
     
     // Clear the device table
     for (uint8_t d=0; d < DEVICE_TABLE_SIZE; d++) {

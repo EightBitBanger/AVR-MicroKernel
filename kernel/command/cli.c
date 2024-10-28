@@ -59,7 +59,7 @@ uint8_t ConsoleRegisterCommand(uint8_t* name, uint8_t nameLength, void(*function
     if (nameLength > CONSOLE_FUNCTION_NAME_LENGTH) 
         nameLength = CONSOLE_FUNCTION_NAME_LENGTH;
     
-    for (uint8_t i=0; i < nameLength - 1; i++) 
+    for (uint8_t i=0; i < nameLength-1; i++) 
         CommandRegistry[index].name[i] = name[i];
     
     CommandRegistry[index].function = functionPtr;
@@ -101,8 +101,8 @@ void cliInit(void) {
 	
 	uint8_t promptDeviceString[] = "A>";
 	
-	displayDevice->write(3, 60);
-    displayDevice->write(4, '_');
+	displayDevice->write(3, 60);  // Cursor blink rate
+    displayDevice->write(4, '_'); // Cursor character
     
     ConsoleSetPrompt( promptDeviceString, sizeof(promptDeviceString) );
 	

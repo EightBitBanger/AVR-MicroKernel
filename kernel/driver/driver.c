@@ -48,7 +48,7 @@ void* driver_registry[ DRIVER_REGISTRY_SIZE ];
 // Number of drivers registered in the kernel
 uint8_t number_of_drivers = 0;
 
-// Load a library from a file
+
 int8_t LoadLibrary(uint8_t* filename, uint8_t filenameLength) {
     
     uint32_t fileAddress = fsFileExists(filename, filenameLength);
@@ -58,7 +58,7 @@ int8_t LoadLibrary(uint8_t* filename, uint8_t filenameLength) {
     
     fsFileOpen(fileAddress);
     
-    uint32_t fileSize = fsFileGetSize();
+    uint32_t fileSize = fsFileGetSize(fileAddress);
     
     uint8_t fileBuffer[fileSize];
     
@@ -70,8 +70,7 @@ int8_t LoadLibrary(uint8_t* filename, uint8_t filenameLength) {
     fsFileClose();
     
     // Check driver header bytes
-    if ((fileBuffer[0] != 'K') & 
-        (fileBuffer[1] != 'D')) 
+    if ((fileBuffer[0] != 'K') & (fileBuffer[1] != 'D')) 
         return -1;
     
     // Check marker byte
@@ -118,23 +117,23 @@ int8_t LoadLibrary(uint8_t* filename, uint8_t filenameLength) {
             return -1;
         
         switch (loaded_drivers[i].interface.bus_type) {
-        
-        default:
             
-        case 0:
-            loaded_drivers[i].read  = (void(*)(uint32_t, uint8_t*)) bus_read_byte;
-            loaded_drivers[i].write = (void(*)(uint32_t, uint8_t))  bus_write_byte;
-            break;
-            
-        case 1:
-            loaded_drivers[i].read  = (void(*)(uint32_t, uint8_t*)) bus_read_memory;
-            loaded_drivers[i].write = (void(*)(uint32_t, uint8_t))  bus_write_memory;
-            break;
-            
-        case 2:
-            loaded_drivers[i].read  = (void(*)(uint32_t, uint8_t*)) bus_read_io;
-            loaded_drivers[i].write = (void(*)(uint32_t, uint8_t))  bus_write_io;
-            break;
+            default:
+                
+            case 0:
+                loaded_drivers[i].read  = (void(*)(uint32_t, uint8_t*)) bus_read_byte;
+                loaded_drivers[i].write = (void(*)(uint32_t, uint8_t))  bus_write_byte;
+                break;
+                
+            case 1:
+                loaded_drivers[i].read  = (void(*)(uint32_t, uint8_t*)) bus_read_memory;
+                loaded_drivers[i].write = (void(*)(uint32_t, uint8_t))  bus_write_memory;
+                break;
+                
+            case 2:
+                loaded_drivers[i].read  = (void(*)(uint32_t, uint8_t*)) bus_read_io;
+                loaded_drivers[i].write = (void(*)(uint32_t, uint8_t))  bus_write_io;
+                break;
             
         }
         
@@ -148,7 +147,8 @@ int8_t LoadLibrary(uint8_t* filename, uint8_t filenameLength) {
         loaded_drivers[i].device.hardware_address = addrPtr.address;
         
         
-        // Link the driver to any associated 
+        // Link the driver to any associated
+        // hardware devices on the bus
         uint8_t numberOfDevices = GetNumberOfDevices();
         
         for (uint8_t d=0; d < numberOfDevices; d++) {
@@ -227,6 +227,14 @@ uint8_t GetNumberOfDrivers(void) {
 }
 
 void DriverTableInit(void) {
+    
+    struct Bus bus;
+    bus.read_waitstate = 4;
+    bus.write_waitstate = 4;
+    
+    for (uint32_t i=0; i < VIRTUAL_ADDRESS_BEGIN; i++) 
+        bus_write_memory(&bus, i, 0xff);
+    
     
     for (uint8_t i=0; i < DRIVER_TABLE_SIZE; i++) {
         
