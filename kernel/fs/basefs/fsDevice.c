@@ -10,7 +10,7 @@ uint32_t fs_device_address;
 uint8_t fs_device_root;
 
 
-void fsSetDeviceLetter(uint8_t letter) {
+void fsDeviceSetLetter(uint8_t letter) {
     
     lowercase(&letter);
     
@@ -18,12 +18,12 @@ void fsSetDeviceLetter(uint8_t letter) {
     
     if (letter == 'x') {
         
-        fsSetDeviceTypeMEM();
+        fs_set_type_MEM();
         fs_device_address = 0x00000;
         
     } else {
         
-        fsSetDeviceTypeIO();
+        fs_set_type_IO();
         fs_device_address = PERIPHERAL_ADDRESS_BEGIN + ((letter - 'a') * 0x10000);
         
     }
@@ -31,7 +31,7 @@ void fsSetDeviceLetter(uint8_t letter) {
     return;
 }
 
-void fsSetDeviceRoot(uint8_t deviceLetter) {
+void fsDeviceSetRoot(uint8_t deviceLetter) {
     
     lowercase(&deviceLetter);
     
@@ -40,7 +40,7 @@ void fsSetDeviceRoot(uint8_t deviceLetter) {
     return;
 }
 
-uint8_t fsGetDeviceRoot(void) {
+uint8_t fsDeviceGetRoot(void) {
     
     uint8_t tempCaseConv = fs_device_root;
     
@@ -49,12 +49,12 @@ uint8_t fsGetDeviceRoot(void) {
     return tempCaseConv;
 }
 
-uint32_t fsGetDevice(void) {
+uint32_t fsDeviceGetContext(void) {
     
     return fs_device_address;
 }
 
-void fsSetDevice(uint32_t device_address) {
+void fsDeviceSetContext(uint32_t device_address) {
     
     fs_device_address = device_address;
     
@@ -65,8 +65,8 @@ void fsInit(void) {
     
     fs_device_address = 0;
     
-    fsSetDeviceTypeMEM();
-    fsSetDeviceRoot('X');
+    fs_set_type_MEM();
+    fsDeviceSetRoot('X');
     
     fs_bus.read_waitstate  = 2;
     fs_bus.write_waitstate = 2;
@@ -88,7 +88,7 @@ void fs_read_byte(uint32_t address, uint8_t* buffer) {
     return;
 }
 
-void fsSetDeviceTypeIO(void) {
+void fs_set_type_IO(void) {
     
     __fs_read_byte  = bus_read_io;
     __fs_write_byte = bus_write_io_eeprom;
@@ -96,7 +96,7 @@ void fsSetDeviceTypeIO(void) {
     return;
 }
 
-void fsSetDeviceTypeMEM(void) {
+void fs_set_type_MEM(void) {
     
     __fs_read_byte  = bus_read_memory;
     __fs_write_byte = bus_write_memory;
@@ -104,7 +104,7 @@ void fsSetDeviceTypeMEM(void) {
     return;
 }
 
-void fsSetDeviceTypeMEMDirect(void) {
+void fs_set_type_MEM_nocache(void) {
     
     __fs_read_byte  = bus_raw_read_memory;
     __fs_write_byte = bus_raw_write_memory;
@@ -113,7 +113,7 @@ void fsSetDeviceTypeMEMDirect(void) {
 }
 
 
-uint8_t fsCheckDeviceReady(void) {
+uint8_t fsDeviceCheckReady(void) {
     
     // Check header byte
     uint8_t headerByte[3];
@@ -130,7 +130,7 @@ uint8_t fsCheckDeviceReady(void) {
 }
 
 
-uint32_t fsGetDeviceCapacity(void) {
+uint32_t fsDeviceGetCapacity(void) {
     
     union Pointer sizePointer;
     
@@ -139,3 +139,27 @@ uint32_t fsGetDeviceCapacity(void) {
     
     return sizePointer.address;
 }
+
+
+void fsDeviceSetRootDirectory(uint32_t directoryAddress) {
+    
+    union Pointer rootDirPtr;
+    rootDirPtr.address = directoryAddress;
+    
+    for (uint8_t i=0; i < 4; i++) 
+        fs_write_byte(DEVICE_ROOT_OFFSET + i, rootDirPtr.byte_t[i]);
+    
+    return;
+}
+
+
+uint32_t fsDeviceGetRootDirectory(void) {
+    
+    union Pointer rootDirPtr;
+    
+    for (uint8_t i=0; i < 4; i++) 
+        fs_read_byte(DEVICE_ROOT_OFFSET + i, &rootDirPtr.byte_t[i]);
+    
+    return rootDirPtr.address;
+}
+

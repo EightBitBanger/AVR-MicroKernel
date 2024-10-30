@@ -30,7 +30,33 @@
 
 */
 
-uint8_t EmulateX4(uint8_t* programBuffer, uint32_t programSize) {
+uint8_t programBuffer[256];
+uint32_t programSize;
+
+
+void EmulatorSetProgram(uint8_t* buffer, uint32_t size) {
+    
+    for (uint32_t i=0; i < size; i++) 
+        programBuffer[i] = buffer[i];
+    
+    programSize = size;
+    
+    return;
+}
+
+
+void EmulatorStart(uint8_t* filename, uint8_t nameLength, uint16_t priority, uint8_t type) {
+    
+    TaskCreate(filename, nameLength, EmulateX4, priority, type);
+    
+    return;
+}
+
+
+
+
+
+void EmulateX4(void) {
     
     struct Bus mem_bus;
     mem_bus.read_waitstate = 2;
@@ -54,6 +80,9 @@ uint8_t EmulateX4(uint8_t* programBuffer, uint32_t programSize) {
     
     while(1) {
         
+        
+        
+        
         if (interruptFlag == 0) {
             
             
@@ -61,6 +90,9 @@ uint8_t EmulateX4(uint8_t* programBuffer, uint32_t programSize) {
             
             
         }
+        
+        
+        
         
         uint8_t opCode = programBuffer[programCounter];
         uint8_t argA   = programBuffer[programCounter + 1];
@@ -304,7 +336,7 @@ uint8_t EmulateX4(uint8_t* programBuffer, uint32_t programSize) {
                 if (consoleWritten == 1) 
                     printLn();
                 
-                return 1;
+                return;
             }
             
             programCounter += 2;
@@ -323,6 +355,6 @@ uint8_t EmulateX4(uint8_t* programBuffer, uint32_t programSize) {
     if (consoleWritten == 1) 
         printLn();
     
-    return 0;
+    return;
 }
 

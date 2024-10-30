@@ -57,7 +57,7 @@ uint8_t fsSetWorkingDirectoryToParent(void) {
     return 0;
 }
 
-uint8_t fsCheckWorkingDirectory(void) {
+uint8_t fsWorkingDirectoryCheck(void) {
     
     if ((fs_working_directory_length > 0) & (fs_working_directory[0] != ' ')) 
         return 1;
@@ -77,7 +77,7 @@ uint8_t fsWorkingDirectoryGetStack(void) {
     return fs_directory_stack_ptr;
 }
 
-void fsClearWorkingDirectory(void) {
+void fsWorkingDirectoryClear(void) {
     
     for (uint8_t i=0; i < FILE_NAME_LENGTH; i++) 
         fs_working_directory[i] = ' ';
@@ -86,7 +86,7 @@ void fsClearWorkingDirectory(void) {
     
     fs_working_directory_length = 0;
     
-    fsSetWorkingDirectory( fsFormatGetRootDirectory() );
+    fsSetWorkingDirectory( fsDeviceGetRootDirectory() );
     
     return;
 }
@@ -121,7 +121,7 @@ uint8_t fsChangeWorkingDirectory(uint8_t* directoryName, uint8_t nameLength) {
     
     union Pointer directorySizePtr;
 	for (uint8_t i=0; i < 4; i++) 
-        fs_read_byte(directoryAddress + DIRECTORY_OFFSET_SIZE + i, &directorySizePtr.byte_t[i]);
+        fs_read_byte(directoryAddress + FILE_OFFSET_REF_COUNT + i, &directorySizePtr.byte_t[i]);
     
 	fs_working_directory_size = directorySizePtr.address;
     

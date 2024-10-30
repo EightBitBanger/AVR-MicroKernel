@@ -8,7 +8,7 @@ uint32_t fsFileExists(uint8_t* name, uint8_t nameLength) {
         return 0;
     
     // Check working directory
-    if (fsCheckWorkingDirectory() == 0) {
+    if (fsWorkingDirectoryCheck() == 0) {
         return 0;
     }
     
@@ -21,7 +21,7 @@ uint32_t fsFileExists(uint8_t* name, uint8_t nameLength) {
     for (uint8_t i=0; i < numberOfFiles; i++) {
         
         // Get file address offset
-        uint32_t fileAddress = fsDirectoryGetFile( fsWorkingDirectoryGetAddress(), i );
+        uint32_t fileAddress = fsDirectoryGetFileAtIndex( fsWorkingDirectoryGetAddress(), i );
         
         // Check file is not a directory
         struct FSAttribute attrib;
@@ -46,18 +46,18 @@ uint32_t fsFileExists(uint8_t* name, uint8_t nameLength) {
     // Scan the entire volume for file headers
     //
     
-    uint32_t currentCapacity = fsGetDeviceCapacity() / SECTOR_SIZE;
+    uint32_t currentCapacity = fsGetDeviceCapacity() / FORMAT_SECTOR_SIZE;
     
     // Root full sweep
     for (uint32_t sector=0; sector <= currentCapacity; sector++) {
         
-        uint32_t currentSector = sector * SECTOR_SIZE;
+        uint32_t currentSector = sector * FORMAT_SECTOR_SIZE;
         
         // Find an active file start byte
         uint8_t headerByte;
         fs_read_byte(currentSector, &headerByte);
         
-        if (headerByte != SECTOR_HEADER) 
+        if (headerByte != FORMAT_SECTOR_HEADER) 
             continue;
         
         // Check file belongs to root

@@ -46,12 +46,12 @@ uint8_t fsFileWrite(uint8_t* buffer, uint32_t size) {
     for (uint32_t i=0; i < size - 1; i++) {
         
         // Skip the sector marker byte
-        if (sectorCounter == (SECTOR_SIZE - 1)) {
+        if (sectorCounter == (FORMAT_SECTOR_SIZE - 1)) {
             sectorCounter=0;
             sector++;
         }
         
-        uint32_t positionOffset = fileBeginAddress + SECTOR_SIZE + sector + 1;
+        uint32_t positionOffset = fileBeginAddress + FORMAT_SECTOR_SIZE + sector + 1;
         
         fs_write_byte(positionOffset, buffer[i]);
         
@@ -78,12 +78,12 @@ uint8_t fsFileRead(uint8_t* buffer, uint32_t size) {
     for (uint32_t i=0; i < size - 1; i++) {
         
         // Skip the sector marker byte
-        if (sectorCounter == (SECTOR_SIZE - 1)) {
+        if (sectorCounter == (FORMAT_SECTOR_SIZE - 1)) {
             sectorCounter=0;
             sector++;
         }
         
-        uint32_t positionOffset = fileBeginAddress + SECTOR_SIZE + sector + 1;
+        uint32_t positionOffset = fileBeginAddress + FORMAT_SECTOR_SIZE + sector + 1;
         
         fs_read_byte(positionOffset, &buffer[i]);
         
@@ -110,12 +110,12 @@ uint8_t fsFileReadText(uint8_t* buffer, uint32_t size) {
     for (uint32_t i=0; i < size; i++) {
         
         // Skip the sector marker byte
-        if (sectorCounter == (SECTOR_SIZE - 1)) {
+        if (sectorCounter == (FORMAT_SECTOR_SIZE - 1)) {
             sectorCounter=0;
             sector++;
         }
         
-        uint32_t positionOffset = fileBeginAddress + SECTOR_SIZE + sector + 1;
+        uint32_t positionOffset = fileBeginAddress + FORMAT_SECTOR_SIZE + sector + 1;
         
         fs_read_byte(positionOffset, &buffer[i]);
         

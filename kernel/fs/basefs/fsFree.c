@@ -11,14 +11,14 @@ uint8_t fsFree(uint32_t address) {
         fs_read_byte(address + FILE_OFFSET_SIZE, &allocSize.byte_t[i]);
     
     // Delete the file sectors
-    for (uint32_t sector = 0; sector < allocSize.address; sector+= SECTOR_SIZE) {
+    for (uint32_t sector = 0; sector < allocSize.address; sector+= FORMAT_SECTOR_SIZE) {
         
         // Get sector header byte
         uint8_t headerByte = 0x00;
         fs_read_byte(address + sector, &headerByte);
         
         // Delete file header sector
-        if (headerByte == SECTOR_HEADER) {
+        if (headerByte == FORMAT_SECTOR_HEADER) {
             
             // Only delete a header once
             if (isHeaderDeleted == 1) 
@@ -31,7 +31,7 @@ uint8_t fsFree(uint32_t address) {
         }
         
         // Delete data sector
-        if (headerByte == SECTOR_DATA) {
+        if (headerByte == FORMAT_SECTOR_DATA) {
             
             fs_write_byte(address + sector, clearByte);
             
@@ -39,7 +39,7 @@ uint8_t fsFree(uint32_t address) {
         }
         
         // Delete end sector
-        if (headerByte == SECTOR_FOOTER) {
+        if (headerByte == FORMAT_SECTOR_FOOTER) {
             
             fs_write_byte(address + sector, clearByte);
             
@@ -47,7 +47,7 @@ uint8_t fsFree(uint32_t address) {
         }
         
         // Empty sector
-        if (headerByte == SECTOR_EMPTY) 
+        if (headerByte == FORMAT_SECTOR_EMPTY) 
             break;
         
         continue;
