@@ -8,6 +8,8 @@ public:
     
     array();
     
+    array(uint32_t size);
+    
     array(const array& arr);
     
     ~array();

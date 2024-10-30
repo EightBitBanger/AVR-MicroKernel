@@ -12,6 +12,16 @@ array::array() :
     mAddress(0)
 {}
 
+array::array(uint32_t size) {
+    
+    mSize = size;
+    mCapacity = size;
+    
+    mAddress = new(mCapacity);
+    
+    return;
+}
+
 array::array(const array& arr) {
     
     mSize = arr.mSize;
