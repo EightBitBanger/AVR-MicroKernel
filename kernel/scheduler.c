@@ -7,6 +7,10 @@
 
 #include <kernel/scheduler.h>
 
+#include <kernel/virtual/virtual.h>
+
+#include <kernel/syscalls/print/print.h>
+
 volatile struct ProcessDescriptorTable proc_info;
 
 volatile uint64_t timer_ms = 0;
@@ -202,16 +206,34 @@ void _ISR_SCHEDULER_MAIN__(void) {
         return;
 	}
 	
+	int8_t currentMode = VirtualAccessGetMode();
+	
+	// Set virtual access mode
+	switch (proc_info.type[PID]) {
+		
+		case TASK_TYPE_KERNEL:  {VirtualAccessSetMode( VIRTUAL_ACCESS_MODE_KERNEL ); break;}
+		case TASK_TYPE_SERVICE: {VirtualAccessSetMode( VIRTUAL_ACCESS_MODE_SERVICE ); break;}
+		
+		default:
+        case TASK_TYPE_USER:    {VirtualAccessSetMode( VIRTUAL_ACCESS_MODE_USER ); break;}
+        
+	}
+	
+	
+	// Call the task function
+	
 	if (proc_info.counter[PID] >= proc_info.priority[PID]) {
 		
 		proc_info.counter[PID]=0;
 		
-		// Call the task function pointer
-		
 		proc_info.table[PID]();
 		
+        VirtualAccessSetMode( currentMode );
+        
 	} else {
 		
+        VirtualAccessSetMode( currentMode );
+        
 		proc_info.counter[PID]++;
 		
 		PID++;
@@ -219,6 +241,9 @@ void _ISR_SCHEDULER_MAIN__(void) {
 		return;
 	}
 	
+	
+    // Check volatility
+    
 	switch (proc_info.type[PID]) {
 		
 		case TASK_TYPE_VOLATILE: {
@@ -234,17 +259,20 @@ void _ISR_SCHEDULER_MAIN__(void) {
 			break;
 		}
 		
-		case TASK_TYPE_SERVICE: {
+		case TASK_TYPE_VOLATILE_PROMPT: {
+			
+			for (uint8_t i=0; i < TASK_NAME_LENGTH_MAX; i++) 
+                proc_info.name[PID][i] = ' ';
+			
+			proc_info.type[PID]      = 0;
+			proc_info.priority[PID]  = 0;
+			proc_info.counter[PID]   = 0;
+			proc_info.table[PID]     = 0;
+			
+			printPrompt();
 			
 			break;
 		}
-		
-		case TASK_TYPE_USER: {
-			
-			break;
-		}
-		
-		default: break;
 		
 	}
 	

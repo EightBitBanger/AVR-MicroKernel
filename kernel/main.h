@@ -14,6 +14,7 @@
   #include <kernel/command/asm/asm.h>
   // System diagnostics
   #include <kernel/command/diag/diag.h>
+  #include <kernel/command/mem/mem.h>
   
   #include <kernel/command/list/list.h>
   #include <kernel/command/device/device.h>
@@ -52,7 +53,6 @@
   #include <kernel/command/rn/rn.h>
   
   #include <kernel/command/mkdir/mkdir.h>
-  #include <kernel/command/rmdir/rmdir.h>
   
   #include <kernel/command/attrib/attrib.h>
   

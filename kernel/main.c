@@ -73,14 +73,21 @@ int main(void) {
     //registerCommandMandelbrot();
     
     
-    registerCommandLS();
-    registerCommandCD();
-    //register CommandRM();
+    //registerCommandLS();
+    //registerCommandCD();
+    
+    //registerCommandMK();
+    //registerCommandRM();
+    //registerCommandMKDIR();
+    
     //registerCommandCOPY();
     //registerCommandList();
     //registerCommandCLS();
     
-    //registerCommandTest();
+    registerCommandMEM();
+    
+    registerCommandTest();
+    
     //registerCommandTASK();
     
     //registerCommandNet();
@@ -125,7 +132,6 @@ int main(void) {
     registerCommandRM();
     registerCommandRN();
     registerCommandMKDIR();
-    registerCommandRMDIR();
     registerCommandCOPY();
     
     registerCommandAttribute();

@@ -7,6 +7,7 @@
 #define TASK_TYPE_USER                 'u' // User task
 #define TASK_TYPE_SERVICE              's' // System service task
 #define TASK_TYPE_VOLATILE             'v' // Volatile task (run once)
+#define TASK_TYPE_VOLATILE_PROMPT      'c' // Volatile task with command prompt
 #define TASK_TYPE_KERNEL               'k' // Kernel task
 #define TASK_TYPE_UNKNOWN              0   // No type defined
 

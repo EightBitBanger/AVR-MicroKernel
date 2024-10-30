@@ -19,13 +19,15 @@ void (*interrupt_vector_table[INTERRUPT_VECTOR_TABLE_SIZE])();
 
 void kInit(void) {
     
+    VirtualAccessSetMode(VIRTUAL_ACCESS_MODE_KERNEL);
+    
     // Initiate console prompt
-    uint8_t prompt[] = {fsGetDeviceRoot(), '>'};
+    uint8_t prompt[] = {fsDeviceGetRoot(), '>'};
     
     ConsoleSetPrompt(prompt, sizeof(prompt));
     
     // Initiate external storage
-    fsFormat(0, FORMAT_CAPACITY_32K);
+    fsFormat(0, FORMAT_CAPACITY_16K);
     
     
     
@@ -34,7 +36,6 @@ void kInit(void) {
     
     
     /*
-    
     
     //
     // Executable example
@@ -113,6 +114,10 @@ void kInit(void) {
     
     
     */
+    
+    
+    
+    
     
     
     
@@ -222,7 +227,7 @@ void kInit(void) {
     //
     // Create devices directory
     
-    fsClearWorkingDirectory();
+    fsWorkingDirectoryClear();
     
     uint8_t devicesSubDirName[] = "devices";
     uint32_t devicesDirectoryAddress = fsDirectoryCreate(devicesSubDirName, sizeof(devicesSubDirName));
@@ -288,7 +293,7 @@ void kInit(void) {
     
     fsFileSetAttributes(devicesDirectoryAddress, &attribDeviceDir);
     
-    fsClearWorkingDirectory();
+    fsWorkingDirectoryClear();
     
     uint8_t selectedDevice = 'x';
     
@@ -300,20 +305,20 @@ void kInit(void) {
     uint8_t kconfigDirName[] = "kconfig";
     
     //
-    // Check any active storage devices
+    // Check active storage devices
+    
     for (uint8_t i=0; i < NUMBER_OF_PERIPHERALS; i++) {
         
         uint8_t currentDevice = i + 'a';
         
-        fsSetDeviceLetter(currentDevice);
+        fsDeviceSetLetter(currentDevice);
         
-        if (fsCheckDeviceReady() == 0) 
+        if (fsDeviceCheckReady() == 0) 
             continue;
         
         
         //
-        // Check KCONFIG
-        //
+        // Check KCONFIG boot settings
         
         uint32_t kconfigAddress = fsFileExists(kconfigDirName, sizeof(kconfigDirName)-1);
         
@@ -321,7 +326,7 @@ void kInit(void) {
         // a kconfig settings file
         if (kconfigAddress == 0) {
             
-            fsSetDeviceLetter('x');
+            fsDeviceSetLetter('x');
             
             continue;
         }
@@ -434,6 +439,8 @@ void kInit(void) {
         
         selectedDevice = currentDevice;
         
+        VirtualAccessSetMode(VIRTUAL_ACCESS_MODE_USER);
+        
         break;
     }
     
@@ -443,11 +450,11 @@ void kInit(void) {
     
     if (selectedDevice == 0) {
         
-        fsSetDeviceLetter('x');
+        fsDeviceSetLetter('x');
         
     } else {
         
-        fsSetDeviceLetter(selectedDevice);
+        fsDeviceSetLetter(selectedDevice);
         uppercase(&selectedDevice);
         
         promptDevLetter[0] = selectedDevice;
@@ -455,7 +462,7 @@ void kInit(void) {
     
     ConsoleSetPrompt(promptDevLetter, sizeof(promptDevLetter));
     
-    fsClearWorkingDirectory();
+    fsWorkingDirectoryClear();
     
     // Setup environment
     

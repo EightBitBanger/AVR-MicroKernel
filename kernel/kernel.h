@@ -9,6 +9,7 @@
 #include <kernel/kref.h>
 #include <kernel/kalloc.h>
 #include <kernel/pointers.h>
+#include <kernel/throw.h>
 
 #include <kernel/bitwise.h>
 

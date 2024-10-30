@@ -8,6 +8,7 @@
 //#define  BOARD_RETROBOARD_REV2
 #define  BOARD_RETRO_AVR_X4_REV1
 
+
 // --------------------------------------------
 // Boot options
 
@@ -17,6 +18,7 @@
 #define _KERNEL_ALLOCATE_EXTERNAL_MEMORY__
 #define _KERNEL_PRINT_VERSION_INFORMATION__
 
+
 // --------------------------------------------
 // Kernel console application function sets
 
@@ -24,12 +26,6 @@
 #define INCLUDE_KERNEL_APPLICATIONS
 #define INCLUDE_NETWORK_APPLICATIONS
 #define INCLUDE_FILE_SYSTEM_APPLICATIONS
-
-// --------------------------------------------
-// Virtual memory
-
-#define VIRTUAL_ADDRESS_BEGIN    1024
-
 
 
 // --------------------------------------------
