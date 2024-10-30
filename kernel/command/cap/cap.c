@@ -7,11 +7,12 @@
 
 void functionCAP(uint8_t* param, uint8_t param_length) {
     
-    uint8_t msgBytesTotal[]       = "bytes total";
+    uint8_t msgBytesTotal[]       = "bytes";
     uint8_t msgDeviceNotReady[]   = "Device not ready";
     
-    uint32_t deviceCapacity = fsGetDeviceCapacity();
+    uint32_t deviceCapacity = fsDeviceGetCapacity();
     
+    // Less than one K check
     if (deviceCapacity < 1024) {
         
         print(msgDeviceNotReady, sizeof(msgDeviceNotReady));
@@ -25,7 +26,6 @@ void functionCAP(uint8_t* param, uint8_t param_length) {
     uint8_t integer[10];
     
     uint8_t place = int_to_string( numberOfKBytes, integer);
-    
     
     print( &integer[0], place + 1 );
     

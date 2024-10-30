@@ -40,7 +40,6 @@ void functionATTRIB(uint8_t* param, uint8_t param_length) {
     
     struct FSAttribute attributeCurrent;
     
-    
     if (fsFileGetAttributes(fileAddress, &attributeCurrent) == 0) {
         
         print(msgFileNotFound, sizeof(msgFileNotFound));
@@ -75,16 +74,10 @@ void functionATTRIB(uint8_t* param, uint8_t param_length) {
     if (attribute.writeable  != attributeCurrent.writeable)  isChanged = 1;
     if (attribute.type       != attributeCurrent.type)       isChanged = 1;
     
-    if ((attributeCurrent.type == 'd') & (attribute.type != 'd')) {
-        
-        print(msgAttributeError, sizeof(msgAttributeError));
-        printLn();
-        
-        return;
-    }
-    
-    // Cannot make directories executable...
-    if ((attributeCurrent.type == 'd') & (attribute.executable != ' ')) {
+    // Cannot change directory into file or 
+    // make directories executable...
+    if (((attributeCurrent.type == 'd') & (attribute.type != 'd')) | 
+        ((attributeCurrent.type == 'd') & (attribute.executable != ' '))) {
         
         print(msgAttributeError, sizeof(msgAttributeError));
         printLn();

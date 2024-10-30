@@ -43,6 +43,7 @@ uint8_t commandFunctionLookup(uint8_t params_begin);
 uint8_t ExecuteBinDirectory(void);
 
 
+
 uint8_t ExecuteFile(uint32_t fileAddress) {
     
     if (fileAddress == 0) 
@@ -72,7 +73,11 @@ uint8_t ExecuteFile(uint32_t fileAddress) {
     fsFileClose();
     
     // Emulate the code
-    EmulateX4(&programBuffer[0], programSize);
+    EmulatorSetProgram( programBuffer, programSize );
+    
+    uint8_t taskName[] = "emm";
+    
+    EmulatorStart(taskName, sizeof(taskName), TASK_PRIORITY_NORMAL, TASK_TYPE_VOLATILE_PROMPT);
     
     return 1;
 }
@@ -93,7 +98,7 @@ void KeyFunctionReturn(void) {
     uint8_t filename_length = 0;
     uint8_t parameters_begin = 0;
     
-    for (uint8_t i=0; i <= console_string_length; i++) {
+    for (uint8_t i=0; i <= console_string_length_old; i++) {
         
         if (console_string[i] != ' ') 
             continue;
@@ -114,46 +119,53 @@ void KeyFunctionReturn(void) {
     if (passed == 0) {
         
         passed = commandFunctionLookup(parameters_begin);
-        
-    }
-    
-    // Check device ready
-    if ((passed == 0) & (fsCheckDeviceReady() == 0) & (console_string_length > 0)) {
-        
-        print(msgDeviceNotReady, sizeof(msgDeviceNotReady));
-        printLn();
-        
-        ConsoleClearKeyboardString();
-        console_string_length = 0;
-        printPrompt();
-        
-        return;
     }
     
     //
     // Check file executable
-    if ((passed == 0) & (console_string_length > 0)) {
+    if ((passed == 0) & (console_string_length_old > 0)) {
         
-        // Check file exists in working directory
-        uint32_t fileAddress = fsFileExists(console_string, filename_length);
+        if (fsDeviceCheckReady() == 1) {
+            
+            // Check working directory
+            uint32_t fileAddress = fsFileExists(console_string, filename_length);
+            
+            if (fileAddress != 0) {
+                
+                if (ExecuteFile( fileAddress ) == 1) {
+                    
+                    ConsoleClearKeyboardString();
+                    
+                    console_string_length = 0;
+                    
+                    return;
+                }
+            }
+            
+            // Check bin directory
+            if (ExecuteBinDirectory() == 1) {
+                
+                ConsoleClearKeyboardString();
+                
+                console_string_length = 0;
+                
+                return;
+            }
+            
+        } else {
+            
+            print( msgDeviceNotReady, sizeof(msgDeviceNotReady) );
+            
+            printLn();
+            
+            passed = 1;
+            
+        }
         
-        passed = ExecuteFile( fileAddress );
     }
     
-    //
-    // Check the bin directory for the executable name
-    if (passed == 0) {
-        
-        passed = ExecuteBinDirectory();
-    }
-    
-    
-    //
     // Bad command or filename
-    
-    if ((passed == 0) & (console_string_length > 0)) {
-        
-        ConsoleSetCursor(console_line, 0);
+    if ((passed == 0) & (console_string_length_old > 0)) {
         
         print( msgBadCommand, sizeof(msgBadCommand) );
         
@@ -161,11 +173,11 @@ void KeyFunctionReturn(void) {
         
     }
     
+    printPrompt();
+    
     ConsoleClearKeyboardString();
     
     console_string_length = 0;
-    
-    printPrompt();
     
     return;
 }
@@ -176,8 +188,7 @@ uint8_t commandSpecialChar(void) {
     //
     // Change device with a colon character
     
-    if ((console_string[1] == ':') & 
-        (console_string[2] == ' ')) {
+    if (console_string[1] == ':') {
         
         uppercase(&console_string[0]);
         
@@ -188,7 +199,7 @@ uint8_t commandSpecialChar(void) {
         
         // Update the prompt if the device letter was changed
         
-        fsSetDeviceLetter( console_string[0] );
+        fsDeviceSetLetter( console_string[0] );
         
         uint8_t consolePrompt[] = {console_string[0], '>'};
         
@@ -196,7 +207,7 @@ uint8_t commandSpecialChar(void) {
         
         ConsoleSetCursorPosition(2);
         
-        fsClearWorkingDirectory();
+        fsWorkingDirectoryClear();
         fsWorkingDirectorySetStack(0);
         
         console_string_length = 0;
@@ -242,7 +253,13 @@ uint8_t commandFunctionLookup(uint8_t params_begin) {
         if (parameters_begin_chk != 0) 
             params_begin = parameters_begin_chk;
         
+        // Switch to user mode
+        
+        VirtualAccessSetMode( VIRTUAL_ACCESS_MODE_USER );
+        
+        
         // Run the function
+        
         if (CommandRegistry[i].function != nullptr) 
             CommandRegistry[i].function( &console_string[params_begin], (console_string_length + 1) - params_begin );
         
@@ -264,41 +281,31 @@ uint8_t ExecuteBinDirectory(void) {
     if (pathBinLength == 0) 
         return 0;
     
+    // Change to home device
+    uint8_t deviceLetter = fsDeviceGetRoot();
+    lowercase(&deviceLetter);
+    
     // Get current directory
     uint32_t currentWorkingDirectoryAddress = fsWorkingDirectoryGetAddress();
     
     // Set root directory
-    fsSetWorkingDirectory( fsFormatGetRootDirectory() );
     
-    // Change to home device
-    uint8_t deviceLetter = fsGetDeviceRoot();
-    lowercase(&deviceLetter);
+    fsDeviceSetLetter( EnvironmentGetHomeChar() );
+    fsSetWorkingDirectory( fsDeviceGetRootDirectory() );
     
-    fsSetDeviceLetter( EnvironmentGetHomeChar() );
-    
+    // Get directory address and number of files
     uint32_t directoryAddress = fsDirectoryExists(binDirectoryPath, EnvironmentGetPathBinLength()-1);
-    
-    if (directoryAddress == 0) {
-        
-        fsSetDeviceLetter( deviceLetter );
-        fsSetWorkingDirectory( currentWorkingDirectoryAddress );
-        
-        return 0;
-    }
-    
     uint32_t numberOfFiles = fsDirectoryGetNumberOfFiles( directoryAddress );
     
-    if (numberOfFiles == 0) {
-        
-        fsSetDeviceLetter( deviceLetter );
+    if ((numberOfFiles == 0) | (directoryAddress == 0)) {
+        fsDeviceSetLetter( deviceLetter );
         fsSetWorkingDirectory( currentWorkingDirectoryAddress );
-        
         return 0;
     }
     
     for (uint32_t i=0; i < numberOfFiles; i++) {
         
-        uint32_t fileAddress = fsDirectoryGetFile(directoryAddress, i);
+        uint32_t fileAddress = fsDirectoryGetFileAtIndex(directoryAddress, i);
         
         // Check execute attribute
         struct FSAttribute attribute;
@@ -313,18 +320,20 @@ uint8_t ExecuteBinDirectory(void) {
         // Run the executable
         if (StringCompare(filename, FILE_NAME_LENGTH, console_string, FILE_NAME_LENGTH) == 1) {
             
-            fsSetDeviceLetter( deviceLetter );
+            ExecuteFile(fileAddress);
+            
+            fsDeviceSetLetter( deviceLetter );
             fsSetWorkingDirectory( currentWorkingDirectoryAddress );
             
-            return ExecuteFile(fileAddress);
+            return 1;
         }
         
     }
     
     // Reset previous device and directory
-    fsSetDeviceLetter( deviceLetter );
+    fsDeviceSetLetter( deviceLetter );
     fsSetWorkingDirectory( currentWorkingDirectoryAddress );
     
-    return 1;
+    return 0;
 }
 

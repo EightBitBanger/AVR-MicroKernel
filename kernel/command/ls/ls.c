@@ -22,7 +22,7 @@ void functionLS(uint8_t* param, uint8_t param_length) {
     uint8_t fileCount = 0;
     
     // Check device ready
-    if (fsCheckDeviceReady() == 0) 
+    if (fsDeviceCheckReady() == 0) 
         return;
     
     uint8_t printPause(void) {
@@ -86,13 +86,13 @@ void functionLS(uint8_t* param, uint8_t param_length) {
         
         uint8_t len = int_to_string( ptr.address, filesizeString ) + 1;
         
-        if (len > 6) 
-            len = 6;
+        if (len > 7) 
+            len = 7;
         
-        uint8_t offset = 6 - len;
+        uint8_t offset = 7 - len;
         
-        if (offset > 5) 
-            offset = 5;
+        if (offset > 6) 
+            offset = 6;
         
         printSpace(offset);
         print(filesizeString, len);
@@ -130,7 +130,7 @@ void functionLS(uint8_t* param, uint8_t param_length) {
     // List working directory contents
     //
     
-    if (fsCheckWorkingDirectory() == 1) {
+    if (fsWorkingDirectoryCheck() == 1) {
         
         // Check if the current working directory is valid
         uint32_t directoryAddress = fsWorkingDirectoryGetAddress();
@@ -157,12 +157,14 @@ void functionLS(uint8_t* param, uint8_t param_length) {
             fsFileRead(bufferDir, directorySize);
             
             fsFileClose();
-             
-            // List directories first
+            
+            //
+            // List directories
+            
             for (uint8_t i=0; i < numberOfFiles; i++) {
                 
                 // Get file address offset
-                uint32_t fileAddress = fsDirectoryGetFile(directoryAddress, i);
+                uint32_t fileAddress = fsDirectoryGetFileAtIndex(directoryAddress, i);
                 
                 // Attributes
                 struct FSAttribute attribute;
@@ -189,7 +191,7 @@ void functionLS(uint8_t* param, uint8_t param_length) {
             for (uint8_t i=0; i < numberOfFiles; i++) {
                 
                 // Get file address offset
-                uint32_t fileAddress = fsDirectoryGetFile(directoryAddress, i);
+                uint32_t fileAddress = fsDirectoryGetFileAtIndex(directoryAddress, i);
                 
                 // Attributes
                 struct FSAttribute attribute;

@@ -9,6 +9,7 @@ void functionRM(uint8_t* param, uint8_t param_length) {
     uint8_t msgFileNotFound[] = "File not found";
     uint8_t msgAccessDenied[] = "Access denied";
     uint8_t msgFileRemoved[] = "File removed";
+    uint8_t msgDirRemoved[] = "Directory removed";
     uint8_t msgInvalidName[] = "Invalid filename";
     
     if ((param_length == 0) | 
@@ -20,24 +21,35 @@ void functionRM(uint8_t* param, uint8_t param_length) {
         return;
     }
     
+    struct FSAttribute attrib;
+    
     uint32_t fileAddress = fsFileExists(param, param_length);
+    uint32_t directoryAddress = 0;
     
     if (fileAddress == 0) {
         
-        print(msgFileNotFound, sizeof(msgFileNotFound));
-        printLn();
+        directoryAddress = fsDirectoryExists(param, param_length);
         
-        return;
+        if (directoryAddress == 0) {
+            
+            print(msgFileNotFound, sizeof(msgFileNotFound));
+            printLn();
+            
+            return;
+        } else {
+            
+            fsFileGetAttributes(directoryAddress, &attrib);
+            
+        }
+        
+    } else {
+        
+        fsFileGetAttributes(fileAddress, &attrib);
+        
     }
     
-    // Check directory attribute
-    uint8_t attribWrite;
-    
-    fs_read_byte(fileAddress + FILE_ATTRIBUTE_WRITE, &attribWrite);
-    
-    // Check read only
-    
-    if (attribWrite != 'w') {
+    // Check read only attribute
+    if (attrib.writeable != 'w') {
         
         print(msgAccessDenied, sizeof(msgAccessDenied));
         printLn();
@@ -45,17 +57,32 @@ void functionRM(uint8_t* param, uint8_t param_length) {
         return;
     }
     
-    if (fsFileDelete(param, param_length) == 1) {
+    if (fileAddress != 0) {
         
-        print(msgFileRemoved, sizeof(msgFileRemoved));
-        printLn();
-        
-    } else {
-        
-        print(msgFileNotFound, sizeof(msgFileNotFound));
-        printLn();
+        if (fsFileDelete(param, param_length) == 1) {
+            
+            print(msgFileRemoved, sizeof(msgFileRemoved));
+            printLn();
+            
+            return;
+        }
         
     }
+    
+    if (directoryAddress != 0) {
+        
+        if (fsDirectoryDelete(param, param_length) == 1) {
+            
+            print(msgDirRemoved, sizeof(msgDirRemoved));
+            printLn();
+            
+            return;
+        }
+        
+    }
+    
+    print(msgFileNotFound, sizeof(msgFileNotFound));
+    printLn();
     
     return;
 }

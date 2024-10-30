@@ -16,61 +16,10 @@ void functionCD(uint8_t* param, uint8_t param_length) {
     if (param_length > FILE_NAME_LENGTH) 
         param_length = FILE_NAME_LENGTH;
     
-    //uint8_t msgDeviceError[]        = "Device not ready";
     uint8_t msgDirectoryNotFound[]  = "Directory not found";
-    //uint8_t msgNotDirectory[]       = "Not a directory";
     
     uint8_t deviceLetter = param[0];
     uppercase(&deviceLetter);
-    
-    
-    //
-    // Change Directory
-    //
-    
-    if ((deviceLetter >= 'A') & (deviceLetter <= 'Z')) {
-        
-        uint32_t directoryAddress = fsDirectoryExists(param, param_length);
-        
-        if (directoryAddress == 0) {
-            
-            print(msgDirectoryNotFound, sizeof(msgDirectoryNotFound));
-            printLn();
-            
-            return;
-        }
-        
-        fsChangeWorkingDirectory(param, param_length);
-        
-        fs_directory_stack_ptr++;
-        
-        // Add the directory to the directory stack
-        for (uint8_t n=0; n < FILE_NAME_LENGTH; n++) 
-            directoryStack[fs_directory_stack_ptr].name[n] = ' ';
-        for (uint8_t n=0; n < param_length + 1; n++) 
-            directoryStack[fs_directory_stack_ptr].name[n] = param[n];
-        
-        directoryStack[fs_directory_stack_ptr].address = directoryAddress;
-        
-        
-        // Prompt for device letters
-        
-        uint8_t PromptDir[20];
-        for (uint8_t i=0; i < 20; i++) 
-            PromptDir[i] = ' ';
-        
-        for (uint8_t i=0; i < param_length + 2; i++) 
-            PromptDir[i + 2] = param[i];
-        
-        PromptDir[param_length + 1] = '>';
-        
-        PromptDir[0] = fsGetDeviceRoot();
-        PromptDir[1] = '/';
-        
-        ConsoleSetPrompt(PromptDir, param_length + 3);
-        
-        return;
-    }
     
     
     //
@@ -117,7 +66,7 @@ void functionCD(uint8_t* param, uint8_t param_length) {
             
             PromptDir[filenameLength] = '>';
             
-            PromptDir[0] = fsGetDeviceRoot();
+            PromptDir[0] = fsDeviceGetRoot();
             PromptDir[1] = '/';
             
             ConsoleSetPrompt(PromptDir, filenameLength + 2);
@@ -130,11 +79,11 @@ void functionCD(uint8_t* param, uint8_t param_length) {
             
             uint8_t PromptRoot[] = " >";
             
-            PromptRoot[0] = fsGetDeviceRoot();
+            PromptRoot[0] = fsDeviceGetRoot();
             
             ConsoleSetPrompt(PromptRoot, 3);
             
-            fsClearWorkingDirectory();
+            fsWorkingDirectoryClear();
             
         }
         
@@ -152,8 +101,8 @@ void functionCD(uint8_t* param, uint8_t param_length) {
     
     if ((deviceLetter >= 'A') & (deviceLetter <= 'Z') & (param[1] == ':')) {
         
-        fsSetDeviceLetter( deviceLetter );
-        fsSetDeviceRoot( deviceLetter );
+        fsDeviceSetLetter( deviceLetter );
+        fsDeviceSetRoot( deviceLetter );
         
         uint8_t consolePrompt[2];
         consolePrompt[0] = deviceLetter;
@@ -161,7 +110,54 @@ void functionCD(uint8_t* param, uint8_t param_length) {
         
         ConsoleSetPrompt(consolePrompt, 3);
         
-        fsClearWorkingDirectory();
+        fsWorkingDirectoryClear();
+        
+        return;
+    }
+    
+    
+    //
+    // Change Directory
+    //
+    
+    if ((deviceLetter >= 'A') & (deviceLetter <= 'Z')) {
+        
+        uint32_t directoryAddress = fsDirectoryExists(param, param_length);
+        
+        if (directoryAddress == 0) {
+            
+            print(msgDirectoryNotFound, sizeof(msgDirectoryNotFound));
+            printLn();
+            
+            return;
+        }
+        
+        fsChangeWorkingDirectory(param, param_length);
+        
+        fs_directory_stack_ptr++;
+        
+        // Add the directory to the directory stack
+        for (uint8_t n=0; n < FILE_NAME_LENGTH; n++) 
+            directoryStack[fs_directory_stack_ptr].name[n] = ' ';
+        for (uint8_t n=0; n < param_length + 1; n++) 
+            directoryStack[fs_directory_stack_ptr].name[n] = param[n];
+        
+        directoryStack[fs_directory_stack_ptr].address = directoryAddress;
+        
+        
+        // Prompt for device letters
+        
+        uint8_t PromptDir[20];
+        
+        for (uint8_t i=0; i < param_length + 2; i++) 
+            PromptDir[i + 2] = param[i];
+        
+        PromptDir[param_length + 1] = '>';
+        
+        PromptDir[0] = fsDeviceGetRoot();
+        PromptDir[1] = '/';
+        
+        ConsoleSetPrompt(PromptDir, param_length + 3);
         
         return;
     }
@@ -179,11 +175,11 @@ void functionCD(uint8_t* param, uint8_t param_length) {
         
         uint8_t PromptRoot[] = " >";
         
-        PromptRoot[0] = fsGetDeviceRoot();
+        PromptRoot[0] = fsDeviceGetRoot();
         
         ConsoleSetPrompt(PromptRoot, 3);
         
-        fsClearWorkingDirectory();
+        fsWorkingDirectoryClear();
         
         return;
     }

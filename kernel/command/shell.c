@@ -63,15 +63,14 @@ uint8_t cliRunShell(void) {
         break;
     }
     
-    
-    switch (scanCode) {
+    if (scanCode < 0x20) {
         
-        case 0x01: {KeyFunctionBackspace(); break;}
-        case 0x02: {KeyFunctionReturn(); break;}
+        if (scanCode == 0x01) {KeyFunctionBackspace();}
+        if (scanCode == 0x02) {KeyFunctionReturn();}
         
-        default: {
-            if (scanCode > 0x19) {KeyFunctionPrintChar(scanCode); break;}
-        }
+    } else {
+        
+        KeyFunctionPrintChar(scanCode);
         
     }
     
@@ -124,12 +123,13 @@ void KeyFunctionPrintChar(uint8_t scanCode) {
     }
     
     console_string[console_string_length] = scanCode;
-    printChar(scanCode);
-    
     console_string_length++;
+    
+    printChar(scanCode);
     
     ConsoleSetCursorPosition(console_position);
     
+    // New line
     if (console_position >= displayColumbs) {
         
         printLn();

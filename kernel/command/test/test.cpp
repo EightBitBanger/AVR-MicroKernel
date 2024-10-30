@@ -9,6 +9,16 @@ extern "C" {
 
 void functionTest(uint8_t* param, uint8_t param_length) {
     
+    for (uint8_t i=0; i < 10; i++) {
+        
+        array arr(100);
+        
+        array test( arr );
+        
+    }
+    
+    
+    
     return;
 }
 

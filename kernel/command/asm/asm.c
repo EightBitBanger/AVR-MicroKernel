@@ -222,7 +222,9 @@ void functionAsm(uint8_t* param, uint8_t param_length) {
                 
                 if ((asm_console_string[0] == 'r') & (asm_console_string[1] == ' ')) {
                     
-                    EmulateX4( fileBuffer, fileSize );
+                    EmulatorSetProgram( fileBuffer, fileSize );
+                    
+                    EmulateX4();
                     
                 }
                 

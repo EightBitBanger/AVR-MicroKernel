@@ -44,6 +44,7 @@ uint8_t ConsoleGetCursorLine(void);
 uint8_t ConsoleWait(void);
 void ConsoleClearKeyboardString(void);
 
+void ConsolePrintKeyboardString(void);
 
 // Environment variables
 

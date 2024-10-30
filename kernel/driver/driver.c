@@ -228,14 +228,6 @@ uint8_t GetNumberOfDrivers(void) {
 
 void DriverTableInit(void) {
     
-    struct Bus bus;
-    bus.read_waitstate = 4;
-    bus.write_waitstate = 4;
-    
-    for (uint32_t i=0; i < VIRTUAL_ADDRESS_BEGIN; i++) 
-        bus_write_memory(&bus, i, 0xff);
-    
-    
     for (uint8_t i=0; i < DRIVER_TABLE_SIZE; i++) {
         
         for (uint8_t a=0; a < DEVICE_NAME_LENGTH; a++) 

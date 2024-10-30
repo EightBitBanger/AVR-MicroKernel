@@ -94,7 +94,7 @@ void functionFORMAT(uint8_t* param, uint8_t param_length) {
             
             sector++;
             
-            if (sectorCounter < (SECTOR_SIZE - 1)) {
+            if (sectorCounter < (FORMAT_SECTOR_SIZE - 1)) {
                 fs_write_byte(sector, ' ');
                 sectorCounter++;
             } else {
@@ -130,7 +130,7 @@ void functionFORMAT(uint8_t* param, uint8_t param_length) {
     
     // Device total capacity
     
-    fsFotmatConstructAllocationTable(0, deviceCapacityBytes);
+    fsDeviceConstructAllocationTable(0, deviceCapacityBytes);
     
     
     // Finish as 100%

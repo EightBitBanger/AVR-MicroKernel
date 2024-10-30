@@ -7,8 +7,7 @@
 
 void functionMKDIR(uint8_t* param, uint8_t param_length) {
     
-    uint8_t msgFileCreated[]   = "Directory created";
-    //uint8_t msgAlreadyExists[] = "Already exists";
+    uint8_t msgFileCreated[]  = "Directory created";
     uint8_t msgInvalidName[]  = "Invalid name";
     
     if ((param_length == 0) | 

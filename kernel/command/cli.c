@@ -167,6 +167,28 @@ void ConsoleClearKeyboardString(void) {
     return;
 }
 
+void ConsolePrintKeyboardString(void) {
+    
+    ConsoleSetCursorPosition(console_prompt_length-1);
+    
+    for (uint8_t i=0; i < console_string_length; i++) 
+        printChar( console_string[i] );
+    
+    
+    ConsoleSetCursorPosition( (console_prompt_length + console_string_length) - 1 );
+    
+    if (console_position >= displayColumbs) {
+        
+        printLn();
+        
+        console_position = 0;
+        ConsoleSetCursorPosition(console_position);
+        
+    }
+    
+    return;
+}
+
 uint8_t ConsoleWait(void) {
     
 #ifdef BOARD_RETRO_AVR_X4_REV1
