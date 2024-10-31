@@ -56,7 +56,7 @@ void EmulatorStart(uint8_t* filename, uint8_t nameLength, uint16_t priority, uin
 
 
 
-void EmulateX4(void) {
+void EmulateX4(uint8_t messages) {
     
     struct Bus mem_bus;
     mem_bus.read_waitstate = 2;
