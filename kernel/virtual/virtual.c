@@ -9,7 +9,7 @@
 #define __SERVICE_VIRTUAL_ACCESS_END__     0x000007ff
 
 #define __USER_VIRTUAL_ACCESS_BEGIN__      0x00000800
-#define __USER_VIRTUAL_ACCESS_END__        0x00001fff
+#define __USER_VIRTUAL_ACCESS_END__        0x00007fff
 
 
 uint32_t VirtualAddressBegin = __KERNEL_VIRTUAL_ACCESS_BEGIN__;

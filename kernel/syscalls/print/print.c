@@ -47,6 +47,9 @@ void printInt(uint32_t integer) {
         return;
     }
     
+    if (place == 0) 
+        place++;
+    
     displayDevice->write( 0x00001, console_line );
     displayDevice->write( 0x00002, console_position );
     

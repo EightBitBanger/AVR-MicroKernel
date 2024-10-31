@@ -37,14 +37,12 @@ void __delete__(uint32_t ptr) {
     fsDeviceSetLetter('x');
     
     // Get allocation size
-    union Pointer allocSize;
-    for (uint8_t i=0; i < 4; i++) 
-        fs_read_byte(ptr + FILE_OFFSET_SIZE, &allocSize.byte_t[i]);
+    uint8_t allocSize = fsFileGetSize(ptr);
     
     if (fsFree( ptr ) != 0) {
         
         globalAllocs--;
-        globalAllocBytes -= allocSize.address;
+        globalAllocBytes -= allocSize;
         
     }
     
