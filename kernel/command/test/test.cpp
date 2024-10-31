@@ -6,18 +6,48 @@ extern "C" {
 #include <kernel/array.hpp>
 #include <kernel/string.hpp>
 
+uint32_t address = 0;
 
-void functionTest(uint8_t* param, uint8_t param_length) {
+void test(uint8_t messages) {
     
-    for (uint8_t i=0; i < 10; i++) {
+    switch (messages) {
         
-        array arr(100);
+        case EVENT_INITIATE: {
+            
+            if (address == nullptr) 
+                address = new(40);
+            
+            break;
+        }
         
-        array test( arr );
+        case EVENT_SHUTDOWN: {
+            
+            if (address != nullptr) 
+                delete(address);
+            
+            address = nullptr;
+            
+            break;
+        }
         
     }
     
+    if (address == nullptr) 
+        return;
     
+    return;
+}
+
+
+
+void functionTest(uint8_t* param, uint8_t param_length) {
+    
+    if (address != nullptr) 
+        return;
+    
+    uint8_t taskName[] = "test";
+    
+    TaskCreate(taskName, sizeof(taskName), test, TASK_PRIORITY_HIGH, TASK_TYPE_USER);
     
     return;
 }

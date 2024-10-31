@@ -224,7 +224,7 @@ void functionAsm(uint8_t* param, uint8_t param_length) {
                     
                     EmulatorSetProgram( fileBuffer, fileSize );
                     
-                    EmulateX4();
+                    EmulateX4(EVENT_INITIATE);
                     
                 }
                 
