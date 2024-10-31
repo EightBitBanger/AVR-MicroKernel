@@ -20,7 +20,7 @@ volatile uint8_t PID=0;
 uint8_t schedulerIsActive = 0;
 
 
-uint8_t TaskCreate(uint8_t* name, uint8_t name_length, void(*task_ptr)(), uint16_t priority, uint8_t type) {
+uint8_t TaskCreate(uint8_t* name, uint8_t name_length, void(*task_ptr)(uint8_t), uint16_t priority, uint8_t type) {
 	
 	if (name_length > TASK_NAME_LENGTH_MAX)
 		name_length = TASK_NAME_LENGTH_MAX;
@@ -38,7 +38,8 @@ uint8_t TaskCreate(uint8_t* name, uint8_t name_length, void(*task_ptr)(), uint16
 	proc_info.type[index]      = type;
 	proc_info.priority[index]  = priority;
 	proc_info.counter[index]   = 0;
-	proc_info.table[index]     = task_ptr;
+	proc_info.flags[index]     = 0;
+	proc_info.function[index]  = task_ptr;
 	
 	return (index + 1);
 }
@@ -54,18 +55,12 @@ uint8_t TaskDestroy(uint8_t index) {
 	if (proc_info.type[PID] == TASK_TYPE_UNKNOWN) 
         return 0;
 	
-	proc_info.type[PID]      = 0;
-	proc_info.priority[PID]  = 0;
-	proc_info.counter[PID]   = 0;
-	proc_info.table[PID]     = 0;
-	
-	for (uint8_t i=0; i < TASK_NAME_LENGTH_MAX; i++)
-		proc_info.name[PID][i] = ' ';
+	proc_info.type[PID] = TASK_TYPE_VOLATILE;
 	
 	return 1;
 }
 
-uint8_t TaskFind(uint8_t* name, uint8_t name_length) {
+uint32_t TaskFind(uint8_t* name, uint8_t name_length) {
 	
 	if (name_length > TASK_NAME_LENGTH_MAX)
         name_length = TASK_NAME_LENGTH_MAX;
@@ -80,7 +75,6 @@ uint8_t TaskFind(uint8_t* name, uint8_t name_length) {
             list_task_name[i] = proc_info.name[index][i];
 		
 		if (StringCompare(name, name_length, list_task_name, TASK_NAME_LENGTH_MAX) == 1) {
-            
             return (index + 1);
         }
         
@@ -106,12 +100,7 @@ uint8_t TaskKill(uint8_t* name, uint8_t name_length) {
 		
 		if (StringCompare(name, name_length, list_task_name, TASK_NAME_LENGTH_MAX) == 1) {
             
-            for (uint8_t i=0; i < TASK_NAME_LENGTH_MAX; i++) 
-                proc_info.name[index][i] = ' ';
-            
-            proc_info.counter[index] = 0;
-            proc_info.priority[index] = 0;
-            proc_info.type[index] = 0;
+            proc_info.type[index] = TASK_TYPE_VOLATILE;
             
             return (index + 1);
         }
@@ -132,6 +121,8 @@ uint8_t GetProcInfo(uint8_t index, struct ProcessDescription* info) {
 	info->type     = proc_info.type[index];
 	info->priority = proc_info.priority[index];
 	info->counter  = proc_info.counter[index];
+	info->flags    = proc_info.flags[index];
+	info->function = proc_info.function[index];
 	
 	return 1;
 }
@@ -146,10 +137,11 @@ void SchedulerInit(void) {
 	
 	for (uint8_t i=0; i < TASK_LIST_SIZE; i++) {
 		
-		proc_info.type[i]     = TASK_TYPE_UNKNOWN;
-		proc_info.priority[i] = TASK_PRIORITY_HALT;
+		proc_info.type[i]     = 0;
+		proc_info.priority[i] = 0;
 		proc_info.counter[i]  = 0;
-		proc_info.table[i]    = 0;
+		proc_info.flags[i]    = 0;
+		proc_info.function[i] = (void(*)(uint8_t))nullfunc;
 		
 		for (uint8_t a=0; a < TASK_NAME_LENGTH_MAX; a++)
             proc_info.name[i][a] = ' ';
@@ -220,15 +212,63 @@ void _ISR_SCHEDULER_MAIN__(void) {
 	}
 	
 	
+    // Check volatility
+    
+	switch (proc_info.type[PID]) {
+		
+		case TASK_TYPE_VOLATILE: {
+			
+            proc_info.function[PID]( EVENT_SHUTDOWN );
+            
+			for (uint8_t i=0; i < TASK_NAME_LENGTH_MAX; i++) 
+                proc_info.name[PID][i] = ' ';
+			
+			proc_info.type[PID]      = 0;
+			proc_info.priority[PID]  = 0;
+			proc_info.counter[PID]   = 0;
+			proc_info.function[PID]  = (void(*)(uint8_t))nullfunc;
+			
+			break;
+		}
+		
+		case TASK_TYPE_VOLATILE_PROMPT: {
+			
+			proc_info.function[PID]( EVENT_SHUTDOWN );
+            
+			for (uint8_t i=0; i < TASK_NAME_LENGTH_MAX; i++) 
+                proc_info.name[PID][i] = ' ';
+			
+			proc_info.type[PID]      = 0;
+			proc_info.priority[PID]  = 0;
+			proc_info.counter[PID]   = 0;
+			proc_info.function[PID]  = (void(*)(uint8_t))nullfunc;
+			
+			printPrompt();
+			
+			break;
+		}
+		
+	}
+	
 	// Call the task function
 	
-	if (proc_info.counter[PID] >= proc_info.priority[PID]) {
+	if (proc_info.counter[PID] > proc_info.priority[PID]) {
 		
 		proc_info.counter[PID]=0;
 		
-		proc_info.table[PID]();
-		
-        VirtualAccessSetMode( currentMode );
+		if (proc_info.flags[PID] == 0) {
+            
+            proc_info.function[PID]( EVENT_INITIATE );
+            
+            proc_info.flags[PID] = 1;
+            
+		} else {
+            
+            proc_info.function[PID]( EVENT_NOMESSAGE );
+            
+        }
+        
+		VirtualAccessSetMode( currentMode );
         
 	} else {
 		
@@ -241,40 +281,6 @@ void _ISR_SCHEDULER_MAIN__(void) {
 		return;
 	}
 	
-	
-    // Check volatility
-    
-	switch (proc_info.type[PID]) {
-		
-		case TASK_TYPE_VOLATILE: {
-			
-			for (uint8_t i=0; i < TASK_NAME_LENGTH_MAX; i++) 
-                proc_info.name[PID][i] = ' ';
-			
-			proc_info.type[PID]      = 0;
-			proc_info.priority[PID]  = 0;
-			proc_info.counter[PID]   = 0;
-			proc_info.table[PID]     = 0;
-			
-			break;
-		}
-		
-		case TASK_TYPE_VOLATILE_PROMPT: {
-			
-			for (uint8_t i=0; i < TASK_NAME_LENGTH_MAX; i++) 
-                proc_info.name[PID][i] = ' ';
-			
-			proc_info.type[PID]      = 0;
-			proc_info.priority[PID]  = 0;
-			proc_info.counter[PID]   = 0;
-			proc_info.table[PID]     = 0;
-			
-			printPrompt();
-			
-			break;
-		}
-		
-	}
 	
 	PID++;
     

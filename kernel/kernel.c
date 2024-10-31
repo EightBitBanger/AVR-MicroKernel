@@ -2,19 +2,14 @@
 
 #include <kernel/delay.h>
 
-#define INT_VECT_0  254
-#define INT_VECT_1  253
-#define INT_VECT_2  251
-#define INT_VECT_3  247
-#define INT_VECT_4  239
-#define INT_VECT_5  223
-#define INT_VECT_6  191
-#define INT_VECT_7  127
 
 #define INTERRUPT_VECTOR_TABLE_SIZE  8
-void defaultLandingFunction(void) {}
 
 void (*interrupt_vector_table[INTERRUPT_VECTOR_TABLE_SIZE])();
+
+struct Bus isr_bus;
+
+void nullfunction(void) {return;}
 
 
 void kInit(void) {
@@ -27,7 +22,7 @@ void kInit(void) {
     ConsoleSetPrompt(prompt, sizeof(prompt));
     
     // Initiate external storage
-    fsFormat(0, FORMAT_CAPACITY_16K);
+    fsFormat(0, FORMAT_CAPACITY_32K);
     
     
     
@@ -476,8 +471,11 @@ void kInit(void) {
 
 void KernelVectorTableInit(void) {
     
+    isr_bus.read_waitstate  = 2;
+    isr_bus.write_waitstate = 4;
+    
     for (uint8_t i=0; i < INTERRUPT_VECTOR_TABLE_SIZE; i++) 
-        interrupt_vector_table[i] = defaultLandingFunction;
+        interrupt_vector_table[i] = nullfunction;
     
     return;
 }
@@ -491,28 +489,18 @@ void SetInterruptVector(uint8_t index, void(*servicePtr)()) {
 
 void _ISR_hardware_service_routine(void) {
     
-    struct Bus bus;
-    bus.read_waitstate  = 4;
+    uint8_t vect = 0;
     
-    uint8_t intVect = 0;
+    bus_read_io(&isr_bus, 0x00000, &vect);
     
-    bus_read_io(&bus, 0x00000, &intVect);
-    
-    switch(intVect) {
-        
-        case INT_VECT_0: interrupt_vector_table[0](); break;
-        case INT_VECT_1: interrupt_vector_table[1](); break;
-        case INT_VECT_2: interrupt_vector_table[2](); break;
-        case INT_VECT_3: interrupt_vector_table[3](); break;
-        case INT_VECT_4: interrupt_vector_table[4](); break;
-        case INT_VECT_5: interrupt_vector_table[5](); break;
-        case INT_VECT_6: interrupt_vector_table[6](); break;
-        case INT_VECT_7: interrupt_vector_table[7](); break;
-        
-        default:
-            break;
-        
-    }
+    if (((vect >> 7) & 1) != 0) {interrupt_vector_table[0]();}
+    if (((vect >> 6) & 1) != 0) {interrupt_vector_table[1]();}
+    if (((vect >> 5) & 1) != 0) {interrupt_vector_table[2]();}
+    if (((vect >> 4) & 1) != 0) {interrupt_vector_table[3]();}
+    if (((vect >> 3) & 1) != 0) {interrupt_vector_table[4]();}
+    if (((vect >> 2) & 1) != 0) {interrupt_vector_table[5]();}
+    if (((vect >> 1) & 1) != 0) {interrupt_vector_table[6]();}
+    if (((vect >> 0) & 1) != 0) {interrupt_vector_table[7]();}
     
     return;
 }

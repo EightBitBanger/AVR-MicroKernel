@@ -18,6 +18,11 @@
 #define TASK_PRIORITY_HIGH             8
 #define TASK_PRIORITY_REALTIME         1
 
+#define EVENT_NOMESSAGE                0
+#define EVENT_INITIATE                 1
+#define EVENT_SHUTDOWN                 2
+
+
 
 struct ProcessDescription {
 	
@@ -25,7 +30,8 @@ struct ProcessDescription {
 	uint8_t  type;
 	uint16_t priority;
 	uint16_t counter;
-	void   (*table)();
+	uint8_t  flags;
+	void   (*function)(uint8_t);
 	
 };
 
@@ -35,15 +41,16 @@ struct ProcessDescriptorTable {
 	uint8_t  type     [TASK_LIST_SIZE];
 	uint16_t priority [TASK_LIST_SIZE];
 	uint16_t counter  [TASK_LIST_SIZE];
-	void   (*table    [TASK_LIST_SIZE])();
+	uint8_t  flags    [TASK_LIST_SIZE];
+	void   (*function [TASK_LIST_SIZE])(uint8_t);
 	
 };
 
-uint8_t TaskCreate(uint8_t* name, uint8_t name_length, void(*task_ptr)(), uint16_t priority, uint8_t type);
+uint8_t TaskCreate(uint8_t* name, uint8_t name_length, void(*task_ptr)(uint8_t), uint16_t priority, uint8_t type);
 
 uint8_t TaskDestroy(uint8_t index);
 
-uint8_t TaskFind(uint8_t* name, uint8_t name_length);
+uint32_t TaskFind(uint8_t* name, uint8_t name_length);
 
 uint8_t TaskKill(uint8_t* name, uint8_t name_length);
 

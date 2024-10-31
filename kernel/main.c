@@ -88,7 +88,7 @@ int main(void) {
     
     registerCommandTest();
     
-    //registerCommandTASK();
+    registerCommandTASK();
     
     //registerCommandNet();
     //registerCommandFormat();
@@ -167,7 +167,7 @@ int main(void) {
 #endif
     
     // Set interrupt 0 to handle keyboard input
-    SetInterruptVector(0, (void(*)())cliRunShell);
+    SetInterruptVector(4, (void(*)())cliRunShell);
     
     // Drop the initial command prompt
     printPrompt();
