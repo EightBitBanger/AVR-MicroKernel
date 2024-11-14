@@ -5,11 +5,11 @@
 #define __KERNEL_VIRTUAL_ACCESS_BEGIN__    0x00000000
 #define __KERNEL_VIRTUAL_ACCESS_END__      0xffffffff
 
-#define __SERVICE_VIRTUAL_ACCESS_BEGIN__   0x00000100
-#define __SERVICE_VIRTUAL_ACCESS_END__     0x000007ff
+#define __SERVICE_VIRTUAL_ACCESS_BEGIN__   0x00000000
+#define __SERVICE_VIRTUAL_ACCESS_END__     0xffffffff
 
-#define __USER_VIRTUAL_ACCESS_BEGIN__      0x00000800
-#define __USER_VIRTUAL_ACCESS_END__        0x00007fff
+#define __USER_VIRTUAL_ACCESS_BEGIN__      0x00000000
+#define __USER_VIRTUAL_ACCESS_END__        0xffffffff
 
 
 uint32_t VirtualAddressBegin = __KERNEL_VIRTUAL_ACCESS_BEGIN__;
@@ -58,8 +58,8 @@ void VirtualAccessSetMode(uint8_t mode) {
 
 
 void VirtualWrite(uint32_t address, uint8_t* byte, uint32_t size) {
-    uint8_t deviceLetter = fsDeviceGetRoot();
-    fsDeviceSetLetter('x');
+    
+    VirtualBegin();
     
     uint32_t sector = 0;
     uint32_t sectorCounter = 0;
@@ -89,14 +89,15 @@ void VirtualWrite(uint32_t address, uint8_t* byte, uint32_t size) {
         continue;
     }
     
-    fsDeviceSetLetter(deviceLetter);
+    VirtualEnd();
+    
     return;
 }
 
 
 void VirtualRead(uint32_t address, uint8_t* byte, uint32_t size) {
-    uint8_t deviceLetter = fsDeviceGetRoot();
-    fsDeviceSetLetter('x');
+    
+    VirtualBegin();
     
     uint32_t sector = 0;
     uint32_t sectorCounter = 0;
@@ -126,7 +127,38 @@ void VirtualRead(uint32_t address, uint8_t* byte, uint32_t size) {
         continue;
     }
     
-    fsDeviceSetLetter(deviceLetter);
+    VirtualEnd();
+    
+    return;
+}
+
+
+uint8_t currentDevice = ' ';
+
+void VirtualBegin(void) {
+    
+    if (currentDevice != ' ') {
+        kThrow(KERNEL_HALT_SEGMENTATION, 0);
+        return;
+    }
+    
+    currentDevice = fsDeviceGetRoot();
+    fsDeviceSetLetter('x');
+    
+    return;
+}
+
+void VirtualEnd(void) {
+    
+    if (currentDevice == ' ') {
+        kThrow(KERNEL_HALT_SEGMENTATION, 0);
+        return;
+    }
+    
+    fsDeviceSetLetter(currentDevice);
+    
+    currentDevice = ' ';
+    
     return;
 }
 

@@ -17,4 +17,9 @@ void VirtualWrite(uint32_t address, uint8_t* byte, uint32_t size);
 
 void VirtualRead(uint32_t address, uint8_t* byte, uint32_t size);
 
+
+void VirtualBegin(void);
+
+void VirtualEnd(void);
+
 #endif

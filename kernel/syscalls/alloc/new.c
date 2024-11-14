@@ -11,8 +11,7 @@ uint32_t __new__(uint32_t size) {
     if (size == 0) 
         return 0;
     
-    uint8_t deviceLetter = fsDeviceGetRoot();
-    fsDeviceSetLetter('x');
+    VirtualBegin();
     
     union Pointer ptr;
     ptr.address = fsAllocate(size);
@@ -21,10 +20,9 @@ uint32_t __new__(uint32_t size) {
         
         globalAllocs++;
         globalAllocBytes += size;
-        
     }
     
-    fsDeviceSetLetter(deviceLetter);
+    VirtualEnd();
     return ptr.address;
 }
 
@@ -33,8 +31,7 @@ void __delete__(uint32_t ptr) {
     if (ptr == 0) 
         return;
     
-    uint8_t deviceLetter = fsDeviceGetRoot();
-    fsDeviceSetLetter('x');
+    VirtualBegin();
     
     // Get allocation size
     uint8_t allocSize = fsFileGetSize(ptr);
@@ -43,10 +40,9 @@ void __delete__(uint32_t ptr) {
         
         globalAllocs--;
         globalAllocBytes -= allocSize;
-        
     }
     
-    fsDeviceSetLetter(deviceLetter);
+    VirtualEnd();
     return;
 }
 
