@@ -36,6 +36,8 @@ void functionAsm(uint8_t* param, uint8_t param_length) {
         
         fileAddress = fsFileCreate(param, param_length, 1);
         
+        fsDirectoryAddFileRef( fsWorkingDirectoryGetAddress(), fileAddress );
+        
         if (fileAddress == 0) 
             return;
         
@@ -284,10 +286,15 @@ void functionAsm(uint8_t* param, uint8_t param_length) {
                     
                     // Delete the original
                     fsFileClose();
-                    fsFileDelete(param, param_length);
+                    fileAddress = fsFileDelete(param, param_length);
+                    
+                    fsDirectoryRemoveFileRef( fsWorkingDirectoryGetAddress(), fileAddress );
                     
                     // Create new file with new size
                     fileAddress = fsFileCreate(param, param_length, fileSize);
+                    
+                    fsDirectoryAddFileRef( fsWorkingDirectoryGetAddress(), fileAddress );
+                    
                     fsFileOpen(fileAddress);
                     
                     fsFileWrite(fileBuffer, fileSize);

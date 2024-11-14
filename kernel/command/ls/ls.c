@@ -164,7 +164,7 @@ void functionLS(uint8_t* param, uint8_t param_length) {
             for (uint8_t i=0; i < numberOfFiles; i++) {
                 
                 // Get file address offset
-                uint32_t fileAddress = fsDirectoryGetFileAtIndex(directoryAddress, i);
+                uint32_t fileAddress = fsDirectoryGetFileRef(directoryAddress, i);
                 
                 // Attributes
                 struct FSAttribute attribute;
@@ -191,7 +191,7 @@ void functionLS(uint8_t* param, uint8_t param_length) {
             for (uint8_t i=0; i < numberOfFiles; i++) {
                 
                 // Get file address offset
-                uint32_t fileAddress = fsDirectoryGetFileAtIndex(directoryAddress, i);
+                uint32_t fileAddress = fsDirectoryGetFileRef(directoryAddress, i);
                 
                 // Attributes
                 struct FSAttribute attribute;

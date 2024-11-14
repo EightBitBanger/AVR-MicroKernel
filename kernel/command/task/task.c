@@ -26,10 +26,17 @@ void functionTASK(uint8_t* param, uint8_t param_length) {
             // Type
             printChar( proc_desc.type );
             printSpace(1);
+            
             // Name
-            print(proc_desc.name, TASK_NAME_LENGTH_MAX);
+            uint8_t filename[FILE_NAME_LENGTH];
+            VirtualBegin();
+            fsFileGetName(proc_desc.block, filename);
+            VirtualEnd();
+            
+            print(filename, TASK_NAME_LENGTH_MAX);
             printSpace(2);
             // Priority
+            
             if (proc_desc.priority == TASK_PRIORITY_NORMAL) {
                 
                 printc("normal", 7);

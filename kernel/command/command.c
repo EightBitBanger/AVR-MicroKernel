@@ -42,6 +42,8 @@ uint8_t commandSpecialChar(void);
 uint8_t commandFunctionLookup(uint8_t params_begin);
 uint8_t ExecuteBinDirectory(void);
 
+uint8_t currentDeviceLetter;
+uint32_t currentWorkingDirectoryAddress;
 
 
 uint8_t ExecuteFile(uint32_t fileAddress) {
@@ -72,12 +74,15 @@ uint8_t ExecuteFile(uint32_t fileAddress) {
     
     fsFileClose();
     
-    // Emulate the code
+    fsDeviceSetLetter( currentDeviceLetter );
+    fsSetWorkingDirectory( currentWorkingDirectoryAddress );
+    
+    // Launch the emulator
     EmulatorSetProgram( programBuffer, programSize );
     
-    uint8_t taskName[] = "emm";
+    EmulateX4( EVENT_NOMESSAGE );
     
-    EmulatorStart(taskName, sizeof(taskName), TASK_PRIORITY_NORMAL, TASK_TYPE_VOLATILE_PROMPT);
+    printPrompt();
     
     return 1;
 }
@@ -129,6 +134,11 @@ void KeyFunctionReturn(void) {
             
             // Check working directory
             uint32_t fileAddress = fsFileExists(console_string, filename_length);
+            
+            EmulatorSetParam(&console_string[parameters_begin], (console_string_length - parameters_begin) + 1);
+            
+            currentDeviceLetter = fsDeviceGetRoot();
+            currentWorkingDirectoryAddress = fsWorkingDirectoryGetAddress();
             
             if (fileAddress != 0) {
                 
@@ -208,7 +218,6 @@ uint8_t commandSpecialChar(void) {
         ConsoleSetCursorPosition(2);
         
         fsWorkingDirectoryClear();
-        fsWorkingDirectorySetStack(0);
         
         console_string_length = 0;
         
@@ -270,26 +279,29 @@ uint8_t commandFunctionLookup(uint8_t params_begin) {
 }
 
 
+
 uint8_t ExecuteBinDirectory(void) {
     
     // Get bin directory
     uint32_t pathBinLength = EnvironmentGetPathBinLength();
     
-    uint8_t binDirectoryPath[pathBinLength];
-    EnvironmentGetPathBin(binDirectoryPath, pathBinLength);
-    
     if (pathBinLength == 0) 
         return 0;
     
+    uint8_t binDirectoryPath[pathBinLength];
+    EnvironmentGetPathBin(binDirectoryPath, pathBinLength);
+    
+    if (binDirectoryPath[0] < 0x20) 
+        return 0;
+    
     // Change to home device
-    uint8_t deviceLetter = fsDeviceGetRoot();
-    lowercase(&deviceLetter);
+    currentDeviceLetter = fsDeviceGetRoot();
+    lowercase(&currentDeviceLetter);
     
     // Get current directory
-    uint32_t currentWorkingDirectoryAddress = fsWorkingDirectoryGetAddress();
+    currentWorkingDirectoryAddress = fsWorkingDirectoryGetAddress();
     
     // Set root directory
-    
     fsDeviceSetLetter( EnvironmentGetHomeChar() );
     fsSetWorkingDirectory( fsDeviceGetRootDirectory() );
     
@@ -298,14 +310,14 @@ uint8_t ExecuteBinDirectory(void) {
     uint32_t numberOfFiles = fsDirectoryGetNumberOfFiles( directoryAddress );
     
     if ((numberOfFiles == 0) | (directoryAddress == 0)) {
-        fsDeviceSetLetter( deviceLetter );
+        fsDeviceSetLetter( currentDeviceLetter );
         fsSetWorkingDirectory( currentWorkingDirectoryAddress );
         return 0;
     }
     
     for (uint32_t i=0; i < numberOfFiles; i++) {
         
-        uint32_t fileAddress = fsDirectoryGetFileAtIndex(directoryAddress, i);
+        uint32_t fileAddress = fsDirectoryGetFileRef(directoryAddress, i);
         
         // Check execute attribute
         struct FSAttribute attribute;
@@ -317,12 +329,14 @@ uint8_t ExecuteBinDirectory(void) {
         uint8_t filename[FILE_NAME_LENGTH];
         fsFileGetName(fileAddress, filename);
         
+        uint32_t paramBegin = StringFindChar(console_string, FILE_NAME_LENGTH, ' ') + 1;
+        
         // Run the executable
-        if (StringCompare(filename, FILE_NAME_LENGTH, console_string, FILE_NAME_LENGTH) == 1) {
+        if (StringCompare(filename, paramBegin, console_string, paramBegin) == 1) {
             
             ExecuteFile(fileAddress);
             
-            fsDeviceSetLetter( deviceLetter );
+            fsDeviceSetLetter( currentDeviceLetter );
             fsSetWorkingDirectory( currentWorkingDirectoryAddress );
             
             return 1;
@@ -331,7 +345,7 @@ uint8_t ExecuteBinDirectory(void) {
     }
     
     // Reset previous device and directory
-    fsDeviceSetLetter( deviceLetter );
+    fsDeviceSetLetter( currentDeviceLetter );
     fsSetWorkingDirectory( currentWorkingDirectoryAddress );
     
     return 0;

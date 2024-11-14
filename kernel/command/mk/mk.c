@@ -20,17 +20,20 @@ void functionMK(uint8_t* param, uint8_t param_length) {
         return;
     }
     
-    if (fsFileCreate(param, param_length, 100) == 0) {
+    uint32_t fileAddress = fsFileCreate(param, param_length, 100);
+    
+    fsDirectoryAddFileRef(fsWorkingDirectoryGetAddress(), fileAddress);
+    
+    if (fileAddress == 0) {
         
         print(msgErrorCreating, sizeof(msgErrorCreating));
         printLn();
         
-    } else {
-        
-        print(msgFileCreated, sizeof(msgFileCreated));
-        printLn();
-        
+        return;
     }
+    
+    print(msgFileCreated, sizeof(msgFileCreated));
+    printLn();
     
     return;
 }

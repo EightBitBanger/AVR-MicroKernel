@@ -38,14 +38,21 @@ void functionRN(uint8_t* param, uint8_t param_length) {
         
     }
     
-    if (fsFileRename(sourceName, sourceNameLen, targetName, targetNameLen) == 1) {
-        
-        print(msgFileRenamed, sizeof(msgFileRenamed));
-        
-    } else {
+    
+    uint32_t fileAddress = fsFileExists(sourceName, sourceNameLen);
+    
+    if (fileAddress == 0) {
         
         print(msgFileNotFound, sizeof(msgFileNotFound));
+        
+        printLn();
+        
+        return;
     }
+    
+    fsFileSetName(fileAddress, targetName, targetNameLen);
+    
+    print(msgFileRenamed, sizeof(msgFileRenamed));
     
     printLn();
     

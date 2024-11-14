@@ -37,6 +37,9 @@ void functionFORMAT(uint8_t* param, uint8_t param_length) {
         uint8_t place = int_to_string(deviceCapacityCurrent, &deviceCapacityAmount[0]);
         
         print(deviceCapacityAmount, place + 1);
+        
+        ConsoleSetCursorPosition( place );
+        
         print(deviceCapacityMsg, sizeof(deviceCapacityMsg));
         
     }
@@ -122,16 +125,11 @@ void functionFORMAT(uint8_t* param, uint8_t param_length) {
     
     _delay_ms(10);
     
-    // Initiate first sector
-    fs_write_byte(0, 0x13);
-    fs_write_byte(1, 'f');
-    fs_write_byte(2, 's');
-    
-    
     // Device total capacity
     
-    fsDeviceConstructAllocationTable(0, deviceCapacityBytes);
+    uint32_t rootAddress = fsDeviceConstructAllocationTable(0, deviceCapacityBytes);
     
+    fsDeviceSetRootDirectory( rootAddress );
     
     // Finish as 100%
     

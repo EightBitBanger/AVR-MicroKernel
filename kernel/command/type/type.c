@@ -24,8 +24,14 @@ void functionType(uint8_t* param, uint8_t param_length) {
     
     fsFileClose();
     
-    for (uint32_t i=0; i < fileSize; i++) 
-        printChar( fileBuffer[i] );
+    for (uint32_t i=0; i < fileSize; i++) {
+        if (fileBuffer[i] == '\n') {
+            printLn();
+        } else {
+            printChar( fileBuffer[i] );
+        }
+        
+    }
     
     if (fileSize < 20) 
         printLn();
