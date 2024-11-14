@@ -11,6 +11,16 @@ struct Bus isr_bus;
 
 void nullfunction(void) {return;}
 
+void AssembleJoin(uint8_t* buffer, uint32_t begin_address, uint8_t* source, uint32_t length) {
+    
+    for (uint32_t i=0; i < length; i++) 
+        buffer[begin_address + i] = source[i];
+    
+    return;
+}
+
+
+
 
 void kInit(void) {
     
@@ -21,8 +31,300 @@ void kInit(void) {
     
     ConsoleSetPrompt(prompt, sizeof(prompt));
     
-    // Initiate external storage
+    // Initiate memory storage
     fsFormat(0, FORMAT_CAPACITY_32K);
+    
+    fsWorkingDirectoryClear();
+    
+    
+    // Find an active storage device
+    uint8_t promptDevLetter[] = " >";
+    uint8_t selectedDevice = 255;
+    
+    for (uint8_t i=0; i < NUMBER_OF_PERIPHERALS; i++) {
+        
+        uint8_t currentDevice = i + 'a';
+        
+        fsDeviceSetLetter(currentDevice);
+        
+        if (fsDeviceCheckReady() == 0) 
+            continue;
+        
+        selectedDevice = currentDevice;
+        
+        // Setup environment
+        
+        // Primary root device
+        EnvironmentSetHomeChar( selectedDevice );
+        
+        // Executable search path
+        uint8_t binPath[] = "bin";
+        EnvironmentSetPathBin(binPath, sizeof(binPath));
+        
+        break;
+    }
+    
+    fsDeviceSetLetter('x');
+    fsWorkingDirectoryClear();
+    
+    uint8_t directoryName[] = "test";
+    uint32_t directoryAddress = fsDirectoryCreate(directoryName, sizeof(directoryName));
+    fsDirectoryAddFileRef(fsWorkingDirectoryGetAddress(), directoryAddress);
+    
+    fsWorkingDirectoryChange(directoryName, sizeof(directoryName));
+    
+    uint8_t directoryNameWtf[] = "wtf";
+    uint32_t directoryAddressWtf = fsDirectoryCreate(directoryNameWtf, sizeof(directoryNameWtf));
+    fsDirectoryAddFileRef(fsWorkingDirectoryGetAddress(), directoryAddressWtf);
+    
+    
+    fsWorkingDirectoryClear();
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    {
+    
+    uint8_t filename[]  = "cd";
+    
+    uint8_t buffer[200];
+    
+    
+    uint8_t start[] = {
+        
+        MOV, rAH, 0x3B, 
+        
+        INT, 0x13, 
+        
+        CMP, rBL, 0, 
+        JE, 0x00, 0x00, 0x00, 0x20, 
+        
+        INT, 0x20
+    };
+    
+    uint8_t printPath[] = {
+        
+        MOV, rAH, 0x3F, 
+        INT, 0x13, 
+        INT, 0x20
+    };
+    
+    
+    AssembleJoin(buffer, 0x0000, start, sizeof(start));
+    AssembleJoin(buffer, 0x0020, printPath, sizeof(printPath));
+    
+    uint32_t fileSizeTotal = 0x0020 + sizeof(printPath);
+    
+    uint32_t fileAddress = fsFileCreate(filename, sizeof(filename), fileSizeTotal);
+    
+    fsDirectoryAddFileRef(fsWorkingDirectoryGetAddress(), fileAddress);
+    
+    struct FSAttribute attrib = {'x', 'r', 'w', ' '};
+    fsFileSetAttributes(fileAddress, &attrib);
+    
+    fsFileOpen(fileAddress);
+    
+    fsFileWrite(buffer, fileSizeTotal);
+    fsFileClose();
+    
+    }
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    if (selectedDevice == 255) {
+        
+        fsDeviceSetLetter('x');
+        
+        promptDevLetter[0] = 'X';
+        
+        ConsoleSetPrompt(promptDevLetter, sizeof(promptDevLetter));
+        
+    } else {
+        
+        fsDeviceSetLetter(selectedDevice);
+        uppercase(&selectedDevice);
+        
+        promptDevLetter[0] = selectedDevice;
+        
+        ConsoleSetPrompt(promptDevLetter, sizeof(promptDevLetter));
+        
+        
+    }
+    
+    fsWorkingDirectoryClear();
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    return;
+    
+    
+    
+    /*
+    
+    {
+    
+    uint8_t filename[]  = "ld";
+    
+    uint8_t buffer[200];
+    
+    
+    uint8_t start[] = {
+        
+        MOV, rAH, 0x0A, 
+        MOV, rCL, 0, 
+        MOV, rCH, 20, 
+        
+        INT, 0x47, 
+        
+        CMP, rBL, 1, 
+        JE, 0x00, 0x00, 0x00, 0x30, 
+        
+        JNE, 0x00, 0x00, 0x00, 0x40, 
+        
+        INT, 0x20
+        
+    };
+    
+    uint8_t printPass[] = {
+        
+        MOV, rAH, 0x09, 
+        MOV, rDL, 0x00, 
+        MOV, rDH, 0x50, 
+        INT, 0x10, 
+        INT, 0x20
+    };
+    
+    uint8_t printError[] = {
+        
+        MOV, rAH, 0x09, 
+        MOV, rDL, 0x00, 
+        MOV, rDH, 0x60, 
+        INT, 0x10, 
+        INT, 0x20
+    };
+    
+    
+    uint8_t text_pass[]  = "Driver loaded\0";
+    uint8_t text_error[] = "Error\0";
+    
+    AssembleJoin(buffer, 0x0000, start, sizeof(start));
+    AssembleJoin(buffer, 0x0030, printPass, sizeof(printPass));
+    AssembleJoin(buffer, 0x0040, printError, sizeof(printError));
+    
+    AssembleJoin(buffer, 0x0050, text_pass, sizeof(text_pass));
+    AssembleJoin(buffer, 0x0060, text_error, sizeof(text_error));
+    
+    uint32_t fileSizeTotal = 0x0060 + sizeof(text_error);
+    
+    uint32_t fileAddress = fsFileCreate(filename, sizeof(filename), fileSizeTotal);
+    
+    fsDirectoryAddFileRef(fsWorkingDirectoryGetAddress(), fileAddress);
+    
+    struct FSAttribute attrib = {'x', 'r', 'w', ' '};
+    fsFileSetAttributes(fileAddress, &attrib);
+    
+    fsFileOpen(fileAddress);
+    
+    fsFileWrite(buffer, fileSizeTotal);
+    fsFileClose();
+    
+    }
+    */
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    /*  
+    
+    
+    
+    uint8_t filename[]  = "mkdir";
+    
+    uint8_t buffer[200];
+    
+    
+    uint8_t start[] = {
+        
+        MOV, rAH, 0x39, 
+        MOV, rCL, 0, 
+        MOV, rCH, 80, 
+        
+        INT, 0x13, 
+        
+        CMP, rBL, 0, 
+        JE, 0x00, 0x00, 0x00, 0x20, 
+        
+        INT, 0x20,
+        
+    };
+    
+    uint8_t printError[] = {
+        
+        MOV, rAH, 0x09, 
+        MOV, rDL, 0x00, 
+        MOV, rDH, 0x30, 
+        INT, 0x10, 
+        INT, 0x20
+    };
+    
+    uint8_t text_error[] = "Error\0";
+    
+    AssembleJoin(buffer, 0x0000, start, sizeof(start));
+    AssembleJoin(buffer, 0x0020, printError, sizeof(printError));
+    
+    AssembleJoin(buffer, 0x0030, text_error, sizeof(text_error));
+    
+    uint32_t fileSizeTotal = 0x0030 + sizeof(text_error);
+    
+    uint32_t fileAddress = fsFileCreate(filename, sizeof(filename), fileSizeTotal);
+    
+    fsDirectoryAddFileRef(fsWorkingDirectoryGetAddress(), fileAddress);
+    
+    struct FSAttribute attrib = {'x', 'r', 'w', ' '};
+    fsFileSetAttributes(fileAddress, &attrib);
+    
+    fsFileOpen(fileAddress);
+    
+    fsFileWrite(buffer, fileSizeTotal);
+    fsFileClose();
+    
+    */
+    
+    
+    
+    
+    
+    
+    
+    
+    
     
     
     
@@ -32,24 +334,219 @@ void kInit(void) {
     
     /*
     
+    {
+    
+    uint8_t filename[]  = "mk";
+    
+    uint8_t buffer[200];
+    
+    
+    uint8_t start[] = {
+        
+        MOV, rAH, 0x3c, 
+        MOV, rCL, 0, 
+        MOV, rCH, 20, 
+        
+        INT, 0x13, 
+        
+        CMP, rBL, 0, 
+        JE, 0x00, 0x00, 0x00, 0x20, 
+        
+        INT, 0x20
+        
+    };
+    
+    uint8_t printError[] = {
+        
+        MOV, rAH, 0x09, 
+        MOV, rDL, 0x00, 
+        MOV, rDH, 0x30, 
+        INT, 0x10, 
+        INT, 0x20
+    };
+    
+    
+    uint8_t text_error[] = "Error\0";
+    
+    
+    AssembleJoin(buffer, 0x0000, start, sizeof(start));
+    AssembleJoin(buffer, 0x0020, printError, sizeof(printError));
+    
+    AssembleJoin(buffer, 0x0030, text_error, sizeof(text_error));
+    
+    uint32_t fileSizeTotal = 0x0030 + sizeof(text_error);
+    
+    uint32_t fileAddress = fsFileCreate(filename, sizeof(filename), fileSizeTotal);
+    
+    fsDirectoryAddFileRef(fsWorkingDirectoryGetAddress(), fileAddress);
+    
+    struct FSAttribute attrib = {'x', 'r', 'w', ' '};
+    fsFileSetAttributes(fileAddress, &attrib);
+    
+    fsFileOpen(fileAddress);
+    
+    fsFileWrite(buffer, fileSizeTotal);
+    fsFileClose();
+    
+    }
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    {
+    
+    uint8_t filename[]  = "rm";
+    
+    uint8_t buffer[200];
+    
+    
+    uint8_t start[] = {
+        
+        MOV, rAH, 0x41, // Delete file
+        INT, 0x13, 
+        
+        CMP, rBL, 1, 
+        JE, 0x00, 0x00, 0x00, 0x20, 
+        
+        MOV, rAH, 0x3A, // Delete directory
+        INT, 0x13, 
+        
+        CMP, rBL, 1, 
+        JE, 0x00, 0x00, 0x00, 0x30, 
+        
+        JMP, 0x00, 0x00, 0x00, 0x40,
+        
+    };
+    
+    uint8_t printFile[] = {
+        
+        MOV, rAH, 0x09, 
+        MOV, rDL, 0x00, 
+        MOV, rDH, 0x50, 
+        INT, 0x10, 
+        INT, 0x20
+    };
+    
+    uint8_t printDir[] = {
+        
+        MOV, rAH, 0x09, 
+        MOV, rDL, 0x00, 
+        MOV, rDH, 0x60, 
+        INT, 0x10, 
+        INT, 0x20
+    };
+    
+    uint8_t printError[] = {
+        
+        MOV, rAH, 0x09, 
+        MOV, rDL, 0x00, 
+        MOV, rDH, 0x80, 
+        INT, 0x10, 
+        INT, 0x20
+    };
+    
+    uint8_t text_file[]     = "File deleted\0";
+    uint8_t text_dir[]      = "Directory deleted\0";
+    uint8_t text_error[]    = "Not found\0";
+    
+    AssembleJoin(buffer, 0x0000, start, sizeof(start));
+    AssembleJoin(buffer, 0x0020, printFile, sizeof(printFile));
+    AssembleJoin(buffer, 0x0030, printDir, sizeof(printDir));
+    AssembleJoin(buffer, 0x0040, printError, sizeof(printError));
+    
+    AssembleJoin(buffer, 0x0050, text_file, sizeof(text_file));
+    AssembleJoin(buffer, 0x0060, text_dir, sizeof(text_dir));
+    AssembleJoin(buffer, 0x0080, text_error, sizeof(text_error));
+    
+    uint32_t fileSizeTotal = 0x0080 + sizeof(text_error);
+    
+    uint32_t fileAddress = fsFileCreate(filename, sizeof(filename), fileSizeTotal);
+    
+    fsDirectoryAddFileRef(fsWorkingDirectoryGetAddress(), fileAddress);
+    
+    struct FSAttribute attrib = {'x', 'r', 'w', ' '};
+    fsFileSetAttributes(fileAddress, &attrib);
+    
+    fsFileOpen(fileAddress);
+    
+    fsFileWrite(buffer, fileSizeTotal);
+    fsFileClose();
+    
+    }
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    // Clear screen
     //
-    // Executable example
     
-    uint8_t versionFileName[]  = "ver";
+    uint8_t filename[]  = "cls";
+    uint32_t fileAddress = fsFileCreate(filename, sizeof(filename), 20);
+    fsDirectoryAddFileRef(fsWorkingDirectoryGetAddress(), fileAddress);
     
-    uint8_t bufferTest[] = {0x89, 0x01,  9,   // Call to print a string to the display
-                            0x89, 0x06,  0,   // High byte offset to data start address
-                            0x89, 0x07, 13,   // Low byte offset to data start address
-                            0xcc, 0x10,       // Run display routine
-                            0xcc, 0x20,       // Return to the shell
-                            
-                            'V', 'e', 'r', 's', 'i', 'o', 'n', ' ',
-                            
-                            ' ',' ',' ',' ',' ','\0','\0','\0'
-                            
-                            };
+    struct FSAttribute attrib = {'x', 'r', 'w', ' '};
+    fsFileSetAttributes(fileAddress, &attrib);
     
-    uint32_t versionFileAddress = fsFileCreate(versionFileName, sizeof(versionFileName), sizeof(bufferTest));
+    fsFileOpen(fileAddress);
+    
+    uint8_t buffer[] = {0x89, 0x01,  3,   // Call to clear the display
+                        0xcc, 0x10,       // Run display routine
+                        0xcc, 0x20,       // Return to the shell
+                        };
+    
+    fsFileWrite(buffer, sizeof(buffer));
+    fsFileClose();
+    
+    
+    
+    
+    */
+    
+    
+    /*
+    
+    // System version
+    //
+    
+    uint8_t filename[]  = "ver";
+    
+    uint8_t buffer[] = {0x89, 0x01,  9,   // Call to print a string to the display
+                        0x89, 0x06,  0,   // High byte offset to data start address
+                        0x89, 0x07, 13,   // Low byte offset to data start address
+                        0xcc, 0x10,       // Run display routine
+                        0xcc, 0x20,       // Return to the shell
+                        
+                        'V', 'e', 'r', 's', 'i', 'o', 'n', ' ',
+                        
+                        ' ',' ',' ',' ',' ','\0','\0','\0'
+                        
+                        };
+    
+    uint32_t versionFileAddress = fsFileCreate(filename, sizeof(filename), sizeof(buffer));
+    
+    fsDirectoryAddFileRef(fsWorkingDirectoryGetAddress(), versionFileAddress);
     
     struct FSAttribute attribTest;
     attribTest.executable = 'x';
@@ -73,41 +570,40 @@ void kInit(void) {
     
     if (majLen == 2) {
         
-        bufferTest[21] = versionMajorStr[0];
-        bufferTest[22] = versionMajorStr[1];
-        bufferTest[23] = '.';
+        buffer[21] = versionMajorStr[0];
+        buffer[22] = versionMajorStr[1];
+        buffer[23] = '.';
         currentChar = 24;
     } else {
-        bufferTest[21] = versionMajorStr[0];
-        bufferTest[22] = '.';
+        buffer[21] = versionMajorStr[0];
+        buffer[22] = '.';
         currentChar = 23;
     }
     
     if (minLen == 2) {
         
-        bufferTest[currentChar]   = versionMinorStr[0];
-        bufferTest[currentChar+1] = versionMinorStr[1];
-        bufferTest[currentChar+2] = '.';
+        buffer[currentChar]   = versionMinorStr[0];
+        buffer[currentChar+1] = versionMinorStr[1];
+        buffer[currentChar+2] = '.';
         currentChar += 3;
     } else {
-        bufferTest[currentChar] = versionMinorStr[0];
-        bufferTest[currentChar+1] = '.';
+        buffer[currentChar] = versionMinorStr[0];
+        buffer[currentChar+1] = '.';
         currentChar += 2;
     }
     
     if (patLen == 2) {
         
-        bufferTest[currentChar]   = versionPatchStr[0];
-        bufferTest[currentChar+1] = versionPatchStr[1];
+        buffer[currentChar]   = versionPatchStr[0];
+        buffer[currentChar+1] = versionPatchStr[1];
     } else {
-        bufferTest[currentChar] = versionPatchStr[0];
+        buffer[currentChar] = versionPatchStr[0];
     }
     
-    fsFileWrite(bufferTest, sizeof(bufferTest));
+    fsFileWrite(buffer, sizeof(buffer));
     fsFileClose();
     
     
-    
     */
     
     
@@ -118,42 +614,17 @@ void kInit(void) {
     
     
     
-    /*
     
     
     
-    //
-    // Create bin directory
-    
-    uint8_t directoryName[] = "bin";
-    fsDirectoryCreate(directoryName, sizeof(directoryName));
-    
-    fsChangeWorkingDirectory(directoryName, sizeof(directoryName));
-    
-    
-    
-    //
-    // Create drivers directory
-    
-    fsClearWorkingDirectory();
-    
-    uint8_t directorySubName[] = "drivers";
-    fsDirectoryCreate(directorySubName, sizeof(directorySubName));
-    
-    fsChangeWorkingDirectory(directorySubName, sizeof(directorySubName));
-    
-    
-    */
-    
-    
-    
-    /*
     
     //
     // Network driver
     
     uint8_t driverNicFileName[]  = "nic";
     uint32_t nicFileAddress = fsFileCreate(driverNicFileName, sizeof(driverNicFileName), 30);
+    
+    fsDirectoryAddFileRef(fsWorkingDirectoryGetAddress(), nicFileAddress);
     
     fsFileOpen(nicFileAddress);
     uint8_t bufferDrvNic[] = "  network   $XXXXX";
@@ -177,40 +648,11 @@ void kInit(void) {
     fsFileWrite(bufferDrvNic, sizeof(bufferDrvNic));
     fsFileClose();
     
-    fsClearWorkingDirectory();
-    
-    
-    
-    */
+    fsWorkingDirectoryClear();
     
     
     
     
-    
-    
-    
-    /*
-    
-    
-    
-    //
-    // Kconfig
-    
-    uint8_t kconfigFileName[]  = "kconfig";
-    uint32_t kconfigFileAddress = fsFileCreate(kconfigFileName, sizeof(kconfigFileName), 80);
-    
-    fsFileOpen(kconfigFileAddress);
-    
-    uint8_t bufferKconfig[] = "safemode=0\ndetailboot=0\n\0";
-    fsFileWrite(bufferKconfig, sizeof(bufferKconfig));
-    
-    fsFileClose();
-    
-    fsClearWorkingDirectory();
-    
-    
-    
-    */
     
     
     
@@ -222,16 +664,19 @@ void kInit(void) {
     //
     // Create devices directory
     
+    /*
+    
     fsWorkingDirectoryClear();
     
-    uint8_t devicesSubDirName[] = "devices";
+    uint8_t devicesSubDirName[] = "dev";
     uint32_t devicesDirectoryAddress = fsDirectoryCreate(devicesSubDirName, sizeof(devicesSubDirName));
     
+    fsDirectoryAddRef(
     
     //
     // Create a file representation of devices on the bus
     
-    fsChangeWorkingDirectory(devicesSubDirName, sizeof(devicesSubDirName));
+    fsWorkingDirectoryChange(devicesSubDirName, sizeof(devicesSubDirName));
     
     uint8_t numberOfDevices = GetNumberOfDevices();
     
@@ -252,29 +697,29 @@ void kInit(void) {
         
         uint32_t fileAddress = fsFileCreate(fileName, nameLength, 140);
         
-        struct FSAttribute attribDoc;
-        attribDoc.executable = ' ';
-        attribDoc.readable   = 'r';
-        attribDoc.writeable  = ' ';
-        attribDoc.type       = ' ';
+        struct FSAttribute attrib;
+        attrib.executable = ' ';
+        attrib.readable   = 'r';
+        attrib.writeable  = ' ';
+        attrib.type       = ' ';
         
-        fsFileSetAttributes(fileAddress, &attribDoc);
+        fsFileSetAttributes(fileAddress, &attrib);
         
         fsFileOpen(fileAddress);
         
         // Device details
         
-        uint8_t bufferDoc[] = "int 0x00\naddr 0x00000\n\0";
+        uint8_t fileBuffer[] = "int 0x00\naddr 0x00000\n\0";
         uint8_t addrString[2];
         
         // Int vector offset
         int_to_hex_string(devicePtr->device_id, addrString);
-        bufferDoc[6] = addrString[0];
-        bufferDoc[7] = addrString[1];
+        fileBuffer[6] = addrString[0];
+        fileBuffer[7] = addrString[1];
         // Hardware address
-        bufferDoc[16] = ('0' + (PERIPHERAL_ADDRESS_BEGIN / PERIPHERAL_STRIDE)) + devicePtr->hardware_slot;
+        fileBuffer[16] = ('0' + (PERIPHERAL_ADDRESS_BEGIN / PERIPHERAL_STRIDE)) + devicePtr->hardware_slot;
         
-        fsFileWrite(bufferDoc, sizeof(bufferDoc));
+        fsFileWrite(fileBuffer, sizeof(fileBuffer));
         fsFileClose();
         
         continue;
@@ -287,6 +732,9 @@ void kInit(void) {
     attribDeviceDir.type       = 'd';
     
     fsFileSetAttributes(devicesDirectoryAddress, &attribDeviceDir);
+    */
+    
+    /*
     
     fsWorkingDirectoryClear();
     
@@ -296,8 +744,8 @@ void kInit(void) {
 #ifndef _BOOT_SAFEMODE__
     
     // Boot from device
-    uint8_t driversDirName[] = "drivers";
-    uint8_t kconfigDirName[] = "kconfig";
+    uint8_t driversDirName[] = "sys";
+    uint8_t kconfigFileName[] = "kconfig";
     
     //
     // Check active storage devices
@@ -312,13 +760,49 @@ void kInit(void) {
             continue;
         
         
+        
+        
+        
+        
+        uint8_t promptDevLetter[] = "X>";
+        
+        if (currentDevice == 'x') {
+            
+            fsDeviceSetLetter('x');
+            
+        } else {
+            
+            fsDeviceSetLetter(selectedDevice);
+            uppercase(&selectedDevice);
+            
+            promptDevLetter[0] = selectedDevice;
+        }
+        
+        ConsoleSetPrompt(promptDevLetter, sizeof(promptDevLetter));
+        
+        fsWorkingDirectoryClear();
+        
+        // Setup environment
+        
+        EnvironmentSetHomeChar( selectedDevice );
+        
+        uint8_t binPath[] = "bin";
+        EnvironmentSetPathBin(binPath, sizeof(binPath));
+        
+        
+        return;
+        
+        
+        
+        
         //
         // Check KCONFIG boot settings
         
-        uint32_t kconfigAddress = fsFileExists(kconfigDirName, sizeof(kconfigDirName)-1);
+        uint32_t kconfigAddress = fsFileExists(kconfigFileName, sizeof(kconfigFileName)-1);
         
         // Do not boot from device without
         // a kconfig settings file
+        
         if (kconfigAddress == 0) {
             
             fsDeviceSetLetter('x');
@@ -349,7 +833,7 @@ void kInit(void) {
         if (directoryAddress == 0) 
             continue;
         
-        fsChangeWorkingDirectory(driversDirName, sizeof(driversDirName));
+        fsWorkingDirectoryChange(driversDirName, sizeof(driversDirName));
         
         uint32_t numberOfFiles = fsWorkingDirectoryGetFileCount();
         
@@ -382,29 +866,32 @@ void kInit(void) {
                 
             }
             
-#ifdef _BOOT_DETAILS__
-            
-            for (uint32_t n=0; n < 10; n++) {
-                
-                printChar( driverBuffer[n + 2] );
-                
-                if (driverBuffer[n + 2] == ' ') 
-                    break;
-            }
-            
-#endif
             
             // Load the driver
             uint8_t libState = LoadLibrary(driverFilename, driverFilenameLength);
             
 #ifdef _BOOT_DETAILS__
             
-            if (libState <= 0) {
-                uint8_t msgFailedToLoad[] = "... failed";
-                print(msgFailedToLoad, sizeof(msgFailedToLoad));
+            if (libState == 2) {
+                
+                for (uint32_t n=0; n < 10; n++) {
+                    
+                    printChar( driverBuffer[n + 2] );
+                    
+                    if (driverBuffer[n + 2] == ' ') 
+                        break;
+                }
+                
+                printLn();
             }
             
-            printLn();
+            if (libState <= 0) {
+                
+                uint8_t msgFailedToLoad[] = "... failed";
+                print(msgFailedToLoad, sizeof(msgFailedToLoad));
+                
+                printLn();
+            }
             
 #endif
             
@@ -434,7 +921,7 @@ void kInit(void) {
         
         selectedDevice = currentDevice;
         
-        VirtualAccessSetMode(VIRTUAL_ACCESS_MODE_USER);
+        VirtualAccessSetMode(VIRTUAL_ACCESS_MODE_KERNEL);
         
         break;
     }
@@ -443,7 +930,7 @@ void kInit(void) {
     
     uint8_t promptDevLetter[] = "X>";
     
-    if (selectedDevice == 0) {
+    if (selectedDevice == 'x') {
         
         fsDeviceSetLetter('x');
         
@@ -465,6 +952,13 @@ void kInit(void) {
     
     uint8_t binPath[] = "bin";
     EnvironmentSetPathBin(binPath, sizeof(binPath));
+    */
+    
+    
+    
+    
+    
+    
     
     return;
 }

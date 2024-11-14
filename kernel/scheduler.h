@@ -1,15 +1,18 @@
 #ifndef __TASK_SCHEDULER_
 #define __TASK_SCHEDULER_
 
-#define TASK_LIST_SIZE                 40
+#include <kernel/fs/fs.h>
+
+#define TASK_LIST_SIZE                 64
 #define TASK_NAME_LENGTH_MAX           10
 
-#define TASK_TYPE_USER                 'u' // User task
-#define TASK_TYPE_SERVICE              's' // System service task
-#define TASK_TYPE_VOLATILE             'v' // Volatile task (run once)
-#define TASK_TYPE_VOLATILE_PROMPT      'c' // Volatile task with command prompt
-#define TASK_TYPE_KERNEL               'k' // Kernel task
-#define TASK_TYPE_UNKNOWN              0   // No type defined
+#define TASK_TYPE_VOLATILE             0
+#define TASK_TYPE_VOLATILE_PROMPT      1
+#define TASK_TYPE_UNKNOWN              2
+
+#define TASK_PRIVILEGE_KERNEL          'k'
+#define TASK_PRIVILEGE_SERVICE         's'
+#define TASK_PRIVILEGE_USER            'u'
 
 #define TASK_PRIORITY_HALT             0
 #define TASK_PRIORITY_BACKGROUND       64
@@ -26,27 +29,29 @@
 
 struct ProcessDescription {
 	
-	uint8_t  name[TASK_NAME_LENGTH_MAX];
 	uint8_t  type;
-	uint16_t priority;
-	uint16_t counter;
+	uint8_t  privilege;
+	uint8_t  priority;
+	uint8_t  counter;
 	uint8_t  flags;
+	uint32_t block;
 	void   (*function)(uint8_t);
 	
 };
 
-struct ProcessDescriptorTable {
+struct ProcessNodeTable {
 	
-	uint8_t  name     [TASK_LIST_SIZE][TASK_NAME_LENGTH_MAX];
-	uint8_t  type     [TASK_LIST_SIZE];
-	uint16_t priority [TASK_LIST_SIZE];
-	uint16_t counter  [TASK_LIST_SIZE];
-	uint8_t  flags    [TASK_LIST_SIZE];
-	void   (*function [TASK_LIST_SIZE])(uint8_t);
+	uint8_t  type       [TASK_LIST_SIZE];
+	uint8_t  privilege  [TASK_LIST_SIZE];
+	uint8_t  priority   [TASK_LIST_SIZE];
+	uint8_t  counter    [TASK_LIST_SIZE];
+	uint8_t  flags      [TASK_LIST_SIZE];
+	uint32_t block      [TASK_LIST_SIZE];
+	void   (*function   [TASK_LIST_SIZE])(uint8_t);
 	
 };
 
-uint8_t TaskCreate(uint8_t* name, uint8_t name_length, void(*task_ptr)(uint8_t), uint16_t priority, uint8_t type);
+uint8_t TaskCreate(uint8_t* name, uint8_t name_length, void(*task_ptr)(uint8_t), uint8_t priority, uint8_t privilege, uint8_t type);
 
 uint8_t TaskDestroy(uint8_t index);
 

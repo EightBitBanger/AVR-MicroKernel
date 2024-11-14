@@ -8,7 +8,7 @@ int main(void) {
     // Allow board some time to stabilize
     _delay_ms(1000);
     
-    // Kernel baked device drivers
+    // Baked device drivers
 	InitBakedDrivers();
 	
 	// Initiate core kernel systems
@@ -69,32 +69,26 @@ int main(void) {
 #endif
     
     
-    //registerCommandEDIT();
-    //registerCommandMandelbrot();
     
-    
-    //registerCommandLS();
+    registerCommandLS();
     //registerCommandCD();
     
-    //registerCommandMK();
-    //registerCommandRM();
-    //registerCommandMKDIR();
+    //registerCommandEDIT();
+    //registerCommandASM();
     
-    //registerCommandCOPY();
+    //registerCommandType();
     //registerCommandList();
-    //registerCommandCLS();
+    //registerCommandTASK();
+    //registerCommandTest();
     
-    registerCommandMEM();
-    
-    registerCommandTest();
-    
-    registerCommandTASK();
+    //registerCommandRN();
+    registerCommandCOPY();
     
     //registerCommandNet();
     //registerCommandFormat();
     
     #define DONT_INCLUDE_CONSOLE_COMMANDS
-    
+     
     
 #ifndef DONT_INCLUDE_CONSOLE_COMMANDS
     
@@ -128,10 +122,10 @@ int main(void) {
     registerCommandLS();
     registerCommandCD();
     
-    registerCommandMK();
-    registerCommandRM();
+    //registerCommandMK();
+    //registerCommandRM();
     registerCommandRN();
-    registerCommandMKDIR();
+    //registerCommandMKDIR();
     registerCommandCOPY();
     
     registerCommandAttribute();
@@ -166,7 +160,7 @@ int main(void) {
     
 #endif
     
-    // Set interrupt 0 to handle keyboard input
+    // Set keyboard interrupt handler
     SetInterruptVector(4, (void(*)())cliRunShell);
     
     // Drop the initial command prompt

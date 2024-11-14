@@ -1,30 +1,25 @@
 #include <avr/io.h>
 #include <avr/interrupt.h>
 
-#include <kernel/interrupt.h>
-
-#include <kernel/cstring.h>
-
 #include <kernel/scheduler.h>
-
+#include <kernel/interrupt.h>
+#include <kernel/cstring.h>
 #include <kernel/virtual/virtual.h>
-
 #include <kernel/syscalls/print/print.h>
 
-volatile struct ProcessDescriptorTable proc_info;
+volatile struct ProcessNodeTable proc_info;
 
 volatile uint64_t timer_ms = 0;
-
-volatile uint8_t PID=0; 
 
 uint8_t schedulerIsActive = 0;
 
 
-uint8_t TaskCreate(uint8_t* name, uint8_t name_length, void(*task_ptr)(uint8_t), uint16_t priority, uint8_t type) {
+uint8_t TaskCreate(uint8_t* name, uint8_t name_length, void(*task_ptr)(uint8_t), uint8_t priority, uint8_t privilege, uint8_t type) {
 	
 	if (name_length > TASK_NAME_LENGTH_MAX)
 		name_length = TASK_NAME_LENGTH_MAX;
 	
+	// Find an empty slot
 	uint8_t index;
 	for (index=0; index < TASK_LIST_SIZE; index++) {
 		
@@ -32,14 +27,27 @@ uint8_t TaskCreate(uint8_t* name, uint8_t name_length, void(*task_ptr)(uint8_t),
             break;
 	}
 	
-	for (uint8_t a=0; a < name_length-1; a++)
-		proc_info.name[index][a] = name[a];
-	
 	proc_info.type[index]      = type;
+	proc_info.privilege[index] = privilege;
 	proc_info.priority[index]  = priority;
 	proc_info.counter[index]   = 0;
-	proc_info.flags[index]     = 0;
+	proc_info.block[index]     = 0;
 	proc_info.function[index]  = task_ptr;
+	
+	// Prepare the memory block
+	proc_info.block[index] = new(100);
+	
+	VirtualBegin();
+	
+	fsFileSetName(proc_info.block[index], name, name_length);
+	
+	struct FSAttribute attrib = {'s', 'r', 'w', 'd'};
+	
+	fsFileSetAttributes(proc_info.block[index], &attrib);
+	
+	fsDirectorySetNumberOfFiles(proc_info.block[index], 0);
+	
+	VirtualEnd();
 	
 	return (index + 1);
 }
@@ -56,7 +64,7 @@ uint8_t TaskDestroy(uint8_t index) {
         return 0;
 	
 	proc_info.type[PID] = TASK_TYPE_VOLATILE;
-	
+    
 	return 1;
 }
 
@@ -70,13 +78,17 @@ uint32_t TaskFind(uint8_t* name, uint8_t name_length) {
 		if (proc_info.type[index] == 0x00) 
             continue;
 		
-		uint8_t list_task_name[TASK_NAME_LENGTH_MAX];
-		for (uint8_t i=0; i < TASK_NAME_LENGTH_MAX; i++)
-            list_task_name[i] = proc_info.name[index][i];
+		uint32_t blockAddress = proc_info.block[index];
 		
-		if (StringCompare(name, name_length, list_task_name, TASK_NAME_LENGTH_MAX) == 1) {
+		VirtualBegin();
+		
+		uint8_t list_task_name[FILE_NAME_LENGTH];
+		fsFileGetName(blockAddress, list_task_name);
+		
+		if (StringCompare(name, name_length, list_task_name, FILE_NAME_LENGTH) == 1) 
             return (index + 1);
-        }
+        
+        VirtualEnd();
         
 	}
 	
@@ -86,28 +98,14 @@ uint32_t TaskFind(uint8_t* name, uint8_t name_length) {
 
 uint8_t TaskKill(uint8_t* name, uint8_t name_length) {
 	
-	if (name_length > TASK_NAME_LENGTH_MAX)
-        name_length = TASK_NAME_LENGTH_MAX;
+	uint32_t index = TaskFind(name, name_length);
 	
-	for (uint8_t index=0; index < TASK_LIST_SIZE; index++) {
-		
-		if (proc_info.type[index] == 0x00) 
-            continue;
-		
-		uint8_t list_task_name[TASK_NAME_LENGTH_MAX];
-		for (uint8_t i=0; i < TASK_NAME_LENGTH_MAX; i++)
-            list_task_name[i] = proc_info.name[index][i];
-		
-		if (StringCompare(name, name_length, list_task_name, TASK_NAME_LENGTH_MAX) == 1) {
-            
-            proc_info.type[index] = TASK_TYPE_VOLATILE;
-            
-            return (index + 1);
-        }
-        
-	}
+	if (index == 0) 
+        return 0;
+    
+	proc_info.type[index - 1] = TASK_TYPE_VOLATILE;
 	
-	return 0;
+	return 1;
 }
 
 uint8_t GetProcInfo(uint8_t index, struct ProcessDescription* info) {
@@ -115,14 +113,12 @@ uint8_t GetProcInfo(uint8_t index, struct ProcessDescription* info) {
 	if (proc_info.type[index] == TASK_TYPE_UNKNOWN) 
         return 0;
     
-	for (uint8_t i=0; i < TASK_NAME_LENGTH_MAX; i++) 
-        info->name[i] = proc_info.name[index][i];
-	
-	info->type     = proc_info.type[index];
-	info->priority = proc_info.priority[index];
-	info->counter  = proc_info.counter[index];
-	info->flags    = proc_info.flags[index];
-	info->function = proc_info.function[index];
+	info->type      = proc_info.type[index];
+	info->privilege = proc_info.privilege[index];
+	info->priority  = proc_info.priority[index];
+	info->counter   = proc_info.counter[index];
+	info->flags     = proc_info.flags[index];
+	info->function  = proc_info.function[index];
 	
 	return 1;
 }
@@ -133,18 +129,19 @@ uint8_t GetProcInfo(uint8_t index, struct ProcessDescription* info) {
 // Interrupt service routines
 //
 
+volatile uint8_t PID=0; 
+
 void SchedulerInit(void) {
 	
 	for (uint8_t i=0; i < TASK_LIST_SIZE; i++) {
 		
-		proc_info.type[i]     = 0;
-		proc_info.priority[i] = 0;
-		proc_info.counter[i]  = 0;
-		proc_info.flags[i]    = 0;
-		proc_info.function[i] = (void(*)(uint8_t))nullfunc;
+		proc_info.type[i]      = 0;
+		proc_info.privilege[i] = 0;
+		proc_info.priority[i]  = 0;
+		proc_info.counter[i]   = 0;
+		proc_info.flags[i]     = 0;
+		proc_info.function[i]  = (void(*)(uint8_t))nullfunc;
 		
-		for (uint8_t a=0; a < TASK_NAME_LENGTH_MAX; a++)
-            proc_info.name[i][a] = ' ';
 	}
 	
 	return;
@@ -200,19 +197,22 @@ void _ISR_SCHEDULER_MAIN__(void) {
 	
 	int8_t currentMode = VirtualAccessGetMode();
 	
-	// Set virtual access mode
-	switch (proc_info.type[PID]) {
+	//
+	// Set privilege level
+    
+	switch (proc_info.privilege[PID]) {
 		
-		case TASK_TYPE_KERNEL:  {VirtualAccessSetMode( VIRTUAL_ACCESS_MODE_KERNEL ); break;}
-		case TASK_TYPE_SERVICE: {VirtualAccessSetMode( VIRTUAL_ACCESS_MODE_SERVICE ); break;}
+		case TASK_PRIVILEGE_KERNEL:  {VirtualAccessSetMode( VIRTUAL_ACCESS_MODE_KERNEL ); break;}
+		
+		case TASK_PRIVILEGE_SERVICE: {VirtualAccessSetMode( VIRTUAL_ACCESS_MODE_SERVICE ); break;}
 		
 		default:
-        case TASK_TYPE_USER:    {VirtualAccessSetMode( VIRTUAL_ACCESS_MODE_USER ); break;}
+        case TASK_PRIVILEGE_USER:    {VirtualAccessSetMode( VIRTUAL_ACCESS_MODE_USER ); break;}
         
 	}
 	
 	
-    // Check volatility
+    // Check type
     
 	switch (proc_info.type[PID]) {
 		
@@ -220,32 +220,38 @@ void _ISR_SCHEDULER_MAIN__(void) {
 			
             proc_info.function[PID]( EVENT_SHUTDOWN );
             
-			for (uint8_t i=0; i < TASK_NAME_LENGTH_MAX; i++) 
-                proc_info.name[PID][i] = ' ';
-			
 			proc_info.type[PID]      = 0;
+			proc_info.privilege[PID] = 0;
 			proc_info.priority[PID]  = 0;
 			proc_info.counter[PID]   = 0;
 			proc_info.function[PID]  = (void(*)(uint8_t))nullfunc;
-			
-			break;
+            
+            VirtualBegin();
+            fsFree( proc_info.block[PID] );
+            VirtualEnd();
+            
+            proc_info.block[PID] = 0;
+            
 		}
 		
 		case TASK_TYPE_VOLATILE_PROMPT: {
 			
-			proc_info.function[PID]( EVENT_SHUTDOWN );
+            proc_info.function[PID]( EVENT_SHUTDOWN );
             
-			for (uint8_t i=0; i < TASK_NAME_LENGTH_MAX; i++) 
-                proc_info.name[PID][i] = ' ';
-			
 			proc_info.type[PID]      = 0;
+			proc_info.privilege[PID] = 0;
 			proc_info.priority[PID]  = 0;
 			proc_info.counter[PID]   = 0;
 			proc_info.function[PID]  = (void(*)(uint8_t))nullfunc;
+            
+            VirtualBegin();
+            fsFree( proc_info.block[PID] );
+            VirtualEnd();
+            
+            proc_info.block[PID] = 0;
+            
+            printPrompt();
 			
-			printPrompt();
-			
-			break;
 		}
 		
 	}

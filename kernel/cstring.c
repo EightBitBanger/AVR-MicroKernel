@@ -253,3 +253,12 @@ uint8_t StringSplit(uint8_t* source, uint8_t sourceLen,
 }
 
 
+uint8_t StringFindChar(uint8_t* string, uint8_t length, uint8_t character) {
+    
+    for (uint8_t i=0; i < length; i++) 
+        if (string[i] == character) 
+            return i;
+    
+    return 1;
+}
+
