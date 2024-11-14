@@ -24,6 +24,29 @@ uint32_t fsAllocate(uint32_t size) {
 	if (totalSectors == 0) 
 		totalSectors = 1;
 	
+	
+	
+	/*
+    uint32_t freeSectorCount = 0;
+    uint32_t fileTargetAddress = 0;
+    
+    uint32_t currentCapacity = fsDeviceGetCapacity() / FORMAT_SECTOR_SIZE;
+    
+    if (size <= FORMAT_SECTOR_SIZE) 
+        size += FORMAT_SECTOR_SIZE;
+    
+    // Calculate sectors required to fit the file
+    uint32_t totalSectors = ((FORMAT_SECTOR_SIZE) / size) + 1;
+	
+	// Add in any remainder of a sector
+    uint8_t remainder = size % (FORMAT_SECTOR_SIZE);
+    if (remainder > 0) 
+        totalSectors += remainder;
+	
+	*/
+	
+	
+	
 	// Find free sectors
     for (uint32_t sector=0; sector <= currentCapacity; sector++) {
         

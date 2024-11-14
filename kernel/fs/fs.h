@@ -1,8 +1,6 @@
 #ifndef _FILE_SYSTEM_BASE__
 #define _FILE_SYSTEM_BASE__
 
-#include <kernel/fs/fsAttribute.h>
-
 // Capacities
 
 #define FORMAT_CAPACITY_32K       32768
@@ -12,6 +10,11 @@
 // Sector format
 
 #define FORMAT_SECTOR_SIZE        32
+
+//#define FORMAT_SECTOR_HEADER      '<'
+//#define FORMAT_SECTOR_DATA        '$'
+//#define FORMAT_SECTOR_FOOTER      '>'
+//#define FORMAT_SECTOR_EMPTY       0x00
 
 #define FORMAT_SECTOR_HEADER      0x55
 #define FORMAT_SECTOR_DATA        0xff
@@ -43,6 +46,19 @@
 #define FS_FLAG_F         5
 #define FS_FLAG_G         6
 #define FS_FLAG_H         7
+
+
+#define FILE_ATTRIBUTE_FILETYPE   15
+#define FILE_ATTRIBUTE_READ       16
+#define FILE_ATTRIBUTE_WRITE      17
+#define FILE_ATTRIBUTE_SPECIAL    18
+
+struct FSAttribute {
+    uint8_t executable;
+    uint8_t readable;
+    uint8_t writeable;
+    uint8_t type;
+};
 
 
 void fsInit(void);
@@ -81,20 +97,26 @@ uint8_t fsFree(uint32_t address);
 
 uint8_t fsFormat(uint32_t addressBegin, uint32_t addressEnd);
 
-uint8_t fsDeviceConstructAllocationTable(uint32_t addressBegin, uint32_t addressEnd);
+uint32_t fsDeviceConstructAllocationTable(uint32_t addressBegin, uint32_t addressEnd);
 
 
 // Files
 
 uint32_t fsFileCreate(uint8_t* name, uint8_t nameLength, uint32_t fileSize);
-uint8_t fsFileDelete(uint8_t* name, uint8_t nameLength);
+uint32_t fsFileDelete(uint8_t* name, uint8_t nameLength);
 
 uint32_t fsFileExists(uint8_t* name, uint8_t nameLength);
 
-uint8_t fsFileRename(uint8_t* name, uint8_t nameLength, uint8_t* newName, uint8_t newNameLength);
+uint32_t fsFileCopy(uint8_t* sourceName, uint8_t sourceLength, 
+                    uint8_t* destName, uint8_t destLength, 
+                    uint8_t deviceLetter, uint32_t directoryAddress);
 
-uint8_t fsFileGetName(uint32_t fileAddress, uint8_t* name);
+void fsFileSetName(uint32_t fileAddress, uint8_t* name, uint8_t length);
+void fsFileGetName(uint32_t fileAddress, uint8_t* name);
 uint32_t fsFileGetSize(uint32_t fileAddress);
+
+uint8_t fsFileSetAttributes(uint32_t address, struct FSAttribute* attributes);
+uint8_t fsFileGetAttributes(uint32_t address, struct FSAttribute* attributes);
 
 
 // File flags
@@ -113,15 +135,18 @@ uint32_t fsFileFind(uint32_t index);
 // Directories
 
 uint32_t fsDirectoryCreate(uint8_t* name, uint8_t nameLength);
-uint8_t fsDirectoryDelete(uint8_t* name, uint8_t nameLength);
+uint32_t fsDirectoryDelete(uint8_t* name, uint8_t nameLength);
+uint8_t fsDirectoryDeleteContents(uint32_t directoryAddress);
 
 uint32_t fsDirectoryExists(uint8_t* name, uint8_t nameLength);
 
-uint32_t fsDirectoryGetFileAtIndex(uint32_t directoryAddress, uint32_t index);
+uint32_t fsDirectoryGetFileRef(uint32_t directoryAddress, uint32_t index);
+uint8_t fsDirectoryAddFileRef(uint32_t directoryAddress, uint32_t refAddress);
+uint8_t fsDirectoryRemoveFileRef(uint32_t directoryAddress, uint32_t refAddress);
+
 uint32_t fsDirectoryGetSize(uint32_t directoryAddress);
 uint32_t fsDirectoryGetNumberOfFiles(uint32_t directoryAddress);
-
-
+void fsDirectorySetNumberOfFiles(uint32_t directoryAddress, uint32_t numberOfFiles);
 
 // File IO
 uint8_t fsFileOpen(uint32_t fileAddress);
@@ -135,8 +160,10 @@ uint8_t fsFileWrite(uint8_t* buffer, uint32_t size);
 
 // Working directory
 
+uint8_t fsWorkingDirectoryChange(uint8_t* directoryName, uint8_t nameLength);
+
 uint32_t fsWorkingDirectoryGetParent(void);
-uint8_t  fsSetWorkingDirectoryToParent(void);
+uint8_t  fsWorkingDirectorySetToParent(void);
 
 void     fsWorkingDirectorySetAddress(uint32_t address);
 uint32_t fsWorkingDirectoryGetAddress(void);
@@ -146,7 +173,6 @@ void    fsWorkingDirectorySetStack(uint8_t amount);
 
 uint8_t fsGetWorkingDirectory(uint8_t* directoryName);
 uint8_t fsSetWorkingDirectory(uint32_t directoryAddress);
-uint8_t fsChangeWorkingDirectory(uint8_t* directoryName, uint8_t nameLength);
 
 uint32_t fsWorkingDirectoryGetFileCount(void);
 uint32_t fsWorkingDirectoryFind(uint8_t index);

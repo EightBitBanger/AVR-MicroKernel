@@ -163,7 +163,10 @@ int8_t LoadLibrary(uint8_t* filename, uint8_t filenameLength) {
             loaded_drivers[i].device.hardware_slot    = devicePtr->hardware_slot;
             loaded_drivers[i].device.hardware_address = devicePtr->hardware_address;
             
-            break;
+            if (loaded_drivers[i].is_linked == 1) 
+                RegisterDriver( (void*)&loaded_drivers[i] );
+            
+            return 2;
         }
         
         // Add the driver to the registry only if

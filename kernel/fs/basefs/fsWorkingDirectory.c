@@ -33,29 +33,26 @@ uint32_t fsWorkingDirectoryGetParent(void) {
     return 0;
 }
 
-uint8_t fsSetWorkingDirectoryToParent(void) {
+
+uint8_t fsWorkingDirectorySetToParent(void) {
     
     if (fs_directory_stack_ptr > 1) {
         
         fs_directory_stack_ptr--;
         
         for (uint8_t i=0; i < FILE_NAME_LENGTH; i++) 
-            fs_working_directory[i] = ' ';
-        
-        for (uint8_t i=0; i < FILE_NAME_LENGTH; i++) 
-            fs_working_directory[i] = directoryStack[fs_directory_stack_ptr].name[i];
+            fs_working_directory[i] = directoryStack[fs_directory_stack_ptr-1].name[i];
         
         fs_working_directory_length = FILE_NAME_LENGTH;
         
-        fs_working_directory_address = directoryStack[fs_directory_stack_ptr].address;
+        fs_working_directory_address = directoryStack[fs_directory_stack_ptr-1].address;
         
         return 1;
     }
     
-    fs_directory_stack_ptr = 0;
-    
     return 0;
 }
+
 
 uint8_t fsWorkingDirectoryCheck(void) {
     
@@ -81,6 +78,8 @@ void fsWorkingDirectoryClear(void) {
     
     for (uint8_t i=0; i < FILE_NAME_LENGTH; i++) 
         fs_working_directory[i] = ' ';
+    
+    fs_directory_stack_ptr = 0;
     
     fs_working_directory_address = 0;
     
@@ -112,18 +111,28 @@ uint8_t fsSetWorkingDirectory(uint32_t directoryAddress) {
     return 1;
 }
 
-uint8_t fsChangeWorkingDirectory(uint8_t* directoryName, uint8_t nameLength) {
+uint8_t fsWorkingDirectoryChange(uint8_t* directoryName, uint8_t nameLength) {
     
     uint32_t directoryAddress = fsDirectoryExists(directoryName, nameLength-1);
     
     if (directoryAddress == 0) 
         return 0;
     
+    // Add the directory to the directory stack
+    for (uint8_t n=0; n < FILE_NAME_LENGTH; n++) 
+        directoryStack[fs_directory_stack_ptr].name[n] = ' ';
+    for (uint8_t n=0; n < nameLength + 1; n++) 
+        directoryStack[fs_directory_stack_ptr].name[n] = directoryName[n];
+    
+    directoryStack[fs_directory_stack_ptr].address = directoryAddress;
+    
     union Pointer directorySizePtr;
 	for (uint8_t i=0; i < 4; i++) 
         fs_read_byte(directoryAddress + FILE_OFFSET_REF_COUNT + i, &directorySizePtr.byte_t[i]);
     
 	fs_working_directory_size = directorySizePtr.address;
+    
+    fs_directory_stack_ptr++;
     
     return fsSetWorkingDirectory(directoryAddress);
 }

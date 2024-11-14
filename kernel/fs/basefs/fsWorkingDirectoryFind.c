@@ -3,9 +3,6 @@
 
 uint32_t fsWorkingDirectoryFind(uint8_t index) {
     
-    //if (fsCheckWorkingDirectory() == 0) 
-    //    return 0;
-    
     // Check if the current working directory is valid
     uint32_t directoryAddress = fsWorkingDirectoryGetAddress();
 	

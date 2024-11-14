@@ -68,8 +68,8 @@ void fsInit(void) {
     fs_set_type_MEM();
     fsDeviceSetRoot('X');
     
-    fs_bus.read_waitstate  = 2;
-    fs_bus.write_waitstate = 2;
+    fs_bus.read_waitstate  = 20;
+    fs_bus.write_waitstate = 20;
     
     return;
 }
@@ -98,8 +98,11 @@ void fs_set_type_IO(void) {
 
 void fs_set_type_MEM(void) {
     
-    __fs_read_byte  = bus_read_memory;
-    __fs_write_byte = bus_write_memory;
+    __fs_read_byte  = bus_raw_read_memory;
+    __fs_write_byte = bus_raw_write_memory;
+    
+    //__fs_read_byte  = bus_read_memory;
+    //__fs_write_byte = bus_write_memory;
     
     return;
 }
@@ -115,7 +118,6 @@ void fs_set_type_MEM_nocache(void) {
 
 uint8_t fsDeviceCheckReady(void) {
     
-    // Check header byte
     uint8_t headerByte[3];
     
     fs_read_byte(0, &headerByte[0]);

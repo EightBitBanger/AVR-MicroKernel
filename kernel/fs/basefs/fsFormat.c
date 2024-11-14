@@ -1,6 +1,6 @@
 #include <kernel/kernel.h>
 
-uint8_t fsFotmatConstructAllocationTable(uint32_t addressBegin, uint32_t addressEnd) {
+uint32_t fsDeviceConstructAllocationTable(uint32_t addressBegin, uint32_t addressEnd) {
     
     fs_write_byte(addressBegin, 0x13 );
     fs_write_byte(addressBegin + 1, 'f' );
@@ -15,12 +15,16 @@ uint8_t fsFotmatConstructAllocationTable(uint32_t addressBegin, uint32_t address
     
     // Create root directory
     uint8_t rootDirName[] = "root";
+    uint8_t currentVirtualMode = VirtualAccessGetMode();
+    VirtualAccessSetMode(VIRTUAL_ACCESS_MODE_KERNEL);
     
     uint32_t directoryAddress = fsDirectoryCreate(rootDirName, sizeof(rootDirName));
     
-    fsDeviceSetRootDirectory(directoryAddress);
+    fsDeviceSetRootDirectory( directoryAddress );
     
-    return 1;
+    VirtualAccessSetMode(currentVirtualMode);
+    
+    return directoryAddress;
 }
 
 
@@ -44,9 +48,9 @@ uint8_t fsFormat(uint32_t addressBegin, uint32_t addressEnd) {
         continue;
     }
     
-    fsFotmatConstructAllocationTable(addressBegin, addressEnd);
+    uint32_t rootDirectory = fsDeviceConstructAllocationTable(addressBegin, addressEnd);
     
-    fsSetWorkingDirectory( fsDeviceGetRootDirectory() );
+    fsSetWorkingDirectory( rootDirectory );
     
     return 1;
 }

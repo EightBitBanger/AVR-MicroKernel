@@ -43,7 +43,7 @@ uint8_t fsFileWrite(uint8_t* buffer, uint32_t size) {
     uint32_t sector = 0;
     uint32_t sectorCounter = 0;
     
-    for (uint32_t i=0; i < size - 1; i++) {
+    for (uint32_t i=0; i < size; i++) {
         
         // Skip the sector marker byte
         if (sectorCounter == (FORMAT_SECTOR_SIZE - 1)) {
@@ -75,7 +75,7 @@ uint8_t fsFileRead(uint8_t* buffer, uint32_t size) {
     if (size > (fileSize + 1)) 
         size = fileSize + 1;
     
-    for (uint32_t i=0; i < size - 1; i++) {
+    for (uint32_t i=0; i < size; i++) {
         
         // Skip the sector marker byte
         if (sectorCounter == (FORMAT_SECTOR_SIZE - 1)) {
