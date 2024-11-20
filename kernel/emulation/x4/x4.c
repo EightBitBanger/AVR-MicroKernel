@@ -6,12 +6,6 @@
 
 
 // File system
-struct Directory { uint8_t name[FILE_NAME_LENGTH]; uint32_t address; };
-
-extern struct Directory directoryStack[WORKNG_DIRECTORY_STACK_SIZE];
-
-extern uint8_t fs_directory_stack_ptr;
-extern uint8_t fs_working_directory[FILE_NAME_LENGTH];
 
 
 
@@ -492,7 +486,7 @@ void EmulateX4(uint8_t messages) {
                         
                         consoleWritten = 0;
                         
-                        fsDirectoryAddFileRef(fsWorkingDirectoryGetAddress(), fileAddress);
+                        fsDirectoryAddFile(fsWorkingDirectoryGetAddress(), fileAddress);
                         
                     } else {
                         
@@ -513,7 +507,7 @@ void EmulateX4(uint8_t messages) {
                         
                         consoleWritten = 0;
                         
-                        fsDirectoryAddFileRef(fsWorkingDirectoryGetAddress(), directoryAddress);
+                        fsDirectoryAddFile(fsWorkingDirectoryGetAddress(), directoryAddress);
                         
                     } else {
                         
@@ -567,119 +561,14 @@ void EmulateX4(uint8_t messages) {
                 // ah = 3Bh Change the current working directory
                 if (reg[rAH] == 0x3B) {
                     
-                    //
-                    // Drop to parent directory
-                    
-                    if ((param_string[0] == '.') & (param_string[1] == '.')) {
-                        
-                        if (fs_directory_stack_ptr > 1) {
-                            
-                            uint8_t promptLength = 0;
-                            uint8_t PromptDir[20] = {fsDeviceGetRoot(), '/'};
-                            
-                            fsWorkingDirectorySetToParent();
-                            
-                            for (uint8_t n=0; n < FILE_NAME_LENGTH; n++) {
-                                
-                                PromptDir[n + 2] = fs_working_directory[n];
-                                
-                                if (PromptDir[n + 2] == ' ') {
-                                    
-                                    promptLength = n + 1;
-                                    break;
-                                }
-                                
-                            }
-                            
-                            PromptDir[promptLength + 1] = '>';
-                            
-                            ConsoleSetPrompt(PromptDir, promptLength + 3);
-                            
-                        } else {
-                            
-                            uint8_t PromptRoot[] = {fsDeviceGetRoot(), '>'};
-                            ConsoleSetPrompt(PromptRoot, sizeof(PromptRoot)+1);
-                            
-                            fsWorkingDirectoryClear();
-                            
-                        }
-                        
-                        reg[rBL] = 1;
-                        
-                    } else {
-                        
-                        if (param_string[0] == '/') {
-                            
-                            uint8_t PromptRoot[] = {fsDeviceGetRoot(), '>'};
-                            ConsoleSetPrompt(PromptRoot, sizeof(PromptRoot)+1);
-                            
-                            fsWorkingDirectoryClear();
-                            
-                        } else {
-                            
-                            //
-                            // Change to new sub directory
-                            
-                            uint32_t directoryAddress = fsDirectoryExists(param_string, param_length);
-                            
-                            if (directoryAddress != 0) {
-                                
-                                fsWorkingDirectoryChange(param_string, param_length);
-                                
-                                // Prompt for device letters
-                                
-                                uint8_t PromptDir[20] = {fsDeviceGetRoot(), '/'};
-                                
-                                for (uint8_t i=0; i < param_length + 2; i++) 
-                                    PromptDir[i + 2] = param_string[i];
-                                
-                                PromptDir[param_length + 1] = '>';
-                                
-                                ConsoleSetPrompt(PromptDir, param_length + 3);
-                                
-                                reg[rBL] = 1;
-                                
-                            } else {
-                                
-                                reg[rBL] = 0;
-                                
-                            }
-                            
-                        }
-                        
-                    }
-                    
                     consoleWritten = 0;
+                    
+                    reg[rBL] = 1;
                 }
                 
                 
                 // ah = 3Ch Show current directory path
                 if (reg[rAH] == 0x3F) {
-                    
-                    printChar('/');
-                    
-                    if (param_length < 1) {
-                        
-                        for (uint8_t i=0; i < fs_directory_stack_ptr; i++) {
-                            
-                            for (uint8_t c=0; c < FILE_NAME_LENGTH; c++) {
-                                
-                                if (directoryStack[i].name[c] == ' ') 
-                                    break;
-                                
-                                printChar( directoryStack[i].name[c] );
-                                
-                            }
-                            
-                            if (i == fs_directory_stack_ptr) 
-                                break;
-                            
-                            printChar('/');
-                            
-                            continue;
-                        }
-                        
-                    }
                     
                     consoleWritten = 1;
                     
