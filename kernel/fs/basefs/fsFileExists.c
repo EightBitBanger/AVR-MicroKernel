@@ -3,15 +3,6 @@
 
 uint32_t fsFileExists(uint8_t* name, uint8_t nameLength) {
     
-    if ((name[0] == ' ') | 
-        (nameLength == 0))
-        return 0;
-    
-    // Check working directory
-    if (fsWorkingDirectoryCheck() == 0) {
-        return 0;
-    }
-    
 	// Get number of files
 	uint32_t numberOfFiles = fsDirectoryGetNumberOfFiles( fsWorkingDirectoryGetAddress() );
 	

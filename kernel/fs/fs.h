@@ -7,37 +7,41 @@
 #define FORMAT_CAPACITY_16K       16384
 #define FORMAT_CAPACITY_8K        8192
 
-// Sector format
+// Sector format layout
 
 #define FORMAT_SECTOR_SIZE        32
 
-//#define FORMAT_SECTOR_HEADER      '<'
-//#define FORMAT_SECTOR_DATA        '$'
-//#define FORMAT_SECTOR_FOOTER      '>'
-//#define FORMAT_SECTOR_EMPTY       0x00
-
 #define FORMAT_SECTOR_HEADER      0x55
-#define FORMAT_SECTOR_DATA        0xff
-#define FORMAT_SECTOR_FOOTER      0xaa
+#define FORMAT_SECTOR_DATA        0xFF
+#define FORMAT_SECTOR_FOOTER      0xAA
 #define FORMAT_SECTOR_EMPTY       0x00
 
-#define DEVICE_CAPACITY_OFFSET    12
-#define DEVICE_ROOT_OFFSET        16
+// Device header layout
 
-// Header layout
+#define DEVICE_IDENTIFIER         {0x13, 'f', 's', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '}
+
+#define DEVICE_CAPACITY_OFFSET    12 // uint32     Max capacity of the device in bytes
+#define DEVICE_ROOT_OFFSET        16 // uint32     Pointer to the root directory
+
+// File header layout
 
 #define FILE_NAME_LENGTH          10
 
 #define FILE_OFFSET_NAME          1  // 10 bytes   File name offset
 #define FILE_OFFSET_SIZE          11 // uint32     File size offset
-#define FILE_OFFSET_ATTRIBUTES    15 // 4 bytes    File attribute offest
+#define FILE_OFFSET_ATTRIBUTES    15 // uint32     File attribute offest
 #define FILE_OFFSET_REF_COUNT     19 // uint32     Number of file references in this directory (if its a directory)
 #define FILE_OFFSET_FLAG          23 // uint8      Flags (bitmask)
+#define FILE_OFFSET_PARENT        24 // uint32     Parent sector fragment address
+#define FILE_OFFSET_NEXT          28 // uint32     Next sector fragment address
+
+// Directory layout
+#define FS_DIRECTORY_REF_MAX      (FORMAT_SECTOR_SIZE / 4)
 
 // Working directory
 #define WORKNG_DIRECTORY_STACK_SIZE    16
 
-// Flags
+// User definable flags
 #define FS_FLAG_A         0
 #define FS_FLAG_B         1
 #define FS_FLAG_C         2
@@ -47,24 +51,34 @@
 #define FS_FLAG_G         6
 #define FS_FLAG_H         7
 
-
 #define FILE_ATTRIBUTE_FILETYPE   15
 #define FILE_ATTRIBUTE_READ       16
 #define FILE_ATTRIBUTE_WRITE      17
 #define FILE_ATTRIBUTE_SPECIAL    18
 
+
 struct FSAttribute {
+    
+    /// Allow the file to be executed.
     uint8_t executable;
+    
+    /// Allow read access.
     uint8_t readable;
+    
+    /// Allow write access.
     uint8_t writeable;
+    
+    /// Type attribute.
+    /// 'd'  Directory
     uint8_t type;
+    
 };
 
 
 void fsInit(void);
 
 
-// Device context
+// Low level IO routing
 
 void fs_write_byte(uint32_t address, uint8_t byte);
 void fs_read_byte(uint32_t address, uint8_t* buffer);
@@ -73,117 +87,181 @@ void fs_set_type_IO(void);
 void fs_set_type_MEM(void);
 void fs_set_type_MEM_nocache(void);
 
-uint32_t fsDeviceGetContext(void);
+
+// Device context
+
+/// Set device context by address offset.
 void fsDeviceSetContext(uint32_t device_address);
+uint32_t fsDeviceGetContext(void);
 
-uint32_t fsDeviceGetCapacity(void);
-uint8_t fsDeviceCheckReady(void);
-void fsDeviceSetLetter(uint8_t letter);
-
+/// Set device context by letter.
 void fsDeviceSetRoot(uint8_t deviceLetter);
 uint8_t fsDeviceGetRoot(void);
 
+/// Get information about the device.
+uint8_t fsDeviceCheckReady(void);
+
+/// Get the size of the device in bytes.
+uint32_t fsDeviceGetCapacity(void);
+/// Get the root directory of the device.
 uint32_t fsDeviceGetRootDirectory(void);
+/// Set the root directory of the device.
 void fsDeviceSetRootDirectory(uint32_t directoryAddress);
 
 
 // Allocation
 
+/// Allocate a block of memory of the given size.
 uint32_t fsAllocate(uint32_t size);
+/// Free a block of memory.
 uint8_t fsFree(uint32_t address);
 
 
 // Format
 
+/// Zero the bytes on the device and initiates the 
+/// device sectors for allocation.
 uint8_t fsFormat(uint32_t addressBegin, uint32_t addressEnd);
+/// Initiate the device sectors without zeroing 
+/// all the bytes on the device.
+uint8_t fsFormatQuick(uint32_t addressBegin, uint32_t addressEnd);
 
+/// Initiate the first sector on the device.
+/// The first sector is reserved for the allocation table.
 uint32_t fsDeviceConstructAllocationTable(uint32_t addressBegin, uint32_t addressEnd);
 
 
 // Files
 
+/// Allocate some space for the file size and return the location of the file.
 uint32_t fsFileCreate(uint8_t* name, uint8_t nameLength, uint32_t fileSize);
+/// Free the file by its filename.
 uint32_t fsFileDelete(uint8_t* name, uint8_t nameLength);
-
+/// Check if a file exists in the working directory.
 uint32_t fsFileExists(uint8_t* name, uint8_t nameLength);
 
+/// Copy a file from the working directory to the destination
+/// location at 'deviceLetter' into the subdirectory 'directoryAddress'.
 uint32_t fsFileCopy(uint8_t* sourceName, uint8_t sourceLength, 
                     uint8_t* destName, uint8_t destLength, 
                     uint8_t deviceLetter, uint32_t directoryAddress);
 
-void fsFileSetName(uint32_t fileAddress, uint8_t* name, uint8_t length);
+/// Get the file name from its address.
 void fsFileGetName(uint32_t fileAddress, uint8_t* name);
+/// Set the file name at its address.
+void fsFileSetName(uint32_t fileAddress, uint8_t* name, uint8_t length);
+/// Get the size of the file in bytes.
 uint32_t fsFileGetSize(uint32_t fileAddress);
 
+
+// Attributes
+
+/// Set the files attributes.
 uint8_t fsFileSetAttributes(uint32_t address, struct FSAttribute* attributes);
+/// Get the files attributes.
 uint8_t fsFileGetAttributes(uint32_t address, struct FSAttribute* attributes);
 
 
 // File flags
 
+/// Get a bit from a files flag bitmask.
 uint8_t fsFileGetFlag(uint32_t fileAddress, uint8_t index);
+/// Set a bit at the index in a files flag bitmask.
+/// State should be either 0 or not 0.
 void fsFileSetFlag(uint32_t fileAddress, uint8_t index, uint8_t state);
 
 
 // Search
 
+/// Find the first file in a directory search.
 uint32_t fsFileFindFirst(void);
+
+/// Find the next file in the sequence.
 uint32_t fsFileFindNext(void);
+/// Get a file from an index location in the directory.
 uint32_t fsFileFind(uint32_t index);
+
+
+// File buffer IO
+
+/// Open a file for reading and writing.
+uint8_t fsFileOpen(uint32_t fileAddress);
+/// Close the file.
+uint8_t fsFileClose(void);
+
+/// Read bytes from a file into a buffer.
+uint8_t fsFileRead(uint8_t* buffer, uint32_t size);
+/// Read formatted text from a file.
+uint8_t fsFileReadText(uint8_t* buffer, uint32_t size);
+/// Write bytes from a buffer into a file.
+uint8_t fsFileWrite(uint8_t* buffer, uint32_t size);
 
 
 // Directories
 
+/// Create a directory.
 uint32_t fsDirectoryCreate(uint8_t* name, uint8_t nameLength);
+/// Remove a directory without removing its contents.
 uint32_t fsDirectoryDelete(uint8_t* name, uint8_t nameLength);
+/// Remove a directories contents.
 uint8_t fsDirectoryDeleteContents(uint32_t directoryAddress);
-
+/// Check if a directory exists.
 uint32_t fsDirectoryExists(uint8_t* name, uint8_t nameLength);
 
+/// Get a file reference from a directory.
 uint32_t fsDirectoryGetFileRef(uint32_t directoryAddress, uint32_t index);
-uint8_t fsDirectoryAddFileRef(uint32_t directoryAddress, uint32_t refAddress);
-uint8_t fsDirectoryRemoveFileRef(uint32_t directoryAddress, uint32_t refAddress);
+/// Add a file reference to a directory.
+uint8_t fsDirectoryAddFile(uint32_t directoryAddress, uint32_t fileAddress);
+/// Remove a file reference from a directory.
+uint8_t fsDirectoryRemoveFileRef(uint32_t directoryAddress, uint32_t fileAddress);
 
+/// Get the size of a directory.
 uint32_t fsDirectoryGetSize(uint32_t directoryAddress);
+/// Get the number of contents in a directory.
 uint32_t fsDirectoryGetNumberOfFiles(uint32_t directoryAddress);
+/// Set the number of contents in a directory.
 void fsDirectorySetNumberOfFiles(uint32_t directoryAddress, uint32_t numberOfFiles);
 
-// File IO
-uint8_t fsFileOpen(uint32_t fileAddress);
-uint8_t fsFileClose(void);
-
-uint8_t fsFileRead(uint8_t* buffer, uint32_t size);
-uint8_t fsFileReadText(uint8_t* buffer, uint32_t size);
-uint8_t fsFileWrite(uint8_t* buffer, uint32_t size);
-
+/// Get the parent directory in the chain.
+uint32_t fsDirectoryGetParent(uint32_t directoryAddress);
+/// Get the next directory in the chain.
+/// Zero indicates this is the last directory block.
+uint32_t fsDirectoryGetNext(uint32_t directoryAddress);
 
 
 // Working directory
 
+/// Change the working directory to the given directory name.
 uint8_t fsWorkingDirectoryChange(uint8_t* directoryName, uint8_t nameLength);
 
+/// Get the parent directory from the working directory.
 uint32_t fsWorkingDirectoryGetParent(void);
-uint8_t  fsWorkingDirectorySetToParent(void);
+/// Set the working directory to the parent directory of 
+/// the current working directory.
+uint8_t fsWorkingDirectorySetToParent(void);
 
-void     fsWorkingDirectorySetAddress(uint32_t address);
+/// Set the address to the current working directory.
+void fsWorkingDirectorySetAddress(uint32_t address);
+/// Get the address to the current working directory.
 uint32_t fsWorkingDirectoryGetAddress(void);
 
+/// Get the current number of directories in the full path.
 uint8_t fsWorkingDirectoryGetStack(void);
-void    fsWorkingDirectorySetStack(uint8_t amount);
+/// Set the current number of directories in the full path.
+void fsWorkingDirectorySetStack(uint8_t amount);
 
-uint8_t fsGetWorkingDirectory(uint8_t* directoryName);
-uint8_t fsSetWorkingDirectory(uint32_t directoryAddress);
+/// Set the name and length in bytes of a directory.
+uint8_t fsWorkingDirectorySetName(uint32_t directoryAddress);
+/// Get the name of the working directory.
+uint8_t fsWorkingDirectoryGetName(uint8_t* directoryName);
 
+/// Get the number of file/directory references in the working directory.
 uint32_t fsWorkingDirectoryGetFileCount(void);
+/// Return a file/directory reference from the working directory.
 uint32_t fsWorkingDirectoryFind(uint8_t index);
 
-uint8_t fsWorkingDirectoryGetLength(void);
-void fsWorkingDirectorySetLength(uint8_t length);
-
-uint8_t fsWorkingDirectoryCheck(void);
-
+/// Clear the working directory path and drop to the root directory.
 void fsWorkingDirectoryClear(void);
-
 
 
 #endif

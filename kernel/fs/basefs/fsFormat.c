@@ -2,9 +2,11 @@
 
 uint32_t fsDeviceConstructAllocationTable(uint32_t addressBegin, uint32_t addressEnd) {
     
-    fs_write_byte(addressBegin, 0x13 );
-    fs_write_byte(addressBegin + 1, 'f' );
-    fs_write_byte(addressBegin + 2, 's' );
+    // Write the device identifier bytes
+    uint8_t deviceID[] = DEVICE_IDENTIFIER;
+    
+    for (uint8_t i=0; i < sizeof(deviceID); i++) 
+        fs_write_byte(addressBegin + i, deviceID[i]);
     
     // Device total capacity
     union Pointer deviceSize;
@@ -41,18 +43,30 @@ uint8_t fsFormat(uint32_t addressBegin, uint32_t addressEnd) {
             
         } else {
             
-            fs_write_byte(sector, 0x00);
+            fs_write_byte(sector, FORMAT_SECTOR_EMPTY);
             sectorCounter = 0;
         }
         
         continue;
     }
     
-    uint32_t rootDirectory = fsDeviceConstructAllocationTable(addressBegin, addressEnd);
-    
-    fsSetWorkingDirectory( rootDirectory );
+    fsDeviceConstructAllocationTable(addressBegin, addressEnd);
     
     return 1;
 }
 
 
+
+uint8_t fsFormatQuick(uint32_t addressBegin, uint32_t addressEnd) {
+    
+    for (uint32_t sector = addressBegin; sector <= addressEnd; sector += FORMAT_SECTOR_SIZE) {
+        
+        fs_write_byte(sector, FORMAT_SECTOR_EMPTY);
+        
+        continue;
+    }
+    
+    fsDeviceConstructAllocationTable(addressBegin, addressEnd);
+    
+    return 1;
+}

@@ -10,13 +10,13 @@ uint32_t fs_device_address;
 uint8_t fs_device_root;
 
 
-void fsDeviceSetLetter(uint8_t letter) {
+void fsDeviceSetRoot(uint8_t deviceLetter) {
     
-    lowercase(&letter);
+    lowercase(&deviceLetter);
     
-    fs_device_root = letter;
+    fs_device_root = deviceLetter;
     
-    if (letter == 'x') {
+    if (deviceLetter == 'x') {
         
         fs_set_type_MEM();
         fs_device_address = 0x00000;
@@ -24,18 +24,9 @@ void fsDeviceSetLetter(uint8_t letter) {
     } else {
         
         fs_set_type_IO();
-        fs_device_address = PERIPHERAL_ADDRESS_BEGIN + ((letter - 'a') * 0x10000);
+        fs_device_address = PERIPHERAL_ADDRESS_BEGIN + ((deviceLetter - 'a') * 0x10000);
         
     }
-    
-    return;
-}
-
-void fsDeviceSetRoot(uint8_t deviceLetter) {
-    
-    lowercase(&deviceLetter);
-    
-    fs_device_root = deviceLetter;
     
     return;
 }
@@ -68,8 +59,8 @@ void fsInit(void) {
     fs_set_type_MEM();
     fsDeviceSetRoot('X');
     
-    fs_bus.read_waitstate  = 20;
-    fs_bus.write_waitstate = 20;
+    fs_bus.read_waitstate  = 4;
+    fs_bus.write_waitstate = 4;
     
     return;
 }
@@ -101,6 +92,7 @@ void fs_set_type_MEM(void) {
     __fs_read_byte  = bus_raw_read_memory;
     __fs_write_byte = bus_raw_write_memory;
     
+    // TODO Cache glitch, bytes flipping randomly
     //__fs_read_byte  = bus_read_memory;
     //__fs_write_byte = bus_write_memory;
     
@@ -118,15 +110,15 @@ void fs_set_type_MEM_nocache(void) {
 
 uint8_t fsDeviceCheckReady(void) {
     
-    uint8_t headerByte[3];
+    uint8_t deviceID[] = DEVICE_IDENTIFIER;
     
-    fs_read_byte(0, &headerByte[0]);
-    fs_read_byte(1, &headerByte[1]);
-    fs_read_byte(2, &headerByte[2]);
+    uint8_t headerByte[sizeof(deviceID)];
     
-    if (headerByte[0] != 0x13) return 0;
-    if (headerByte[1] != 'f') return 0;
-    if (headerByte[2] != 's') return 0;
+    for (uint8_t i=0; i < sizeof(deviceID); i++) 
+        fs_read_byte(i, &headerByte[i]);
+    
+    for (uint8_t i=0; i < sizeof(deviceID); i++) 
+        if (headerByte[i] != deviceID[i]) return 0;
     
     return 1;
 }
@@ -150,6 +142,9 @@ void fsDeviceSetRootDirectory(uint32_t directoryAddress) {
     
     for (uint8_t i=0; i < 4; i++) 
         fs_write_byte(DEVICE_ROOT_OFFSET + i, rootDirPtr.byte_t[i]);
+    
+    for (uint8_t i=0; i < 4; i++) 
+        fs_write_byte(directoryAddress + FILE_OFFSET_PARENT + i, 0);
     
     return;
 }

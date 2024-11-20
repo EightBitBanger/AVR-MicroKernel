@@ -26,8 +26,11 @@ uint32_t fsFileCopy(uint8_t* sourceName, uint8_t sourceLength,
     uint32_t currentWorkingDirectoryAddress = fsWorkingDirectoryGetAddress();
     
     if ((deviceLetter == 0) | (directoryAddress == 0)) {
-        fsDeviceSetLetter( deviceLetter );
-        fsSetWorkingDirectory( directoryAddress );
+        fsDeviceSetRoot( deviceLetter );
+        
+        fsWorkingDirectorySetAddress( directoryAddress );
+        fsWorkingDirectorySetName( directoryAddress );
+        
     }
     
     uint32_t destAddress = fsFileCreate(destName, destLength, fileSize);
@@ -38,8 +41,10 @@ uint32_t fsFileCopy(uint8_t* sourceName, uint8_t sourceLength,
     
     fsFileClose();
     
-    fsDeviceSetLetter( currentDeviceLetter );
-    fsSetWorkingDirectory( currentWorkingDirectoryAddress );
+    fsDeviceSetRoot( currentDeviceLetter );
+    
+    fsWorkingDirectorySetAddress( currentWorkingDirectoryAddress );
+    fsWorkingDirectorySetName( currentWorkingDirectoryAddress );
     
     return 0;
 }
