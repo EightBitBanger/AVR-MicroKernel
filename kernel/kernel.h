@@ -3,8 +3,8 @@
 
 #include <avr/io.h>
 
-#include <kernel/version.h>
 #include <kernel/kconfig.h>
+#include <kernel/version.h>
 
 #include <kernel/kref.h>
 #include <kernel/pointers.h>

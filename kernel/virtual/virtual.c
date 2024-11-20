@@ -5,10 +5,10 @@
 #define __KERNEL_VIRTUAL_ACCESS_BEGIN__    0x00000000
 #define __KERNEL_VIRTUAL_ACCESS_END__      0xffffffff
 
-#define __SERVICE_VIRTUAL_ACCESS_BEGIN__   0x00000000
-#define __SERVICE_VIRTUAL_ACCESS_END__     0xffffffff
+#define __SERVICE_VIRTUAL_ACCESS_BEGIN__   0x00000800
+#define __SERVICE_VIRTUAL_ACCESS_END__     0x00000fff
 
-#define __USER_VIRTUAL_ACCESS_BEGIN__      0x00000000
+#define __USER_VIRTUAL_ACCESS_BEGIN__      0x00001000
 #define __USER_VIRTUAL_ACCESS_END__        0xffffffff
 
 
@@ -143,7 +143,7 @@ void VirtualBegin(void) {
     }
     
     currentDevice = fsDeviceGetRoot();
-    fsDeviceSetLetter('x');
+    fsDeviceSetRoot('x');
     
     return;
 }
@@ -155,7 +155,7 @@ void VirtualEnd(void) {
         return;
     }
     
-    fsDeviceSetLetter(currentDevice);
+    fsDeviceSetRoot(currentDevice);
     
     currentDevice = ' ';
     

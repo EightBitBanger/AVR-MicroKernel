@@ -6,9 +6,10 @@
 #define TASK_LIST_SIZE                 64
 #define TASK_NAME_LENGTH_MAX           10
 
-#define TASK_TYPE_VOLATILE             0
-#define TASK_TYPE_VOLATILE_PROMPT      1
-#define TASK_TYPE_UNKNOWN              2
+#define TASK_TYPE_UNKNOWN              0   // No type defined
+#define TASK_TYPE_TSR                  1   // Terminate and stay resident in memory
+#define TASK_TYPE_VOLATILE             2   // Run once and terminate
+#define TASK_TYPE_VOLATILE_PROMPT      3   // Run once and terminate to a command prompt
 
 #define TASK_PRIVILEGE_KERNEL          'k'
 #define TASK_PRIVILEGE_SERVICE         's'

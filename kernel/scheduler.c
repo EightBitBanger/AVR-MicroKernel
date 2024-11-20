@@ -27,6 +27,10 @@ uint8_t TaskCreate(uint8_t* name, uint8_t name_length, void(*task_ptr)(uint8_t),
             break;
 	}
 	
+	// MAX task count
+	if (index == TASK_LIST_SIZE-1) 
+        return 0;
+    
 	proc_info.type[index]      = type;
 	proc_info.privilege[index] = privilege;
 	proc_info.priority[index]  = priority;
@@ -35,7 +39,14 @@ uint8_t TaskCreate(uint8_t* name, uint8_t name_length, void(*task_ptr)(uint8_t),
 	proc_info.function[index]  = task_ptr;
 	
 	// Prepare the memory block
-	proc_info.block[index] = new(100);
+	uint8_t currentMode = VirtualAccessGetMode();
+    
+    if (privilege == TASK_PRIVILEGE_KERNEL)  VirtualAccessSetMode( VIRTUAL_ACCESS_MODE_KERNEL );
+    if (privilege == TASK_PRIVILEGE_SERVICE) VirtualAccessSetMode( VIRTUAL_ACCESS_MODE_SERVICE );
+    if (privilege == TASK_PRIVILEGE_USER)    VirtualAccessSetMode( VIRTUAL_ACCESS_MODE_USER );
+    
+    // Allocate a super block
+	proc_info.block[index] = fsAllocate(64);
 	
 	VirtualBegin();
 	
@@ -48,6 +59,8 @@ uint8_t TaskCreate(uint8_t* name, uint8_t name_length, void(*task_ptr)(uint8_t),
 	fsDirectorySetNumberOfFiles(proc_info.block[index], 0);
 	
 	VirtualEnd();
+	
+	VirtualAccessSetMode(currentMode);
 	
 	return (index + 1);
 }
@@ -85,8 +98,10 @@ uint32_t TaskFind(uint8_t* name, uint8_t name_length) {
 		uint8_t list_task_name[FILE_NAME_LENGTH];
 		fsFileGetName(blockAddress, list_task_name);
 		
-		if (StringCompare(name, name_length, list_task_name, FILE_NAME_LENGTH) == 1) 
+		if (StringCompare(name, name_length, list_task_name, FILE_NAME_LENGTH) == 1) {
+            VirtualEnd();
             return (index + 1);
+        }
         
         VirtualEnd();
         
@@ -105,6 +120,23 @@ uint8_t TaskKill(uint8_t* name, uint8_t name_length) {
     
 	proc_info.type[index - 1] = TASK_TYPE_VOLATILE;
 	
+	// Kill halted tasks
+	if (proc_info.priority[index - 1] == TASK_PRIORITY_HALT) {
+        
+        uint8_t ind = index - 1;
+        
+        fsFree( proc_info.block[ind] );
+        
+        proc_info.type[ind]      = TASK_TYPE_UNKNOWN;
+        proc_info.privilege[ind] = 0;
+        proc_info.priority[ind]  = 0;
+        proc_info.counter[ind]   = 0;
+        proc_info.flags[ind]     = 0;
+        proc_info.function[ind]  = 0;
+        proc_info.block[ind]     = 0;
+        
+    }
+    
 	return 1;
 }
 
@@ -119,6 +151,7 @@ uint8_t GetProcInfo(uint8_t index, struct ProcessDescription* info) {
 	info->counter   = proc_info.counter[index];
 	info->flags     = proc_info.flags[index];
 	info->function  = proc_info.function[index];
+	info->block     = proc_info.block[index];
 	
 	return 1;
 }
@@ -135,7 +168,7 @@ void SchedulerInit(void) {
 	
 	for (uint8_t i=0; i < TASK_LIST_SIZE; i++) {
 		
-		proc_info.type[i]      = 0;
+		proc_info.type[i]      = TASK_TYPE_UNKNOWN;
 		proc_info.privilege[i] = 0;
 		proc_info.priority[i]  = 0;
 		proc_info.counter[i]   = 0;
@@ -188,7 +221,7 @@ void _ISR_SCHEDULER_MAIN__(void) {
         PID = 0;
     }
     
-	if (proc_info.priority[PID] == TASK_PRIORITY_HALT) {
+	if (proc_info.type[PID] == TASK_TYPE_UNKNOWN) {
         
         PID++;
         
@@ -220,14 +253,17 @@ void _ISR_SCHEDULER_MAIN__(void) {
 			
             proc_info.function[PID]( EVENT_SHUTDOWN );
             
-			proc_info.type[PID]      = 0;
+			proc_info.type[PID]      = TASK_TYPE_UNKNOWN;
 			proc_info.privilege[PID] = 0;
 			proc_info.priority[PID]  = 0;
 			proc_info.counter[PID]   = 0;
 			proc_info.function[PID]  = (void(*)(uint8_t))nullfunc;
             
+            // Free the super block
             VirtualBegin();
+            
             fsFree( proc_info.block[PID] );
+            
             VirtualEnd();
             
             proc_info.block[PID] = 0;
@@ -238,18 +274,22 @@ void _ISR_SCHEDULER_MAIN__(void) {
 			
             proc_info.function[PID]( EVENT_SHUTDOWN );
             
-			proc_info.type[PID]      = 0;
+			proc_info.type[PID]      = TASK_TYPE_UNKNOWN;
 			proc_info.privilege[PID] = 0;
 			proc_info.priority[PID]  = 0;
 			proc_info.counter[PID]   = 0;
 			proc_info.function[PID]  = (void(*)(uint8_t))nullfunc;
             
+            // Free the super block
             VirtualBegin();
+            
             fsFree( proc_info.block[PID] );
+            
             VirtualEnd();
             
             proc_info.block[PID] = 0;
             
+            // Drop a command prompt
             printPrompt();
 			
 		}
