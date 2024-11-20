@@ -18,25 +18,38 @@ void functionTASK(uint8_t* param, uint8_t param_length) {
         
         struct ProcessDescription proc_desc;
         
+        
         for (uint8_t i=0; i < TASK_LIST_SIZE; i++) {
             
             if (GetProcInfo(i, &proc_desc) == 0) 
                 continue;
             
+            if (proc_desc.block == 0) 
+                continue;
+            
+            uint8_t currentMode = VirtualAccessGetMode();
+            
+            if (proc_desc.privilege == TASK_PRIVILEGE_KERNEL)  VirtualAccessSetMode( VIRTUAL_ACCESS_MODE_KERNEL );
+            if (proc_desc.privilege == TASK_PRIVILEGE_SERVICE) VirtualAccessSetMode( VIRTUAL_ACCESS_MODE_SERVICE );
+            if (proc_desc.privilege == TASK_PRIVILEGE_USER)    VirtualAccessSetMode( VIRTUAL_ACCESS_MODE_USER );
+            
             // Type
-            printChar( proc_desc.type );
+            printChar( proc_desc.privilege );
             printSpace(1);
             
             // Name
             uint8_t filename[FILE_NAME_LENGTH];
+            
             VirtualBegin();
+            
             fsFileGetName(proc_desc.block, filename);
+            
             VirtualEnd();
             
             print(filename, TASK_NAME_LENGTH_MAX);
             printSpace(2);
-            // Priority
             
+            // Priority
             if (proc_desc.priority == TASK_PRIORITY_NORMAL) {
                 
                 printc("normal", 7);
@@ -54,6 +67,8 @@ void functionTASK(uint8_t* param, uint8_t param_length) {
                     
                 }
             }
+            
+            VirtualAccessSetMode(currentMode);
             
             printLn();
             

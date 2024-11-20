@@ -21,7 +21,7 @@ void functionMKDIR(uint8_t* param, uint8_t param_length) {
     
     uint32_t directoryAddress = fsDirectoryCreate(param, param_length);
     
-    fsDirectoryAddFileRef(fsWorkingDirectoryGetAddress(), directoryAddress);
+    fsDirectoryAddFile(fsWorkingDirectoryGetAddress(), directoryAddress);
     
     if (directoryAddress != 0) {
         

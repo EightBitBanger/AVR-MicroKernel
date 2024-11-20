@@ -4,14 +4,6 @@
 
 #include <kernel/command/cd/cd.h>
 
-struct Directory { uint8_t name[FILE_NAME_LENGTH]; uint32_t address; };
-
-extern struct Directory directoryStack[WORKNG_DIRECTORY_STACK_SIZE];
-
-extern uint8_t fs_directory_stack_ptr;
-extern uint8_t fs_working_directory[FILE_NAME_LENGTH];
-
-
 void functionCD(uint8_t* param, uint8_t param_length) {
     
     if (param_length > FILE_NAME_LENGTH) 
@@ -29,28 +21,36 @@ void functionCD(uint8_t* param, uint8_t param_length) {
     
     if ((param[0] == '.') & (param[1] == '.') & (param[2] == ' ')) {
         
-        if (fs_directory_stack_ptr > 1) {
+        if (fsWorkingDirectoryGetStack() > 1) {
             
             uint8_t promptLength = 0;
             uint8_t PromptDir[20] = {fsDeviceGetRoot(), '/'};
             
-            fsWorkingDirectorySetToParent();
-            
-            for (uint8_t n=0; n < FILE_NAME_LENGTH; n++) {
+            if (fsWorkingDirectorySetToParent() == 1) {
                 
-                PromptDir[n + 2] = fs_working_directory[n];
+                uint8_t directoryName[FILE_NAME_LENGTH];
                 
-                if (PromptDir[n + 2] == ' ') {
+                for (uint8_t i=0; i < FILE_NAME_LENGTH; i++) 
+                    directoryName[i] = ' ';
+                
+                fsFileGetName(fsWorkingDirectoryGetAddress(), directoryName);
+                
+                for (uint8_t n=0; n < FILE_NAME_LENGTH; n++) {
                     
-                    promptLength = n + 1;
-                    break;
+                    PromptDir[n + 2] = directoryName[n];
+                    
+                    if (PromptDir[n + 2] == ' ') {
+                        
+                        promptLength = n + 1;
+                        break;
+                    }
+                    
                 }
                 
+                PromptDir[promptLength + 1] = '>';
+                
+                ConsoleSetPrompt(PromptDir, promptLength + 3);
             }
-            
-            PromptDir[promptLength + 1] = '>';
-            
-            ConsoleSetPrompt(PromptDir, promptLength + 3);
             
         } else {
             
@@ -75,7 +75,6 @@ void functionCD(uint8_t* param, uint8_t param_length) {
     
     if ((deviceLetter >= 'A') & (deviceLetter <= 'Z') & (param[1] == ':')) {
         
-        fsDeviceSetLetter( deviceLetter );
         fsDeviceSetRoot( deviceLetter );
         
         uint8_t consolePrompt[] = {deviceLetter, '>'};
@@ -140,29 +139,55 @@ void functionCD(uint8_t* param, uint8_t param_length) {
     // Display the full path
     //
     
-    
-    //printInt( fs_directory_stack_ptr );
-    
-    //printLn();
-    
-    //return;
-    
-    
-    
     printChar('/');
     
-    for (uint8_t i=0; i < fs_directory_stack_ptr; i++) {
+    uint32_t currentDirectory = fsWorkingDirectoryGetAddress();
+    
+    if (currentDirectory == 0) 
+        return;
+    
+    uint32_t dirStack[32] = {0};
+    uint8_t DirectoryCount = 0;
+    
+    for (uint8_t i=0; i < fsWorkingDirectoryGetStack(); i++) {
+        
+        dirStack[i] = currentDirectory;
+        
+        currentDirectory = fsWorkingDirectoryGetParent();
+        
+        DirectoryCount = i;
+        
+        if (currentDirectory == 0) {
+            
+            dirStack[i + 1] = 0;
+            
+            break;
+        }
+        
+    }
+    
+    for (uint8_t i=DirectoryCount; i >= 0; i--) {
+        
+        if (dirStack[i] == 0) 
+            break;
+        
+        uint8_t directoryName[FILE_NAME_LENGTH];
+        
+        for (uint8_t a=0; a < FILE_NAME_LENGTH; a++) 
+            directoryName[a] = ' ';
+        
+        fsFileGetName(dirStack[i], directoryName);
         
         for (uint8_t c=0; c < FILE_NAME_LENGTH; c++) {
             
-            if (directoryStack[i].name[c] == ' ') 
+            if (directoryName[c] == ' ') 
                 break;
             
-            printChar( directoryStack[i].name[c] );
+            printChar( directoryName[c] );
             
         }
         
-        if (i == fs_directory_stack_ptr) 
+        if (i == 0) 
             break;
         
         printChar('/');

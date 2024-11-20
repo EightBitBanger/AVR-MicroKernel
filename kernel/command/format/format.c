@@ -138,6 +138,8 @@ void functionFORMAT(uint8_t* param, uint8_t param_length) {
     uint8_t oneHundredPercentMsg[] = {'1', '0', '0', '%'};
     print( oneHundredPercentMsg, sizeof(oneHundredPercentMsg) );
     
+    fsWorkingDirectoryClear();
+    
     ConsoleCursorEnable();
     
     printLn();

@@ -5,12 +5,9 @@
 #define CONSOLE_STRING_LENGTH  40
 #define CONSOLE_FUNCTION_NAME_LENGTH   10
 
-#define CONSOLE_FUNCTION_TABLE_SIZE  32
+#define CONSOLE_FUNCTION_TABLE_SIZE  8
 
 #include <kernel/kernel.h>
-
-#define  MSG_DEVICE_NOT_READY   1
-#define  MSG_DEVICE_NOT_FOUND   2
 
 struct ConsoleCommand {
     

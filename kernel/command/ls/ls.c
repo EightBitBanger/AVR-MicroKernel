@@ -130,36 +130,58 @@ void functionLS(uint8_t* param, uint8_t param_length) {
     // List working directory contents
     //
     
-    if (fsWorkingDirectoryCheck() == 1) {
+    // Check if the current working directory is valid
+    uint32_t directoryAddress = fsWorkingDirectoryGetAddress();
+	
+	if (directoryAddress == 0) {
         
-        // Check if the current working directory is valid
-        uint32_t directoryAddress = fsWorkingDirectoryGetAddress();
-		
-		if (directoryAddress == 0) {
+        print(msgDirectoryError, sizeof(msgDirectoryError));
+        printLn();
+        
+        return;
+	}
+	
+	/*
+	uint32_t nextAddress = fsDirectoryGetNext(directoryAddress);
+    if (nextAddress != 0) {
+        
+        struct FSAttribute attrib;
+        fsFileGetAttributes(directoryAddress, &attrib);
+        
+        if (attrib.type != 'd') {
             
-            print(msgDirectoryError, sizeof(msgDirectoryError));
+            uint8_t msgWhatTheFuck[] = "What the fuck happened";
+            
+            print(msgWhatTheFuck, sizeof(msgWhatTheFuck));
             printLn();
             
             return;
-		}
-		
-		// Get file size
-		directorySize = fsDirectoryGetSize(directoryAddress);
-		
-		// Get number of files
-		numberOfFiles = fsDirectoryGetNumberOfFiles(directoryAddress);
-		
+        }
+        
+        directoryAddress = nextAddress;
+        
+    }
+    */
+    
+    
+    uint8_t bufferDir[1024];
+    
+    while (directoryAddress != 0) {
+        
+        // Get file size
+        directorySize = fsDirectoryGetSize(directoryAddress);
+        
+        // Get number of files
+        numberOfFiles = fsDirectoryGetNumberOfFiles(directoryAddress);
+        
+        
         if (numberOfFiles > 0) {
             
             fsFileOpen(directoryAddress);
             
-            uint8_t bufferDir[directorySize];
             fsFileRead(bufferDir, directorySize);
             
             fsFileClose();
-            
-            //
-            // List directories
             
             for (uint8_t i=0; i < numberOfFiles; i++) {
                 
@@ -208,11 +230,33 @@ void functionLS(uint8_t* param, uint8_t param_length) {
                 continue;
             }
             
-            numberOfFiles -= numberOfDirs;
-            
         }
         
-        return;
+        
+        //
+        // Get next directory offset
+        
+        uint32_t nextDirectory = fsDirectoryGetNext(directoryAddress);
+        
+        // Check last directory block
+        if (nextDirectory == 0) 
+            return;
+        
+        directoryAddress = nextDirectory;
+        
+        // Update file size
+        directorySize = fsDirectoryGetSize(directoryAddress);
+        
+        // Update number of files
+        numberOfFiles = fsDirectoryGetNumberOfFiles(directoryAddress);
+        
+        fsFileOpen(directoryAddress);
+        
+        fsFileRead(bufferDir, directorySize);
+        
+        fsFileClose();
+        
+        continue;
     }
     
     return;

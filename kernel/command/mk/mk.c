@@ -22,7 +22,7 @@ void functionMK(uint8_t* param, uint8_t param_length) {
     
     uint32_t fileAddress = fsFileCreate(param, param_length, 100);
     
-    fsDirectoryAddFileRef(fsWorkingDirectoryGetAddress(), fileAddress);
+    fsDirectoryAddFile(fsWorkingDirectoryGetAddress(), fileAddress);
     
     if (fileAddress == 0) {
         

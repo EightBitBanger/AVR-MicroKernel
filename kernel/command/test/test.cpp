@@ -8,24 +8,18 @@ extern "C" {
 
 uint32_t address = nullptr;
 
-void test(uint8_t messages) {
+
+
+void _tsr_callback(uint8_t messages) {
     
     switch (messages) {
         
         case EVENT_INITIATE: {
             
-            if (address == nullptr) 
-                address = new(40);
-            
             break;
         }
         
         case EVENT_SHUTDOWN: {
-            
-            if (address != nullptr) 
-                delete(address);
-            
-            address = nullptr;
             
             break;
         }
@@ -35,8 +29,16 @@ void test(uint8_t messages) {
     if (address == nullptr) 
         return;
     
+    fsFree(0);
+    
     return;
 }
+
+
+
+
+
+
 
 
 
@@ -45,12 +47,13 @@ void functionTest(uint8_t* param, uint8_t param_length) {
     if (address != nullptr) 
         return;
     
-    uint8_t taskName[] = "test";
-    
-    TaskCreate(taskName, sizeof(taskName), test, TASK_PRIORITY_HIGH, TASK_PRIVILEGE_USER, 0);
+    uint8_t taskName[] = "kernel";
+    TaskCreate(taskName, sizeof(taskName), _tsr_callback, TASK_PRIORITY_REALTIME, TASK_PRIVILEGE_USER, TASK_TYPE_TSR);
     
     return;
 }
+
+
 
 void registerCommandTest(void) {
     
