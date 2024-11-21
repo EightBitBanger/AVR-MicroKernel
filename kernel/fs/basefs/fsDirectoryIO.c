@@ -33,28 +33,63 @@ void fsDirectorySetNumberOfFiles(uint32_t directoryAddress, uint32_t numberOfFil
 
 uint32_t fsDirectoryGetFileRef(uint32_t directoryAddress, uint32_t index) {
     
-	// Get file size
-	uint32_t directorySize = fsDirectoryGetSize(directoryAddress);
+    uint32_t counter=0;
+    uint32_t currentAddress = directoryAddress;
     
-    if (directorySize == 0) 
-        return 0;
+    while(1) {
+        
+        uint32_t numberOfFiles = fsDirectoryGetNumberOfFiles( currentAddress );
+        
+        if (numberOfFiles == 0) 
+            return 0;
+        
+        for (uint8_t i=0; i < numberOfFiles; i++) {
+            
+            if (counter == index) {
+                
+                // Get file size
+                uint32_t directorySize = fsDirectoryGetSize(currentAddress);
+                
+                if (directorySize == 0) 
+                    return 0;
+                
+                if (fsFileOpen(currentAddress) == 0) 
+                    return 0;
+                
+                uint8_t buffer[directorySize];
+                fsFileRead(buffer, directorySize);
+                
+                fsFileClose();
+                
+                union Pointer fileAddressPtr;
+                for (uint8_t p=0; p < 4; p++) 
+                    fileAddressPtr.byte_t[p] = buffer[ (i * 4) + p ];
+                
+                return fileAddressPtr.address;
+            }
+            
+            counter++;
+            
+            continue;
+        }
+        
+        // Get the pointer to the next directory block
+        union Pointer nextPtr;
+        for (uint8_t i=0; i < 4; i++) 
+            fs_read_byte(currentAddress + FILE_OFFSET_NEXT + i, &nextPtr.byte_t[i]);
+        
+        currentAddress = nextPtr.address;
+        
+        // Check last block
+        if (currentAddress == 0) 
+            return 0;
+        
+        continue;
+    }
     
-    if (fsFileOpen(directoryAddress) == 0) 
-        return 0;
-    
-    uint8_t buffer[directorySize];
-    fsFileRead(buffer, directorySize);
-    
-    fsFileClose();
-    
-    union Pointer fileAddressPtr;
-    
-    // Get file address offset
-    for (uint8_t p=0; p < 4; p++) 
-        fileAddressPtr.byte_t[p] = buffer[ (index * 4) + p ];
-    
-    return fileAddressPtr.address;
+    return 0;
 }
+
 
 uint8_t fsDirectoryAddFile(uint32_t directoryAddress, uint32_t fileAddress) {
     
@@ -143,8 +178,118 @@ uint8_t fsDirectoryAddFile(uint32_t directoryAddress, uint32_t fileAddress) {
 }
 
 
-uint8_t fsDirectoryRemoveFileRef(uint32_t directoryAddress, uint32_t fileAddress) {
+uint8_t fsDirectoryRemoveFileRef(uint32_t directoryAddress, uint32_t index) {
     
+    uint32_t counter=0;
+    uint32_t currentAddress = directoryAddress;
+    
+    while(1) {
+        
+        uint32_t numberOfFiles = fsDirectoryGetNumberOfFiles( currentAddress );
+        
+        if (numberOfFiles == 0) 
+            return 0;
+        
+        for (uint8_t i=0; i < numberOfFiles; i++) {
+            
+            if (counter == index) {
+                
+                // Get file size
+                uint32_t directorySize = fsDirectoryGetSize(currentAddress);
+                
+                if (directorySize == 0) 
+                    return 0;
+                
+                if (fsFileOpen(currentAddress) == 0) 
+                    return 0;
+                
+                uint8_t buffer[directorySize];
+                fsFileRead(buffer, directorySize);
+                
+                for (uint8_t p=0; p < 4; p++) 
+                    buffer[ (i * 4) + p ] = 0x00;
+                
+                if (i != (directorySize - 1)) {
+                    
+                    for (uint8_t s=0; s < 4; s++) 
+                        buffer[(i * 4) + s] = buffer[((directorySize-1) * 4) + s];
+                    
+                    for (uint8_t s=0; s < 4; s++) 
+                        buffer[((directorySize-1) * 4) + s] = ' ';
+                    
+                }
+                
+                // Remove last file reference
+                if (directorySize == 1) {
+                    
+                    for (uint8_t s=0; s < 4; s++) 
+                        buffer[((directorySize-1) * 4) + s] = ' ';
+                    
+                }
+                
+                // Decrement the file counter
+                numberOfFiles--;
+                
+                // Check block can be freed
+                if (numberOfFiles == 0) {
+                    
+                    fsFileClose();
+                    
+                    // Reroute the next/parent pointers
+                    uint32_t nextAddress   = fsDirectoryGetNext(currentAddress);
+                    uint32_t parentAddress = fsDirectoryGetParent(currentAddress);
+                    
+                    fsDirectorySetParent(nextAddress, parentAddress);
+                    fsDirectorySetNext(parentAddress, nextAddress);
+                    
+                    // Free the block
+                    fsFree(currentAddress);
+                    
+                    break;
+                }
+                
+                fsDirectorySetNumberOfFiles(directoryAddress, numberOfFiles);
+                
+                fsFileWrite(buffer, directorySize);
+                
+                fsFileClose();
+                
+                break;
+            }
+            
+            counter++;
+            
+            continue;
+        }
+        
+        // Get the pointer to the next directory block
+        union Pointer nextPtr;
+        for (uint8_t i=0; i < 4; i++) 
+            fs_read_byte(currentAddress + FILE_OFFSET_NEXT + i, &nextPtr.byte_t[i]);
+        
+        currentAddress = nextPtr.address;
+        
+        // Check last block
+        if (currentAddress == 0) 
+            return 0;
+        
+        continue;
+    }
+    
+    return 0;
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    /*
     uint32_t fileSize = fsFileGetSize( directoryAddress );
     
     // Number of files in directory
@@ -208,7 +353,7 @@ uint8_t fsDirectoryRemoveFileRef(uint32_t directoryAddress, uint32_t fileAddress
     }
     
     fsFileClose();
-    
+    */
     return 0;
 }
 
@@ -228,5 +373,27 @@ uint32_t fsDirectoryGetNext(uint32_t directoryAddress) {
         fs_read_byte(directoryAddress + FILE_OFFSET_NEXT + i, &nextPtr.byte_t[i]);
     
     return nextPtr.address;
+}
+
+void fsDirectorySetParent(uint32_t directoryAddress, uint32_t parentAddress) {
+    
+    union Pointer parentPtr;
+    parentPtr.address = parentAddress;
+    
+    for (uint8_t i=0; i < 4; i++) 
+        fs_write_byte(directoryAddress + FILE_OFFSET_PARENT + i, parentPtr.byte_t[i]);
+    
+    return;
+}
+
+void fsDirectorySetNext(uint32_t directoryAddress, uint32_t nextAddress) {
+    
+    union Pointer nextPtr;
+    nextPtr.address = nextAddress;
+    
+    for (uint8_t i=0; i < 4; i++) 
+        fs_write_byte(directoryAddress + FILE_OFFSET_NEXT + i, nextPtr.byte_t[i]);
+    
+    return;
 }
 

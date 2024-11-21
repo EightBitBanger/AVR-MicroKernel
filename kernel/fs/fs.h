@@ -36,6 +36,7 @@
 #define FILE_OFFSET_NEXT          28 // uint32     Next sector fragment address
 
 // Directory layout
+//#define FS_DIRECTORY_REF_MAX      4
 #define FS_DIRECTORY_REF_MAX      (FORMAT_SECTOR_SIZE / 4)
 
 // Working directory
@@ -213,7 +214,7 @@ uint32_t fsDirectoryGetFileRef(uint32_t directoryAddress, uint32_t index);
 /// Add a file reference to a directory.
 uint8_t fsDirectoryAddFile(uint32_t directoryAddress, uint32_t fileAddress);
 /// Remove a file reference from a directory.
-uint8_t fsDirectoryRemoveFileRef(uint32_t directoryAddress, uint32_t fileAddress);
+uint8_t fsDirectoryRemoveFileRef(uint32_t directoryAddress, uint32_t index);
 
 /// Get the size of a directory.
 uint32_t fsDirectoryGetSize(uint32_t directoryAddress);
@@ -227,6 +228,10 @@ uint32_t fsDirectoryGetParent(uint32_t directoryAddress);
 /// Get the next directory in the chain.
 /// Zero indicates this is the last directory block.
 uint32_t fsDirectoryGetNext(uint32_t directoryAddress);
+/// Set the parent pointer in the directory chain.
+void fsDirectorySetParent(uint32_t directoryAddress, uint32_t parentAddress);
+/// Set the next pointer in the directory chain.
+void fsDirectorySetNext(uint32_t directoryAddress, uint32_t nextAddress);
 
 
 // Working directory

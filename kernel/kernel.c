@@ -73,31 +73,16 @@ void kInit(void) {
     
     
     
-    
-    
-    
-    uint8_t dirName[] = "dr";
-    uint32_t directoryAddr = fsDirectoryCreate( dirName, sizeof(dirName) );
-    
-    fsDirectoryAddFile(fsWorkingDirectoryGetAddress(), directoryAddr);
-    
-    
-    for (uint8_t i=0; i < 32; i++) {
+    for (uint8_t i=0; i < 10; i++) {
         
-        uint8_t  fileName[] = {'f', 'i', 'l', 'e', ' ', '\0'};
+        uint8_t filename[] = "file ";
+        filename[4] = '0' + i;
         
-        fileName[sizeof(fileName)-2] = '0' + i;
+        uint32_t fileAddress = fsFileCreate(filename, sizeof(filename), 20);
         
-        uint32_t fileAddr = fsFileCreate(fileName, sizeof(fileName), 24);
-        
-        fsDirectoryAddFile(directoryAddr, fileAddr);
+        fsDirectoryAddFile(fsWorkingDirectoryGetAddress(), fileAddress);
         
     }
-    
-    
-    
-    
-    
     
     
     
@@ -173,8 +158,6 @@ void kInit(void) {
     
     
     
-    /*
-    
     {
     
     uint8_t filename[]  = "mk";
@@ -230,12 +213,6 @@ void kInit(void) {
     fsFileClose();
     
     }
-    
-    
-    
-    
-    
-    
     
     
     
@@ -339,6 +316,8 @@ void kInit(void) {
     
     
     
+    
+    /*
     
     // Clear screen
     //
