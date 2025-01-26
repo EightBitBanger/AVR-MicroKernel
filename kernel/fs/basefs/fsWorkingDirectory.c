@@ -1,7 +1,5 @@
-#include <kernel/kernel.h>
+#include <kernel/fs/fs.h>
 
-
-// Current working directory
 uint8_t  fs_working_directory_length;
 uint32_t fs_working_directory_address;
 

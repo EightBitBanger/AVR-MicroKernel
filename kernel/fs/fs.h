@@ -1,6 +1,10 @@
 #ifndef _FILE_SYSTEM_BASE__
 #define _FILE_SYSTEM_BASE__
 
+#include <stdint.h>
+#include <kernel/kalloc.h>
+
+
 // Capacities
 
 #define FORMAT_CAPACITY_32K       32768
@@ -32,12 +36,12 @@
 #define FILE_OFFSET_ATTRIBUTES    15 // uint32     File attribute offest
 #define FILE_OFFSET_REF_COUNT     19 // uint32     Number of file references in this directory (if its a directory)
 #define FILE_OFFSET_FLAG          23 // uint8      Flags (bitmask)
-#define FILE_OFFSET_PARENT        24 // uint32     Parent sector fragment address
-#define FILE_OFFSET_NEXT          28 // uint32     Next sector fragment address
+#define FILE_OFFSET_PARENT        24 // uint32     Pointer to parent block address
+#define FILE_OFFSET_NEXT          28 // uint32     Pointer to next block address
 
 // Directory layout
-//#define FS_DIRECTORY_REF_MAX      4
-#define FS_DIRECTORY_REF_MAX      (FORMAT_SECTOR_SIZE / 4)
+#define FS_DIRECTORY_REF_MAX           (FORMAT_SECTOR_SIZE / 4)
+#define FS_DIRECTORY_LISTING_MAX       32768
 
 // Working directory
 #define WORKNG_DIRECTORY_STACK_SIZE    16
@@ -209,15 +213,20 @@ uint8_t fsDirectoryDeleteContents(uint32_t directoryAddress);
 /// Check if a directory exists.
 uint32_t fsDirectoryExists(uint8_t* name, uint8_t nameLength);
 
-/// Get a file reference from a directory.
-uint32_t fsDirectoryGetFileRef(uint32_t directoryAddress, uint32_t index);
+/// Get a file reference from a directory at a given index.
+uint32_t fsDirectoryGetFile(uint32_t directoryAddress, uint32_t index);
+/// Set a file reference in a directory at a given index.
+uint8_t fsDirectorySetFile(uint32_t directoryAddress, uint32_t index, uint32_t fileAddress);
+
 /// Add a file reference to a directory.
 uint8_t fsDirectoryAddFile(uint32_t directoryAddress, uint32_t fileAddress);
 /// Remove a file reference from a directory.
-uint8_t fsDirectoryRemoveFileRef(uint32_t directoryAddress, uint32_t index);
+uint8_t fsDirectoryRemoveFile(uint32_t directoryAddress, uint32_t fileAddress);
 
 /// Get the size of a directory.
 uint32_t fsDirectoryGetSize(uint32_t directoryAddress);
+/// Get the total size of a directory.
+uint32_t fsDirectoryGetCapacity(uint32_t directoryAddress);
 /// Get the number of contents in a directory.
 uint32_t fsDirectoryGetNumberOfFiles(uint32_t directoryAddress);
 /// Set the number of contents in a directory.

@@ -1,4 +1,4 @@
-#include <kernel/kernel.h>
+#include <kernel/fs/fs.h>
 
 void(*__fs_read_byte)(struct Bus*, uint32_t, uint8_t*);
 void(*__fs_write_byte)(struct Bus*, uint32_t, uint8_t);
@@ -16,12 +16,23 @@ void fsDeviceSetRoot(uint8_t deviceLetter) {
     
     fs_device_root = deviceLetter;
     
+    fs_device_address = 0xffffffff;
+    
     if (deviceLetter == 'x') {
         
         fs_set_type_MEM();
-        fs_device_address = 0x00000;
+        fs_device_address = 0x00000000;
         
-    } else {
+    }
+    
+    if (deviceLetter == 'z') {
+        
+        fs_set_type_MEM();
+        fs_device_address = 0xfffc0000;
+        
+    }
+    
+    if (fs_device_address == 0xffffffff) {
         
         fs_set_type_IO();
         fs_device_address = PERIPHERAL_ADDRESS_BEGIN + ((deviceLetter - 'a') * 0x10000);
@@ -59,8 +70,8 @@ void fsInit(void) {
     fs_set_type_MEM();
     fsDeviceSetRoot('X');
     
-    fs_bus.read_waitstate  = 4;
-    fs_bus.write_waitstate = 4;
+    fs_bus.read_waitstate  = 2;
+    fs_bus.write_waitstate = 2;
     
     return;
 }

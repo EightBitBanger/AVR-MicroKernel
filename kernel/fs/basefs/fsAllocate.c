@@ -1,5 +1,4 @@
-#include <kernel/kernel.h>
-#include <kernel/kalloc.h>
+#include <kernel/fs/fs.h>
 
 extern uint32_t VirtualAddressBegin;
 extern uint32_t VirtualAddressEnd;
@@ -32,13 +31,13 @@ uint32_t fsAllocate(uint32_t size) {
         // Check allocation range
         if (offset >= VirtualAddressEnd) {
             
-            kThrow(KERNEL_HALT_BAD_ALLOCATION, offset);
+            kThrow(HALT_BAD_ALLOCATION, offset);
         }
         
         // Check out of memory range
         if (offset > kAllocGetTotal()) {
             
-            kThrow(KERNEL_HALT_OUT_OF_MEMORY, offset);
+            kThrow(HALT_OUT_OF_MEMORY, offset);
         }
         
         // Find an empty sector
@@ -56,7 +55,7 @@ uint32_t fsAllocate(uint32_t size) {
             // Check allocation range
             if (offsetNext >= VirtualAddressEnd) {
                 
-                kThrow(KERNEL_HALT_BAD_ALLOCATION, offsetNext);
+                kThrow(HALT_BAD_ALLOCATION, offsetNext);
             }
             
             uint8_t nextHeaderByte;

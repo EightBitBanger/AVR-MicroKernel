@@ -1,4 +1,4 @@
-#include <kernel/kernel.h>
+#include <kernel/fs/fs.h>
 
 uint32_t fsDirectoryDelete(uint8_t* name, uint8_t nameLength) {
     
@@ -18,7 +18,7 @@ uint8_t fsDirectoryDeleteContents(uint32_t directoryAddress) {
     uint32_t directoryFileCount = fsDirectoryGetNumberOfFiles(directoryAddress);
     
     for (uint32_t i=0; i < directoryFileCount; i++) 
-        fsFree( fsDirectoryGetFileRef(directoryAddress, i) );
+        fsFree( fsDirectoryGetFile(directoryAddress, i) );
     
     return 1;
 }

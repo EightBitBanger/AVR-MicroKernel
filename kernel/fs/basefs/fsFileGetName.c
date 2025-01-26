@@ -1,5 +1,4 @@
-#include <kernel/kernel.h>
-
+#include <kernel/fs/fs.h>
 
 void fsFileGetName(uint32_t fileAddress, uint8_t* name) {
     

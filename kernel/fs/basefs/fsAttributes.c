@@ -1,4 +1,4 @@
-#include <kernel/kernel.h>
+#include <kernel/fs/fs.h>
 
 uint8_t fsFileSetAttributes(uint32_t address, struct FSAttribute* attributes) {
     

@@ -1,4 +1,4 @@
-#include <kernel/kernel.h>
+#include <kernel/fs/fs.h>
 
 uint32_t fsFileCopy(uint8_t* sourceName, uint8_t sourceLength, 
                     uint8_t* destName, uint8_t destLength, 

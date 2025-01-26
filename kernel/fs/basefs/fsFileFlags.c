@@ -1,5 +1,4 @@
-#include <stdio.h>
-#include <kernel/kernel.h>
+#include <kernel/fs/fs.h>
 
 void fsFileSetFlag(uint32_t fileAddress, uint8_t index, uint8_t state) {
     

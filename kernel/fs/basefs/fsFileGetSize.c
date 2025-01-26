@@ -1,5 +1,4 @@
-#include <kernel/kernel.h>
-
+#include <kernel/fs/fs.h>
 
 uint32_t fsFileGetSize(uint32_t fileAddress) {
     

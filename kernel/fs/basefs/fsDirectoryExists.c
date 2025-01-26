@@ -1,25 +1,18 @@
-#include <kernel/kernel.h>
-
+#include <kernel/fs/fs.h>
 
 uint32_t fsDirectoryExists(uint8_t* name, uint8_t nameLength) {
     
     uint32_t directoryAddress = fsWorkingDirectoryGetAddress();
     
-    union Pointer nextPtr;
-    nextPtr.address = directoryAddress;
-    
-    while(1) {
+    for (uint32_t z=0; z < FS_DIRECTORY_LISTING_MAX; z++) {
         
         // Get number of files
         uint32_t numberOfFiles = fsDirectoryGetNumberOfFiles( directoryAddress );
         
-        if (numberOfFiles == 0) 
-            continue;
-        
         for (uint8_t i=0; i < numberOfFiles; i++) {
             
             // Get file address offset
-            uint32_t fileAddress = fsDirectoryGetFileRef( directoryAddress, i );
+            uint32_t fileAddress = fsDirectoryGetFile( directoryAddress, i );
             
             // Check file is not a directory
             struct FSAttribute attrib;
@@ -38,12 +31,8 @@ uint32_t fsDirectoryExists(uint8_t* name, uint8_t nameLength) {
             continue;
         }
         
-        
         // Get the pointer to the next directory block
-        for (uint8_t i=0; i < 4; i++) 
-            fs_read_byte(directoryAddress + FILE_OFFSET_NEXT + i, &nextPtr.byte_t[i]);
-        
-        directoryAddress = nextPtr.address;
+        directoryAddress = fsDirectoryGetNext(directoryAddress);
         
         // Check last block
         if (directoryAddress == 0) 

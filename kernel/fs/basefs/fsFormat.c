@@ -1,4 +1,4 @@
-#include <kernel/kernel.h>
+#include <kernel/fs/fs.h>
 
 uint32_t fsDeviceConstructAllocationTable(uint32_t addressBegin, uint32_t addressEnd) {
     

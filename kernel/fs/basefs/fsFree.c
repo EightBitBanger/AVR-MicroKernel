@@ -1,4 +1,4 @@
-#include <kernel/kernel.h>
+#include <kernel/fs/fs.h>
 
 uint8_t fsFree(uint32_t address) {
     
@@ -17,8 +17,9 @@ uint8_t fsFree(uint32_t address) {
         uint8_t headerByte = 0x00;
         fs_read_byte(address + sector, &headerByte);
         
-        // Delete file header sector
-        if (headerByte == FORMAT_SECTOR_HEADER) {
+        switch (headerByte) {
+            
+        case FORMAT_SECTOR_HEADER:
             
             // Only delete a header once
             if (isHeaderDeleted == 1) 
@@ -27,26 +28,23 @@ uint8_t fsFree(uint32_t address) {
             fs_write_byte(address + sector, clearByte);
             
             isHeaderDeleted = 1;
-            continue;
-        }
-        
-        // Delete data sector
-        if (headerByte == FORMAT_SECTOR_DATA) {
+            break;
+            
+        case FORMAT_SECTOR_DATA:
             
             fs_write_byte(address + sector, clearByte);
             
-            continue;
-        }
-        
-        // Delete end sector
-        if (headerByte == FORMAT_SECTOR_FOOTER) {
+            break;
+            
+        case FORMAT_SECTOR_FOOTER:
             
             fs_write_byte(address + sector, clearByte);
             
-            return 1;
+            break;
+            
         }
         
-        // Empty sector
+        // Check empty sector
         if (headerByte == FORMAT_SECTOR_EMPTY) 
             break;
         

@@ -1,4 +1,4 @@
-#include <kernel/kernel.h>
+#include <kernel/fs/fs.h>
 
 uint32_t fileFindIndex = 0;
 
@@ -24,26 +24,6 @@ uint32_t fsFileFindNext(void) {
     
     return fileAddress;
     
-    /*
-    
-    uint32_t numberOfSectors = fsGetDeviceCapacity() / FORMAT_SECTOR_SIZE;
-    
-    // Check following sectors allocated to this file
-    for (fileFindAddress++; fileFindAddress <= numberOfSectors; fileFindAddress++) {
-        
-        uint32_t currentSector = fileFindAddress * FORMAT_SECTOR_SIZE;
-        
-        // Find an active file start byte
-        uint8_t headerByte = 0;
-        fs_read_byte(currentSector, &headerByte);
-        
-        if (headerByte != FORMAT_SECTOR_HEADER) 
-            continue;
-        
-        // Return file index
-        return currentSector;
-    }
-    */
     return 0;
 }
 
