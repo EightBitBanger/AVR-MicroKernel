@@ -8,15 +8,17 @@
 
 #ifdef BOARD_RETROBOARD_REV2
 
-#define EXTERNAL_MEMORY_BEGIN     0x00000
-
-#define PERIPHERAL_ADDRESS_BEGIN  0x40000
-#define PERIPHERAL_STRIDE         0x10000
-
-#define NUMBER_OF_PERIPHERALS  5
-
-
 #include <kernel/bus/bus.h>
+
+// Caching
+
+#define CACHE_SIZE   32
+
+uint8_t cache[CACHE_SIZE];
+
+uint32_t cache_begin = 0;
+uint32_t cache_end   = 0;
+
 
 // NOTE: Address and data buses are multiplexed requiring external logic
 #define _BUS_LOWER_PORT_A__     // Define port A as the lower address bus
@@ -133,7 +135,11 @@
   #define _CONTROL_IN__      PIND
 #endif
 
-
+void bus_initiate(void) {
+    bus_control_zero();
+    bus_address_zero();
+    return;
+}
 
 void bus_control_zero(void) {
     _CONTROL_DIR__=0xff;
@@ -153,7 +159,7 @@ void bus_address_zero(void) {
 	return;
 }
 
-void bus_read_byte(struct Bus* bus, uint32_t address, uint8_t* buffer) {
+void bus_raw_read_byte(struct Bus* bus, uint32_t address, uint8_t* buffer) {
 	
 	// Output the data bus
     _BUS_LOWER_DIR__ = 0xff;
@@ -188,7 +194,7 @@ void bus_read_byte(struct Bus* bus, uint32_t address, uint8_t* buffer) {
 }
 
 
-void bus_write_byte(struct Bus* bus, uint32_t address, uint8_t byte) {
+void bus_raw_write_byte(struct Bus* bus, uint32_t address, uint8_t byte) {
 	
 	// Output the data bus
     _BUS_LOWER_DIR__ = 0xff;
@@ -218,7 +224,7 @@ void bus_write_byte(struct Bus* bus, uint32_t address, uint8_t byte) {
 	return;
 }
 
-void bus_read_memory(struct Bus* bus, uint32_t address, uint8_t* buffer) {
+void bus_raw_read_memory(struct Bus* bus, uint32_t address, uint8_t* buffer) {
 	
 	// Output the data bus
     _BUS_LOWER_DIR__ = 0xff;
@@ -253,7 +259,7 @@ void bus_read_memory(struct Bus* bus, uint32_t address, uint8_t* buffer) {
 }
 
 
-void bus_write_memory(struct Bus* bus, uint32_t address, uint8_t byte) {
+void bus_raw_write_memory(struct Bus* bus, uint32_t address, uint8_t byte) {
 	
 	// Output the data bus
     _BUS_LOWER_DIR__ = 0xff;
@@ -284,12 +290,12 @@ void bus_write_memory(struct Bus* bus, uint32_t address, uint8_t byte) {
 }
 
 void bus_write_io(struct Bus* bus, uint32_t address, uint8_t byte) {
-    bus_write_memory(bus, address, byte);
+    bus_raw_write_memory(bus, address, byte);
     return;
 }
 
 void bus_read_io(struct Bus* bus, uint32_t address, uint8_t* buffer) {
-    bus_read_memory(bus, address, buffer);
+    bus_raw_read_memory(bus, address, buffer);
     return;
 }
 
@@ -297,6 +303,26 @@ void bus_write_io_eeprom(struct Bus* bus, uint32_t address, uint8_t byte) {
     bus_write_byte_eeprom(bus, address, byte);
     return;
 }
+
+void bus_read_byte(struct Bus* bus, uint32_t address, uint8_t* buffer) {
+    bus_raw_read_byte(bus, address, buffer);
+}
+
+void bus_write_byte(struct Bus* bus, uint32_t address, uint8_t byte) {
+    bus_raw_write_byte(bus, address, byte);
+}
+
+
+/*
+void bus_read_memory(struct Bus* bus, uint32_t address, uint8_t* buffer) {
+    bus_raw_read_byte(bus, address, buffer);
+}
+
+void bus_write_memory(struct Bus* bus, uint32_t address, uint8_t byte) {
+    bus_raw_write_byte(bus, address, byte);
+}
+*/
+
 
 void bus_write_byte_eeprom(struct Bus* bus, uint32_t address, uint8_t byte) {
     
@@ -329,5 +355,64 @@ void bus_write_byte_eeprom(struct Bus* bus, uint32_t address, uint8_t byte) {
     return;
 }
 
+
+uint8_t initiated = 0;
+
+void bus_flush_cache(struct Bus* bus, uint32_t address) {
+    return;
+    // Flush the buffer back to main memory
+    if (initiated != 0) {
+        for (uint32_t i=0; i < CACHE_SIZE; i++) 
+            bus_raw_write_memory(bus, cache_begin + i, cache[i]);
+    }
+    initiated = 1;
+    
+    // Fetch new data from main memory
+    for (uint32_t i=0; i < CACHE_SIZE; i++) 
+        bus_raw_read_memory(bus, address + i, &cache[i]);
+    
+    cache_begin = address;
+    cache_end   = address + CACHE_SIZE - 1;
+    
+    return;
+}
+
+
+void bus_read_memory(struct Bus* bus, uint32_t address, uint8_t* buffer) {
+	
+	if (address >= cache_begin || address < cache_end) {
+        
+        uint32_t address_offset = address - cache_begin;
+        
+        *buffer = cache[address_offset];
+        
+        return;
+    }
+	
+    bus_flush_cache(bus, address);
+    
+    *buffer = cache[0];
+    
+    return;
+}
+
+
+void bus_write_memory(struct Bus* bus, uint32_t address, uint8_t byte) {
+	
+	if (address >= cache_begin || address < cache_end) {
+        
+        uint32_t address_offset = address - cache_begin;
+        
+        cache[address_offset] = byte;
+        
+        return;
+    }
+	
+	bus_flush_cache(bus, address);
+    
+    cache[0] = byte;
+    
+    return;
+}
 
 #endif
