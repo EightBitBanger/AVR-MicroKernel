@@ -359,7 +359,7 @@ void bus_write_byte_eeprom(struct Bus* bus, uint32_t address, uint8_t byte) {
 uint8_t initiated = 0;
 
 void bus_flush_cache(struct Bus* bus, uint32_t address) {
-    return;
+    
     // Flush the buffer back to main memory
     if (initiated != 0) {
         for (uint32_t i=0; i < CACHE_SIZE; i++) 
