@@ -11,7 +11,7 @@ void functionType(uint8_t* param, uint8_t param_length) {
     if (fileAddress == 0) 
         return;
     
-    fsFileOpen(fileAddress);
+    int32_t index = fsFileOpen(fileAddress);
     
     uint32_t fileSize = fsFileGetSize(fileAddress);
     
@@ -20,9 +20,9 @@ void functionType(uint8_t* param, uint8_t param_length) {
     
     uint8_t fileBuffer[fileSize];
     
-    fsFileRead(fileBuffer, fileSize);
+    fsFileRead(index, fileBuffer, fileSize);
     
-    fsFileClose();
+    fsFileClose(index);
     
     for (uint32_t i=0; i < fileSize; i++) {
         if (fileBuffer[i] == '\n') {

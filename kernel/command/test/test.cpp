@@ -6,9 +6,35 @@ extern "C" {
 #include <kernel/array.hpp>
 #include <kernel/string.hpp>
 
-uint32_t address = nullptr;
+void _tsr_callback(uint8_t messages);
 
 
+void functionTest(uint8_t* param, uint8_t param_length) {
+    
+    /*
+    array arr(20);
+    
+    for (uint16_t i=0; i < arr.size(); i++) 
+        arr.set(i, i);
+    
+    for (uint16_t i=0; i < arr.size(); i++) {
+        
+        printInt( arr[i] );
+        
+        printLn();
+        
+    }
+    */
+    
+    uint8_t taskName[] = "test";
+    TaskCreate(taskName, sizeof(taskName), _tsr_callback, TASK_PRIORITY_REALTIME, TASK_PRIVILEGE_USER, TASK_TYPE_TSR);
+    
+    return;
+}
+
+
+uint32_t superBlock;
+uint16_t counter = 0;
 
 void _tsr_callback(uint8_t messages) {
     
@@ -16,43 +42,22 @@ void _tsr_callback(uint8_t messages) {
         
         case EVENT_INITIATE: {
             
+            superBlock = new(64);
+            
             break;
         }
         
         case EVENT_SHUTDOWN: {
+            
+            delete(superBlock);
             
             break;
         }
         
     }
     
-    if (address == nullptr) 
-        return;
-    
-    fsFree(0);
-    
     return;
 }
-
-
-
-
-
-
-
-
-
-void functionTest(uint8_t* param, uint8_t param_length) {
-    
-    if (address != nullptr) 
-        return;
-    
-    uint8_t taskName[] = "kernel";
-    TaskCreate(taskName, sizeof(taskName), _tsr_callback, TASK_PRIORITY_REALTIME, TASK_PRIVILEGE_USER, TASK_TYPE_TSR);
-    
-    return;
-}
-
 
 
 void registerCommandTest(void) {

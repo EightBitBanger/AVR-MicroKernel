@@ -9,9 +9,9 @@ void functionFORMAT(uint8_t* param, uint8_t param_length) {
     
     uint32_t deviceCapacity = 0;
     
-    if  (param[0] == '8') deviceCapacity = FORMAT_CAPACITY_8K;
-    if ((param[0] == '1') & (param[1] == '6')) deviceCapacity = FORMAT_CAPACITY_16K;
-    if ((param[0] == '3') & (param[1] == '2')) deviceCapacity = FORMAT_CAPACITY_32K;
+    if (param[0] == '-' && param[1] == '8') deviceCapacity = FORMAT_CAPACITY_8K;
+    if (param[0] == '-' && param[1] == '1' && param[2] == '6') deviceCapacity = FORMAT_CAPACITY_16K;
+    if (param[0] == '-' && param[1] == '3' && param[2] == '2') deviceCapacity = FORMAT_CAPACITY_32K;
     
     uint32_t deviceCapacityCurrent=0;
     if (deviceCapacity == 0) {
@@ -24,7 +24,7 @@ void functionFORMAT(uint8_t* param, uint8_t param_length) {
     }
     
     // Quick format
-    if (param[0] == 'q') {
+    if (param[0] == '-' && param[1] == 'q') {
         
         uint8_t deviceQuickFormat[] = "Quick format";
         print(deviceQuickFormat, sizeof(deviceQuickFormat));
@@ -90,18 +90,19 @@ void functionFORMAT(uint8_t* param, uint8_t param_length) {
         if (percentage > 99) 
             percentage = 99;
         
-        if (param[0] == 'q') 
-            continue;
-        
         for (uint32_t c=0; c < cyclesPerPercent; c++) {
             
             sector++;
             
             if (sectorCounter < (FORMAT_SECTOR_SIZE - 1)) {
-                fs_write_byte(sector, ' ');
+                
+                if (param[0] != 'q') 
+                    fs_write_byte(sector, ' ');
+                
                 sectorCounter++;
+                
             } else {
-                fs_write_byte(sector, 0x00);
+                fs_write_byte(sector, FORMAT_SECTOR_EMPTY);
                 sectorCounter = 0;
             }
             

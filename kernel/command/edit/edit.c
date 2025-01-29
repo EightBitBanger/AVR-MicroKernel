@@ -7,6 +7,8 @@
 
 void functionEDIT(uint8_t* param, uint8_t param_length) {
     
+    /*
+    
     uint8_t msgFileNotFoundEdittor[] = "File not found";
     uint8_t msgSaved[]               = "Saved";
     uint8_t msgSaveQuit[]            = "(S)ave / (Q)uit?";
@@ -383,6 +385,8 @@ void functionEDIT(uint8_t* param, uint8_t param_length) {
         
         
         // Page up
+        */
+        
         /*
         if (lastChar == 0xF5) {
             
@@ -407,6 +411,11 @@ void functionEDIT(uint8_t* param, uint8_t param_length) {
         }
         */
         
+        
+        
+        
+        
+        /*
         // Toggle line ending characters
         if (lastChar == 0xF1) {
             
@@ -614,6 +623,9 @@ void functionEDIT(uint8_t* param, uint8_t param_length) {
             printSpace(2);
             
             // File size
+            */
+            
+            
             /*
             if (fileSize > 99) {
                 printSpace(13);
@@ -622,6 +634,11 @@ void functionEDIT(uint8_t* param, uint8_t param_length) {
             }
             */
             
+            
+            
+            
+            
+            /*
             printInt( fileSize );
             printChar('b');
             
@@ -723,6 +740,8 @@ void functionEDIT(uint8_t* param, uint8_t param_length) {
         
         continue;
     }
+    
+    */
     
     return;
 }

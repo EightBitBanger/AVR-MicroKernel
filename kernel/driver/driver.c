@@ -16,13 +16,14 @@
     
     Device ID              1 byte
     
-    Bus read WS            1 byte
-    Bus write WS           1 byte
+    Bus read waitstate     1 byte
+    Bus write waitstate    1 byte
     
     Bus interface type     1 byte
       Type 0 - Default bus
       Type 1 - Memory bus
       Type 2 - IO bus
+      Type 3 - Serial bus
     
     Hardware address       4 bytes
     
@@ -56,7 +57,7 @@ int8_t LoadLibrary(uint8_t* filename, uint8_t filenameLength) {
     if (fileAddress == 0) 
         return 0;
     
-    fsFileOpen(fileAddress);
+    int32_t index = fsFileOpen(fileAddress);
     
     uint32_t fileSize = fsFileGetSize(fileAddress);
     
@@ -65,9 +66,9 @@ int8_t LoadLibrary(uint8_t* filename, uint8_t filenameLength) {
     for (uint8_t i=0; i < fileSize; i++) 
         fileBuffer[i] = ' ';
     
-    fsFileRead(fileBuffer, fileSize);
+    fsFileRead(index, fileBuffer, fileSize);
     
-    fsFileClose();
+    fsFileClose(index);
     
     // Check driver header bytes
     if ((fileBuffer[0] != 'K') & (fileBuffer[1] != 'D')) 
@@ -105,18 +106,18 @@ int8_t LoadLibrary(uint8_t* filename, uint8_t filenameLength) {
         loaded_drivers[i].device.hardware_slot = 0;
         
         // Set the bus interface type
-        loaded_drivers[i].device.device_id          = fileBuffer[DEVICE_NAME_LENGTH + 3];
-        loaded_drivers[i].interface.read_waitstate  = fileBuffer[DEVICE_NAME_LENGTH + 4];
-        loaded_drivers[i].interface.write_waitstate = fileBuffer[DEVICE_NAME_LENGTH + 5];
-        loaded_drivers[i].interface.bus_type        = fileBuffer[DEVICE_NAME_LENGTH + 6];
+        loaded_drivers[i].device.device_id            = fileBuffer[DEVICE_NAME_LENGTH + 3];
+        loaded_drivers[i].device.bus.read_waitstate   = fileBuffer[DEVICE_NAME_LENGTH + 4];
+        loaded_drivers[i].device.bus.write_waitstate  = fileBuffer[DEVICE_NAME_LENGTH + 5];
+        loaded_drivers[i].device.bus.bus_type         = fileBuffer[DEVICE_NAME_LENGTH + 6];
         
         // Check bus type
-        if ((loaded_drivers[i].interface.bus_type != 0) & 
-            (loaded_drivers[i].interface.bus_type != 1) & 
-            (loaded_drivers[i].interface.bus_type != 2))
+        if ((loaded_drivers[i].device.bus.bus_type != 0) & 
+            (loaded_drivers[i].device.bus.bus_type != 1) & 
+            (loaded_drivers[i].device.bus.bus_type != 2))
             return -1;
         
-        switch (loaded_drivers[i].interface.bus_type) {
+        switch (loaded_drivers[i].device.bus.bus_type) {
             
             default:
                 
@@ -153,7 +154,7 @@ int8_t LoadLibrary(uint8_t* filename, uint8_t filenameLength) {
         
         for (uint8_t d=0; d < numberOfDevices; d++) {
             
-            struct Device* devicePtr = GetHardwareDeviceByIndex(d);
+            struct Device* devicePtr = GetDeviceByIndex(d);
             
             if (!StringCompare(devicePtr->device_name, DEVICE_NAME_LENGTH, &fileBuffer[2], DEVICE_NAME_LENGTH)) 
                 continue;
@@ -240,9 +241,9 @@ void DriverTableInit(void) {
         loaded_drivers[i].device.hardware_slot = 0;
         loaded_drivers[i].device.hardware_address = 0;
         
-        loaded_drivers[i].interface.read_waitstate = 0;
-        loaded_drivers[i].interface.write_waitstate = 0;
-        loaded_drivers[i].interface.bus_type = 0;
+        loaded_drivers[i].device.bus.read_waitstate = 0;
+        loaded_drivers[i].device.bus.write_waitstate = 0;
+        loaded_drivers[i].device.bus.bus_type = 0;
         
         loaded_drivers[i].is_linked = 0;
         

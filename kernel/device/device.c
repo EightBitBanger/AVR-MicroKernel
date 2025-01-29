@@ -1,6 +1,7 @@
-#include <avr/io.h>
+#include <stdint.h>
 
 #include <kernel/delay.h>
+#include <kernel/cstring.h>
 
 #include <kernel/device/device.h>
 #include <kernel/driver/driver.h>
@@ -119,9 +120,7 @@ void InitiateDeviceTable(void) {
 }
 
 
-
-
-struct Device* GetHardwareDeviceByIndex(uint8_t index) {
+struct Device* GetDeviceByIndex(uint8_t index) {
     return &device_table[ index ];
 }
 

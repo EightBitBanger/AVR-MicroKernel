@@ -1,13 +1,9 @@
-#include <avr/io.h>
+#include <stdint.h>
+
 #include <kernel/delay.h>
 #include <kernel/kernel.h>
 
 #include <kernel/emulation/x4/x4.h>
-
-
-// File system
-
-
 
 /*
 
@@ -35,8 +31,6 @@
 0xCD  int
 
 */
-
-// Program & counter
 
 uint8_t programBuffer[256];
 uint32_t programSize;
@@ -403,6 +397,8 @@ void EmulateX4(uint8_t messages) {
             // Network
             //
             
+            /*
+            
             if (argA == 0x14) {
                 
                 // ah=02 Send network message
@@ -422,6 +418,7 @@ void EmulateX4(uint8_t messages) {
                 
             }
             
+            */
             
             
             
@@ -443,22 +440,22 @@ void EmulateX4(uint8_t messages) {
                         
                     } else {
                         
-                        reg[rBL] = 0;
+                        if (status == -2) {
+                            
+                            reg[rBL] = 2;
+                            
+                        } else {
+                            
+                            reg[rBL] = 0;
+                        }
+                        
                     }
                     
                 }
                 
                 
                 
-                
-                
-                
-                
-                
             }
-            
-            
-            
             
             
             
@@ -528,7 +525,7 @@ void EmulateX4(uint8_t messages) {
                         
                         consoleWritten = 0;
                         
-                        fsDirectoryRemoveFileRef(fsWorkingDirectoryGetAddress(), fileAddress);
+                        fsDirectoryRemoveFile(fsWorkingDirectoryGetAddress(), fileAddress);
                         
                     } else {
                         
@@ -548,7 +545,7 @@ void EmulateX4(uint8_t messages) {
                         
                         consoleWritten = 0;
                         
-                        fsDirectoryRemoveFileRef(fsWorkingDirectoryGetAddress(), directoryAddress);
+                        fsDirectoryRemoveFile(fsWorkingDirectoryGetAddress(), directoryAddress);
                         
                     } else {
                         

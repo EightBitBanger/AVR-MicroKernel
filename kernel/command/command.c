@@ -59,7 +59,7 @@ uint8_t ExecuteFile(uint32_t fileAddress) {
     if (attribute.executable != 'x') 
         return 0;
     
-    fsFileOpen(fileAddress);
+    int32_t index = fsFileOpen(fileAddress);
     
     union Pointer fileSizePtr;
     for (uint8_t i=0; i < 4; i++) 
@@ -70,9 +70,9 @@ uint8_t ExecuteFile(uint32_t fileAddress) {
     uint8_t programBuffer[programSize];
     
     // Load the file
-    fsFileRead(programBuffer, programSize);
+    fsFileRead(index, programBuffer, programSize);
     
-    fsFileClose();
+    fsFileClose(index);
     
     fsDeviceSetRoot( currentDeviceLetter );
     fsWorkingDirectorySetAddress( currentWorkingDirectoryAddress );
@@ -265,15 +265,10 @@ uint8_t commandFunctionLookup(uint8_t params_begin) {
         
         // Switch to user mode
         
-        uint8_t currentMode = VirtualAccessGetMode();
-        VirtualAccessSetMode(VIRTUAL_ACCESS_MODE_USER);
-        
         // Run the function
         
         if (CommandRegistry[i].function != nullptr) 
             CommandRegistry[i].function( &console_string[params_begin], (console_string_length + 1) - params_begin );
-        
-        VirtualAccessSetMode(currentMode);
         
         break;
     }
@@ -324,7 +319,7 @@ uint8_t ExecuteBinDirectory(void) {
     
     for (uint32_t i=0; i < numberOfFiles; i++) {
         
-        uint32_t fileAddress = fsDirectoryGetFileRef(directoryAddress, i);
+        uint32_t fileAddress = fsDirectoryGetFile(directoryAddress, i);
         
         // Check execute attribute
         struct FSAttribute attribute;

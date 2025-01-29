@@ -61,12 +61,14 @@ void functionRM(uint8_t* param, uint8_t param_length) {
         
         uint32_t fileRefAddress = fsFileDelete(param, param_length);
         
-        if (fileRefAddress == 1) {
+        if (fileRefAddress != 0) {
             
-            fsDirectoryRemoveFileRef( fsWorkingDirectoryGetAddress(), fileRefAddress );
-            
-            print(msgFileRemoved, sizeof(msgFileRemoved));
-            printLn();
+            if (fsDirectoryRemoveFile( fsWorkingDirectoryGetAddress(), fileRefAddress ) == 1) {
+                
+                print(msgFileRemoved, sizeof(msgFileRemoved));
+                printLn();
+                
+            }
             
             return;
         }
@@ -77,9 +79,9 @@ void functionRM(uint8_t* param, uint8_t param_length) {
         
         uint32_t fileRefAddress = fsDirectoryDelete(param, param_length);
         
-        if (fileRefAddress == 1) {
+        if (fileRefAddress != 0) {
             
-            fsDirectoryRemoveFileRef( fsWorkingDirectoryGetAddress(), fileRefAddress );
+            fsDirectoryRemoveFile( fsWorkingDirectoryGetAddress(), fileRefAddress );
             
             print(msgDirRemoved, sizeof(msgDirRemoved));
             printLn();

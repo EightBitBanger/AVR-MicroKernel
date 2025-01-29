@@ -72,15 +72,15 @@ void functionCOPY(uint8_t* param, uint8_t param_length) {
 	// Get file size
 	uint32_t fileSize = fsFileGetSize(sourceAddress);
 	
-    fsFileOpen(sourceAddress);
+    int32_t indexsrc = fsFileOpen(sourceAddress);
     uint8_t sourceBuffer[fileSize];
     
     for (uint8_t i=0; i < fileSize; i++) 
         sourceBuffer[i] = ' ';
     
-    fsFileRead(sourceBuffer, fileSize);
+    fsFileRead(indexsrc, sourceBuffer, fileSize);
     
-    fsFileClose();
+    fsFileClose(indexsrc);
     
     // Remember current working directory
     uint8_t currentWorkingDirectory[20];
@@ -90,24 +90,8 @@ void functionCOPY(uint8_t* param, uint8_t param_length) {
     
     // Check working directory
     uint8_t isInWorkingDirectory = 1;
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    // What da???
-    //uint8_t isInWorkingDirectory = fsWorkingDirectoryCheck();
-    
-    
-    
-    
-    
-    
-    
+    if (fsWorkingDirectoryGetStack() > 0) 
+        isInWorkingDirectory = 0;
     
     
     uint8_t currentWorkingDirectoryLength = fsWorkingDirectoryGetName(currentWorkingDirectory);
@@ -119,7 +103,7 @@ void functionCOPY(uint8_t* param, uint8_t param_length) {
     if (destinationDirAddress != 0) {
         
         uint8_t fileAttrib;
-        fs_read_byte(destinationDirAddress + FILE_ATTRIBUTE_SPECIAL, &fileAttrib);
+        fs_read_byte(destinationDirAddress + ATTRIBUTE_OFFSET_SPECIAL, &fileAttrib);
         
         if (fileAttrib == 'd') {
             
@@ -155,11 +139,11 @@ void functionCOPY(uint8_t* param, uint8_t param_length) {
             
             fsFileSetAttributes(destFileAddress, &sourceAttrib);
             
-            fsFileOpen(destFileAddress);
+            int32_t index = fsFileOpen(destFileAddress);
             
-            fsFileWrite(sourceBuffer, fileSize);
+            fsFileWrite(index, sourceBuffer, fileSize);
             
-            fsFileClose();
+            fsFileClose(index);
             
             print(msgFileCopied, sizeof(msgFileCopied));
             printLn();
@@ -181,14 +165,14 @@ void functionCOPY(uint8_t* param, uint8_t param_length) {
     }
     
     
-    // Copy the file to the parent directory
+    // Copy the file to the root directory
     if ((destFilename[0] == '/') & 
         (destFilename[1] == ' ')) {
         
         uint8_t currentDirStackPtr = fsWorkingDirectoryGetStack();
         
         fsWorkingDirectoryClear();
-        
+          
         if ((fsFileExists(sourceFilename, sourceNameLength) != 0) | 
             (fsDirectoryExists(sourceFilename, sourceNameLength) != 0)) {
             
@@ -210,9 +194,9 @@ void functionCOPY(uint8_t* param, uint8_t param_length) {
         
         fsFileSetAttributes(destFileAddress, &sourceAttrib);
         
-        fsFileOpen(destFileAddress);
-        fsFileWrite(sourceBuffer, fileSize);
-        fsFileClose();
+        int32_t index = fsFileOpen(destFileAddress);
+        fsFileWrite(index, sourceBuffer, fileSize);
+        fsFileClose(index);
         
         print(msgFileCopied, sizeof(msgFileCopied));
         printLn();
@@ -228,32 +212,13 @@ void functionCOPY(uint8_t* param, uint8_t param_length) {
     
     
     // Copy the file to the parent directory
-    /*
     
     if ((destFilename[0] == '.') & 
         (destFilename[1] == '.')) {
         
-        uint32_t parentDirectory = fsWorkingDirectoryGetParent();
+        // Copy to the parent directory
         
-        // Check copy to ROOT
-        if (parentDirectory == 0) {
-            
-            fsWorkingDirectoryClear();
-            
-            if ((fsFileExists(sourceFilename, sourceNameLength) != 0) | 
-                (fsDirectoryExists(sourceFilename, sourceNameLength) != 0)) {
-                
-                print(msgDestinationError, sizeof(msgDestinationError));
-                printLn();
-                
-                // Restore old working directory
-                fsWorkingDirectorySetStack( fsWorkingDirectoryGetStack() + 1 );
-                
-                fsWorkingDirectoryChange(currentWorkingDirectory, currentWorkingDirectoryLength);
-                fsWorkingDirectorySetAddress(currentWorkingDirectoryAddress);
-                fsWorkingDirectorySetName(currentWorkingDirectoryAddress);
-                return;
-            }
+        if (fsWorkingDirectorySetToParent() == 1) {
             
             uint32_t destFileAddress = fsFileCreate(sourceFilename, sourceNameLength, fileSize);
             
@@ -261,74 +226,25 @@ void functionCOPY(uint8_t* param, uint8_t param_length) {
             
             fsFileSetAttributes(destFileAddress, &sourceAttrib);
             
-            fsFileOpen(destFileAddress);
-            fsFileWrite(sourceBuffer, fileSize);
-            fsFileClose();
+            int32_t index = fsFileOpen(destFileAddress);
+            fsFileWrite(index, sourceBuffer, fileSize);
+            fsFileClose(index);
             
             print(msgFileCopied, sizeof(msgFileCopied));
             printLn();
             
-            // Restore old working directory
-            fsWorkingDirectorySetStack( fsWorkingDirectoryGetStack() + 1 );
-            
-            fsWorkingDirectoryChange(currentWorkingDirectory, currentWorkingDirectoryLength);
-            
-            fsWorkingDirectorySetAddress(currentWorkingDirectoryAddress);
-            fsWorkingDirectorySetName(currentWorkingDirectoryAddress);
-            
-            return;
-            
-        } else {
-            
-            // Copy to the parent directory
-            
-            fsWorkingDirectorySetToParent();
-            
-            if ((fsFileExists(sourceFilename, sourceNameLength) != 0) | 
-                (fsDirectoryExists(sourceFilename, sourceNameLength) != 0)) {
-                
-                print(msgDestinationError, sizeof(msgDestinationError));
-                printLn();
-                
-                // Restore old working directory
-                fsWorkingDirectorySetStack( fsWorkingDirectoryGetStack() + 1 );
-                
-                fsWorkingDirectoryChange(currentWorkingDirectory, currentWorkingDirectoryLength);
-                
-                fsWorkingDirectorySetAddress(currentWorkingDirectoryAddress);
-                fsWorkingDirectorySetName(currentWorkingDirectoryAddress);
-                
-                return;
-            }
-            
-            uint32_t destFileAddress = fsFileCreate(sourceFilename, sourceNameLength, fileSize);
-            
-            fsDirectoryAddFile(fsWorkingDirectoryGetAddress(), destFileAddress);
-            
-            fsFileSetAttributes(destFileAddress, &sourceAttrib);
-            
-            fsFileOpen(destFileAddress);
-            fsFileWrite(sourceBuffer, fileSize);
-            fsFileClose();
-            
-            print(msgFileCopied, sizeof(msgFileCopied));
-            printLn();
-            
-            // Restore old working directory
-            fsWorkingDirectorySetStack( fsWorkingDirectoryGetStack() + 1 );
-            
-            fsWorkingDirectoryChange(currentWorkingDirectory, currentWorkingDirectoryLength);
-            
-            fsWorkingDirectorySetAddress(currentWorkingDirectoryAddress);
-            fsWorkingDirectorySetName(currentWorkingDirectoryAddress);
-            
-            return;
         }
+        
+        // Restore old working directory
+        fsWorkingDirectorySetStack( fsWorkingDirectoryGetStack() );
+        
+        fsWorkingDirectoryChange(currentWorkingDirectory, currentWorkingDirectoryLength);
+        
+        fsWorkingDirectorySetAddress(currentWorkingDirectoryAddress);
+        fsWorkingDirectorySetName(currentWorkingDirectoryAddress);
         
         return;
     }
-    
-    */
     
     
     // Check if the destination file already exists
@@ -342,15 +258,10 @@ void functionCOPY(uint8_t* param, uint8_t param_length) {
         printLn();
         
         // Restore old working directory
-        if (isInWorkingDirectory) {
-            fsWorkingDirectoryChange(currentWorkingDirectory, currentWorkingDirectoryLength);
-            
-            fsWorkingDirectorySetAddress(currentWorkingDirectoryAddress);
-            fsWorkingDirectorySetName(currentWorkingDirectoryAddress);
-            
-        } else {
-            fsWorkingDirectoryClear();
-        }
+        fsWorkingDirectoryChange(currentWorkingDirectory, currentWorkingDirectoryLength);
+        
+        fsWorkingDirectorySetAddress(currentWorkingDirectoryAddress);
+        fsWorkingDirectorySetName(currentWorkingDirectoryAddress);
         
         return;
     }
@@ -371,9 +282,9 @@ void functionCOPY(uint8_t* param, uint8_t param_length) {
         
         fsFileSetAttributes(destFileAddress, &sourceAttrib);
         
-        fsFileOpen(destFileAddress);
-        fsFileWrite(sourceBuffer, fileSize);
-        fsFileClose();
+        int32_t index = fsFileOpen(destFileAddress);
+        fsFileWrite(index, sourceBuffer, fileSize);
+        fsFileClose(index);
         
         print(msgFileCopied, sizeof(msgFileCopied));
         printLn();
@@ -388,6 +299,7 @@ void functionCOPY(uint8_t* param, uint8_t param_length) {
             fsWorkingDirectorySetName(currentWorkingDirectoryAddress);
             
         } else {
+            
             fsWorkingDirectoryClear();
         }
         
@@ -401,26 +313,22 @@ void functionCOPY(uint8_t* param, uint8_t param_length) {
     
     fsFileSetAttributes(destFileAddress, &sourceAttrib);
     
-    fsFileOpen(destFileAddress);
+    int32_t index = fsFileOpen(destFileAddress);
     
-    fsFileWrite(sourceBuffer, fileSize);
+    fsFileWrite(index, sourceBuffer, fileSize);
     
-    fsFileClose();
+    fsFileClose(index);
     
     print(msgFileCopied, sizeof(msgFileCopied));
     printLn();
     
     
     // Restore old working directory
-    if (isInWorkingDirectory) {
-        fsWorkingDirectoryChange(currentWorkingDirectory, currentWorkingDirectoryLength);
-        
-        fsWorkingDirectorySetAddress(currentWorkingDirectoryAddress);
-        fsWorkingDirectorySetName(currentWorkingDirectoryAddress);
-        
-    } else {
-        fsWorkingDirectoryClear();
-    }
+    
+    fsWorkingDirectoryChange(currentWorkingDirectory, currentWorkingDirectoryLength);
+    fsWorkingDirectorySetAddress(currentWorkingDirectoryAddress);
+    
+    fsWorkingDirectorySetName(currentWorkingDirectoryAddress);
     
     return;
 }

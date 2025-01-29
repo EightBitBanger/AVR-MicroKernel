@@ -313,17 +313,6 @@ void bus_write_byte(struct Bus* bus, uint32_t address, uint8_t byte) {
 }
 
 
-/*
-void bus_read_memory(struct Bus* bus, uint32_t address, uint8_t* buffer) {
-    bus_raw_read_byte(bus, address, buffer);
-}
-
-void bus_write_memory(struct Bus* bus, uint32_t address, uint8_t byte) {
-    bus_raw_write_byte(bus, address, byte);
-}
-*/
-
-
 void bus_write_byte_eeprom(struct Bus* bus, uint32_t address, uint8_t byte) {
     
 	// Address the device
@@ -356,31 +345,29 @@ void bus_write_byte_eeprom(struct Bus* bus, uint32_t address, uint8_t byte) {
 }
 
 
-uint8_t initiated = 0;
-
 void bus_flush_cache(struct Bus* bus, uint32_t address) {
     
-    // Flush the buffer back to main memory
-    if (initiated != 0) {
-        for (uint32_t i=0; i < CACHE_SIZE; i++) 
-            bus_raw_write_memory(bus, cache_begin + i, cache[i]);
-    }
-    initiated = 1;
+    // Write back the cache
+    for (uint32_t i = 0; i < CACHE_SIZE; i++) 
+        bus_raw_write_memory(bus, cache_begin + i, cache[i]);
     
-    // Fetch new data from main memory
-    for (uint32_t i=0; i < CACHE_SIZE; i++) 
+    // Fetch new data
+    for (uint32_t i = 0; i < CACHE_SIZE; i++) 
         bus_raw_read_memory(bus, address + i, &cache[i]);
     
     cache_begin = address;
-    cache_end   = address + CACHE_SIZE - 1;
+    cache_end = address + CACHE_SIZE;
     
     return;
 }
 
 
+
+
+
 void bus_read_memory(struct Bus* bus, uint32_t address, uint8_t* buffer) {
 	
-	if (address >= cache_begin || address < cache_end) {
+	if (address >= cache_begin && address < cache_end) {
         
         uint32_t address_offset = address - cache_begin;
         
@@ -391,6 +378,7 @@ void bus_read_memory(struct Bus* bus, uint32_t address, uint8_t* buffer) {
 	
     bus_flush_cache(bus, address);
     
+    // Return the byte
     *buffer = cache[0];
     
     return;
@@ -399,7 +387,7 @@ void bus_read_memory(struct Bus* bus, uint32_t address, uint8_t* buffer) {
 
 void bus_write_memory(struct Bus* bus, uint32_t address, uint8_t byte) {
 	
-	if (address >= cache_begin || address < cache_end) {
+	if (address >= cache_begin && address < cache_end) {
         
         uint32_t address_offset = address - cache_begin;
         
@@ -410,9 +398,12 @@ void bus_write_memory(struct Bus* bus, uint32_t address, uint8_t byte) {
 	
 	bus_flush_cache(bus, address);
     
+    // Write the byte
     cache[0] = byte;
     
     return;
 }
+
+
 
 #endif

@@ -6,6 +6,8 @@
 
 void functionAsm(uint8_t* param, uint8_t param_length) {
     
+    /*
+    
     uint8_t msgPromptString[] = "-";
     
     uint8_t asm_console_string[40];
@@ -288,7 +290,7 @@ void functionAsm(uint8_t* param, uint8_t param_length) {
                     fsFileClose();
                     fileAddress = fsFileDelete(param, param_length);
                     
-                    fsDirectoryRemoveFileRef( fsWorkingDirectoryGetAddress(), fileAddress );
+                    fsDirectoryRemoveFile( fsWorkingDirectoryGetAddress(), fileAddress );
                     
                     // Create new file with new size
                     fileAddress = fsFileCreate(param, param_length, fileSize);
@@ -574,6 +576,7 @@ void functionAsm(uint8_t* param, uint8_t param_length) {
                         printLn();
                         
                     }
+                    */
                     
                     /*
                     
@@ -604,6 +607,8 @@ void functionAsm(uint8_t* param, uint8_t param_length) {
                         printLn();
                         
                     */
+                
+                /*
                 }
                 
                 
@@ -962,8 +967,9 @@ void functionAsm(uint8_t* param, uint8_t param_length) {
     fsFileClose();
     
     return;
+    */
+    
 }
-
 
 
 void registerCommandAssembly(void) {

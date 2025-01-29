@@ -1,10 +1,9 @@
 #ifndef __DEVICE_TABLE_
 #define __DEVICE_TABLE_
 
-#include <kernel/bus/bus.h>
-#include <kernel/cstring.h>
-
 #include <kernel/kconfig.h>
+
+#include <kernel/bus/bus.h>
 
 
 #define DEVICE_NAME_LENGTH       10
@@ -28,12 +27,16 @@ struct Device {
     /// device on the bus
     uint32_t hardware_address;
     
+    /// Hardware bus with which this
+    /// device is associated
+    struct Bus bus;
+    
 };
 
 
 void InitiateDeviceTable(void);
 
-struct Device* GetHardwareDeviceByIndex(uint8_t index);
+struct Device* GetDeviceByIndex(uint8_t index);
 
 uint8_t GetNumberOfDevices(void);
 

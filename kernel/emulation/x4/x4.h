@@ -56,4 +56,10 @@ void EmulatorStart(uint8_t* filename, uint8_t nameLength, uint16_t priority, uin
 
 void EmulateX4(uint8_t messages);
 
+
+// Compilation
+
+void AssembleJoin(uint8_t* buffer, uint32_t begin_address, uint8_t* source, uint32_t length);
+
+
 #endif
