@@ -9,6 +9,9 @@ uint32_t fs_device_address;
 
 uint8_t fs_device_root;
 
+extern uint32_t fileBeginAddress[16];
+extern uint32_t fileSize[16];
+
 
 void fsDeviceSetRoot(uint8_t deviceLetter) {
     
@@ -100,12 +103,8 @@ void fs_set_type_IO(void) {
 
 void fs_set_type_MEM(void) {
     
-    __fs_read_byte  = bus_raw_read_memory;
-    __fs_write_byte = bus_raw_write_memory;
-    
-    // TODO Cache glitch, bytes flipping randomly
-    //__fs_read_byte  = bus_read_memory;
-    //__fs_write_byte = bus_write_memory;
+    __fs_read_byte  = bus_read_memory;
+    __fs_write_byte = bus_write_memory;
     
     return;
 }
@@ -129,7 +128,8 @@ uint8_t fsDeviceCheckReady(void) {
         fs_read_byte(i, &headerByte[i]);
     
     for (uint8_t i=0; i < sizeof(deviceID); i++) 
-        if (headerByte[i] != deviceID[i]) return 0;
+        if (headerByte[i] != deviceID[i]) 
+            return 0;
     
     return 1;
 }
@@ -140,7 +140,7 @@ uint32_t fsDeviceGetCapacity(void) {
     union Pointer sizePointer;
     
     for (uint8_t i=0; i < 4; i++) 
-        fs_read_byte(DEVICE_CAPACITY_OFFSET + i, &sizePointer.byte_t[i]);
+        fs_read_byte(DEVICE_OFFSET_CAPACITY + i, &sizePointer.byte_t[i]);
     
     return sizePointer.address;
 }
@@ -152,7 +152,7 @@ void fsDeviceSetRootDirectory(uint32_t directoryAddress) {
     rootDirPtr.address = directoryAddress;
     
     for (uint8_t i=0; i < 4; i++) 
-        fs_write_byte(DEVICE_ROOT_OFFSET + i, rootDirPtr.byte_t[i]);
+        fs_write_byte(DEVICE_OFFSET_ROOT + i, rootDirPtr.byte_t[i]);
     
     for (uint8_t i=0; i < 4; i++) 
         fs_write_byte(directoryAddress + FILE_OFFSET_PARENT + i, 0);
@@ -166,7 +166,7 @@ uint32_t fsDeviceGetRootDirectory(void) {
     union Pointer rootDirPtr;
     
     for (uint8_t i=0; i < 4; i++) 
-        fs_read_byte(DEVICE_ROOT_OFFSET + i, &rootDirPtr.byte_t[i]);
+        fs_read_byte(DEVICE_OFFSET_ROOT + i, &rootDirPtr.byte_t[i]);
     
     return rootDirPtr.address;
 }

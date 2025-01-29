@@ -21,6 +21,8 @@
   #include <kernel/command/cls/cls.h>
   #include <kernel/command/task/task.h>
   
+  #include <kernel/command/boot/boot.h>
+  
   #include <kernel/command/ld/ld.h>
   
   #include <kernel/command/type/type.h>

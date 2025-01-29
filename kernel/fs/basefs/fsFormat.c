@@ -8,29 +8,33 @@ uint32_t fsDeviceConstructAllocationTable(uint32_t addressBegin, uint32_t addres
     for (uint8_t i=0; i < sizeof(deviceID); i++) 
         fs_write_byte(addressBegin + i, deviceID[i]);
     
+    // Default device type generic
+    fs_write_byte(addressBegin + DEVICE_OFFSET_TYPE, FORMAT_DEVICE_GENERIC);
+    
     // Device total capacity
     union Pointer deviceSize;
     deviceSize.address = addressEnd - addressBegin;
     
     for (uint8_t i=0; i < 4; i++) 
-        fs_write_byte(addressBegin + DEVICE_CAPACITY_OFFSET + i, deviceSize.byte_t[i]);
+        fs_write_byte(addressBegin + DEVICE_OFFSET_CAPACITY + i, deviceSize.byte_t[i]);
     
     // Create root directory
     uint8_t rootDirName[] = "root";
-    uint8_t currentVirtualMode = VirtualAccessGetMode();
-    VirtualAccessSetMode(VIRTUAL_ACCESS_MODE_KERNEL);
     
     uint32_t directoryAddress = fsDirectoryCreate(rootDirName, sizeof(rootDirName));
     
     fsDeviceSetRootDirectory( directoryAddress );
-    
-    VirtualAccessSetMode(currentVirtualMode);
     
     return directoryAddress;
 }
 
 
 uint8_t fsFormat(uint32_t addressBegin, uint32_t addressEnd) {
+    
+    uint8_t rootDevice = fsDeviceGetRoot();
+    
+    if (rootDevice == 'X') 
+       fs_set_type_MEM_nocache();
     
     uint32_t sectorCounter = 0;
     
@@ -50,7 +54,11 @@ uint8_t fsFormat(uint32_t addressBegin, uint32_t addressEnd) {
         continue;
     }
     
+    fsDeviceSetRoot(rootDevice);
+    
     fsDeviceConstructAllocationTable(addressBegin, addressEnd);
+    
+    fsDeviceSetRoot(rootDevice);
     
     return 1;
 }
@@ -58,6 +66,11 @@ uint8_t fsFormat(uint32_t addressBegin, uint32_t addressEnd) {
 
 
 uint8_t fsFormatQuick(uint32_t addressBegin, uint32_t addressEnd) {
+    
+    uint8_t rootDevice = fsDeviceGetRoot();
+    
+    if (rootDevice == 'X') 
+        fs_set_type_MEM_nocache();
     
     for (uint32_t sector = addressBegin; sector <= addressEnd; sector += FORMAT_SECTOR_SIZE) {
         
@@ -67,6 +80,8 @@ uint8_t fsFormatQuick(uint32_t addressBegin, uint32_t addressEnd) {
     }
     
     fsDeviceConstructAllocationTable(addressBegin, addressEnd);
+    
+    fsDeviceSetRoot(rootDevice);
     
     return 1;
 }

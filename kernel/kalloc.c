@@ -19,69 +19,67 @@ void AllocateExternalMemory(void) {
         totalString[i] = 0x20;
     
     struct Bus memoryBus;
-	memoryBus.read_waitstate  = 8;
-	memoryBus.write_waitstate = 8;
+	memoryBus.read_waitstate  = 4;
+	memoryBus.write_waitstate = 4;
 	
     uint32_t address=0;
+    uint8_t buffer=0;
+    uint8_t place;
     uint16_t counter=0;
     
-    uint8_t buffer=0;
-    
-    for (address=0x00000000; address < 0xffffffff; address += 8) {
+    for (address=0x00000000; address < 0x00040000; address++) {
         
-        uint8_t passed = 0;
-        
-        for (uint8_t retry=0; retry < 8; retry++) {
-            
-            bus_raw_write_memory(&memoryBus, address, 0x55);
-            bus_raw_read_memory(&memoryBus, address, &buffer);
-            
-            if (buffer == 0x55) {
-                passed = 1;
-                break;
-            }
-            
-            passed = 0;
-            
-            continue;
-        }
-        
-        if (passed == 0) {
+        bus_raw_write_memory(&memoryBus, address, 0x55);
+        bus_raw_read_memory(&memoryBus, address, &buffer);
+        if (buffer != 0x55) 
             break;
-        }
+        
+        bus_raw_write_memory(&memoryBus, address, 0xAA);
+        bus_raw_read_memory(&memoryBus, address, &buffer);
+        if (buffer != 0xAA) 
+            break;
+        
+        bus_raw_write_memory(&memoryBus, address, 0xFA);
+        bus_raw_read_memory(&memoryBus, address, &buffer);
+        if (buffer != 0xFA) 
+            break;
+        
+        bus_raw_write_memory(&memoryBus, address, 0xAF);
+        bus_raw_read_memory(&memoryBus, address, &buffer);
+        if (buffer != 0xAF) 
+            break;
+        
+        // Print total allocated memory
         
         counter++;
-        if (counter >= 256) {
-            counter = 0;
-            uint8_t place = int_to_string(address, totalString);
-            
-            ConsoleSetCursor(0, 0);
-            
-            print(totalString, 10);
-            
-            ConsoleSetCursor(0, place);
-        }
+        if (counter < 1024) 
+            continue;
         
-        continue;
+        counter = 0;
+        
+        place = int_to_string(address + 1, totalString);
+        
+        ConsoleSetCursor(0, 0);
+        
+        print(totalString, 10);
+        
+        printLn();
+        
+        ConsoleSetCursor(0, place);
+        
     }
     
-    uint8_t place = int_to_string(address, totalString);
+    totalAllocatedMemory = address + 1;
     
-    ConsoleSetCursor(0, 0);
+    if (totalAllocatedMemory < 1024) 
+        return;
     
-    print(totalString, place + 1);
     printSpace(1);
     
     uint8_t byteFreeString[] = "bytes free";
     print(byteFreeString, sizeof(byteFreeString));
     
-    _delay_ms(100);
-    
-    totalAllocatedMemory = address;
-    
-    ConsoleCursorEnable();
-    
-    ConsoleSetCursor(1, 0);
+    printLn();
     
 #endif
     

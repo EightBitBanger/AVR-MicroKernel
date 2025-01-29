@@ -5,8 +5,8 @@
 #define VIRTUAL_ACCESS_MODE_USER      1
 #define VIRTUAL_ACCESS_MODE_SERVICE   2
 
-
 #include <kernel/kernel.h>
+
 
 int8_t VirtualAccessGetMode(void);
 

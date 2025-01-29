@@ -8,14 +8,23 @@ int main(void) {
     // Allow board some time to stabilize
     _delay_ms(1000);
     
-    // Baked device drivers
-	InitBakedDrivers();
-	
-	// Initiate core kernel systems
+	// Initiate core kernel systems (in this order)
+	InitBakedDrivers();           // Baked device drivers
 	InitiateDeviceTable();        // Hardware device table
     KernelVectorTableInit();      // Hardware interrupt vector table
     SchedulerInit();              // Scheduler sub system
     DriverTableInit();            // Driver hot loader
+    
+    /*
+    uint8_t* test = (uint8_t*)malloc(32);
+    
+    test[0] = 0x55;
+    
+    if (test[0] != 0x55) 
+        while(1){}
+    
+    free( test );
+    */
     
 #ifdef NETWORK_APPLICATION_PACKET_ROUTER
     
@@ -38,16 +47,18 @@ int main(void) {
 #ifdef BOARD_RETRO_AVR_X4_REV1
     
     // Check RAM error
-    if (kAllocGetTotal() == 0) {
+    if (kAllocGetTotal() < 1024) {
         
-        for (uint8_t a=0; a < 7; a++) 
+        for (uint8_t a=0; a < 6; a++) 
             sysbeep();
         
         _delay_ms(500);
         sysbeep();
         
         _delay_ms(500);
+        sysbeep();
         
+        kThrow(HALT_OUT_OF_MEMORY, 0x00000);
     }
     
     // Normal beep, all clear to continue
@@ -74,16 +85,22 @@ int main(void) {
     //registerCommandEDIT();
     //registerCommandASM();
     
+    //registerCommandMK();
+    
     //registerCommandType();
     registerCommandList();
+    //registerCommandRM();
     //registerCommandTASK();
     //registerCommandTest();
+    
     
     //registerCommandRN();
     //registerCommandCOPY();
     
     //registerCommandNet();
+    
     //registerCommandFormat();
+    //registerCommandBoot();
     
     #define DONT_INCLUDE_CONSOLE_COMMANDS
     
@@ -134,13 +151,21 @@ int main(void) {
     
 #endif
     
+    //
     // Boot the kernel
     
+#ifdef BOARD_RETRO_AVR_X4_REV1
+    
     // Set keyboard interrupt handler
-    SetInterruptVector(4, (void(*)())cliRunShell);
+    //SetInterruptVector(4, (void(*)())cliRunShell);
+    
+#endif
     
     // Drop the initial command prompt
     printPrompt();
+    
+    // Set the interrupt callback
+    SetHardwareInterruptService( _ISR_hardware_service_routine );
     
     // Enable hardware interrupt handling
     //  Trigger on the HIGH to LOW transition of PIN2
@@ -153,9 +178,21 @@ int main(void) {
     InterruptStartScheduler();
     InterruptStartTimeCounter();
     
+    SetInterruptFlag();
+	
     while(1) {
         
         __asm__("nop");
+        
+#ifdef BOARD_RETROBOARD_REV2
+        
+        ClearInterruptFlag();
+        
+        cliRunShell();
+        
+        SetInterruptFlag();
+        
+#endif
         
         continue;
     }

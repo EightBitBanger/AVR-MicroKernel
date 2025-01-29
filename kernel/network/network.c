@@ -21,8 +21,8 @@ uint8_t ntInit(void) {
 	if (networkDevice == nullptr) 
         return 0;
     
-	networkDevice->interface.read_waitstate  = 10;
-	networkDevice->interface.write_waitstate = 10;
+	networkDevice->device.bus.read_waitstate  = 10;
+	networkDevice->device.bus.write_waitstate = 10;
 	
     networkDevice->read  = __read_network_device;
     networkDevice->write = __write_network_device;
@@ -135,11 +135,11 @@ uint8_t ntCheckInitiated(void) {
 // Low level IO
 
 void __read_network_device(uint32_t address, uint8_t* buffer) {
-    bus_read_byte( &networkDevice->interface, networkDevice->device.hardware_address + address, buffer );
+    bus_read_byte( &networkDevice->device.bus, networkDevice->device.hardware_address + address, buffer );
     return;
 }
 
 void __write_network_device(uint32_t address, uint8_t buffer) {
-    bus_write_byte( &networkDevice->interface, networkDevice->device.hardware_address + address, buffer );
+    bus_write_byte( &networkDevice->device.bus, networkDevice->device.hardware_address + address, buffer );
     return;
 }

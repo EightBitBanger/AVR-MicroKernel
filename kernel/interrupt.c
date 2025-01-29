@@ -50,10 +50,12 @@ void InterruptStartTimeCounter(void) {
 
 void InterruptStartHardware(void) {
     
-    SetHardwareInterruptService( _ISR_hardware_service_routine );
+    //EICRA = (1 << ISC21); // Rising edge
+    EICRA = (1 << ISC20); // Falling edge
+    EIMSK |= (1 << INT2);
     
-    EICRA = 0b00100000; // Enable INT2 falling edge
-    EIMSK = 0b00000100; // Enable INT2 mask
+    //EICRA = 0b00100000; // Enable INT2 falling edge
+    //EIMSK = 0b00000100; // Enable INT2 mask
     
     return;
 }
@@ -75,8 +77,8 @@ void InterruptStopTimerCounter(void) {
 
 void InterruptStopHardware(void) {
     
-    EICRA = 0b00000000;
-    EIMSK = 0b00000000;
+    EICRA = 0;
+    EIMSK = 0;
     
     return;
 }

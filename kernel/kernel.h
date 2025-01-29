@@ -1,7 +1,7 @@
 #ifndef __KERNEL_CORE_
 #define __KERNEL_CORE_
 
-#include <avr/io.h>
+#include <stdint.h>
 
 #include <kernel/kconfig.h>
 #include <kernel/version.h>
@@ -25,6 +25,7 @@
 #include <kernel/drivers.h>
 
 // File systems
+#include <kernel/vfs.h>
 #include <kernel/fs/fs.h>
 
 // System subroutine calls
@@ -52,6 +53,5 @@ void KernelVectorTableInit(void);
 void SetInterruptVector(uint8_t index, void(*servicePtr)());
 
 void _ISR_hardware_service_routine(void);
-
 
 #endif

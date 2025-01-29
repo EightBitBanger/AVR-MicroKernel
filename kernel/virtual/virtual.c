@@ -1,14 +1,14 @@
-#include <avr/io.h>
-
 #include <kernel/virtual/virtual.h>
+
+// Memory segmentation base offsets
 
 #define __KERNEL_VIRTUAL_ACCESS_BEGIN__    0x00000000
 #define __KERNEL_VIRTUAL_ACCESS_END__      0xffffffff
 
-#define __SERVICE_VIRTUAL_ACCESS_BEGIN__   0x00000800
-#define __SERVICE_VIRTUAL_ACCESS_END__     0x00000fff
+#define __SERVICE_VIRTUAL_ACCESS_BEGIN__   0x00004000
+#define __SERVICE_VIRTUAL_ACCESS_END__     0xffffffff
 
-#define __USER_VIRTUAL_ACCESS_BEGIN__      0x00001000
+#define __USER_VIRTUAL_ACCESS_BEGIN__      0x00004000
 #define __USER_VIRTUAL_ACCESS_END__        0xffffffff
 
 
@@ -78,7 +78,7 @@ void VirtualWrite(uint32_t address, uint8_t* byte, uint32_t size) {
         if ((offset < VirtualAddressBegin) | 
             (offset >= VirtualAddressEnd)) {
             
-            kThrow(KERNEL_HALT_SEGMENTATION, offset);
+            kThrow(HALT_SEGMENTATION_FAULT, offset);
         }
         
         fs_write_byte(offset, byte[i]);
@@ -116,7 +116,7 @@ void VirtualRead(uint32_t address, uint8_t* byte, uint32_t size) {
         if ((offset < VirtualAddressBegin) | 
             (offset >= VirtualAddressEnd)) {
             
-            kThrow(KERNEL_HALT_SEGMENTATION, offset);
+            kThrow(HALT_SEGMENTATION_FAULT, offset);
         }
         
         fs_read_byte(offset, &byte[i]);
@@ -138,7 +138,7 @@ uint8_t currentDevice = ' ';
 void VirtualBegin(void) {
     
     if (currentDevice != ' ') {
-        kThrow(KERNEL_HALT_SEGMENTATION, 0);
+        kThrow(HALT_SEGMENTATION_FAULT, 0);
         return;
     }
     
@@ -151,7 +151,7 @@ void VirtualBegin(void) {
 void VirtualEnd(void) {
     
     if (currentDevice == ' ') {
-        kThrow(KERNEL_HALT_SEGMENTATION, 0);
+        kThrow(HALT_SEGMENTATION_FAULT, 0);
         return;
     }
     

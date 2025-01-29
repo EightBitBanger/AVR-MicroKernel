@@ -17,12 +17,12 @@ uint32_t fsWorkingDirectoryFind(uint8_t index) {
 	if ((index > numberOfFiles) | (numberOfFiles == 0)) 
         return 0;
     
-    fsFileOpen(directoryAddress);
+    int32_t indexDir = fsFileOpen(directoryAddress);
     
     uint8_t bufferDir[directorySize];
-    fsFileRead(bufferDir, directorySize);
+    fsFileRead(indexDir, bufferDir, directorySize);
     
-    fsFileClose();
+    fsFileClose(indexDir);
     
     // Get file address offset
     union Pointer fileAddressPtr;

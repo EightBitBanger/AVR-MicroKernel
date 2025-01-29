@@ -2,7 +2,7 @@
 
 uint32_t fsDirectoryCreate(uint8_t* name, uint8_t nameLength) {
     
-    uint32_t directoryAddress = fsFileCreate(name, nameLength, 128);
+    uint32_t directoryAddress = fsFileCreate(name, nameLength, 64);
     
     if (directoryAddress == 0) 
         return 0;
@@ -11,18 +11,18 @@ uint32_t fsDirectoryCreate(uint8_t* name, uint8_t nameLength) {
     struct FSAttribute attrib = {' ', 'r', 'w', 'd'};
     fsFileSetAttributes(directoryAddress, &attrib);
     
-    fsFileOpen(directoryAddress);
+    int32_t index = fsFileOpen(directoryAddress);
     uint32_t fileSize = fsFileGetSize(directoryAddress);
     
     uint8_t buffer[fileSize];
-    fsFileRead(buffer, fileSize);
+    fsFileRead(index, buffer, fileSize);
     
     for (uint32_t i=0; i < fileSize; i++) 
         buffer[i] = 0x00;
     
-    fsFileWrite(buffer, fileSize);
+    fsFileWrite(index, buffer, fileSize);
     
-    fsFileClose();
+    fsFileClose(index);
     
     return directoryAddress;
 }

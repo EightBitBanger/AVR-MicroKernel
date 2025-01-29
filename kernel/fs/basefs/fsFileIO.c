@@ -1,52 +1,65 @@
 #include <kernel/fs/fs.h>
 
-uint32_t fileBeginAddress[16];
-uint32_t fileSize[16];
+#define MAX_OPEN_FILES  16
 
-uint8_t fileOpenStack = 0;
+uint32_t fileBeginAddress[MAX_OPEN_FILES];
+uint32_t fileSize[MAX_OPEN_FILES];
 
 
-uint8_t fsFileOpen(uint32_t fileAddress) {
+int32_t fsFileOpen(uint32_t fileAddress) {
     
-    if (fileBeginAddress[fileOpenStack] != 0) 
-        return 0;
+    uint8_t index = 0;
+    for (uint8_t i=0; i < MAX_OPEN_FILES+1; i++) {
+        
+        // Max files
+        if (index == MAX_OPEN_FILES) 
+            return -1;
+        
+        if (fileBeginAddress[i] == 0) {
+            
+            index = i;
+            break;
+        }
+    }
+    
+    if (fileBeginAddress[index] != 0) 
+        return -1;
     
     // Check file header byte
     uint8_t headerByte;
     fs_read_byte(fileAddress, &headerByte);
     
     if (headerByte != 0x55) 
-        return 0;
+        return -1;
     
     // Get file size
-    fileSize[fileOpenStack] = fsFileGetSize(fileAddress);
+    fileSize[index] = fsFileGetSize(fileAddress);
     
-    fileBeginAddress[fileOpenStack] = fileAddress;
-    
-    fileOpenStack++;
+    fileBeginAddress[index] = fileAddress;
     
     return 1;
 }
 
-uint8_t fsFileClose(void) {
+uint8_t fsFileClose(int32_t index) {
     
-    if (fileOpenStack == 0) 
+    if (index < 0 || index > MAX_OPEN_FILES) 
         return 0;
     
-    fileOpenStack--;
-    
-    if (fileBeginAddress[fileOpenStack] == 0) 
+    if (fileBeginAddress[index] == 0) 
         return 0;
     
-    fileBeginAddress[fileOpenStack] = 0;
-    fileSize[fileOpenStack] = 0;
+    fileBeginAddress[index] = 0;
+    fileSize[index] = 0;
     
     return 1;
 }
 
-uint8_t fsFileWrite(uint8_t* buffer, uint32_t size) {
+uint8_t fsFileWrite(int32_t index, uint8_t* buffer, uint32_t size) {
     
-    if (fileBeginAddress[fileOpenStack-1] == 0) 
+    if (index < 0 || index > MAX_OPEN_FILES) 
+        return 0;
+    
+    if (fileBeginAddress[index] == 0) 
         return 0;
     
     uint32_t sector = 0;
@@ -60,7 +73,7 @@ uint8_t fsFileWrite(uint8_t* buffer, uint32_t size) {
             sector++;
         }
         
-        uint32_t positionOffset = fileBeginAddress[fileOpenStack-1] + FORMAT_SECTOR_SIZE + sector + 1;
+        uint32_t positionOffset = fileBeginAddress[index] + FORMAT_SECTOR_SIZE + sector + 1;
         
         fs_write_byte(positionOffset, buffer[i]);
         
@@ -73,16 +86,19 @@ uint8_t fsFileWrite(uint8_t* buffer, uint32_t size) {
     return 1;
 }
 
-uint8_t fsFileRead(uint8_t* buffer, uint32_t size) {
+uint8_t fsFileRead(int32_t index, uint8_t* buffer, uint32_t size) {
     
-    if (fileBeginAddress[fileOpenStack-1] == 0) 
+    if (index < 0 || index > MAX_OPEN_FILES) 
+        return 0;
+    
+    if (fileBeginAddress[index] == 0) 
         return 0;
     
     uint32_t sector = 0;
     uint32_t sectorCounter = 0;
     
-    if (size > (fileSize[fileOpenStack-1] + 1)) 
-        size = fileSize[fileOpenStack-1] + 1;
+    if (size > (fileSize[index] + 1)) 
+        size = fileSize[index] + 1;
     
     for (uint32_t i=0; i < size; i++) {
         
@@ -92,7 +108,7 @@ uint8_t fsFileRead(uint8_t* buffer, uint32_t size) {
             sector++;
         }
         
-        uint32_t positionOffset = fileBeginAddress[fileOpenStack-1] + FORMAT_SECTOR_SIZE + sector + 1;
+        uint32_t positionOffset = fileBeginAddress[index] + FORMAT_SECTOR_SIZE + sector + 1;
         
         fs_read_byte(positionOffset, &buffer[i]);
         
@@ -101,43 +117,6 @@ uint8_t fsFileRead(uint8_t* buffer, uint32_t size) {
         
         continue;
     }
-    
-    return 1;
-}
-
-uint8_t fsFileReadText(uint8_t* buffer, uint32_t size) {
-    
-    if (fileBeginAddress[fileOpenStack-1] == 0) 
-        return 0;
-    
-    uint32_t sector = 0;
-    uint32_t sectorCounter = 0;
-    
-    if (size > (fileSize[fileOpenStack-1] + 1)) 
-        size = fileSize[fileOpenStack-1] + 1;
-    
-    for (uint32_t i=0; i < size; i++) {
-        
-        // Skip the sector marker byte
-        if (sectorCounter == (FORMAT_SECTOR_SIZE - 1)) {
-            sectorCounter=0;
-            sector++;
-        }
-        
-        uint32_t positionOffset = fileBeginAddress[fileOpenStack-1] + FORMAT_SECTOR_SIZE + sector + 1;
-        
-        fs_read_byte(positionOffset, &buffer[i]);
-        
-        sectorCounter++;
-        sector++;
-        
-        if (buffer[i] == '\0') 
-            break;
-        
-        continue;
-    }
-    
-    buffer[size] = '\0';
     
     return 1;
 }

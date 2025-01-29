@@ -13,6 +13,8 @@ volatile uint64_t timer_ms = 0;
 
 uint8_t schedulerIsActive = 0;
 
+extern uint32_t dirProcAddress;
+
 
 uint8_t TaskCreate(uint8_t* name, uint8_t name_length, void(*task_ptr)(uint8_t), uint8_t priority, uint8_t privilege, uint8_t type) {
 	
@@ -45,18 +47,27 @@ uint8_t TaskCreate(uint8_t* name, uint8_t name_length, void(*task_ptr)(uint8_t),
     if (privilege == TASK_PRIVILEGE_SERVICE) VirtualAccessSetMode( VIRTUAL_ACCESS_MODE_SERVICE );
     if (privilege == TASK_PRIVILEGE_USER)    VirtualAccessSetMode( VIRTUAL_ACCESS_MODE_USER );
     
-    // Allocate a super block
-	proc_info.block[index] = fsAllocate(64);
-	
 	VirtualBegin();
+	
+    // Allocate a super block
+	/*
+	proc_info.block[index] = fsAllocate(64);
 	
 	fsFileSetName(proc_info.block[index], name, name_length);
 	
-	struct FSAttribute attrib = {'s', 'r', 'w', 'd'};
-	
-	fsFileSetAttributes(proc_info.block[index], &attrib);
+	struct FSAttribute attrSuperBlk = {'s', 'r', 'w', 'd'};
+	fsFileSetAttributes(proc_info.block[index], &attrSuperBlk);
 	
 	fsDirectorySetNumberOfFiles(proc_info.block[index], 0);
+	*/
+	
+	// Allocate proc file
+	uint32_t fileAddress = fsFileCreate(name, name_length, 64);
+    proc_info.block[index] = fileAddress;
+    
+    struct FSAttribute attrProcFile = {'s', 'r', ' ', ' '};
+	fsFileSetAttributes(fileAddress, &attrProcFile);
+    fsDirectoryAddFile(dirProcAddress, fileAddress);
 	
 	VirtualEnd();
 	
@@ -68,15 +79,15 @@ uint8_t TaskCreate(uint8_t* name, uint8_t name_length, void(*task_ptr)(uint8_t),
 
 uint8_t TaskDestroy(uint8_t index) {
 	
-	uint8_t PID = index - 1;
+	uint8_t currentProcessID = index - 1;
 	
-	if (PID > TASK_LIST_SIZE) 
+	if (currentProcessID > TASK_LIST_SIZE) 
         return 0;
     
-	if (proc_info.type[PID] == TASK_TYPE_UNKNOWN) 
+	if (proc_info.type[currentProcessID] == TASK_TYPE_UNKNOWN) 
         return 0;
 	
-	proc_info.type[PID] = TASK_TYPE_VOLATILE;
+	proc_info.type[currentProcessID] = TASK_TYPE_VOLATILE;
     
 	return 1;
 }
@@ -86,6 +97,8 @@ uint32_t TaskFind(uint8_t* name, uint8_t name_length) {
 	if (name_length > TASK_NAME_LENGTH_MAX)
         name_length = TASK_NAME_LENGTH_MAX;
 	
+	VirtualBegin();
+    
 	for (uint8_t index=0; index < TASK_LIST_SIZE; index++) {
 		
 		if (proc_info.type[index] == 0x00) 
@@ -93,18 +106,15 @@ uint32_t TaskFind(uint8_t* name, uint8_t name_length) {
 		
 		uint32_t blockAddress = proc_info.block[index];
 		
-		VirtualBegin();
-		
 		uint8_t list_task_name[FILE_NAME_LENGTH];
 		fsFileGetName(blockAddress, list_task_name);
 		
-		if (StringCompare(name, name_length, list_task_name, FILE_NAME_LENGTH) == 1) {
-            VirtualEnd();
-            return (index + 1);
-        }
+		if (StringCompare(name, name_length, list_task_name, FILE_NAME_LENGTH) == 0) 
+            continue;
         
         VirtualEnd();
         
+        return (index + 1);
 	}
 	
 	return 0;
@@ -118,22 +128,23 @@ uint8_t TaskKill(uint8_t* name, uint8_t name_length) {
 	if (index == 0) 
         return 0;
     
+    // Kill task by making it volatile
 	proc_info.type[index - 1] = TASK_TYPE_VOLATILE;
 	
-	// Kill halted tasks
+	// Immediately kill halted task
 	if (proc_info.priority[index - 1] == TASK_PRIORITY_HALT) {
         
-        uint8_t ind = index - 1;
+        uint8_t killIndex = index - 1;
         
-        fsFree( proc_info.block[ind] );
+        fsFree( proc_info.block[killIndex] );
         
-        proc_info.type[ind]      = TASK_TYPE_UNKNOWN;
-        proc_info.privilege[ind] = 0;
-        proc_info.priority[ind]  = 0;
-        proc_info.counter[ind]   = 0;
-        proc_info.flags[ind]     = 0;
-        proc_info.function[ind]  = 0;
-        proc_info.block[ind]     = 0;
+        proc_info.type[killIndex]      = TASK_TYPE_UNKNOWN;
+        proc_info.privilege[killIndex] = 0;
+        proc_info.priority[killIndex]  = 0;
+        proc_info.counter[killIndex]   = 0;
+        proc_info.flags[killIndex]     = 0;
+        proc_info.function[killIndex]  = 0;
+        proc_info.block[killIndex]     = 0;
         
     }
     
@@ -162,7 +173,7 @@ uint8_t GetProcInfo(uint8_t index, struct ProcessDescription* info) {
 // Interrupt service routines
 //
 
-volatile uint8_t PID=0; 
+volatile uint8_t processIndex=0; 
 
 void SchedulerInit(void) {
 	
@@ -188,14 +199,10 @@ void SchedulerStart(void) {
     
     schedulerIsActive = 1;
 	
-	ClearInterruptFlag();
-	
 	// Set the ISRs
 	SetInterruptService(0, _ISR_SCHEDULER_MAIN__ );
     SetInterruptService(1, _ISR_SCHEDULER_TIMER__);
     
-    SetInterruptFlag();
-	
 	return;
 }
 
@@ -217,13 +224,13 @@ void SchedulerStop(void) {
 
 void _ISR_SCHEDULER_MAIN__(void) {
     
-    if (PID >= TASK_LIST_SIZE) {
-        PID = 0;
+    if (processIndex >= TASK_LIST_SIZE) {
+        processIndex = 0;
     }
     
-	if (proc_info.type[PID] == TASK_TYPE_UNKNOWN) {
+	if (proc_info.type[processIndex] == TASK_TYPE_UNKNOWN) {
         
-        PID++;
+        processIndex++;
         
         return;
 	}
@@ -233,61 +240,61 @@ void _ISR_SCHEDULER_MAIN__(void) {
 	//
 	// Set privilege level
     
-	switch (proc_info.privilege[PID]) {
+	switch (proc_info.privilege[processIndex]) {
 		
-		case TASK_PRIVILEGE_KERNEL:  {VirtualAccessSetMode( VIRTUAL_ACCESS_MODE_KERNEL ); break;}
+		case TASK_PRIVILEGE_KERNEL: {VirtualAccessSetMode( VIRTUAL_ACCESS_MODE_KERNEL ); break;}
 		
 		case TASK_PRIVILEGE_SERVICE: {VirtualAccessSetMode( VIRTUAL_ACCESS_MODE_SERVICE ); break;}
 		
 		default:
-        case TASK_PRIVILEGE_USER:    {VirtualAccessSetMode( VIRTUAL_ACCESS_MODE_USER ); break;}
+        case TASK_PRIVILEGE_USER: {VirtualAccessSetMode( VIRTUAL_ACCESS_MODE_USER ); break;}
         
 	}
 	
 	
     // Check type
     
-	switch (proc_info.type[PID]) {
+	switch (proc_info.type[processIndex]) {
 		
 		case TASK_TYPE_VOLATILE: {
 			
-            proc_info.function[PID]( EVENT_SHUTDOWN );
+            proc_info.function[processIndex]( EVENT_SHUTDOWN );
             
-			proc_info.type[PID]      = TASK_TYPE_UNKNOWN;
-			proc_info.privilege[PID] = 0;
-			proc_info.priority[PID]  = 0;
-			proc_info.counter[PID]   = 0;
-			proc_info.function[PID]  = (void(*)(uint8_t))nullfunc;
+			proc_info.type[processIndex]      = TASK_TYPE_UNKNOWN;
+			proc_info.privilege[processIndex] = 0;
+			proc_info.priority[processIndex]  = 0;
+			proc_info.counter[processIndex]   = 0;
+			proc_info.function[processIndex]  = (void(*)(uint8_t))nullfunc;
             
             // Free the super block
             VirtualBegin();
             
-            fsFree( proc_info.block[PID] );
+            fsFree( proc_info.block[processIndex] );
             
             VirtualEnd();
             
-            proc_info.block[PID] = 0;
+            proc_info.block[processIndex] = 0;
             
 		}
 		
 		case TASK_TYPE_VOLATILE_PROMPT: {
 			
-            proc_info.function[PID]( EVENT_SHUTDOWN );
+            proc_info.function[processIndex]( EVENT_SHUTDOWN );
             
-			proc_info.type[PID]      = TASK_TYPE_UNKNOWN;
-			proc_info.privilege[PID] = 0;
-			proc_info.priority[PID]  = 0;
-			proc_info.counter[PID]   = 0;
-			proc_info.function[PID]  = (void(*)(uint8_t))nullfunc;
+			proc_info.type[processIndex]      = TASK_TYPE_UNKNOWN;
+			proc_info.privilege[processIndex] = 0;
+			proc_info.priority[processIndex]  = 0;
+			proc_info.counter[processIndex]   = 0;
+			proc_info.function[processIndex]  = (void(*)(uint8_t))nullfunc;
             
             // Free the super block
             VirtualBegin();
             
-            fsFree( proc_info.block[PID] );
+            fsFree( proc_info.block[processIndex] );
             
             VirtualEnd();
             
-            proc_info.block[PID] = 0;
+            proc_info.block[processIndex] = 0;
             
             // Drop a command prompt
             printPrompt();
@@ -298,37 +305,31 @@ void _ISR_SCHEDULER_MAIN__(void) {
 	
 	// Call the task function
 	
-	if (proc_info.counter[PID] > proc_info.priority[PID]) {
+	if (proc_info.counter[processIndex] > proc_info.priority[processIndex]) {
 		
-		proc_info.counter[PID]=0;
+		proc_info.counter[processIndex]=0;
 		
-		if (proc_info.flags[PID] == 0) {
+		if (proc_info.flags[processIndex] == 0) {
             
-            proc_info.function[PID]( EVENT_INITIATE );
+            proc_info.function[processIndex]( EVENT_INITIATE );
             
-            proc_info.flags[PID] = 1;
+            proc_info.flags[processIndex] = 1;
             
 		} else {
             
-            proc_info.function[PID]( EVENT_NOMESSAGE );
+            proc_info.function[processIndex]( EVENT_NOMESSAGE );
             
         }
         
-		VirtualAccessSetMode( currentMode );
-        
 	} else {
 		
-        VirtualAccessSetMode( currentMode );
-        
-		proc_info.counter[PID]++;
+		proc_info.counter[processIndex]++;
 		
-		PID++;
-        
-		return;
 	}
 	
-	
-	PID++;
+    VirtualAccessSetMode( currentMode );
+    
+	processIndex++;
     
     return;
 }

@@ -4,6 +4,11 @@
 #include <stdint.h>
 #include <kernel/kalloc.h>
 
+// Device types
+#define FORMAT_DEVICE_GENERIC     'G'
+#define FORMAT_DEVICE_EEPROM      'E'
+#define FORMAT_DEVICE_FLASH       'F'
+#define FORMAT_DEVICE_SSD         'S'
 
 // Capacities
 
@@ -15,17 +20,18 @@
 
 #define FORMAT_SECTOR_SIZE        32
 
-#define FORMAT_SECTOR_HEADER      0x55
-#define FORMAT_SECTOR_DATA        0xFF
-#define FORMAT_SECTOR_FOOTER      0xAA
-#define FORMAT_SECTOR_EMPTY       0x00
+#define FORMAT_SECTOR_HEADER      'U'
+#define FORMAT_SECTOR_DATA        'D'
+#define FORMAT_SECTOR_FOOTER      'A'
+#define FORMAT_SECTOR_EMPTY       '?'
 
 // Device header layout
 
 #define DEVICE_IDENTIFIER         {0x13, 'f', 's', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '}
 
-#define DEVICE_CAPACITY_OFFSET    12 // uint32     Max capacity of the device in bytes
-#define DEVICE_ROOT_OFFSET        16 // uint32     Pointer to the root directory
+#define DEVICE_OFFSET_CAPACITY    12 // uint32     Max capacity of the device in bytes
+#define DEVICE_OFFSET_TYPE        16 // uint8      Device type specifier
+#define DEVICE_OFFSET_ROOT        17 // uint32     Pointer to the root directory
 
 // File header layout
 
@@ -56,11 +62,10 @@
 #define FS_FLAG_G         6
 #define FS_FLAG_H         7
 
-#define FILE_ATTRIBUTE_FILETYPE   15
-#define FILE_ATTRIBUTE_READ       16
-#define FILE_ATTRIBUTE_WRITE      17
-#define FILE_ATTRIBUTE_SPECIAL    18
-
+#define ATTRIBUTE_OFFSET_FILETYPE   15
+#define ATTRIBUTE_OFFSET_READ       16
+#define ATTRIBUTE_OFFSET_WRITE      17
+#define ATTRIBUTE_OFFSET_SPECIAL    18
 
 struct FSAttribute {
     
@@ -92,7 +97,6 @@ void fs_set_type_IO(void);
 void fs_set_type_MEM(void);
 void fs_set_type_MEM_nocache(void);
 
-
 // Device context
 
 /// Set device context by address offset.
@@ -113,14 +117,12 @@ uint32_t fsDeviceGetRootDirectory(void);
 /// Set the root directory of the device.
 void fsDeviceSetRootDirectory(uint32_t directoryAddress);
 
-
 // Allocation
 
 /// Allocate a block of memory of the given size.
 uint32_t fsAllocate(uint32_t size);
 /// Free a block of memory.
 uint8_t fsFree(uint32_t address);
-
 
 // Format
 
@@ -134,7 +136,6 @@ uint8_t fsFormatQuick(uint32_t addressBegin, uint32_t addressEnd);
 /// Initiate the first sector on the device.
 /// The first sector is reserved for the allocation table.
 uint32_t fsDeviceConstructAllocationTable(uint32_t addressBegin, uint32_t addressEnd);
-
 
 // Files
 
@@ -158,14 +159,12 @@ void fsFileSetName(uint32_t fileAddress, uint8_t* name, uint8_t length);
 /// Get the size of the file in bytes.
 uint32_t fsFileGetSize(uint32_t fileAddress);
 
-
 // Attributes
 
 /// Set the files attributes.
 uint8_t fsFileSetAttributes(uint32_t address, struct FSAttribute* attributes);
 /// Get the files attributes.
 uint8_t fsFileGetAttributes(uint32_t address, struct FSAttribute* attributes);
-
 
 // File flags
 
@@ -174,7 +173,6 @@ uint8_t fsFileGetFlag(uint32_t fileAddress, uint8_t index);
 /// Set a bit at the index in a files flag bitmask.
 /// State should be either 0 or not 0.
 void fsFileSetFlag(uint32_t fileAddress, uint8_t index, uint8_t state);
-
 
 // Search
 
@@ -186,21 +184,17 @@ uint32_t fsFileFindNext(void);
 /// Get a file from an index location in the directory.
 uint32_t fsFileFind(uint32_t index);
 
-
 // File buffer IO
 
-/// Open a file for reading and writing.
-uint8_t fsFileOpen(uint32_t fileAddress);
+/// Open a file for reading and writing. The file index is returned.
+int32_t fsFileOpen(uint32_t fileAddress);
 /// Close the file.
-uint8_t fsFileClose(void);
+uint8_t fsFileClose(int32_t index);
 
 /// Read bytes from a file into a buffer.
-uint8_t fsFileRead(uint8_t* buffer, uint32_t size);
-/// Read formatted text from a file.
-uint8_t fsFileReadText(uint8_t* buffer, uint32_t size);
+uint8_t fsFileRead(int32_t index, uint8_t* buffer, uint32_t size);
 /// Write bytes from a buffer into a file.
-uint8_t fsFileWrite(uint8_t* buffer, uint32_t size);
-
+uint8_t fsFileWrite(int32_t index, uint8_t* buffer, uint32_t size);
 
 // Directories
 

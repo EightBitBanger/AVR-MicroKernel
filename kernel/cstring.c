@@ -1,7 +1,7 @@
 #include <kernel/cstring.h>
 
 uint8_t is_number(uint8_t* charPtr) {
-    if ((*charPtr >= 0x30) & (*charPtr <= 0x39))
+    if ((*charPtr >= 0x30) && (*charPtr <= 0x39))
         return 1;
     return 0;
 }
@@ -13,10 +13,10 @@ uint8_t is_letter(uint8_t* charPtr) {
 }
 
 uint8_t is_symbol(uint8_t* charPtr) {
-    if ((*charPtr >= 0x21) & (*charPtr <= 0x2f)) return 1;
-    if ((*charPtr >= 0x3a) & (*charPtr <= 0x40)) return 1;
-    if ((*charPtr >= 0x5b) & (*charPtr <= 0x60)) return 1;
-    if ((*charPtr >= 0x7b) & (*charPtr <= 0x7e)) return 1;
+    if ((*charPtr >= 0x21) && (*charPtr <= 0x2f)) return 1;
+    if ((*charPtr >= 0x3a) && (*charPtr <= 0x40)) return 1;
+    if ((*charPtr >= 0x5b) && (*charPtr <= 0x60)) return 1;
+    if ((*charPtr >= 0x7b) && (*charPtr <= 0x7e)) return 1;
     return 0;
 }
 
@@ -24,21 +24,20 @@ uint8_t is_hex(uint8_t* charPtr) {
     if (is_letter(charPtr) == 1) 
         lowercase(charPtr);
     uint8_t checksOut = 0;
-    if (((*charPtr >= 'a') & (*charPtr <= 'f')) | 
-        ((*charPtr >= '0') & (*charPtr <= '9'))) 
+    if (((*charPtr >= 'a') && (*charPtr <= 'f')) || 
+        ((*charPtr >= '0') && (*charPtr <= '9'))) 
         checksOut = 1;
     return checksOut;
 }
 
-
 uint8_t is_uppercase(uint8_t* charPtr) {
-    if ((*charPtr >= 0x41) & (*charPtr <= 0x5a))
+    if ((*charPtr >= 0x41) && (*charPtr <= 0x5a))
         return 1;
     return 0;
 }
 
 uint8_t is_lowercase(uint8_t* charPtr) {
-    if ((*charPtr >= 0x61) & (*charPtr <= 0x7a))
+    if ((*charPtr >= 0x61) && (*charPtr <= 0x7a))
         return 1;
     return 0;
 }
@@ -55,207 +54,168 @@ void lowercase(uint8_t* charPtr) {
     return;
 }
 
-
-
 uint8_t int_to_string(uint32_t number, uint8_t* destination_string) {
-	
-	uint8_t ones = 0x30;
-	uint8_t tens = 0x30;
-	uint8_t hnds = 0x30;
-	uint8_t thou = 0x30;
-	uint8_t ttho = 0x30;
-	uint8_t htho = 0x30;
-	uint8_t mill = 0x30;
-	
-	// Find number of characters
-	uint8_t place=1;
-	if (number > 0)      place = 1;
-	if (number > 9)      place = 2;
-	if (number > 99)     place = 3;
-	if (number > 999)    place = 4;
-	if (number > 9999)   place = 5;
-	if (number > 99999)  place = 6;
-	if (number > 999999) place = 7;
-	
-	// Convert to character
-	while (number > 9999999) {number -= 10000000;}
-	while (number > 999999)  {number -= 1000000;   mill += 1;}
-	while (number > 99999)   {number -= 100000;    htho += 1;}
-	while (number > 9999)    {number -= 10000;     ttho += 1;}
-	while (number > 999)     {number -= 1000;      thou += 1;}
-	while (number > 99)      {number -= 100;       hnds += 1;}
-	while (number > 9)       {number -= 10;        tens += 1;}
-	while (number > 0)       {number -= 1;         ones += 1;}
-	
-	// Figure length of string
-	if (place == 0) destination_string[place]   = ones;
-	if (place > 0)  destination_string[place-1] = ones;
-	if (place > 1)  destination_string[place-2] = tens;
-	if (place > 2)  destination_string[place-3] = hnds;
-	if (place > 3)  destination_string[place-4] = thou;
-	if (place > 4)  destination_string[place-5] = ttho;
-	if (place > 5)  destination_string[place-6] = htho;
-	if (place > 6)  destination_string[place-7] = mill;
-	
-	return place;
+    uint8_t ones = 0x30;
+    uint8_t tens = 0x30;
+    uint8_t hnds = 0x30;
+    uint8_t thou = 0x30;
+    uint8_t ttho = 0x30;
+    uint8_t htho = 0x30;
+    uint8_t mill = 0x30;
+    
+    // Find number of characters
+    uint8_t place = 1;
+    if (number > 0) place = 1;
+    if (number > 9) place = 2;
+    if (number > 99) place = 3;
+    if (number > 999) place = 4;
+    if (number > 9999) place = 5;
+    if (number > 99999) place = 6;
+    if (number > 999999) place = 7;
+    
+    // Convert to character
+    while (number > 9999999) { number -= 10000000; }
+    while (number > 999999) { number -= 1000000; mill += 1; }
+    while (number > 99999) { number -= 100000; htho += 1; }
+    while (number > 9999) { number -= 10000; ttho += 1; }
+    while (number > 999) { number -= 1000; thou += 1; }
+    while (number > 99) { number -= 100; hnds += 1; }
+    while (number > 9) { number -= 10; tens += 1; }
+    while (number > 0) { number -= 1; ones += 1; }
+    
+    // Figure length of string
+    if (place == 0) destination_string[place] = ones;
+    if (place > 0) destination_string[place - 1] = ones;
+    if (place > 1) destination_string[place - 2] = tens;
+    if (place > 2) destination_string[place - 3] = hnds;
+    if (place > 3) destination_string[place - 4] = thou;
+    if (place > 4) destination_string[place - 5] = ttho;
+    if (place > 5) destination_string[place - 6] = htho;
+    if (place > 6) destination_string[place - 7] = mill;
+    
+    return place;
 }
 
-
 void int_to_hex_string(uint32_t integer, uint8_t* string) {
-	
-	uint8_t hex[2] = {0, 0};
-	
-	while (integer >= 16) {
-		integer -= 16;
-		hex[0]++;
-	}
-	
-	while (integer > 0) {
-		integer -= 1;
-		hex[1]++;
-	}
-	
-	if (hex[0] > 9) {hex[0] += 'a' - 10;} else {hex[0] += '0';}
-	if (hex[1] > 9) {hex[1] += 'a' - 10;} else {hex[1] += '0';}
-	
-	string[0] = hex[0];
-	string[1] = hex[1];
-	
-	return;
+    uint8_t hex[2] = {0, 0};
+    
+    while (integer >= 16) {
+        integer -= 16;
+        hex[0]++;
+    }
+    
+    while (integer > 0) {
+        integer -= 1;
+        hex[1]++;
+    }
+    
+    if (hex[0] > 9) { hex[0] += 'a' - 10; } else { hex[0] += '0'; }
+    if (hex[1] > 9) { hex[1] += 'a' - 10; } else { hex[1] += '0'; }
+    
+    string[0] = hex[0];
+    string[1] = hex[1];
+    
+    return;
 }
 
 uint8_t string_get_int(uint8_t* string) {
-	
-	uint8_t integer=0;
-	
-	// Check shift up
-	if ((string[1] == ' ') & (string[2] == ' ')) {
+    uint8_t integer = 0;
+    
+    // Check shift up
+    if ((string[1] == ' ') && (string[2] == ' ')) {
         string[2] = string[0];
         string[1] = ' ';
         string[0] = ' ';
-	}
-	
-	if (string[2] == ' ') {
+    }
+    
+    if (string[2] == ' ') {
         string[2] = string[1];
         string[1] = string[0];
         string[0] = ' ';
-	}
-	
-	if (is_number(&string[2])) 
-        integer += (string[2] - '0') * 1;
-	if (is_number(&string[1])) 
-        integer += (string[1] - '0') * 10;
-	if (is_number(&string[0])) 
-        integer += (string[0] - '0') * 100;
-	
-	return integer;
+    }
+    
+    if (is_number(&string[2])) integer += (string[2] - '0') * 1;
+    if (is_number(&string[1])) integer += (string[1] - '0') * 10;
+    if (is_number(&string[0])) integer += (string[0] - '0') * 100;
+    
+    return integer;
 }
 
 uint32_t string_get_int_long(uint8_t* string) {
-	
-	uint32_t integer=0;
-	
-	if (is_number(&string[3])) {
-        integer += (string[3] - '0') * 1;
-	}
-	if (is_number(&string[2])) {
-        integer += (string[2] - '0') * 10;
-	}
-	if (is_number(&string[1])) {
-        integer += (string[1] - '0') * 100;
-	}
-	if (is_number(&string[0])) {
-        integer += (string[0] - '0') * 1000;
-	}
-	return integer;
+    uint32_t integer = 0;
+    
+    if (is_number(&string[3])) { integer += (string[3] - '0') * 1; }
+    if (is_number(&string[2])) { integer += (string[2] - '0') * 10; }
+    if (is_number(&string[1])) { integer += (string[1] - '0') * 100; }
+    if (is_number(&string[0])) { integer += (string[0] - '0') * 1000; }
+    return integer;
 }
 
 uint8_t string_get_hex_char(uint8_t* string) {
-	
-	uint32_t value_a = 0;
-	uint32_t value_b = 0;
-	uint8_t hex;
-	
-	// First digit
-	hex = string[1];
-	if ((hex >= 0x30) && (hex <= 0x40)) value_b += hex - 0x30;
-	if ((hex >= 0x60) && (hex <= 0x67)) value_b += 9 + (hex - 0x60);
-	
-	// Second digit
-	hex = string[0];
-	if ((hex >= 0x30) && (hex <= 0x40)) value_a += hex - 0x30;
-	if ((hex >= 0x60) && (hex <= 0x67)) value_a += 9 + (hex - 0x60);
-	
-	return value_a + (value_b * 16);
+    uint32_t value_a = 0;
+    uint32_t value_b = 0;
+    uint8_t hex;
+    
+    // First digit
+    hex = string[1];
+    if ((hex >= 0x30) && (hex <= 0x40)) value_b += hex - 0x30;
+    if ((hex >= 0x60) && (hex <= 0x67)) value_b += 9 + (hex - 0x60);
+    
+    // Second digit
+    hex = string[0];
+    if ((hex >= 0x30) && (hex <= 0x40)) value_a += hex - 0x30;
+    if ((hex >= 0x60) && (hex <= 0x67)) value_a += 9 + (hex - 0x60);
+    
+    return value_a + (value_b * 16);
 }
 
 uint8_t StringCompare(uint8_t* stringA, uint8_t lengthA, uint8_t* stringB, uint8_t lengthB) {
-    
     uint8_t strA[10];
     uint8_t strB[10];
     
-    for (uint8_t i=0; i < 10; i++) {
+    for (uint8_t i = 0; i < 10; i++) {
         strA[i] = ' ';
         strB[i] = ' ';
     }
     
-    for (uint8_t i=0; i < lengthA; i++) strA[i] = stringA[i];
-    for (uint8_t i=0; i < lengthB; i++) strB[i] = stringB[i];
+    for (uint8_t i = 0; i < lengthA; i++) strA[i] = stringA[i];
+    for (uint8_t i = 0; i < lengthB; i++) strB[i] = stringB[i];
     
-    for (uint8_t i=0; i < 10; i++) {
-        if (strA[i] != strB[i]) 
-            return 0;
+    for (uint8_t i = 0; i < 10; i++) {
+        if (strA[i] != strB[i]) return 0;
     }
     
     return 1;
 }
-
 
 uint8_t StringSplit(uint8_t* source, uint8_t sourceLen, 
                     uint8_t* splitA, uint8_t* splitALen, 
                     uint8_t* splitB, uint8_t* splitBLen, 
                     uint8_t delimiter) {
-    
     uint8_t split = 0;
     uint8_t index = 0;
     
-    for (uint8_t i=0; i < sourceLen; i++) {
-        
+    for (uint8_t i = 0; i < sourceLen; i++) {
         if (split == 0) {
-            
             splitA[i] = source[i];
-            
             if (source[i] == delimiter) {
-                
                 split = 1;
-                
                 *splitALen = i + 1;
-                
                 continue;
             }
-            
         } else {
-            
             splitB[index] = source[i];
-            
             *splitBLen = index + 2;
-            
-            if (source[i] == delimiter) 
-                break;
-            
+            if (source[i] == delimiter) break;
             index++;
-            
         }
-        
     }
     
     return 1;
 }
 
-
 uint8_t StringFindChar(uint8_t* string, uint8_t length, uint8_t character) {
-    
-    for (uint8_t i=0; i < length; i++) 
+    for (uint8_t i = 0; i < length; i++) 
         if (string[i] == character) 
             return i;
     

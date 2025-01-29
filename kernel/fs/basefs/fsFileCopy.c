@@ -12,13 +12,13 @@ uint32_t fsFileCopy(uint8_t* sourceName, uint8_t sourceLength,
     
     uint32_t fileSize = fsFileGetSize(sourceAddress);
     
-    fsFileOpen(sourceAddress);
+    int32_t indexSrc = fsFileOpen(sourceAddress);
     
     uint8_t buffer[fileSize];
     
-    fsFileRead(buffer, fileSize);
+    fsFileRead(indexSrc, buffer, fileSize);
     
-    fsFileClose();
+    fsFileClose(indexSrc);
     
     // Paste destination file
     
@@ -35,11 +35,11 @@ uint32_t fsFileCopy(uint8_t* sourceName, uint8_t sourceLength,
     
     uint32_t destAddress = fsFileCreate(destName, destLength, fileSize);
     
-    fsFileOpen(destAddress);
+    int32_t indexDst = fsFileOpen(destAddress);
     
-    fsFileWrite(buffer, fileSize);
+    fsFileWrite(indexDst, buffer, fileSize);
     
-    fsFileClose();
+    fsFileClose(indexDst);
     
     fsDeviceSetRoot( currentDeviceLetter );
     

@@ -25,9 +25,9 @@ void kThrow(long int errorCode, uint32_t hardwareAddress) {
     
     switch (errorCode) {
         
-        case KERNEL_HALT_BAD_ALLOCATION: {print(msgBadAlloc, sizeof(msgBadAlloc)); break;}
-        case KERNEL_HALT_SEGMENTATION:   {print(msgSegFault, sizeof(msgSegFault)); break;}
-        case KERNEL_HALT_OUT_OF_MEMORY:  {print(msgOutOfMem, sizeof(msgOutOfMem)); break;}
+        case HALT_BAD_ALLOCATION: {print(msgBadAlloc, sizeof(msgBadAlloc)); break;}
+        case HALT_SEGMENTATION_FAULT: {print(msgSegFault, sizeof(msgSegFault)); break;}
+        case HALT_OUT_OF_MEMORY: {print(msgOutOfMem, sizeof(msgOutOfMem)); break;}
         
     }
     

@@ -51,22 +51,7 @@ uint8_t array::operator[](unsigned int const i) {
     return get(i);
 }
 
-/*
-const uint8_t& array::operator[](unsigned int const i) const {
-    
-    uint8_t buffer[mSize];
-    
-    VirtualRead(mAddress, buffer, mSize);
-    
-    buffer[i] = mBuffer;
-    
-    VirtualWrite(mAddress, buffer, mSize);
-    
-    return mBuffer;
-}
-*/
-
-void array::set(uint32_t const i, uint8_t item) {
+void array::set(unsigned int const i, uint8_t item) {
     
     uint8_t buffer[mSize];
     
@@ -79,7 +64,7 @@ void array::set(uint32_t const i, uint8_t item) {
     return;
 }
 
-uint8_t array::get(uint32_t const i) {
+uint8_t array::get(unsigned int const i) {
     
     uint8_t buffer[mSize];
     
@@ -88,17 +73,12 @@ uint8_t array::get(uint32_t const i) {
     return buffer[i];
 }
 
-bool array::empty(void) {
-    
-    return mSize == 0;
-}
-
 uint32_t array::size(void) {
     
     return mSize;
 }
 
-uint32_t array::max_size(void) {
+uint32_t array::capacity(void) {
     
     return mCapacity;
 }

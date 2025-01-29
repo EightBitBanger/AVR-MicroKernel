@@ -1,7 +1,7 @@
 #ifndef __KERNEL_ALLOCATOR_
 #define __KERNEL_ALLOCATOR_
 
-#include <avr/io.h>
+#include <stdint.h>
 
 #include <kernel/kernel.h>
 #include <kernel/delay.h>
