@@ -1,14 +1,12 @@
 #ifndef __DRIVER_TABLE_
 #define __DRIVER_TABLE_
 
+#include <avr/io.h>
+
 #include <kernel/bus/bus.h>
 
+#include <kernel/list.h>
 #include <kernel/device/device.h>
-
-
-#define DRIVER_REGISTRY_SIZE   8
-
-#define DRIVER_TABLE_SIZE  16
 
 
 struct Driver {
@@ -34,9 +32,6 @@ struct Driver* GetDriverByIndex(uint8_t index);
 
 uint8_t RegisterDriver(void* deviceDriverPtr);
 
-void DriverTableInit(void);
-
-
-uint8_t GetNumberOfDrivers(void);
+uint32_t GetNumberOfDrivers(void);
 
 #endif
