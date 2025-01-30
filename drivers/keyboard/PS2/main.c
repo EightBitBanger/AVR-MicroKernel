@@ -38,8 +38,8 @@ void initiatePS2Driver(void) {
 	
 	keyboardDriver->device.device_id = 0x01;
 	
-	keyboardDriver->interface.read_waitstate  = 2;
-	keyboardDriver->interface.write_waitstate = 2;
+	keyboardDriver->device.bus.read_waitstate  = 2;
+	keyboardDriver->device.bus.write_waitstate = 2;
     
     
     keyboardDriver->read  = __read_ps2_device;
@@ -52,12 +52,12 @@ void initiatePS2Driver(void) {
 
 
 void __read_ps2_device(uint32_t address, uint8_t* buffer) {
-    bus_read_byte( &keyboardDriver->interface, keyboardDriver->device.hardware_address + address, buffer );
+    bus_read_byte( &keyboardDriver->device.bus, keyboardDriver->device.hardware_address + address, buffer );
     return;
 }
 
 void __write_ps2_device(uint32_t address, uint8_t buffer) {
-    bus_write_byte( &keyboardDriver->interface, keyboardDriver->device.hardware_address + address, buffer );
+    bus_write_byte( &keyboardDriver->device.bus, keyboardDriver->device.hardware_address + address, buffer );
     return;
 }
 

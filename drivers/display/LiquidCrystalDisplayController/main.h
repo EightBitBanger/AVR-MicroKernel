@@ -10,8 +10,6 @@ struct DisplayDeviceDriver {
     
     struct Device device;
     
-    struct Bus interface;
-    
     uint8_t is_linked;
     
     void(*read)(uint32_t address, uint8_t* buffer);

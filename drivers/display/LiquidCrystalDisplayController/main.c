@@ -28,8 +28,8 @@ void initiateDisplayDriver(void) {
 	
 	displayDriver->device.device_id = 0x10;
 	
-	displayDriver->interface.read_waitstate  = 8;
-	displayDriver->interface.write_waitstate = 8;
+	displayDriver->device.bus.read_waitstate  = 8;
+	displayDriver->device.bus.write_waitstate = 8;
     
     displayDriver->read  = __read_display_device;
     displayDriver->write = __write_display_device;
@@ -41,11 +41,11 @@ void initiateDisplayDriver(void) {
 
 
 void __read_display_device(uint32_t address, uint8_t* buffer) {
-    bus_read_byte( &displayDriver->interface, displayDriver->device.hardware_address + address, buffer );
+    bus_read_byte( &displayDriver->device.bus, displayDriver->device.hardware_address + address, buffer );
     return;
 }
 
 void __write_display_device(uint32_t address, uint8_t buffer) {
-    bus_write_byte( &displayDriver->interface, displayDriver->device.hardware_address + address, buffer );
+    bus_write_byte( &displayDriver->device.bus, displayDriver->device.hardware_address + address, buffer );
     return;
 }
