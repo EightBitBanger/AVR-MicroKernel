@@ -5,111 +5,84 @@ extern "C" {
 #include <kernel/string.hpp>
 }
 
-string::string() : 
-    mAddress(0),
-    mLength(0)
-{
-}
+string::string() : mSize(0), mCapacity(0), mAddress(0), mDummyIndex(-1), mDummy(0) {}
 
-string::string(const string& str) {
-    
-    mLength = str.mLength;
-    
-    mAddress = new(mLength);
-    
-    uint8_t buffer[mLength];
-    
-    VirtualRead(str.mAddress, buffer, mLength+1);
-    
-    VirtualWrite(mAddress, buffer, mLength+1);
-    
-    return;
+string::string(uint32_t size) : mSize(size), mCapacity(size), mAddress(new(size)), mDummyIndex(-1), mDummy(0) {}
+
+string::string(const string& arr) : mSize(arr.mSize), mCapacity(arr.mCapacity), mAddress(new(arr.mCapacity)), mDummyIndex(-1), mDummy(0) {
+    uint8_t buffer[mSize];
+    VirtualRead(arr.mAddress, buffer, mSize);
+    VirtualWrite(mAddress, buffer, mSize);
 }
 
 string::~string() {
-    
     if (mAddress > 0) 
         delete(mAddress);
-    
-    return;
+}
+
+uint8_t& string::operator[](unsigned int const i) {
+    if (mDummyIndex != i) {
+        updateBuffer(mDummyIndex, mDummy);
+    }
+    mDummyIndex = i;
+    mDummy = readBuffer(i);
+    return mDummy;
+}
+
+const uint8_t& string::operator[](unsigned int const i) const {
+    mDummy = readBuffer(i);
+    return mDummy;
+}
+
+void string::set(uint32_t i, uint8_t item) {
+    if (i < mSize) {
+        updateBuffer(i, item);
+    }
+}
+
+uint8_t string::get(uint32_t i) {
+    if (i < mSize) {
+        return readBuffer(i);
+    }
+    return 0;
+}
+
+bool string::empty(void) {
+    return mSize == 0;
 }
 
 uint32_t string::size(void) {
-    
-    return mLength;
+    return mSize;
+}
+
+uint32_t string::max_size(void) {
+    return mCapacity;
 }
 
 void string::resize(uint32_t newSize) {
-    
-    if (mAddress == 0) 
-        return;
-    
-    uint32_t newAddress = 0;
-    
-    uint8_t buffer[newSize];
-    
-    newAddress = new(newSize);
-    
-    if (newSize > mLength) {
-        
-        VirtualRead(mAddress, buffer, mLength);
-        
-        VirtualWrite(newAddress, buffer, mLength);
-        
-    } else {
-        
-        VirtualRead(mAddress, buffer, newSize);
-        
-        VirtualWrite(newAddress, buffer, newSize);
-    }
-    
+    reserve(newSize);
+    mSize = newSize;
+}
+
+void string::reserve(uint32_t newCapacity) {
+    uint8_t buffer[mCapacity];
+    uint32_t newAddress = new(newCapacity);
+    VirtualRead(mAddress, buffer, mCapacity);
+    VirtualWrite(newAddress, buffer, mCapacity);
     delete(mAddress);
-    
     mAddress = newAddress;
-    mLength = newSize;
-    
-    return;
+    mCapacity = newCapacity;
 }
 
-void string::data(uint8_t* buffer, uint32_t length) {
-    
-    VirtualRead(mAddress, buffer, length);
-    
-    return;
+void string::updateBuffer(uint32_t index, uint8_t value) {
+    uint8_t buffer[mSize];
+    VirtualRead(mAddress, buffer, mSize);
+    buffer[index] = value;
+    VirtualWrite(mAddress, buffer, mSize);
 }
 
-
-void string::operator= (uint8_t* source) {
-    
-    if (mAddress > 0) 
-        delete(mAddress);
-    
-    mLength = 0;
-    
-    for (uint32_t i=0; i < 1024; i++) {
-        
-        mLength++;
-        
-        if (source[i] == '\0') 
-            break;
-        
-    }
-    
-    mAddress = new(mLength);
-    
-    VirtualWrite(mAddress, source, mLength+1);
-    
-    return;
-}
-
-uint8_t string::operator[] (unsigned int const i) {
-    
-    if (i > mLength) 
-        return 0;
-    
-    uint8_t buffer[mLength];
-    
-    VirtualRead(mAddress, buffer, mLength);
-    
-    return buffer[i];
+uint8_t string::readBuffer(uint32_t index) const {
+    uint8_t buffer[mSize];
+    VirtualRead(mAddress, buffer, mSize);
+    return buffer[index];
 }

@@ -1,8 +1,11 @@
 #ifndef __ARRAY_ALLOCATOR_
 #define __ARRAY_ALLOCATOR_
 
+
 class array {
+    
 public:
+    
     array();
     array(uint32_t size);
     array(const array& arr);
@@ -25,7 +28,8 @@ private:
     uint32_t mSize;
     uint32_t mCapacity;
     uint32_t mAddress;
-    uint32_t dummyIndex;
+    uint32_t mDummyIndex;
+    mutable uint8_t mDummy;
     
     void updateBuffer(uint32_t index, uint8_t value);
     uint8_t readBuffer(uint32_t index) const;

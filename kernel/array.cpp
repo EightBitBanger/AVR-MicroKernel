@@ -5,11 +5,11 @@ extern "C" {
 #include <kernel/array.hpp>
 }
 
-array::array() : mSize(0), mCapacity(0), mAddress(0), dummyIndex(-1) {}
+array::array() : mSize(0), mCapacity(0), mAddress(0), mDummyIndex(-1), mDummy(0) {}
 
-array::array(uint32_t size) : mSize(size), mCapacity(size), mAddress(new(size)), dummyIndex(-1) {}
+array::array(uint32_t size) : mSize(size), mCapacity(size), mAddress(new(size)), mDummyIndex(-1), mDummy(0) {}
 
-array::array(const array& arr) : mSize(arr.mSize), mCapacity(arr.mCapacity), mAddress(new(arr.mCapacity)), dummyIndex(-1) {
+array::array(const array& arr) : mSize(arr.mSize), mCapacity(arr.mCapacity), mAddress(new(arr.mCapacity)), mDummyIndex(-1), mDummy(0) {
     uint8_t buffer[mSize];
     VirtualRead(arr.mAddress, buffer, mSize);
     VirtualWrite(mAddress, buffer, mSize);
@@ -20,20 +20,18 @@ array::~array() {
         delete(mAddress);
 }
 
-static uint8_t dummy;
-
 uint8_t& array::operator[](unsigned int const i) {
-    if (dummyIndex != i) {
-        updateBuffer(dummyIndex, dummy);
+    if (mDummyIndex != i) {
+        updateBuffer(mDummyIndex, mDummy);
     }
-    dummyIndex = i;
-    dummy = readBuffer(i);
-    return dummy;
+    mDummyIndex = i;
+    mDummy = readBuffer(i);
+    return mDummy;
 }
 
 const uint8_t& array::operator[](unsigned int const i) const {
-    dummy = readBuffer(i);
-    return dummy;
+    mDummy = readBuffer(i);
+    return mDummy;
 }
 
 void array::set(uint32_t i, uint8_t item) {
@@ -98,4 +96,3 @@ uint8_t array::readBuffer(uint32_t index) const {
     VirtualRead(mAddress, buffer, mSize);
     return buffer[index];
 }
-
