@@ -47,14 +47,16 @@ array::~array() {
 }
 
 uint8_t array::operator[](unsigned int const i) {
+    VirtualRead(mAddress, buffer, mSize);
     
     return get(i);
 }
 
-/*
+
 const uint8_t& array::operator[](unsigned int const i) const {
     
-    uint8_t buffer[mSize];
+    buffer
+    VirtualWrite(mAddress, buffer, mSize);
     
     VirtualRead(mAddress, buffer, mSize);
     
@@ -64,7 +66,7 @@ const uint8_t& array::operator[](unsigned int const i) const {
     
     return mBuffer;
 }
-*/
+
 
 void array::set(uint32_t const i, uint8_t item) {
     

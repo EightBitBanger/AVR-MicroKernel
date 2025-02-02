@@ -12,7 +12,7 @@ public:
     ~array();
     
     uint8_t operator[](unsigned int const i);
-    //const uint8_t& operator[](unsigned int const i) const;
+    const uint8_t& operator[](unsigned int const i) const;
     
     void set(uint32_t const i, uint8_t item);
     
@@ -35,6 +35,9 @@ private:
     uint32_t mSize;
     uint32_t mCapacity;
     uint32_t mAddress;
+    
+    uint16 mIndexBegin;
+    uint8_t buffer[8];
     
 };
 
