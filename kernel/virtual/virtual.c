@@ -5,23 +5,26 @@
 #define __KERNEL_VIRTUAL_ACCESS_BEGIN__    0x00000000
 #define __KERNEL_VIRTUAL_ACCESS_END__      0xffffffff
 
-#define __SERVICE_VIRTUAL_ACCESS_BEGIN__   0x00004000
+#define __SERVICE_VIRTUAL_ACCESS_BEGIN__   0x00002000
 #define __SERVICE_VIRTUAL_ACCESS_END__     0xffffffff
 
 #define __USER_VIRTUAL_ACCESS_BEGIN__      0x00004000
 #define __USER_VIRTUAL_ACCESS_END__        0xffffffff
 
+uint32_t __virtual_address_begin__ = __KERNEL_VIRTUAL_ACCESS_BEGIN__;
+uint32_t __virtual_address_end__   = __KERNEL_VIRTUAL_ACCESS_END__;
 
-uint32_t VirtualAddressBegin = __KERNEL_VIRTUAL_ACCESS_BEGIN__;
-uint32_t VirtualAddressEnd   = __KERNEL_VIRTUAL_ACCESS_END__;
+uint32_t __heap_begin__  = 0x00000000;
+uint32_t __heap_end__    = 0xffffffff;
+
 
 int8_t VirtualAccessGetMode(void) {
     
-    if (VirtualAddressBegin == __KERNEL_VIRTUAL_ACCESS_BEGIN__) 
+    if (__virtual_address_begin__ == __KERNEL_VIRTUAL_ACCESS_BEGIN__) 
         return VIRTUAL_ACCESS_MODE_KERNEL;
-    if (VirtualAddressBegin == __SERVICE_VIRTUAL_ACCESS_BEGIN__) 
+    if (__virtual_address_begin__ == __SERVICE_VIRTUAL_ACCESS_BEGIN__) 
         return VIRTUAL_ACCESS_MODE_SERVICE;
-    if (VirtualAddressBegin == __USER_VIRTUAL_ACCESS_BEGIN__) 
+    if (__virtual_address_begin__ == __USER_VIRTUAL_ACCESS_BEGIN__) 
         return VIRTUAL_ACCESS_MODE_USER;
     
     return -1;
@@ -31,25 +34,21 @@ void VirtualAccessSetMode(uint8_t mode) {
     
     switch (mode) {
         
-        case VIRTUAL_ACCESS_MODE_KERNEL: {
-            VirtualAddressBegin = __KERNEL_VIRTUAL_ACCESS_BEGIN__;
-            VirtualAddressEnd   = __KERNEL_VIRTUAL_ACCESS_END__;
+        case VIRTUAL_ACCESS_MODE_KERNEL: 
+            __virtual_address_begin__ = __KERNEL_VIRTUAL_ACCESS_BEGIN__;
+            __virtual_address_end__   = __KERNEL_VIRTUAL_ACCESS_END__;
             break;
-        }
         
-        case VIRTUAL_ACCESS_MODE_SERVICE: {
-            VirtualAddressBegin = __SERVICE_VIRTUAL_ACCESS_BEGIN__;
-            VirtualAddressEnd   = __SERVICE_VIRTUAL_ACCESS_END__;
+        case VIRTUAL_ACCESS_MODE_SERVICE: 
+            __virtual_address_begin__ = __SERVICE_VIRTUAL_ACCESS_BEGIN__;
+            __virtual_address_end__   = __SERVICE_VIRTUAL_ACCESS_END__;
             break;
-        }
         
         default:
-        
-        case VIRTUAL_ACCESS_MODE_USER: {
-            VirtualAddressBegin = __USER_VIRTUAL_ACCESS_BEGIN__;
-            VirtualAddressEnd   = __USER_VIRTUAL_ACCESS_END__;
+        case VIRTUAL_ACCESS_MODE_USER: 
+            __virtual_address_begin__ = __USER_VIRTUAL_ACCESS_BEGIN__;
+            __virtual_address_end__   = __USER_VIRTUAL_ACCESS_END__;
             break;
-        }
         
     }
     
@@ -74,9 +73,16 @@ void VirtualWrite(uint32_t address, uint8_t* byte, uint32_t size) {
         
         uint32_t offset = address + FORMAT_SECTOR_SIZE + sector + 1;
         
-        // Check segmentation fault
-        if ((offset < VirtualAddressBegin) | 
-            (offset >= VirtualAddressEnd)) {
+        // Check kernel memory segmentation fault
+        if (offset < __virtual_address_begin__ || 
+            offset >= __virtual_address_end__) {
+            
+            kThrow(HALT_SEGMENTATION_FAULT, offset);
+        }
+        
+        // Check process memory segmentation
+        if (offset < __heap_begin__ || 
+            offset >= __heap_end__) {
             
             kThrow(HALT_SEGMENTATION_FAULT, offset);
         }
@@ -113,8 +119,15 @@ void VirtualRead(uint32_t address, uint8_t* byte, uint32_t size) {
         uint32_t offset = address + FORMAT_SECTOR_SIZE + sector + 1;
         
         // Check segmentation fault
-        if ((offset < VirtualAddressBegin) | 
-            (offset >= VirtualAddressEnd)) {
+        if (offset < __virtual_address_begin__ || 
+            offset >= __virtual_address_end__) {
+            
+            kThrow(HALT_SEGMENTATION_FAULT, offset);
+        }
+        
+        // Check process memory segmentation
+        if (offset < __heap_begin__ || 
+            offset >= __heap_end__) {
             
             kThrow(HALT_SEGMENTATION_FAULT, offset);
         }
