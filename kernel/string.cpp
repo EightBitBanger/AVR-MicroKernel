@@ -7,36 +7,25 @@ extern "C" {
 
 string::string() : mSize(0), mCapacity(0), mAddress(0), mDummyIndex(-1), mDummy(0) {}
 
-string::string(uint32_t size) : mSize(size+1), 
-                                mCapacity(size+1), 
-                                mAddress(new(size+1)), 
-                                mDummyIndex(-1), 
-                                mDummy(0) {
-    uint8_t temp[mSize];
-    for (uint8_t i=0; i < mSize; i++) 
+string::string(uint32_t size) : mSize(size), mCapacity(size), mAddress(new(size + 1)), mDummyIndex(-1), mDummy(0) {
+    uint8_t temp[mSize + 1];
+    for (uint8_t i = 0; i < mSize + 1; i++) 
         temp[i] = '\0';
-    VirtualWrite(mAddress, temp, mSize);
+    VirtualWrite(mAddress, temp, mSize + 1);
 }
 
-string::string(const string& str) : mSize(str.mSize), 
-                                    mCapacity(str.mCapacity), 
-                                    mAddress(new(str.mCapacity)), 
-                                    mDummyIndex(-1), 
-                                    mDummy(0) {
-    uint8_t buffer[mSize];
-    VirtualRead(str.mAddress, buffer, mSize);
-    VirtualWrite(mAddress, buffer, mSize);
+string::string(const string& str) : mSize(str.mSize), mCapacity(str.mCapacity), mAddress(new(str.mCapacity + 1)), mDummyIndex(-1), mDummy(0) {
+    uint8_t buffer[mSize + 1];
+    VirtualRead(str.mAddress, buffer, mSize + 1);
+    VirtualWrite(mAddress, buffer, mSize + 1);
 }
 
-string::string(const char* cstr) : mSize(strlen(cstr)), 
-                                   mCapacity(mSize), 
-                                   mAddress(new(mSize)), 
-                                   mDummyIndex(-1), 
-                                   mDummy(0) {
-    uint8_t temp[mSize];
-    for (uint8_t i=0; i < mSize; i++) 
+string::string(const char* cstr) : mSize(strlen(cstr)), mCapacity(mSize), mAddress(new(mSize + 1)), mDummyIndex(-1), mDummy(0) {
+    uint8_t temp[mSize + 1];
+    for (uint8_t i = 0; i < mSize; i++) 
         temp[i] = cstr[i];
-    VirtualWrite(mAddress, temp, mSize);
+    temp[mSize] = '\0';
+    VirtualWrite(mAddress, temp, mSize + 1);
 }
 
 string::~string() {
@@ -89,28 +78,27 @@ void string::resize(uint32_t newSize) {
 }
 
 void string::reserve(uint32_t newCapacity) {
-    uint8_t buffer[mCapacity];
-    uint32_t newAddress = new(newCapacity);
-    VirtualRead(mAddress, buffer, mCapacity);
-    VirtualWrite(newAddress, buffer, mCapacity);
+    uint8_t buffer[mCapacity + 1];
+    uint32_t newAddress = new(newCapacity + 1);
+    VirtualRead(mAddress, buffer, mCapacity + 1);
+    VirtualWrite(newAddress, buffer, mCapacity + 1);
     delete(mAddress);
     mAddress = newAddress;
     mCapacity = newCapacity;
 }
 
 void string::mUpdateBuffer(uint32_t index, uint8_t value) {
-    uint8_t buffer[mSize];
-    VirtualRead(mAddress, buffer, mSize);
+    uint8_t buffer[mSize + 1];
+    VirtualRead(mAddress, buffer, mSize + 1);
     buffer[index] = value;
-    VirtualWrite(mAddress, buffer, mSize);
+    VirtualWrite(mAddress, buffer, mSize + 1);
 }
 
 uint8_t string::mReadBuffer(uint32_t index) const {
-    uint8_t buffer[mSize];
-    VirtualRead(mAddress, buffer, mSize);
+    uint8_t buffer[mSize + 1];
+    VirtualRead(mAddress, buffer, mSize + 1);
     return buffer[index];
 }
-
 
 // String functionality
 
@@ -133,7 +121,7 @@ int string::find(const char* substr) const {
 
 int string::find(const string& substr) const {
     char temp[substr.size() + 1];
-    for (uint32_t i=0; i < substr.size(); i++) 
+    for (uint32_t i = 0; i < substr.size(); i++) 
         temp[i] = substr[i];
     temp[substr.size()] = '\0';
     return find(temp);
@@ -156,57 +144,90 @@ void string::replace(const char* target, const char* replacement) {
 
 void string::replace(const string& target, const string& replacement) {
     char tempSrc[target.size() + 1];
-    for (uint32_t i=0; i < target.size(); i++) 
+    for (uint32_t i = 0; i < target.size(); i++) 
         tempSrc[i] = target[i];
     tempSrc[target.size()] = '\0';
     
     char tempDst[replacement.size() + 1];
-    for (uint32_t i=0; i < replacement.size(); i++) 
+    for (uint32_t i = 0; i < replacement.size(); i++) 
         tempDst[i] = replacement[i];
     tempDst[replacement.size()] = '\0';
     
     replace(tempSrc, tempDst);
+    return;
 }
 
 void string::insert(uint32_t index, uint8_t item) {
-    if (index > mSize) {
-        return; // Invalid index
-    }
-    if (mSize >= mCapacity) {
-        reserve(mCapacity + 1); // Resize if necessary
-    }
-    for (uint32_t i = (mSize-1); i >= index; --i) {
+    if (index >= mSize) 
+        return;
+    
+    // Resize if necessary
+    if (mSize >= mCapacity) 
+        reserve(mCapacity + 1); 
+    
+    mSize++;
+    for (uint32_t i = mSize; i > index; --i) {
         set(i, get(i - 1));
     }
-    
     set(index, item);
-    mSize++;
     return;
 }
 
 void string::insert(uint32_t index, const string str) {
     uint32_t strSz = str.size();
-    
-    for (uint32_t i=0; i < strSz; i++) 
-        insert(index+i, str[i]);
+    for (uint32_t i = 0; i < strSz; i++) 
+        insert(index + i, str[i]);
     return;
 }
 
 void string::insert(uint32_t index, const char* str) {
+    if (index >= mSize) 
+        return; 
+    
     uint32_t strLen = strlen(str);
-    if (index > mSize) {
-        return; // Invalid index
-    }
-    if (mSize + strLen > mCapacity) {
-        reserve(mSize + strLen); // Resize if necessary
-    }
-    for (uint32_t i = mSize + strLen - 1; i >= index + strLen; --i) {
+    
+    // Resize if necessary
+    if (mSize + strLen > mCapacity) 
+        reserve(mSize + strLen);
+    
+    for (uint32_t i = mSize + strLen; i > index + strLen; --i) 
         set(i, get(i - strLen));
-    }
-    for (uint32_t i = 0; i < strLen; ++i) {
+    
+    for (uint32_t i = 0; i < strLen; ++i) 
         set(index + i, str[i]);
-    }
+    
     mSize += strLen;
     return;
+}
+
+void string::remove(uint32_t index) {
+    if (index >= mSize) 
+        return;
+    
+    for (uint32_t i = index; i < mSize - 1; ++i) 
+        set(i, get(i + 1));
+    
+    set(mSize - 1, '\0');
+    mSize--;
+}
+
+void string::remove(const char* substr) {
+    int pos = find(substr);
+    uint32_t substrLen = strlen(substr);
+    while (pos != -1) {
+        for (uint32_t i = pos; i < mSize - substrLen; ++i) {
+            set(i, get(i + substrLen));
+        }
+        mSize -= substrLen;
+        pos = find(substr);
+    }
+    set(mSize, '\0');
+}
+
+void string::remove(const string& substr) {
+    uint32_t strSz = substr.size();
+    uint32_t begin = substr.find(substr);
+    for (uint32_t i=0; i < strSz; i++) 
+        remove(begin + i);
 }
 

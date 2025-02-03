@@ -36,6 +36,10 @@ public:
     void insert(uint32_t index, const string str);
     void insert(uint32_t index, const char* str);
     
+    void remove(uint32_t index);
+    void remove(const char* substr);
+    void remove(const string& substr);
+    
 private:
     
     uint32_t mSize;
@@ -43,8 +47,8 @@ private:
     uint32_t mAddress;
     uint32_t mDummyIndex;
     mutable uint8_t mDummy;
-    void mUpdateBuffer(uint32_t index, uint8_t value);
     
+    void mUpdateBuffer(uint32_t index, uint8_t value);
     uint8_t mReadBuffer(uint32_t index) const;
 };
 
