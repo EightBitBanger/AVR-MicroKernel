@@ -1,6 +1,9 @@
 #ifndef __TASK_SCHEDULER_
 #define __TASK_SCHEDULER_
 
+#include <stdint.h>
+#include <stddef.h>
+
 #include <kernel/fs/fs.h>
 
 #define TASK_NAME_LENGTH_MAX           10
@@ -24,6 +27,12 @@
 #define EVENT_INITIATE                 1
 #define EVENT_SHUTDOWN                 2
 
+// Process memory block ranges
+
+#define MEMORY_START 0x4000
+#define MEMORY_END 0xFFFF
+#define MEMORY_BLOCK_SIZE 0x0400
+
 
 struct ProcessDescription {
 	
@@ -45,7 +54,7 @@ struct ProcessDescription {
 	uint32_t block;
 	
 	// Pointer to the entry point of the task program
-	void   (*function)(uint8_t);
+	void (*function)(uint8_t);
 	
 };
 
@@ -57,6 +66,8 @@ uint8_t TaskDestroy(int32_t index);
 int32_t TaskFind(uint8_t* name, uint8_t name_length);
 
 uint8_t GetProcInfo(int32_t index, struct ProcessDescription* proc_desc);
+
+uint32_t FindNextAvailableMemoryRange(void);
 
 void SchedulerStart(void);
 void SchedulerStop(void);

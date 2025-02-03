@@ -7,6 +7,12 @@ uint32_t globalAllocBytes = 0;
 
 uint32_t procSuperBlock = 0;
 
+extern uint32_t __virtual_address_begin__;
+extern uint32_t __virtual_address_end__;
+
+extern uint32_t __heap_begin__;
+extern uint32_t __heap_end__;
+
 
 uint32_t __new__(uint32_t size) {
     
@@ -14,6 +20,11 @@ uint32_t __new__(uint32_t size) {
         return 0;
     
     VirtualBegin();
+    uint8_t virtualAccess = VirtualAccessGetMode();
+    
+    // Force allocation into process heap range
+    __virtual_address_begin__ = __heap_begin__;
+    __virtual_address_end__   = __heap_end__;
     
     union Pointer ptr;
     ptr.address = fsAllocate(size);
@@ -29,6 +40,8 @@ uint32_t __new__(uint32_t size) {
     }
     
     VirtualEnd();
+    VirtualAccessSetMode(virtualAccess);
+    
     return ptr.address;
 }
 

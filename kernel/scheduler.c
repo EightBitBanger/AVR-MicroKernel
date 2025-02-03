@@ -17,63 +17,75 @@ uint8_t schedulerIsActive = 0;
 extern uint32_t dirProcAddress; // Process directory address 
 extern uint32_t procSuperBlock; // Super block address
 
-extern uint32_t __heap_begin__;
+extern uint32_t __virtual_address_begin__; // Global range
+extern uint32_t __virtual_address_end__;
+
+extern uint32_t __heap_begin__; // Process specific heap range
 extern uint32_t __heap_end__;
 
 
 int32_t TaskCreate(uint8_t* name, uint8_t name_length, void(*task_ptr)(uint8_t), uint8_t priority, uint8_t privilege, uint8_t type) {
-	
-	if (name_length > TASK_NAME_LENGTH_MAX)
-		name_length = TASK_NAME_LENGTH_MAX;
-	
-	struct ProcessDescription* newProcPtr = (struct ProcessDescription*)malloc( sizeof(struct ProcessDescription) );
+    
+    // Find an available memory range
+    uint32_t nextMemoryRange = FindNextAvailableMemoryRange();
+    
+    // No available memory range found
+    if (nextMemoryRange == 0) 
+        return -1;
+    
+    if (name_length > TASK_NAME_LENGTH_MAX)
+        name_length = TASK_NAME_LENGTH_MAX;
+    
+    struct ProcessDescription* newProcPtr = (struct ProcessDescription*)malloc(sizeof(struct ProcessDescription));
     ListAddNode(&ProcessNodeTable, newProcPtr);
     
     // Set process name
-    for (uint8_t i=0; i < TASK_NAME_LENGTH_MAX; i++) 
+    for (uint8_t i = 0; i < TASK_NAME_LENGTH_MAX; i++)
         newProcPtr->name[i] = ' ';
-    for (uint8_t i=0; i < name_length; i++) 
+    for (uint8_t i = 0; i < name_length; i++)
         newProcPtr->name[i] = name[i];
     
     // Process parameters
-    newProcPtr->type        = type;
-    newProcPtr->privilege   = privilege;
-    newProcPtr->priority    = priority;
-    newProcPtr->counter     = 0;
-    newProcPtr->block       = 0;
-	newProcPtr->flags       = 0;
-	
-	newProcPtr->heap_begin  = 0x00004000;
-	newProcPtr->heap_end    = 0x00004200;
-	
-	newProcPtr->function    = task_ptr;
-	
-	// Set user access mode
-	uint8_t currentMode = VirtualAccessGetMode();
+    newProcPtr->type = type;
+    newProcPtr->privilege = privilege;
+    newProcPtr->priority = priority;
+    newProcPtr->counter = 0;
+    newProcPtr->block = 0;
+    newProcPtr->flags = 0;
+    
+    newProcPtr->heap_begin = nextMemoryRange;
+    newProcPtr->heap_end = nextMemoryRange + MEMORY_BLOCK_SIZE;
+    
+    newProcPtr->function = task_ptr;
+    
+    // Set user access mode
+    uint8_t currentMode = VirtualAccessGetMode();
     switch (privilege) {
-		case TASK_PRIVILEGE_KERNEL: {VirtualAccessSetMode( VIRTUAL_ACCESS_MODE_KERNEL ); break;}
-		case TASK_PRIVILEGE_SERVICE: {VirtualAccessSetMode( VIRTUAL_ACCESS_MODE_SERVICE ); break;}
-		default:
-        case TASK_PRIVILEGE_USER: {VirtualAccessSetMode( VIRTUAL_ACCESS_MODE_USER ); break;}
-	}
-	VirtualBegin();
+        case TASK_PRIVILEGE_KERNEL: { VirtualAccessSetMode(VIRTUAL_ACCESS_MODE_KERNEL); break; }
+        case TASK_PRIVILEGE_SERVICE: { VirtualAccessSetMode(VIRTUAL_ACCESS_MODE_SERVICE); break; }
+        default:
+        case TASK_PRIVILEGE_USER: { VirtualAccessSetMode(VIRTUAL_ACCESS_MODE_USER); break; }
+    }
+    VirtualBegin();
     
-    //
     // Allocate super block
-	uint32_t blockAddress = fsDirectoryCreate(name, name_length);
+    uint32_t blockAddress = fsDirectoryCreate(name, name_length);
     newProcPtr->block = blockAddress;
-    if (newProcPtr->block == 0) 
+    if (newProcPtr->block == 0) {
+        ListRemoveNode(&ProcessNodeTable, newProcPtr);
+        free(newProcPtr);
         return -1;
+    }
     
-    struct FSAttribute attrProcFile = {'s', 'r', ' ', ' '};
-	fsFileSetAttributes(blockAddress, &attrProcFile);
+    struct FSAttribute attrProcFile = { 's', 'r', ' ', ' ' };
+    fsFileSetAttributes(blockAddress, &attrProcFile);
     fsDirectoryAddFile(dirProcAddress, blockAddress);
-	
-	// Restore previous access level
-	VirtualEnd();
-    VirtualAccessSetMode( currentMode );
     
-	return 1;
+    // Restore previous access level
+    VirtualEnd();
+    VirtualAccessSetMode(currentMode);
+    
+    return 1;
 }
 
 
@@ -146,6 +158,29 @@ uint8_t GetProcInfo(int32_t index, struct ProcessDescription* proc_desc) {
 	return 1;
 }
 
+uint32_t FindNextAvailableMemoryRange(void) {
+    uint32_t currentAddress = MEMORY_START;
+    
+    struct Node* temp = ProcessNodeTable;
+    while (temp != NULL) {
+        struct ProcessDescription* proc = (struct ProcessDescription*)temp->data;
+        
+        // Found an available range
+        if (currentAddress < proc->heap_begin) 
+            return currentAddress;
+        
+        currentAddress = proc->heap_end;
+        temp = temp->next;
+    }
+    
+    // Check if there's space at the end of the memory
+    if (currentAddress + MEMORY_BLOCK_SIZE <= MEMORY_END) {
+        return currentAddress;
+    }
+    
+    // No available memory range found
+    return 0;
+}
 
 
 //
