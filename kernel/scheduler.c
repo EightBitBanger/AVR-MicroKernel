@@ -44,7 +44,7 @@ int32_t TaskCreate(uint8_t* name, uint8_t name_length, void(*task_ptr)(uint8_t),
 	newProcPtr->flags       = 0;
 	
 	newProcPtr->heap_begin  = 0x00004000;
-	newProcPtr->heap_end    = 0x00004100;
+	newProcPtr->heap_end    = 0x00004200;
 	
 	newProcPtr->function    = task_ptr;
 	
@@ -212,6 +212,11 @@ void _ISR_SCHEDULER_MAIN__(void) {
 	// for memory allocation using new and delete
 	procSuperBlock = proc_info->block;
 	
+	// Set process heap range
+	
+	__heap_begin__ = proc_info->heap_begin;
+	__heap_end__   = proc_info->heap_end;
+	
 	// Process task type
 	
 	switch (proc_info->type) {
@@ -225,11 +230,6 @@ void _ISR_SCHEDULER_MAIN__(void) {
 		}
 		
 	}
-	
-	// Set process heap range
-	
-	__heap_begin__ = proc_info->heap_begin;
-	__heap_end__   = proc_info->heap_end;
 	
 	// Process task priority
 	
