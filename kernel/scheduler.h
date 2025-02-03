@@ -3,13 +3,11 @@
 
 #include <kernel/fs/fs.h>
 
-#define TASK_LIST_SIZE                 64
 #define TASK_NAME_LENGTH_MAX           10
 
 #define TASK_TYPE_UNKNOWN              0   // No type defined
 #define TASK_TYPE_TSR                  1   // Terminate and stay resident in memory
 #define TASK_TYPE_VOLATILE             2   // Run once and terminate
-#define TASK_TYPE_VOLATILE_PROMPT      3   // Run once and terminate to a command prompt
 
 #define TASK_PRIVILEGE_KERNEL          'k'
 #define TASK_PRIVILEGE_SERVICE         's'
@@ -27,43 +25,39 @@
 #define EVENT_SHUTDOWN                 2
 
 
-
 struct ProcessDescription {
 	
-	uint8_t  type;
-	uint8_t  privilege;
-	uint8_t  priority;
-	uint8_t  counter;
-	uint8_t  flags;
+	// Process name
+	uint8_t  name[TASK_NAME_LENGTH_MAX];
+	
+	uint8_t  type;          // Process identification byte
+	uint8_t  privilege;     // Memory access mode
+	uint8_t  priority;      // Time reserved for the process
+	uint8_t  counter;       // (Internal) priority counter
+	uint8_t  flags;         // State of process initiation
+	
+	// Address range of the processes heap
+	uint32_t heap_begin;
+	uint32_t heap_end;
+	
+	// Address pointer to the block of external memory allocated 
+	// as a directory of references to memory allocated by this process
 	uint32_t block;
+	
+	// Pointer to the entry point of the task program
 	void   (*function)(uint8_t);
 	
 };
 
-struct ProcessNodeTable {
-	
-	uint8_t  type       [TASK_LIST_SIZE];
-	uint8_t  privilege  [TASK_LIST_SIZE];
-	uint8_t  priority   [TASK_LIST_SIZE];
-	uint8_t  counter    [TASK_LIST_SIZE];
-	uint8_t  flags      [TASK_LIST_SIZE];
-	uint32_t block      [TASK_LIST_SIZE];
-	void   (*function   [TASK_LIST_SIZE])(uint8_t);
-	
-};
 
-uint8_t TaskCreate(uint8_t* name, uint8_t name_length, void(*task_ptr)(uint8_t), uint8_t priority, uint8_t privilege, uint8_t type);
+int32_t TaskCreate(uint8_t* name, uint8_t name_length, void(*task_ptr)(uint8_t), uint8_t priority, uint8_t privilege, uint8_t type);
 
-uint8_t TaskDestroy(uint8_t index);
+uint8_t TaskDestroy(int32_t index);
 
-uint32_t TaskFind(uint8_t* name, uint8_t name_length);
+int32_t TaskFind(uint8_t* name, uint8_t name_length);
 
-uint8_t TaskKill(uint8_t* name, uint8_t name_length);
+uint8_t GetProcInfo(int32_t index, struct ProcessDescription* proc_desc);
 
-uint8_t GetProcInfo(uint8_t index, struct ProcessDescription* info);
-
-
-void SchedulerInit(void);
 void SchedulerStart(void);
 void SchedulerStop(void);
 
