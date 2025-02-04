@@ -53,6 +53,9 @@ struct ProcessDescription {
 	// as a directory of references to memory allocated by this process
 	uint32_t block;
 	
+	// Execution time slice
+    uint16_t time_slice;
+    
 	// Pointer to the entry point of the task program
 	void (*function)(uint8_t);
 	
@@ -68,6 +71,7 @@ int32_t TaskFind(uint8_t* name, uint8_t name_length);
 uint8_t GetProcInfo(int32_t index, struct ProcessDescription* proc_desc);
 
 uint32_t FindNextAvailableMemoryRange(void);
+
 
 void SchedulerStart(void);
 void SchedulerStop(void);

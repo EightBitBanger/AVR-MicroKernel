@@ -1,4 +1,5 @@
 #include <avr/io.h>
+#include <avr/wdt.h>
 #include <avr/interrupt.h>
 
 #include <kernel/scheduler.h>
@@ -10,7 +11,7 @@
 struct Node* ProcessNodeTable = NULL;
 
 
-volatile uint64_t timer_ms = 0;
+volatile uint16_t timer_ms = 0;
 
 uint8_t schedulerIsActive = 0;
 
@@ -49,9 +50,10 @@ int32_t TaskCreate(uint8_t* name, uint8_t name_length, void(*task_ptr)(uint8_t),
     newProcPtr->type = type;
     newProcPtr->privilege = privilege;
     newProcPtr->priority = priority;
-    newProcPtr->counter = 0;
+    newProcPtr->counter = priority+1;   // Trigger the initial call immediately
     newProcPtr->block = 0;
     newProcPtr->flags = 0;
+    newProcPtr->time_slice = 0;
     
     newProcPtr->heap_begin = nextMemoryRange;
     newProcPtr->heap_end = nextMemoryRange + MEMORY_BLOCK_SIZE;
@@ -195,8 +197,8 @@ void SchedulerStart(void) {
     schedulerIsActive = 1;
 	
 	// Set the ISRs
-	SetInterruptService(0, _ISR_SCHEDULER_MAIN__ );
-    SetInterruptService(1, _ISR_SCHEDULER_TIMER__);
+	SetInterruptService(0, _ISR_SCHEDULER_TIMER__);
+    SetInterruptService(1, _ISR_SCHEDULER_MAIN__);
     
 	return;
 }
@@ -217,7 +219,7 @@ void SchedulerStop(void) {
 //
 // Scheduler entry point
 
-volatile uint32_t processIndex=0; 
+volatile uint32_t procIndex=0; 
 
 void _ISR_SCHEDULER_MAIN__(void) {
     
@@ -226,87 +228,110 @@ void _ISR_SCHEDULER_MAIN__(void) {
     if (numberOfTasks == 0) 
         return;
     
-    // Check process counter index overflow
-    if (processIndex >= numberOfTasks) 
-        processIndex = 0;
+    struct Node* nodePtr = ListGetNode(ProcessNodeTable, procIndex);
+    struct ProcessDescription* proc_info = nodePtr->data;
     
-    struct Node* nodePtr = ListGetNode(ProcessNodeTable, processIndex);
-	struct ProcessDescription* proc_info = nodePtr->data;
-	
     int8_t currentMode = VirtualAccessGetMode();
-	
-	// Set privilege level
+    
+    // Set privilege level
     switch (proc_info->privilege) {
-		case TASK_PRIVILEGE_KERNEL: {VirtualAccessSetMode( VIRTUAL_ACCESS_MODE_KERNEL ); break;}
-		case TASK_PRIVILEGE_SERVICE: {VirtualAccessSetMode( VIRTUAL_ACCESS_MODE_SERVICE ); break;}
-		default:
-        case TASK_PRIVILEGE_USER: {VirtualAccessSetMode( VIRTUAL_ACCESS_MODE_USER ); break;}
-	}
-	
-	// Set the reference to the process super block
-	// for memory allocation using new and delete
-	procSuperBlock = proc_info->block;
-	
-	// Set process heap range
-	
-	__heap_begin__ = proc_info->heap_begin;
-	__heap_end__   = proc_info->heap_end;
-	
-	// Process task type
-	
-	switch (proc_info->type) {
-		
-		case TASK_TYPE_VOLATILE: {
-			// Call the process once before destroying the process
-			proc_info->function( EVENT_INITIATE );
-			
-			TaskDestroy(processIndex);
-            processIndex=0;
-		}
-		
-	}
-	
-	// Process task priority
-	
-	if (proc_info->counter > proc_info->priority) {
-		proc_info->counter=0;
-		
-		if (proc_info->flags == 0) {
-            
-            // Call the initiation function
-            proc_info->function( EVENT_INITIATE );
+        case TASK_PRIVILEGE_KERNEL: { VirtualAccessSetMode(VIRTUAL_ACCESS_MODE_KERNEL); break; }
+        case TASK_PRIVILEGE_SERVICE: { VirtualAccessSetMode(VIRTUAL_ACCESS_MODE_SERVICE); break; }
+        default:
+        case TASK_PRIVILEGE_USER: { VirtualAccessSetMode(VIRTUAL_ACCESS_MODE_USER); break; }
+    }
+    
+    // Set the reference to the process super block
+    // for memory allocation using new and delete
+    procSuperBlock = proc_info->block;
+    
+    // Set process heap range
+    __heap_begin__ = proc_info->heap_begin;
+    __heap_end__   = proc_info->heap_end;
+    
+    // Process task priority
+    if (proc_info->counter > proc_info->priority) {
+        proc_info->counter = 0;
+        
+        uint8_t event = EVENT_NOMESSAGE;
+        
+        // Check initial run
+        if (proc_info->flags == 0) {
             proc_info->flags = 1;
             
-		} else {
-            
-            // Call the TSR program
-            proc_info->function( EVENT_NOMESSAGE );
+            event = EVENT_INITIATE;
         }
         
-	} else {
-		
-		// Increment the priority counter
-		proc_info->counter++;
-	}
-	
-	// Reset the heap access range
-	__heap_begin__ = 0x00000000;
-	__heap_end__   = 0xffffffff;
-	
-	// Free the super block
-	procSuperBlock = 0;
-	
-    VirtualAccessSetMode( currentMode );
+        // Reset the time slice
+        proc_info->time_slice = 0;
+        
+        // Call the TSR program
+        SetInterruptFlag();
+        proc_info->function(event);
+        
+    } else {
+        
+        // Increment the priority counter
+        proc_info->counter++;
+    }
     
-    processIndex++;
+    // Process task type
+    switch (proc_info->type) {
+        
+        case TASK_TYPE_VOLATILE: {
+            
+            TaskDestroy(procIndex);
+            procIndex = 0;
+        }
+    }
+    
+    // Reset the heap access range
+    __heap_begin__ = 0x00000000;
+    __heap_end__   = 0xffffffff;
+    
+    // Free the super block
+    procSuperBlock = 0;
+    
+    VirtualAccessSetMode(currentMode);
+    
+    procIndex++;
+    
+    // Check process counter index overflow
+    if (procIndex >= numberOfTasks) 
+        procIndex = 0;
     
     return;
 }
 
 
+// System base timer and task watchdog
+
+volatile uint32_t procTimeSlice=0; 
+
 void _ISR_SCHEDULER_TIMER__(void) {
     
     timer_ms++;
+    
+    // Check no tasks running
+    uint32_t numberOfTasks = ListGetSize(ProcessNodeTable);
+    if (numberOfTasks == 0) 
+        return;
+    
+    struct Node* nodePtr = ListGetNode(ProcessNodeTable, procIndex);
+    struct ProcessDescription* proc_info = nodePtr->data;
+    
+    // Increment the time slice
+    proc_info->time_slice++;
+    
+    
+    // Check timeout
+    if (proc_info->time_slice > 100) {
+        
+        TaskDestroy(procIndex);
+        
+        procIndex = 0;
+        return;
+    }
     
     return;
 }
