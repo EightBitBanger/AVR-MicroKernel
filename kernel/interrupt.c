@@ -30,32 +30,30 @@ void SetInterruptFlag(void) {
 
 void InterruptStartScheduler(void) {
     
-	TCCR0A  = _SCHEDULER_TCCRxA;
-	TCCR0B  = _SCHEDULER_TCCRxB;
-	TIMSK0  = _SCHEDULER_TIMSK;
-	OCR0A   = _SCHEDULER_OCR;
+    // Scheduler entry point
+    TCCR0B = (1 << WGM02) | (1 << CS02);  // CTC mode, prescaler = 256
+    TIMSK0 = (1 << OCIE0A);               // Enable interrupt on compare match A
+    OCR0A = 98;
 	
 	return;
 }
 
 void InterruptStartTimeCounter(void) {
     
-	TCCR1A  = _CLOCK_TCCRxA;
-	TCCR1B  = _CLOCK_TCCRxB;
-	TIMSK1  = _CLOCK_TIMSK;
-	OCR1A   = _CLOCK_OCR;
-	
+    // Millisecond counter
+    TCCR1B = (1 << WGM12) | (1 << CS11) | (1 << CS10);  // Set CTC mode, prescaler = 64
+    TIMSK1 = (1 << OCIE1A);                             // Enable interrupt on compare match A
+    OCR1A = 391;
+    
 	return;
 }
 
 void InterruptStartHardware(void) {
     
     //EICRA = (1 << ISC21); // Rising edge
-    EICRA = (1 << ISC20); // Falling edge
-    EIMSK |= (1 << INT2);
+    EICRA = (1 << ISC20);   // Falling edge
     
-    //EICRA = 0b00100000; // Enable INT2 falling edge
-    //EIMSK = 0b00000100; // Enable INT2 mask
+    EIMSK |= (1 << INT2);   // Enable on PB2
     
     return;
 }
