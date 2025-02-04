@@ -19,8 +19,8 @@ void AllocateExternalMemory(void) {
         totalString[i] = 0x20;
     
     struct Bus memoryBus;
-	memoryBus.read_waitstate  = 4;
-	memoryBus.write_waitstate = 4;
+	memoryBus.read_waitstate  = 1;
+	memoryBus.write_waitstate = 1;
 	
     uint32_t address=0;
     uint8_t buffer=0;

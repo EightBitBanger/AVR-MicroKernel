@@ -27,6 +27,9 @@
 #define EVENT_INITIATE                 1
 #define EVENT_SHUTDOWN                 2
 
+#define TASK_FLAG_INITIATE             0
+#define TASK_FLAG_SHUTDOWN_RQ          1
+
 // Process memory block ranges
 
 #define MEMORY_START 0x4000
@@ -43,7 +46,7 @@ struct ProcessDescription {
 	uint8_t  privilege;     // Memory access mode
 	uint8_t  priority;      // Time reserved for the process
 	uint8_t  counter;       // (Internal) priority counter
-	uint8_t  flags;         // State of process initiation
+	uint8_t  flags;         // State flags
 	
 	// Address range of the processes heap
 	uint32_t heap_begin;

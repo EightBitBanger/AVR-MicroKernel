@@ -111,6 +111,7 @@ uint8_t TaskDestroy(int32_t index) {
 		default:
         case TASK_PRIVILEGE_USER: {VirtualAccessSetMode( VIRTUAL_ACCESS_MODE_USER ); break;}
 	}
+	
 	VirtualBegin();
     
 	// Free the super block
@@ -221,6 +222,13 @@ void SchedulerStop(void) {
 
 volatile uint32_t procIndex=0; 
 
+volatile uint8_t flagProcActive = 0;
+
+volatile struct ProcessDescription* proc_info;
+
+struct mutex mux = {0};
+
+
 void _ISR_SCHEDULER_MAIN__(void) {
     
     // Check no tasks running
@@ -228,8 +236,18 @@ void _ISR_SCHEDULER_MAIN__(void) {
     if (numberOfTasks == 0) 
         return;
     
+    // Lock the mutex
+    if (MutexLock(&mux)) 
+        return;
+    
+    procIndex++;
+    
+    // Check process counter index overflow
+    if (procIndex >= numberOfTasks) 
+        procIndex = 0;
+    
     struct Node* nodePtr = ListGetNode(ProcessNodeTable, procIndex);
-    struct ProcessDescription* proc_info = nodePtr->data;
+    proc_info = nodePtr->data;
     
     int8_t currentMode = VirtualAccessGetMode();
     
@@ -241,7 +259,7 @@ void _ISR_SCHEDULER_MAIN__(void) {
         case TASK_PRIVILEGE_USER: { VirtualAccessSetMode(VIRTUAL_ACCESS_MODE_USER); break; }
     }
     
-    // Set the reference to the process super block
+    // Set the reference to the process super block allocation reference
     // for memory allocation using new and delete
     procSuperBlock = proc_info->block;
     
@@ -256,18 +274,25 @@ void _ISR_SCHEDULER_MAIN__(void) {
         uint8_t event = EVENT_NOMESSAGE;
         
         // Check initial run
-        if (proc_info->flags == 0) {
-            proc_info->flags = 1;
+        if (bit_get(proc_info->flags, TASK_FLAG_INITIATE) == 0) {
+            proc_info->flags = bit_set(proc_info->flags, TASK_FLAG_INITIATE);
             
             event = EVENT_INITIATE;
         }
         
         // Reset the time slice
         proc_info->time_slice = 0;
+        SetInterruptFlag();
         
         // Call the TSR program
-        SetInterruptFlag();
+        flagProcActive = 1;
+        
         proc_info->function(event);
+        
+        flagProcActive = 0;
+        
+        printInt(proc_info->time_slice);
+        printLn();
         
     } else {
         
@@ -289,16 +314,13 @@ void _ISR_SCHEDULER_MAIN__(void) {
     __heap_begin__ = 0x00000000;
     __heap_end__   = 0xffffffff;
     
-    // Free the super block
+    // Free the super block allocation reference
     procSuperBlock = 0;
     
     VirtualAccessSetMode(currentMode);
     
-    procIndex++;
-    
-    // Check process counter index overflow
-    if (procIndex >= numberOfTasks) 
-        procIndex = 0;
+    // Release the mutex
+    MutexUnlock(&mux);
     
     return;
 }
@@ -306,30 +328,41 @@ void _ISR_SCHEDULER_MAIN__(void) {
 
 // System base timer and task watchdog
 
-volatile uint32_t procTimeSlice=0; 
-
 void _ISR_SCHEDULER_TIMER__(void) {
     
     timer_ms++;
     
-    // Check no tasks running
-    uint32_t numberOfTasks = ListGetSize(ProcessNodeTable);
-    if (numberOfTasks == 0) 
+    // Do not run if a task is not running
+    if (flagProcActive == 0) 
         return;
-    
-    struct Node* nodePtr = ListGetNode(ProcessNodeTable, procIndex);
-    struct ProcessDescription* proc_info = nodePtr->data;
     
     // Increment the time slice
     proc_info->time_slice++;
     
-    
-    // Check timeout
+    // Task is becoming annoying, suggest that it close gracefully
     if (proc_info->time_slice > 100) {
         
+        // Request the application to shutdown
+        proc_info->flags = bit_set(proc_info->flags, TASK_FLAG_SHUTDOWN_RQ);
+        
+        return;
+    }
+    
+    // Task is obnoxious! Force the task to close
+    if (proc_info->time_slice > 1000) {
+        
+        // Kill the task, deallocating all memory therein
         TaskDestroy(procIndex);
         
         procIndex = 0;
+        return;
+    }
+    
+    // The task has effectively taken over! Hang the kernel
+    if (proc_info->time_slice > 3000) {
+        
+        kThrow(HALT_APP_HANG, 0x00000000);
+        
         return;
     }
     
