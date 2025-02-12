@@ -48,16 +48,10 @@ int8_t LoadLibrary(uint8_t* filename, uint8_t filenameLength) {
         return 0;
     
     int32_t index = fsFileOpen(fileAddress);
-    
     uint32_t fileSize = fsFileGetSize(fileAddress);
     
     uint8_t fileBuffer[fileSize];
-    
-    for (uint8_t i=0; i < fileSize; i++) 
-        fileBuffer[i] = ' ';
-    
     fsFileRead(index, fileBuffer, fileSize);
-    
     fsFileClose(index);
     
     // Check driver header bytes
@@ -128,8 +122,8 @@ int8_t LoadLibrary(uint8_t* filename, uint8_t filenameLength) {
             break;
             
         case 2:
-            newDeviceDriver->read  = (void(*)(uint32_t, uint8_t*)) bus_read_io;
-            newDeviceDriver->write = (void(*)(uint32_t, uint8_t))  bus_write_io;
+            newDeviceDriver->read  = (void(*)(uint32_t, uint8_t*)) bus_read_byte;
+            newDeviceDriver->write = (void(*)(uint32_t, uint8_t))  bus_write_byte;
             break;
         
     }
@@ -175,7 +169,7 @@ struct Driver* GetDriverByName(uint8_t* name, uint8_t nameLength) {
         
         for (uint8_t i=0; i < nameLength - 1; i++) {
             
-            if (driverPtr->device.device_name[i] == name[i]) 
+            if (StringCompare(driverPtr->device.device_name, nameLength, name, nameLength) == 1)
                 return driverPtr;
         }
         

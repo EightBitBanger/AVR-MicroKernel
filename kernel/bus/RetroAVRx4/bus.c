@@ -4,16 +4,17 @@
 #include <kernel/kernel.h>
 
 #include <kernel/bus/bus.h>
+#include <kernel/list.h>
 
 #ifdef BOARD_RETRO_AVR_X4_REV1
+
+struct Node* BusListHead;
+
 
 // 0b10111111 DT/R
 // 0b11011111 IO/M
 // 0b11101111 Write
 // 0b11110111 Read
-
-
-#include <kernel/bus/bus.h>
 
 
 // Caching
@@ -286,7 +287,7 @@ void bus_write_byte(struct Bus* bus, uint32_t address, uint8_t byte) {
     return;
 }
 
-void bus_write_io_eeprom(struct Bus* bus, uint32_t address, uint8_t byte) {
+void bus_write_byte_eeprom(struct Bus* bus, uint32_t address, uint8_t byte) {
     
     bus_write_io(bus, address, byte);
     
@@ -306,7 +307,7 @@ void bus_write_memory_eeprom(struct Bus* bus, uint32_t address, uint8_t byte) {
 
 void bus_write_byte_eeprom(struct Bus* bus, uint32_t address, uint8_t byte) {
     
-    bus_write_io_eeprom(bus, address, byte);
+    bus_write_byte_eeprom(bus, address, byte);
     
     _delay_ms(10);
     
@@ -616,7 +617,7 @@ void bus_write_byte(struct Bus* bus, uint32_t address, uint8_t byte) {
     return;
 }
 
-void bus_write_io_eeprom(struct Bus* bus, uint32_t address, uint8_t byte) {
+void bus_write_byte_eeprom(struct Bus* bus, uint32_t address, uint8_t byte) {
     
     bus_write_io(bus, address, byte);
     
@@ -636,7 +637,7 @@ void bus_write_memory_eeprom(struct Bus* bus, uint32_t address, uint8_t byte) {
 
 void bus_write_byte_eeprom(struct Bus* bus, uint32_t address, uint8_t byte) {
     
-    bus_write_io_eeprom(bus, address, byte);
+    bus_write_byte_eeprom(bus, address, byte);
     
     _delay_ms(10);
     

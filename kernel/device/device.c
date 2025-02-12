@@ -9,12 +9,22 @@
 struct Node* DeviceTableHead = NULL;
 
 
+struct BusDescriptor {
+    
+    struct Node* deviceBusNode;
+    
+};
+
+
+
 void InitiateDeviceTable(void) {
     
+    // Create peripheral device bus
     struct Bus bus;
     
     bus.read_waitstate  = 20;
     bus.write_waitstate = 20;
+    
     
     //
     // Initiate peripheral devices
@@ -29,8 +39,18 @@ void InitiateDeviceTable(void) {
         // Calculate device address offset
         uint32_t hardware_address = PERIPHERAL_ADDRESS_BEGIN + (PERIPHERAL_STRIDE * d);
         
+        // Get device ID
+        uint8_t deviceID;
+        bus_read_byte(&bus, hardware_address, &deviceID);
+        
+        if (deviceID == 0xff) 
+            continue;
+        
         struct Device* newDevicePtr = (struct Device*)malloc(sizeof(struct Device));
         ListAddNode(&DeviceTableHead, newDevicePtr);
+        
+        // Set device ID byte
+        newDevicePtr->device_id = deviceID;
         
         // Get device name
         for (uint8_t i=0; i < DEVICE_NAME_LENGTH; i++) 
@@ -47,20 +67,8 @@ void InitiateDeviceTable(void) {
                 newDevicePtr->device_name[i] = ' ';
         }
         
-        // Get device ID
-        bus_read_byte(&bus, hardware_address, &newDevicePtr->device_id);
-        
-        // Reject device name
-        if (is_letter(&newDevicePtr->device_name[0]) == 0) 
-            continue;
-        
-        if (newDevicePtr->device_id == 0) 
-            continue;
-        
         newDevicePtr->hardware_address = hardware_address;
-        
         newDevicePtr->hardware_slot = d;
-        
         index++;
         
         continue;
@@ -85,8 +93,11 @@ void InitiateDeviceTable(void) {
             struct Driver* driver = GetDriverByIndex(i);
             struct Device* device = (struct Device*)GetDriverByIndex(i);
             
-            // Check hardware IDs
-            if (device->device_id != devicePtr->device_id) 
+            // Check hardware validation
+            if (device->device_id != devicePtr->device_id || 
+                device->bus.bus_type != devicePtr->bus.bus_type) 
+                continue;
+            if (StringCompare(device->device_name, DEVICE_NAME_LENGTH, devicePtr->device_name, DEVICE_NAME_LENGTH) == 0) 
                 continue;
             
             // Link the hardware addresses
@@ -106,8 +117,10 @@ void InitiateDeviceTable(void) {
 
 
 struct Device* GetDeviceByIndex(uint8_t index) {
-    
-    return ListGetNode(DeviceTableHead, index)->data;
+    struct Node* node = ListGetNode(DeviceTableHead, index);
+    if (!node) 
+        return NULL;
+    return (struct Device*)node->data;
 }
 
 

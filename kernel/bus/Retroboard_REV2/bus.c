@@ -8,8 +8,6 @@
 
 #ifdef BOARD_RETROBOARD_REV2
 
-#include <kernel/bus/bus.h>
-
 // Caching
 
 #define CACHE_SIZE   32
@@ -136,7 +134,11 @@ uint32_t cache_end   = 0;
 #endif
 
 void bus_initiate(void) {
-    bus_control_zero();
+    // Set internal pull-up resistors
+    _BUS_LOWER_DIR__ = 0x00;
+	_BUS_LOWER_OUT__ = 0xff;
+	_BUS_LOWER_DIR__ = 0xff;
+	bus_control_zero();
     bus_address_zero();
     return;
 }
@@ -159,101 +161,35 @@ void bus_address_zero(void) {
 	return;
 }
 
-void bus_raw_read_byte(struct Bus* bus, uint32_t address, uint8_t* buffer) {
-	
-	// Output the data bus
-    _BUS_LOWER_DIR__ = 0xff;
-	
-	// Address the device
-	_BUS_UPPER_OUT__  = (address >> 16);
-	_BUS_MIDDLE_OUT__ = (address >> 8);
-	_BUS_LOWER_OUT__  = (address & 0xff);
-	
-	_CONTROL_OUT__ = _CONTROL_OPEN_LATCH__;
-	_CONTROL_OUT__ = _CONTROL_READ_LATCH__;
-	
-	// Set data direction
-	_BUS_LOWER_DIR__ = 0x00;
-	_BUS_LOWER_OUT__ = 0xff; // Internal pull-up resistors
-	
-	// Wait state
-	for (uint16_t i=0; i < bus->read_waitstate; i++) 
-        _CONTROL_OUT__ = _CONTROL_READ_CYCLE__;
-	
-	// Read the data byte
-	*buffer = _BUS_LOWER_IN__;
-	
-	// End cycle
-	_CONTROL_OUT__ = _CONTROL_OPEN_LATCH__;
-	_BUS_UPPER_OUT__  = 0x00;
-	_BUS_MIDDLE_OUT__ = 0x00;
-	_BUS_LOWER_OUT__  = 0x00;
-	_CONTROL_OUT__ = _CONTROL_CLOSED_LATCH__;
-	
-	return;
-}
-
-
-void bus_raw_write_byte(struct Bus* bus, uint32_t address, uint8_t byte) {
-	
-	// Output the data bus
-    _BUS_LOWER_DIR__ = 0xff;
-	
-	// Address the device
-	_BUS_UPPER_OUT__  = (address >> 16);
-	_BUS_MIDDLE_OUT__ = (address >> 8);
-	_BUS_LOWER_OUT__  = (address & 0xff);
-	
-	_CONTROL_OUT__ = _CONTROL_OPEN_LATCH__;
-	_CONTROL_OUT__ = _CONTROL_WRITE_LATCH__;
-	
-	// Cast the data byte
-	_BUS_LOWER_OUT__ = byte;
-	
-	// Wait state
-	for (uint16_t i=0; i < bus->write_waitstate; i++) 
-        _CONTROL_OUT__ = _CONTROL_WRITE_CYCLE__;
-	
-	// End cycle
-	_CONTROL_OUT__ = _CONTROL_OPEN_LATCH__;
-	_BUS_UPPER_OUT__  = 0x00;
-	_BUS_MIDDLE_OUT__ = 0x00;
-	_BUS_LOWER_OUT__  = 0x00;
-	_CONTROL_OUT__ = _CONTROL_CLOSED_LATCH__;
-	
-	return;
-}
-
 void bus_raw_read_memory(struct Bus* bus, uint32_t address, uint8_t* buffer) {
 	
-	// Output the data bus
-    _BUS_LOWER_DIR__ = 0xff;
-	
 	// Address the device
-	_BUS_UPPER_OUT__  = (address >> 16);
-	_BUS_MIDDLE_OUT__ = (address >> 8);
-	_BUS_LOWER_OUT__  = (address & 0xff);
+	_BUS_UPPER_OUT__  = (address >> 16) & 0xff;
+	_BUS_MIDDLE_OUT__ = (address >> 8) & 0xff;
+	_BUS_LOWER_OUT__  = address & 0xff;
 	
+    // Latch in preparation of a read cycle
 	_CONTROL_OUT__ = _CONTROL_OPEN_LATCH__;
 	_CONTROL_OUT__ = _CONTROL_READ_LATCH__;
 	
 	// Set data direction
 	_BUS_LOWER_DIR__ = 0x00;
-	_BUS_LOWER_OUT__ = 0xff; // Internal pull-up resistors
+	
+	// Begin the read strobe
+	_CONTROL_OUT__ = _CONTROL_READ_CYCLE__;
 	
 	// Wait state
-	for (uint16_t i=0; i < bus->read_waitstate; i++) 
-        _CONTROL_OUT__ = _CONTROL_READ_CYCLE__;
+	uint16_t wait = bus->read_waitstate;
+    while (wait--) __asm__ volatile("nop");
 	
 	// Read the data byte
 	*buffer = _BUS_LOWER_IN__;
 	
-	// End cycle
+	// End cycle (reset the select logic)
 	_CONTROL_OUT__ = _CONTROL_OPEN_LATCH__;
 	_BUS_UPPER_OUT__  = 0x00;
-	_BUS_MIDDLE_OUT__ = 0x00;
-	_BUS_LOWER_OUT__  = 0x00;
 	_CONTROL_OUT__ = _CONTROL_CLOSED_LATCH__;
+	_BUS_LOWER_DIR__ = 0xff;
 	
 	return;
 }
@@ -261,89 +197,52 @@ void bus_raw_read_memory(struct Bus* bus, uint32_t address, uint8_t* buffer) {
 
 void bus_raw_write_memory(struct Bus* bus, uint32_t address, uint8_t byte) {
 	
-	// Output the data bus
-    _BUS_LOWER_DIR__ = 0xff;
-	
 	// Address the device
-	_BUS_UPPER_OUT__  = (address >> 16);
-	_BUS_MIDDLE_OUT__ = (address >> 8);
-	_BUS_LOWER_OUT__  = (address & 0xff);
+	_BUS_UPPER_OUT__  = (address >> 16) & 0xff;
+	_BUS_MIDDLE_OUT__ = (address >> 8) & 0xff;
+	_BUS_LOWER_OUT__  = address & 0xff;
 	
+	// Latch in preparation of a write cycle
 	_CONTROL_OUT__ = _CONTROL_OPEN_LATCH__;
 	_CONTROL_OUT__ = _CONTROL_WRITE_LATCH__;
 	
 	// Cast the data byte
 	_BUS_LOWER_OUT__ = byte;
 	
-	// Wait state
-	for (uint16_t i=0; i < bus->write_waitstate; i++) 
-        _CONTROL_OUT__ = _CONTROL_WRITE_CYCLE__;
+	// Begin the write strobe
+	_CONTROL_OUT__ = _CONTROL_WRITE_CYCLE__;
 	
-	// End cycle
+	// Wait state
+	uint16_t wait = bus->write_waitstate;
+    while (wait--) __asm__ volatile("nop");
+	
+	// End cycle (reset the select logic)
 	_CONTROL_OUT__ = _CONTROL_OPEN_LATCH__;
 	_BUS_UPPER_OUT__  = 0x00;
-	_BUS_MIDDLE_OUT__ = 0x00;
-	_BUS_LOWER_OUT__  = 0x00;
 	_CONTROL_OUT__ = _CONTROL_CLOSED_LATCH__;
 	
 	return;
 }
 
-void bus_write_io(struct Bus* bus, uint32_t address, uint8_t byte) {
+void bus_read_byte(struct Bus* bus, uint32_t address, uint8_t* buffer) {
+    bus_raw_read_memory(bus, address, buffer);
+	return;
+}
+
+void bus_write_byte(struct Bus* bus, uint32_t address, uint8_t byte) {
     bus_raw_write_memory(bus, address, byte);
     return;
 }
 
-void bus_read_io(struct Bus* bus, uint32_t address, uint8_t* buffer) {
-    bus_raw_read_memory(bus, address, buffer);
-    return;
-}
-
-void bus_write_io_eeprom(struct Bus* bus, uint32_t address, uint8_t byte) {
-    bus_write_byte_eeprom(bus, address, byte);
-    return;
-}
-
-void bus_read_byte(struct Bus* bus, uint32_t address, uint8_t* buffer) {
-    bus_raw_read_byte(bus, address, buffer);
-}
-
-void bus_write_byte(struct Bus* bus, uint32_t address, uint8_t byte) {
-    bus_raw_write_byte(bus, address, byte);
-}
-
 
 void bus_write_byte_eeprom(struct Bus* bus, uint32_t address, uint8_t byte) {
-    
-	// Address the device
-	_BUS_LOWER_DIR__ = 0xff;
-	
-	_BUS_UPPER_OUT__  = (address >> 16);
-	_BUS_MIDDLE_OUT__ = (address >> 8);
-	_BUS_LOWER_OUT__  = (address & 0xff);
-	
-	_CONTROL_OUT__ = _CONTROL_OPEN_LATCH__;
-	_CONTROL_OUT__ = _CONTROL_WRITE_LATCH__;
-	
-	// Cast the data byte
-	_BUS_LOWER_OUT__ = byte;
-	
-	// Wait state
-	for (uint16_t i=0; i < bus->write_waitstate; i++) 
-        _CONTROL_OUT__ = _CONTROL_WRITE_CYCLE__;
-	
-	// End cycle
-	_CONTROL_OUT__ = _CONTROL_OPEN_LATCH__;
-	_BUS_UPPER_OUT__  = 0x00;
-	_BUS_MIDDLE_OUT__ = 0x00;
-	_BUS_LOWER_OUT__  = 0x00;
-	_CONTROL_OUT__ = _CONTROL_CLOSED_LATCH__;
-	
-	_delay_ms(10);
-	
-    return;
+    bus_raw_write_memory(bus, address, byte);
+    _delay_ms(10);
+	return;
 }
 
+
+// Cache
 
 void bus_flush_cache(struct Bus* bus, uint32_t address) {
     
@@ -360,10 +259,6 @@ void bus_flush_cache(struct Bus* bus, uint32_t address) {
     
     return;
 }
-
-
-
-
 
 void bus_read_memory(struct Bus* bus, uint32_t address, uint8_t* buffer) {
 	
