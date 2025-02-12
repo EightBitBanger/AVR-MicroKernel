@@ -1,7 +1,8 @@
 #include <kernel/fs/fs.h>
 
-extern uint32_t VirtualAddressBegin;
-extern uint32_t VirtualAddressEnd;
+extern uint32_t __virtual_address_begin__;
+extern uint32_t __virtual_address_end__;
+
 
 uint32_t fsAllocate(uint32_t size) {
     
@@ -11,21 +12,17 @@ uint32_t fsAllocate(uint32_t size) {
     uint32_t currentCapacity = fsDeviceGetCapacity() / FORMAT_SECTOR_SIZE;
     
     // Calculate sectors required to fit the file
-    uint32_t totalSectors = (size / (FORMAT_SECTOR_SIZE - 1)) + 1;
+    //uint32_t totalSectors = (size / (FORMAT_SECTOR_SIZE - 1)) + 1;
+    uint32_t totalSectors = (size + (FORMAT_SECTOR_SIZE - 2)) / (FORMAT_SECTOR_SIZE - 1);
     
     // Find free sectors
     for (uint32_t sector = 0; sector < currentCapacity; sector++) {
         
-        uint32_t offset = VirtualAddressBegin + (sector * FORMAT_SECTOR_SIZE);
+        uint32_t offset = __virtual_address_begin__ + (sector * FORMAT_SECTOR_SIZE);
         
         // Check allocation range
-        if (offset >= VirtualAddressEnd) {
+        if (offset > __virtual_address_end__) {
             kThrow(HALT_BAD_ALLOCATION, offset);
-        }
-        
-        // Check out of memory range
-        if (offset > kAllocGetTotal()) {
-            kThrow(HALT_OUT_OF_MEMORY, offset);
         }
         
         // Find an empty sector
@@ -39,10 +36,10 @@ uint32_t fsAllocate(uint32_t size) {
         freeSectorCount = 0;
         for (uint32_t nextSector = sector; nextSector < currentCapacity; nextSector++) {
             
-            uint32_t offsetNext = VirtualAddressBegin + (nextSector * FORMAT_SECTOR_SIZE);
+            uint32_t offsetNext = __virtual_address_begin__ + (nextSector * FORMAT_SECTOR_SIZE);
             
             // Check allocation range
-            if (offsetNext >= VirtualAddressEnd) {
+            if (offsetNext > __virtual_address_end__) {
                 kThrow(HALT_BAD_ALLOCATION, offsetNext);
             }
             

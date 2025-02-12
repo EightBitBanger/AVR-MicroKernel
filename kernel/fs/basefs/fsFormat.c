@@ -23,7 +23,8 @@ uint32_t fsDeviceConstructAllocationTable(uint32_t addressBegin, uint32_t addres
     
     uint32_t directoryAddress = fsDirectoryCreate(rootDirName, sizeof(rootDirName));
     
-    fsDeviceSetRootDirectory( directoryAddress );
+    // Set the device root directory
+    fsDeviceSetRootContextDirectory( directoryAddress );
     
     return directoryAddress;
 }
@@ -31,8 +32,9 @@ uint32_t fsDeviceConstructAllocationTable(uint32_t addressBegin, uint32_t addres
 
 uint8_t fsFormat(uint32_t addressBegin, uint32_t addressEnd) {
     
-    uint8_t rootDevice = fsDeviceGetRoot();
+    uint8_t rootDevice = fsDeviceGetRootLetter();
     
+    // No caching for formatting on a memory device
     if (rootDevice == 'X') 
        fs_set_type_MEM_nocache();
     
@@ -54,11 +56,9 @@ uint8_t fsFormat(uint32_t addressBegin, uint32_t addressEnd) {
         continue;
     }
     
-    fsDeviceSetRoot(rootDevice);
+    fsDeviceSetRootLetter(rootDevice);
     
     fsDeviceConstructAllocationTable(addressBegin, addressEnd);
-    
-    fsDeviceSetRoot(rootDevice);
     
     return 1;
 }
@@ -67,7 +67,7 @@ uint8_t fsFormat(uint32_t addressBegin, uint32_t addressEnd) {
 
 uint8_t fsFormatQuick(uint32_t addressBegin, uint32_t addressEnd) {
     
-    uint8_t rootDevice = fsDeviceGetRoot();
+    uint8_t rootDevice = fsDeviceGetRootLetter();
     
     if (rootDevice == 'X') 
         fs_set_type_MEM_nocache();
@@ -81,7 +81,7 @@ uint8_t fsFormatQuick(uint32_t addressBegin, uint32_t addressEnd) {
     
     fsDeviceConstructAllocationTable(addressBegin, addressEnd);
     
-    fsDeviceSetRoot(rootDevice);
+    fsDeviceSetRootLetter(rootDevice);
     
     return 1;
 }

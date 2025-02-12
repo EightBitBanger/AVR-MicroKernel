@@ -3,6 +3,10 @@
 uint32_t fsFileCopy(uint8_t* sourceName, uint8_t sourceLength, 
                     uint8_t* destName, uint8_t destLength, 
                     uint8_t deviceLetter, uint32_t directoryAddress) {
+    if (sourceLength > FILE_NAME_LENGTH) 
+        sourceLength = FILE_NAME_LENGTH;
+    if (destLength > FILE_NAME_LENGTH) 
+        destLength = FILE_NAME_LENGTH;
     
     // Copy source file
     uint32_t sourceAddress = fsFileExists(sourceName, sourceLength);
@@ -22,11 +26,11 @@ uint32_t fsFileCopy(uint8_t* sourceName, uint8_t sourceLength,
     
     // Paste destination file
     
-    uint8_t currentDeviceLetter = fsDeviceGetRoot();
+    uint8_t currentDeviceLetter = fsDeviceGetRootLetter();
     uint32_t currentWorkingDirectoryAddress = fsWorkingDirectoryGetAddress();
     
     if ((deviceLetter == 0) | (directoryAddress == 0)) {
-        fsDeviceSetRoot( deviceLetter );
+        fsDeviceSetRootLetter( deviceLetter );
         
         fsWorkingDirectorySetAddress( directoryAddress );
         fsWorkingDirectorySetName( directoryAddress );
@@ -41,7 +45,7 @@ uint32_t fsFileCopy(uint8_t* sourceName, uint8_t sourceLength,
     
     fsFileClose(indexDst);
     
-    fsDeviceSetRoot( currentDeviceLetter );
+    fsDeviceSetRootLetter( currentDeviceLetter );
     
     fsWorkingDirectorySetAddress( currentWorkingDirectoryAddress );
     fsWorkingDirectorySetName( currentWorkingDirectoryAddress );

@@ -94,6 +94,7 @@ void fs_write_byte(uint32_t address, uint8_t byte);
 void fs_read_byte(uint32_t address, uint8_t* buffer);
 
 void fs_set_type_IO(void);
+void fs_set_type_EEPROM(void);
 void fs_set_type_MEM(void);
 void fs_set_type_MEM_nocache(void);
 
@@ -104,8 +105,8 @@ void fsDeviceSetContext(uint32_t device_address);
 uint32_t fsDeviceGetContext(void);
 
 /// Set device context by letter.
-void fsDeviceSetRoot(uint8_t deviceLetter);
-uint8_t fsDeviceGetRoot(void);
+void fsDeviceSetRootLetter(uint8_t deviceLetter);
+uint8_t fsDeviceGetRootLetter(void);
 
 /// Get information about the device.
 uint8_t fsDeviceCheckReady(void);
@@ -113,9 +114,9 @@ uint8_t fsDeviceCheckReady(void);
 /// Get the size of the device in bytes.
 uint32_t fsDeviceGetCapacity(void);
 /// Get the root directory of the device.
-uint32_t fsDeviceGetRootDirectory(void);
+uint32_t fsDeviceGetRootContextDirectory(void);
 /// Set the root directory of the device.
-void fsDeviceSetRootDirectory(uint32_t directoryAddress);
+void fsDeviceSetRootContextDirectory(uint32_t directoryAddress);
 
 // Allocation
 
@@ -181,7 +182,7 @@ uint32_t fsFileFindFirst(void);
 
 /// Find the next file in the sequence.
 uint32_t fsFileFindNext(void);
-/// Get a file from an index location in the directory.
+/// Get a file from an index location in the working directory.
 uint32_t fsFileFind(uint32_t index);
 
 // File buffer IO

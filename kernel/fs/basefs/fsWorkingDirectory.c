@@ -61,8 +61,8 @@ void fsWorkingDirectoryClear(void) {
     
     fs_working_directory_length = 0;
     
-    fsWorkingDirectorySetAddress( fsDeviceGetRootDirectory() );
-    fsWorkingDirectorySetName( fsDeviceGetRootDirectory() );
+    fsWorkingDirectorySetAddress( fsDeviceGetRootContextDirectory() );
+    fsWorkingDirectorySetName( fsDeviceGetRootContextDirectory() );
     
     return;
 }

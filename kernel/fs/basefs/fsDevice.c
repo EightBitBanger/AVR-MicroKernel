@@ -13,39 +13,27 @@ extern uint32_t fileBeginAddress[16];
 extern uint32_t fileSize[16];
 
 
-void fsDeviceSetRoot(uint8_t deviceLetter) {
+void fsDeviceSetRootLetter(uint8_t deviceLetter) {
     
     lowercase(&deviceLetter);
     
     fs_device_root = deviceLetter;
-    
     fs_device_address = 0xffffffff;
     
     if (deviceLetter == 'x') {
-        
         fs_set_type_MEM();
         fs_device_address = 0x00000000;
-        
-    }
-    
-    if (deviceLetter == 'z') {
-        
-        fs_set_type_MEM();
-        fs_device_address = 0xfffc0000;
-        
     }
     
     if (fs_device_address == 0xffffffff) {
-        
         fs_set_type_IO();
         fs_device_address = PERIPHERAL_ADDRESS_BEGIN + ((deviceLetter - 'a') * 0x10000);
-        
     }
     
     return;
 }
 
-uint8_t fsDeviceGetRoot(void) {
+uint8_t fsDeviceGetRootLetter(void) {
     
     uint8_t tempCaseConv = fs_device_root;
     
@@ -71,7 +59,7 @@ void fsInit(void) {
     fs_device_address = 0;
     
     fs_set_type_MEM();
-    fsDeviceSetRoot('X');
+    fsDeviceSetRootLetter('X');
     
     fs_bus.read_waitstate  = 2;
     fs_bus.write_waitstate = 2;
@@ -95,8 +83,8 @@ void fs_read_byte(uint32_t address, uint8_t* buffer) {
 
 void fs_set_type_IO(void) {
     
-    __fs_read_byte  = bus_read_io;
-    __fs_write_byte = bus_write_io_eeprom;
+    __fs_read_byte  = bus_read_byte;
+    __fs_write_byte = bus_write_byte_eeprom;
     
     return;
 }
@@ -131,6 +119,34 @@ uint8_t fsDeviceCheckReady(void) {
         if (headerByte[i] != deviceID[i]) 
             return 0;
     
+    // Check device root directory
+    uint32_t rootDirectory = fsDeviceGetRootContextDirectory();
+    
+    if (rootDirectory == 0) 
+        return 0;
+    
+    // Check device attributes
+    struct FSAttribute attr;
+    fsFileGetAttributes(rootDirectory, &attr);
+    
+    if ((attr.executable != ' ') | (attr.readable != 'r') | (attr.writeable != 'w') | (attr.type != 'd')) 
+        return 0;
+    
+    uint32_t workingDirectory = fsWorkingDirectoryGetAddress();
+    
+    // Check working directory is valid
+    if (workingDirectory != 0) {
+        fsFileGetAttributes(workingDirectory, &attr);
+        
+        if ((attr.executable != ' ') | (attr.readable != 'r') | (attr.writeable != 'w') | (attr.type != 'd')) 
+            return 0;
+        
+    }
+    
+    // Update root working directory
+    if (fsWorkingDirectoryGetStack() == 0) 
+        fsWorkingDirectorySetAddress(rootDirectory);
+    
     return 1;
 }
 
@@ -146,7 +162,7 @@ uint32_t fsDeviceGetCapacity(void) {
 }
 
 
-void fsDeviceSetRootDirectory(uint32_t directoryAddress) {
+void fsDeviceSetRootContextDirectory(uint32_t directoryAddress) {
     
     union Pointer rootDirPtr;
     rootDirPtr.address = directoryAddress;
@@ -161,7 +177,7 @@ void fsDeviceSetRootDirectory(uint32_t directoryAddress) {
 }
 
 
-uint32_t fsDeviceGetRootDirectory(void) {
+uint32_t fsDeviceGetRootContextDirectory(void) {
     
     union Pointer rootDirPtr;
     
