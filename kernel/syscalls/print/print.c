@@ -29,6 +29,7 @@ void print(uint8_t* string, uint8_t length) {
         
         console_position++;
     }
+    swapBuffers();
     
     return;
 }
@@ -58,6 +59,7 @@ void printInt(uint32_t integer) {
     
     console_position += (place / 2) + 1;
     ConsoleSetCursorPosition(console_position);
+    swapBuffers();
     
     return;
 }
@@ -78,6 +80,7 @@ void printc(char* string, uint8_t length) {
     }
     
     ConsoleSetCursorPosition(console_position);
+    swapBuffers();
     
     return;
 }
@@ -90,6 +93,7 @@ void printChar(uint8_t character) {
     displayDevice->write( 0x0000a, character );
     
     console_position++;
+    swapBuffers();
     
     return;
 }
@@ -113,29 +117,26 @@ void printLn(void) {
     console_position = 0;
     
     ConsoleSetCursor(console_line, console_position);
+    swapBuffers();
     
     return;
 }
 
 void printSpace(uint8_t numberOfSpaces) {
-    
     displayDevice->write( 0x00001, console_line );
     
     for (uint8_t i=0; i < numberOfSpaces; i++) {
         displayDevice->write( 0x00002, console_position );
-        
         displayDevice->write( 0x0000a + i, ' ' );
-        
         console_position++;
     }
     
     ConsoleSetCursorPosition(console_position);
-    
+    swapBuffers();
     return;
 }
 
 void printPrompt(void) {
-    
     displayDevice->write( 0x00001, console_line );
     displayDevice->write( 0x00002, 0 );
     
@@ -145,12 +146,11 @@ void printPrompt(void) {
     console_position = console_prompt_length - 1;
     
     ConsoleSetCursorPosition(console_position);
-    
+    swapBuffers();
     return;
 }
 
 uint8_t printPause(void) {
-    
     uint8_t msgPressAnyKey[]   = "Press any key...";
     print(msgPressAnyKey, sizeof(msgPressAnyKey));
     
@@ -164,7 +164,6 @@ uint8_t printPause(void) {
         printChar(' ');
     
     ConsoleSetCursorPosition(0);
-    
     return keypress;
 }
 

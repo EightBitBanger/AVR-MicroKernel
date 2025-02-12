@@ -75,7 +75,7 @@ void VirtualWrite(uint32_t address, uint8_t* byte, uint32_t size) {
         
         // Check kernel memory segmentation fault
         if (offset < __virtual_address_begin__ || 
-            offset >= __virtual_address_end__) {
+            offset > __virtual_address_end__) {
             
             kThrow(HALT_SEGMENTATION_FAULT, offset);
         }
@@ -120,7 +120,7 @@ void VirtualRead(uint32_t address, uint8_t* byte, uint32_t size) {
         
         // Check segmentation fault
         if (offset < __virtual_address_begin__ || 
-            offset >= __virtual_address_end__) {
+            offset > __virtual_address_end__) {
             
             kThrow(HALT_SEGMENTATION_FAULT, offset);
         }
@@ -155,8 +155,8 @@ void VirtualBegin(void) {
         return;
     }
     
-    currentDevice = fsDeviceGetRoot();
-    fsDeviceSetRoot('x');
+    currentDevice = fsDeviceGetRootLetter();
+    fsDeviceSetRootLetter('x');
     
     return;
 }
@@ -168,8 +168,7 @@ void VirtualEnd(void) {
         return;
     }
     
-    fsDeviceSetRoot(currentDevice);
-    
+    fsDeviceSetRootLetter(currentDevice);
     currentDevice = ' ';
     
     return;

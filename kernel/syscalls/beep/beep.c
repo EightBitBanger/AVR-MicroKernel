@@ -11,7 +11,7 @@ void beep(uint16_t duration, uint16_t frequency) {
     
     for (uint16_t i=0; i < duration; i++) {
         
-        bus_write_io(&spkBus, 0x60000, 0xff);
+        bus_write_byte(&spkBus, 0x60000, 0xff);
         
         for (uint16_t i=0; i < frequency / 16; i++) 
             __asm__("nop");
