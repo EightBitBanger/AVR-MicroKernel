@@ -14,6 +14,8 @@
 
 uint8_t cache[CACHE_SIZE];
 
+uint8_t dirty_bits[CACHE_SIZE];
+
 uint32_t cache_begin = 0;
 uint32_t cache_end   = 0;
 
@@ -245,56 +247,48 @@ void bus_write_byte_eeprom(struct Bus* bus, uint32_t address, uint8_t byte) {
 // Cache
 
 void bus_flush_cache(struct Bus* bus, uint32_t address) {
-    
-    // Write back the cache
-    for (uint32_t i = 0; i < CACHE_SIZE; i++) 
-        bus_raw_write_memory(bus, cache_begin + i, cache[i]);
+    // Write back only modified cache bytes
+    for (uint32_t i = 0; i < CACHE_SIZE; i++) {
+        if (dirty_bits[i]) {  // Only write if modified
+            bus_raw_write_memory(bus, cache_begin + i, cache[i]);
+            dirty_bits[i] = 0; // Clear dirty bit after writing
+        }
+    }
     
     // Fetch new data
-    for (uint32_t i = 0; i < CACHE_SIZE; i++) 
+    for (uint32_t i = 0; i < CACHE_SIZE; i++) {
         bus_raw_read_memory(bus, address + i, &cache[i]);
+        dirty_bits[i] = 0; // Reset dirty state for new data
+    }
     
     cache_begin = address;
     cache_end = address + CACHE_SIZE;
-    
     return;
 }
 
 void bus_read_memory(struct Bus* bus, uint32_t address, uint8_t* buffer) {
-	
 	if (address >= cache_begin && address < cache_end) {
-        
-        uint32_t address_offset = address - cache_begin;
-        
-        *buffer = cache[address_offset];
-        
+        *buffer = cache[address - cache_begin];
         return;
     }
-	
+    
     bus_flush_cache(bus, address);
-    
-    // Return the byte
     *buffer = cache[0];
-    
     return;
 }
 
 
 void bus_write_memory(struct Bus* bus, uint32_t address, uint8_t byte) {
-	
 	if (address >= cache_begin && address < cache_end) {
-        
-        uint32_t address_offset = address - cache_begin;
-        
-        cache[address_offset] = byte;
-        
+        uint32_t offset = address - cache_begin;
+        cache[offset] = byte;
+        dirty_bits[offset] = 1;  // Mark as modified
         return;
     }
-	
-	bus_flush_cache(bus, address);
     
-    // Write the byte
+    bus_flush_cache(bus, address);
     cache[0] = byte;
+    dirty_bits[0] = 1;
     
     return;
 }

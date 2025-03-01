@@ -40,4 +40,6 @@ struct Device* GetDeviceByIndex(uint8_t index);
 
 uint8_t GetNumberOfDevices(void);
 
+void DeviceBusyWait(struct Device* devicePtr, uint8_t deviceID);
+
 #endif

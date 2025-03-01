@@ -15,16 +15,14 @@ struct BusDescriptor {
     
 };
 
+struct Bus deviceBus;
+
 
 
 void InitiateDeviceTable(void) {
     
-    // Create peripheral device bus
-    struct Bus bus;
-    
-    bus.read_waitstate  = 20;
-    bus.write_waitstate = 20;
-    
+    deviceBus.read_waitstate  = 20;
+    deviceBus.write_waitstate = 20;
     
     //
     // Initiate peripheral devices
@@ -41,7 +39,7 @@ void InitiateDeviceTable(void) {
         
         // Get device ID
         uint8_t deviceID;
-        bus_read_byte(&bus, hardware_address, &deviceID);
+        bus_read_byte(&deviceBus, hardware_address, &deviceID);
         
         if (deviceID == 0xff) 
             continue;
@@ -54,7 +52,7 @@ void InitiateDeviceTable(void) {
         
         // Get device name
         for (uint8_t i=0; i < DEVICE_NAME_LENGTH; i++) 
-            bus_read_byte(&bus, hardware_address + i + 1, &newDevicePtr->device_name[i]);
+            bus_read_byte(&deviceBus, hardware_address + i + 1, &newDevicePtr->device_name[i]);
         
         // Blank the name once a space character is found
         uint8_t checkFinished = 0;
@@ -128,3 +126,13 @@ uint8_t GetNumberOfDevices(void) {
     
     return ListGetSize(DeviceTableHead);
 }
+
+void DeviceBusyWait(struct Device* devicePtr, uint8_t deviceID) {
+    uint8_t checkByte = 0;
+    bus_read_byte(&deviceBus, devicePtr->hardware_address, &checkByte);
+    while (checkByte != deviceID) {
+        bus_read_byte(&deviceBus, devicePtr->hardware_address, &checkByte);
+    }
+    return;
+}
+

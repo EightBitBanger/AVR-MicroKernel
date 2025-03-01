@@ -20,17 +20,15 @@ extern struct Driver* keyboadDevice;
 
 
 void print(uint8_t* string, uint8_t length) {
-    
+    __glBusyWait();
     displayDevice->write( 0x00001, console_line );
     
     for (uint8_t i=0; i < length - 1; i++) {
         
-        displayDevice->write( 0x0000a + i, string[i] );
+        displayDevice->write( 0x00010 + i, string[i] );
         
         console_position++;
     }
-    swapBuffers();
-    
     return;
 }
 
@@ -51,28 +49,27 @@ void printInt(uint32_t integer) {
     if (place == 0) 
         place++;
     
+    __glBusyWait();
     displayDevice->write( 0x00001, console_line );
     displayDevice->write( 0x00002, console_position );
     
     for (uint8_t i=0; i < place; i++) 
-        displayDevice->write( 0x0000a + i, string[i] );
+        displayDevice->write( 0x00010 + i, string[i] );
     
     console_position += (place / 2) + 1;
     ConsoleSetCursorPosition(console_position);
-    swapBuffers();
-    
     return;
 }
 
 void printc(char* string, uint8_t length) {
-    
+    __glBusyWait();
     displayDevice->write( 0x00001, console_line );
     
     for (uint8_t i=0; i < length - 1; i++) {
         
         displayDevice->write( 0x00002, console_position );
         
-        displayDevice->write( 0x0000a, string[i] );
+        displayDevice->write( 0x00010, string[i] );
         
         console_position++;
         
@@ -80,25 +77,24 @@ void printc(char* string, uint8_t length) {
     }
     
     ConsoleSetCursorPosition(console_position);
-    swapBuffers();
-    
     return;
 }
 
 void printChar(uint8_t character) {
+    __glBusyWait();
     
     displayDevice->write( 0x00001, console_line );
     displayDevice->write( 0x00002, console_position );
     
-    displayDevice->write( 0x0000a, character );
+    displayDevice->write( 0x00010, character );
     
     console_position++;
-    swapBuffers();
     
     return;
 }
 
 void printLn(void) {
+    __glBusyWait();
     
     if (console_line < (displayRows - 1)) {
         
@@ -109,48 +105,45 @@ void printLn(void) {
     } else {
         
         displayDevice->write( 0x00005, 1);
-        
-        _delay_ms(30);
-        
     }
     
     console_position = 0;
     
     ConsoleSetCursor(console_line, console_position);
-    swapBuffers();
     
     return;
 }
 
 void printSpace(uint8_t numberOfSpaces) {
+    __glBusyWait();
     displayDevice->write( 0x00001, console_line );
     
     for (uint8_t i=0; i < numberOfSpaces; i++) {
         displayDevice->write( 0x00002, console_position );
-        displayDevice->write( 0x0000a + i, ' ' );
+        displayDevice->write( 0x00010 + i, ' ' );
         console_position++;
     }
     
     ConsoleSetCursorPosition(console_position);
-    swapBuffers();
     return;
 }
 
 void printPrompt(void) {
+    __glBusyWait();
     displayDevice->write( 0x00001, console_line );
     displayDevice->write( 0x00002, 0 );
     
     for (uint8_t i=0; i < console_prompt_length - 1; i++) 
-        displayDevice->write( 0x0000a + i, console_prompt[i] );
+        displayDevice->write( 0x00010 + i, console_prompt[i] );
     
     console_position = console_prompt_length - 1;
     
     ConsoleSetCursorPosition(console_position);
-    swapBuffers();
     return;
 }
 
 uint8_t printPause(void) {
+    
     uint8_t msgPressAnyKey[]   = "Press any key...";
     print(msgPressAnyKey, sizeof(msgPressAnyKey));
     

@@ -30,7 +30,7 @@ struct Driver* GetDriverByName(uint8_t* name, uint8_t nameLength);
 
 struct Driver* GetDriverByIndex(uint8_t index);
 
-uint8_t RegisterDriver(void* deviceDriverPtr);
+uint32_t RegisterDriver(void* deviceDriverPtr);
 
 uint32_t GetNumberOfDrivers(void);
 
