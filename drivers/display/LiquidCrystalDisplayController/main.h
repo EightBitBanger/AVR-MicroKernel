@@ -19,4 +19,6 @@ struct DisplayDeviceDriver {
 
 void initiateDisplayDriver(void);
 
+void __device_busy_wait(void);
+
 #endif
