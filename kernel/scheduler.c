@@ -6,12 +6,11 @@
 #include <kernel/interrupt.h>
 #include <kernel/cstring.h>
 #include <kernel/virtual/virtual.h>
-#include <kernel/syscalls/print/print.h>
 
 struct Node* ProcessNodeTable = NULL;
 
 
-volatile uint16_t timer_ms = 0;
+volatile uint64_t system_timer_ms = 0;
 
 uint8_t schedulerIsActive = 0;
 
@@ -38,6 +37,9 @@ int32_t TaskCreate(uint8_t* name, uint8_t name_length, void(*task_ptr)(uint8_t),
         name_length = TASK_NAME_LENGTH_MAX;
     
     struct ProcessDescription* newProcPtr = (struct ProcessDescription*)malloc(sizeof(struct ProcessDescription));
+    if (newProcPtr == NULL) 
+        kThrow(HALT_OUT_OF_MEMORY, 0x0A);
+    
     ListAddNode(&ProcessNodeTable, newProcPtr);
     
     // Set process name
@@ -267,6 +269,11 @@ void _ISR_SCHEDULER_MAIN__(void) {
     __heap_begin__ = proc_info->heap_begin;
     __heap_end__   = proc_info->heap_end;
     
+    // Adjust task priority smoothly based on its time_slice
+    if (proc_info->time_slice > 0) {
+        proc_info->priority = (uint8_t)(TASK_PRIORITY_REALTIME + (TASK_PRIORITY_BACKGROUND - TASK_PRIORITY_REALTIME) * (1.0f - exp(-0.001f * proc_info->time_slice)));
+    }
+    
     // Process task priority
     if (proc_info->counter > proc_info->priority) {
         proc_info->counter = 0;
@@ -282,7 +289,7 @@ void _ISR_SCHEDULER_MAIN__(void) {
         
         // Reset the time slice
         proc_info->time_slice = 0;
-        SetInterruptFlag();
+        EnableGlobalInterrupts();
         
         // Call the TSR program
         flagProcActive = 1;
@@ -290,9 +297,6 @@ void _ISR_SCHEDULER_MAIN__(void) {
         proc_info->function(event);
         
         flagProcActive = 0;
-        
-        printInt(proc_info->time_slice);
-        printLn();
         
     } else {
         
@@ -330,7 +334,7 @@ void _ISR_SCHEDULER_MAIN__(void) {
 
 void _ISR_SCHEDULER_TIMER__(void) {
     
-    timer_ms++;
+    system_timer_ms++;
     
     // Do not run if a task is not running
     if (flagProcActive == 0) 

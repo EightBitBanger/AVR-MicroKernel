@@ -222,3 +222,28 @@ uint8_t StringFindChar(uint8_t* string, uint8_t length, uint8_t character) {
     return 1;
 }
 
+
+uint8_t BitSet(uint8_t byte, uint8_t index, uint8_t value) {
+    if (value) {
+        byte |= (1 << index);  // 1
+    } else {
+        byte &= ~(1 << index);  // 0
+    }
+    return byte;
+}
+
+uint8_t bit_set(uint8_t byte, uint8_t index) {
+    byte |= (1 << index);
+    return byte;
+}
+
+uint8_t bit_clear(uint8_t byte, uint8_t index) {
+    byte &= ~(1 << index);
+    return byte;
+}
+
+uint8_t bit_get(uint8_t byte, uint8_t bit_index) {
+    return (byte >> bit_index) & 1;
+}
+
+

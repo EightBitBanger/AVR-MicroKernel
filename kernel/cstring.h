@@ -38,4 +38,12 @@ uint8_t StringSplit(uint8_t* source, uint8_t sourceLen,
                     uint8_t* splitB, uint8_t* splitBLen, 
                     uint8_t delimiter);
 
+// Bit manipulation
+
+uint8_t BitSet(uint8_t byte, uint8_t index, uint8_t value);
+
+uint8_t bit_set(uint8_t byte, uint8_t index);
+uint8_t bit_get(uint8_t byte, uint8_t bit_index);
+uint8_t bit_clear(uint8_t byte, uint8_t index);
+
 #endif

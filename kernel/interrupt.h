@@ -14,8 +14,8 @@ void InterruptStopHardware(void);
 
 // Interrupts
 
-void SetInterruptFlag(void);
-void ClearInterruptFlag(void);
+void EnableGlobalInterrupts(void);
+void DisableGlobalInterrupts(void);
 
 
 // Interrupt service routines

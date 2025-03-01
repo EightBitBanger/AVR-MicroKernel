@@ -12,19 +12,6 @@ int main(void) {
 	InitBakedDrivers();           // Baked device drivers
 	InitiateDeviceTable();        // Hardware device table
     KernelVectorTableInit();      // Hardware interrupt vector table
-    SchedulerInit();              // Scheduler sub system
-    DriverTableInit();            // Driver hot loader
-    
-    /*
-    uint8_t* test = (uint8_t*)malloc(32);
-    
-    test[0] = 0x55;
-    
-    if (test[0] != 0x55) 
-        while(1){}
-    
-    free( test );
-    */
     
 #ifdef NETWORK_APPLICATION_PACKET_ROUTER
     
@@ -35,6 +22,29 @@ int main(void) {
 #endif
     
     cliInit();
+    
+    
+    {
+    uint8_t program[] = {
+        0x89, 0x01, 0x03, 0xCD, 0x10, 0xCD, 0x20, 
+    };
+    EmulatorSetProgram(program, sizeof(program));
+    EmulateX4();
+    
+    while(1) {}
+    }
+    
+    
+    
+    
+    /*
+    SchedulerStart();
+    InterruptStartTimeCounter();
+    EnableGlobalInterrupts();
+	functionGRAPH();
+    return 1;
+    */
+    
     
 #ifdef _KERNEL_ALLOCATE_EXTERNAL_MEMORY__
     
@@ -88,11 +98,12 @@ int main(void) {
     //registerCommandMK();
     
     //registerCommandType();
-    registerCommandList();
+    //registerCommandList();
     //registerCommandRM();
     //registerCommandTASK();
     //registerCommandTest();
     
+    //registerCommandGRAPHICS();
     
     //registerCommandRN();
     //registerCommandCOPY();
@@ -178,19 +189,17 @@ int main(void) {
     InterruptStartScheduler();
     InterruptStartTimeCounter();
     
-    SetInterruptFlag();
+    EnableGlobalInterrupts();
 	
     while(1) {
         
-        __asm__("nop");
-        
 #ifdef BOARD_RETROBOARD_REV2
         
-        ClearInterruptFlag();
+        DisableGlobalInterrupts();
         
         cliRunShell();
         
-        SetInterruptFlag();
+        EnableGlobalInterrupts();
         
 #endif
         

@@ -10,13 +10,14 @@ uint8_t msgHardwareAddr[] = "0x";
 uint8_t msgSegFault[] = "SIG-SEGV";
 uint8_t msgBadAlloc[] = "BAD-ALLOC";
 uint8_t msgOutOfMem[] = "OUT-OF-MEM";
+uint8_t msgProgHang[] = "APP-HANG";
 
 void kHalt(void) {while(1) {__asm__("nop");}}
 
 
 void kThrow(long int errorCode, uint32_t hardwareAddress) {
     
-    ConsoleClearScreen();
+    ConsoleClearScreen(' ');
     
     ConsoleSetCursor(0, 0);
     print(msgErrorEvent, sizeof(msgErrorEvent));
@@ -28,6 +29,7 @@ void kThrow(long int errorCode, uint32_t hardwareAddress) {
         case HALT_BAD_ALLOCATION: {print(msgBadAlloc, sizeof(msgBadAlloc)); break;}
         case HALT_SEGMENTATION_FAULT: {print(msgSegFault, sizeof(msgSegFault)); break;}
         case HALT_OUT_OF_MEMORY: {print(msgOutOfMem, sizeof(msgOutOfMem)); break;}
+        case HALT_APP_HANG: {print(msgProgHang, sizeof(msgProgHang)); break;}
         
     }
     
@@ -36,7 +38,7 @@ void kThrow(long int errorCode, uint32_t hardwareAddress) {
     
     // Print hardware address as hex
     union Pointer addressPtr;
-    addressPtr.address = hardwareAddress;
+    addressPtr.address = errorCode + hardwareAddress;
     
     uint8_t hexstr[2];
     

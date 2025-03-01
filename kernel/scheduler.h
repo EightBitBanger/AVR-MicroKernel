@@ -36,6 +36,8 @@
 #define MEMORY_END 0xFFFF
 #define MEMORY_BLOCK_SIZE 0x0400
 
+#define yield() do { return; } while (0)
+
 
 struct ProcessDescription {
 	

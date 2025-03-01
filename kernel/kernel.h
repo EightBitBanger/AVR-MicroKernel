@@ -7,6 +7,7 @@
 #include <kernel/version.h>
 
 #include <kernel/kref.h>
+#include <kernel/mutex.h>
 #include <kernel/pointers.h>
 #include <kernel/cstring.h>
 #include <kernel/kalloc.h>
@@ -32,6 +33,8 @@
 #include <kernel/syscalls/alloc/new.h>
 #include <kernel/syscalls/print/print.h>
 #include <kernel/syscalls/beep/beep.h>
+#include <kernel/syscalls/timer/timer.h>
+#include <kernel/syscalls/graphics/graphics.h>
 
 // Firmware
 #include <kernel/network/network.h>

@@ -8,6 +8,8 @@
 #define  BOARD_RETROBOARD_REV2
 //#define  BOARD_RETRO_AVR_X4_REV1
 
+#define MAX_MEMORY_SIZE  0x00040000
+
 
 // --------------------------------------------
 // Boot options

@@ -21,15 +21,20 @@ void kInit(void) {
     VirtualAccessSetMode(VIRTUAL_ACCESS_MODE_KERNEL);
     
     // Initiate console prompt
-    uint8_t prompt[] = {fsDeviceGetRoot(), '>'};
+    uint8_t prompt[] = {fsDeviceGetRootLetter(), '>'};
     
     ConsoleSetPrompt(prompt, sizeof(prompt));
     
     // Initiate virtual file system
     vfs.open = vfsOpen;
+    vfs.read = vfsRead;
+    vfs.write = vfsWrite;
+    vfs.close = vfsClose;
+    vfs.mkdir = vfsMkdir;
+    vfs.rmdir = vfsRmdir;
     
     // Initiate memory storage
-    fsDeviceSetRoot('x');
+    fsDeviceSetRootLetter('x');
     fsFormat(0, FORMAT_CAPACITY_32K);
     
     fsWorkingDirectoryClear();
@@ -51,7 +56,6 @@ void kInit(void) {
     fsWorkingDirectoryChange(dirNameDev, sizeof(dirNameDev));
     
     for (uint8_t index=0; index < NUMBER_OF_PERIPHERALS; index++) {
-        
         struct Device* devPtr = GetDeviceByIndex( index );
         
         if (devPtr->device_id == 0) 
@@ -61,9 +65,7 @@ void kInit(void) {
         for (uint8_t i=0; i < FILE_NAME_LENGTH; i++) {
             
             if (devPtr->device_name[i] == ' ') {
-                
                 length = i + 1;
-                
                 break;
             }
             
@@ -79,14 +81,10 @@ void kInit(void) {
         
         fsDirectoryAddFile(fsWorkingDirectoryGetAddress(), fileAddress);
         
-        
         continue;
     }
     
     fsWorkingDirectoryClear();
-    
-    
-    
     
     
     // Find an active storage device
@@ -97,7 +95,7 @@ void kInit(void) {
         
         uint8_t currentDevice = i + 'a';
         
-        fsDeviceSetRoot(currentDevice);
+        fsDeviceSetRootLetter(currentDevice);
         
         if (fsDeviceCheckReady() == 0) 
             continue;
@@ -116,14 +114,14 @@ void kInit(void) {
         break;
     }
     
-    fsDeviceSetRoot('x');
+    fsDeviceSetRootLetter('x');
     fsWorkingDirectoryClear();
     
     // Set prompt to an active storage device
     
     if (selectedDevice == 255) {
         
-        fsDeviceSetRoot('x');
+        fsDeviceSetRootLetter('x');
         
         promptDevLetter[0] = 'X';
         
@@ -131,7 +129,7 @@ void kInit(void) {
         
     } else {
         
-        fsDeviceSetRoot(selectedDevice);
+        fsDeviceSetRootLetter(selectedDevice);
         uppercase(&selectedDevice);
         
         promptDevLetter[0] = selectedDevice;
@@ -141,6 +139,7 @@ void kInit(void) {
     }
     
     fsWorkingDirectoryClear();
+    
     
     
     
@@ -186,9 +185,7 @@ void kInit(void) {
         uint8_t driverFilenameLength=0;
         
         for (uint32_t n=0; n < FILE_NAME_LENGTH; n++) {
-            
             fs_read_byte(fileAddress + FILE_OFFSET_NAME + n, &driverFilename[n]);
-            
             if (driverFilename[n] == ' ') {
                 driverFilenameLength = n;
                 break;
@@ -206,22 +203,21 @@ void kInit(void) {
 #ifdef _BOOT_DETAILS__
         
         // Driver is linked to a device on the bus
-        if (libState == 2) {
-            
+        if (libState == 4) {
+            // Display loaded driver name
             for (uint32_t n=0; n < FILE_NAME_LENGTH; n++) {
-                
                 printChar( driverBuffer[n + 2] );
-                
                 if (driverBuffer[n + 2] == ' ') 
                     break;
             }
             
             printLn();
+            continue;
         }
         
         // Driver was not loaded correctly or is corrupted
-        if ((libState < 1) & (libState != -32)) {
-            
+        if ((libState < 0) & (libState != -32)) {
+            // Driver failed to load
             uint8_t msgFailedToLoad[] = "... failed";
             print(msgFailedToLoad, sizeof(msgFailedToLoad));
             
@@ -236,8 +232,6 @@ void kInit(void) {
 #endif
     
     fsWorkingDirectoryClear();
-    
-    
     
     return;
 }
@@ -263,7 +257,7 @@ void _ISR_hardware_service_routine(void) {
     
     uint8_t vect = 0;
     
-    bus_read_io(&isr_bus, 0x00000, &vect);
+    bus_read_byte(&isr_bus, 0x00000, &vect);
     
     if (((vect >> 7) & 1) != 0) {hardware_interrupt_table[0]();}
     if (((vect >> 6) & 1) != 0) {hardware_interrupt_table[1]();}

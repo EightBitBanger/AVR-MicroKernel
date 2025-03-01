@@ -27,8 +27,7 @@ void AllocateExternalMemory(void) {
     uint8_t place;
     uint16_t counter=0;
     
-    for (address=0x00000000; address < 0x00040000; address++) {
-        
+    for (address=0x00000000; address < MAX_MEMORY_SIZE; address++) {
         bus_raw_write_memory(&memoryBus, address, 0x55);
         bus_raw_read_memory(&memoryBus, address, &buffer);
         if (buffer != 0x55) 
@@ -37,16 +36,6 @@ void AllocateExternalMemory(void) {
         bus_raw_write_memory(&memoryBus, address, 0xAA);
         bus_raw_read_memory(&memoryBus, address, &buffer);
         if (buffer != 0xAA) 
-            break;
-        
-        bus_raw_write_memory(&memoryBus, address, 0xFA);
-        bus_raw_read_memory(&memoryBus, address, &buffer);
-        if (buffer != 0xFA) 
-            break;
-        
-        bus_raw_write_memory(&memoryBus, address, 0xAF);
-        bus_raw_read_memory(&memoryBus, address, &buffer);
-        if (buffer != 0xAF) 
             break;
         
         // Print total allocated memory

@@ -13,14 +13,14 @@ void (*_timer_comp_c_ptr__)() = dummyFunction;
 void (*_external_int_ptr__)() = dummyFunction;
 
 
-void ClearInterruptFlag(void) {
+void DisableGlobalInterrupts(void) {
     
     cli();
     
     return;
 }
 
-void SetInterruptFlag(void) {
+void EnableGlobalInterrupts(void) {
     
     sei();
     
@@ -31,20 +31,20 @@ void SetInterruptFlag(void) {
 void InterruptStartScheduler(void) {
     
     // Scheduler entry point
-    TCCR0B = (1 << WGM02) | (1 << CS02);  // CTC mode, prescaler = 256
-    TIMSK0 = (1 << OCIE0A);               // Enable interrupt on compare match A
-    OCR0A = 98;
-	
+    TCCR1B = (1 << WGM12) | (1 << CS11) | (1 << CS10);  // Set CTC mode, prescaler = 64
+    TIMSK1 = (1 << OCIE1A);                             // Enable interrupt on compare match A
+    OCR1A = 391;
+    
 	return;
 }
 
 void InterruptStartTimeCounter(void) {
     
     // Millisecond counter
-    TCCR1B = (1 << WGM12) | (1 << CS11) | (1 << CS10);  // Set CTC mode, prescaler = 64
-    TIMSK1 = (1 << OCIE1A);                             // Enable interrupt on compare match A
-    OCR1A = 391;
-    
+    TCCR0B = (1 << WGM02) | (1 << CS02);  // CTC mode, prescaler = 256
+    TIMSK0 = (1 << OCIE0A);               // Enable interrupt on compare match A
+    OCR0A = 98;
+	
 	return;
 }
 
