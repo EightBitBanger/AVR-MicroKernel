@@ -24,7 +24,7 @@ void functionCD(uint8_t* param, uint8_t param_length) {
         if (fsWorkingDirectoryGetStack() > 1) {
             
             uint8_t promptLength = 0;
-            uint8_t PromptDir[20] = {fsDeviceGetRoot(), '/'};
+            uint8_t PromptDir[20] = {fsDeviceGetRootLetter(), '/'};
             
             if (fsWorkingDirectorySetToParent() == 1) {
                 
@@ -54,7 +54,7 @@ void functionCD(uint8_t* param, uint8_t param_length) {
             
         } else {
             
-            uint8_t PromptRoot[] = {fsDeviceGetRoot(), '>'};
+            uint8_t PromptRoot[] = {fsDeviceGetRootLetter(), '>'};
             ConsoleSetPrompt(PromptRoot, sizeof(PromptRoot)+1);
             
             fsWorkingDirectoryClear();
@@ -75,7 +75,7 @@ void functionCD(uint8_t* param, uint8_t param_length) {
     
     if ((deviceLetter >= 'A') & (deviceLetter <= 'Z') & (param[1] == ':')) {
         
-        fsDeviceSetRoot( deviceLetter );
+        fsDeviceSetRootLetter( deviceLetter );
         
         uint8_t consolePrompt[] = {deviceLetter, '>'};
         
@@ -93,28 +93,19 @@ void functionCD(uint8_t* param, uint8_t param_length) {
     
     if ((deviceLetter >= 'A') & (deviceLetter <= 'Z')) {
         
-        uint32_t directoryAddress = fsDirectoryExists(param, param_length);
+        param[param_length+1] = '\0';
         
-        if (directoryAddress == 0) {
-            
+        if (vfsLookup(param, param_length) == 0) {
             print(msgDirectoryNotFound, sizeof(msgDirectoryNotFound));
             printLn();
             
             return;
         }
         
-        fsWorkingDirectoryChange(param, param_length);
+        //
+        // Change prompt path name
         
-        // Prompt for device letters
-        
-        uint8_t PromptDir[20] = {fsDeviceGetRoot(), '/'};
-        
-        for (uint8_t i=0; i < param_length + 2; i++) 
-            PromptDir[i + 2] = param[i];
-        
-        PromptDir[param_length + 1] = '>';
-        
-        ConsoleSetPrompt(PromptDir, param_length + 3);
+        ConsoleSetPath(param);
         
         return;
     }
@@ -126,7 +117,7 @@ void functionCD(uint8_t* param, uint8_t param_length) {
     
     if ((param[0] == '/') & (param[1] == ' ')) {
         
-        uint8_t PromptRoot[] = {fsDeviceGetRoot(), '>'};
+        uint8_t PromptRoot[] = {fsDeviceGetRootLetter(), '>'};
         ConsoleSetPrompt(PromptRoot, sizeof(PromptRoot)+1);
         
         fsWorkingDirectoryClear();
@@ -139,44 +130,29 @@ void functionCD(uint8_t* param, uint8_t param_length) {
     // Display the full path
     //
     
-    printChar('/');
-    
     uint32_t currentDirectory = fsWorkingDirectoryGetAddress();
     
-    if (currentDirectory == 0) 
-        return;
+    uint8_t numberOfDirectories = fsWorkingDirectoryGetStack();
     
-    uint32_t dirStack[32] = {0};
-    uint8_t DirectoryCount = 0;
+    uint32_t parentChain[numberOfDirectories];
     
-    for (uint8_t i=0; i < fsWorkingDirectoryGetStack(); i++) {
+    for (uint8_t i=0; i < numberOfDirectories; i++) {
         
-        dirStack[i] = currentDirectory;
+        parentChain[i] = currentDirectory;
         
-        currentDirectory = fsWorkingDirectoryGetParent();
-        
-        DirectoryCount = i;
-        
-        if (currentDirectory == 0) {
-            
-            dirStack[i + 1] = 0;
-            
-            break;
-        }
+        currentDirectory = fsDirectoryGetParent(currentDirectory);
         
     }
     
-    for (uint8_t i=DirectoryCount; i >= 0; i--) {
-        
-        if (dirStack[i] == 0) 
-            break;
+    // Print the directories in reverse
+    printChar('/');
+    for (uint8_t i=0; i < numberOfDirectories; i++) {
         
         uint8_t directoryName[FILE_NAME_LENGTH];
-        
         for (uint8_t a=0; a < FILE_NAME_LENGTH; a++) 
             directoryName[a] = ' ';
         
-        fsFileGetName(dirStack[i], directoryName);
+        fsFileGetName(parentChain[(numberOfDirectories - 1) - i], directoryName);
         
         for (uint8_t c=0; c < FILE_NAME_LENGTH; c++) {
             
@@ -187,12 +163,8 @@ void functionCD(uint8_t* param, uint8_t param_length) {
             
         }
         
-        if (i == 0) 
-            break;
-        
-        printChar('/');
-        
-        continue;
+        if (i < numberOfDirectories - 1) 
+            printChar('/');
     }
     
     printLn();

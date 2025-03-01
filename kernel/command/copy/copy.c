@@ -272,8 +272,8 @@ void functionCOPY(uint8_t* param, uint8_t param_length) {
         (destFilename[2] == ' ')) {
         
         uint32_t currentDeviceAddress = fsDeviceGetContext();
-        uint8_t deviceLetter = fsDeviceGetRoot();
-        fsDeviceSetRoot( destFilename[0] );
+        uint8_t deviceLetter = fsDeviceGetRootLetter();
+        fsDeviceSetRootLetter( destFilename[0] );
         fsWorkingDirectoryClear();
         
         uint32_t destFileAddress = fsFileCreate(sourceFilename, sourceNameLength, fileSize);
@@ -290,7 +290,7 @@ void functionCOPY(uint8_t* param, uint8_t param_length) {
         printLn();
         
         fsDeviceSetContext(currentDeviceAddress);
-        fsDeviceSetRoot( deviceLetter );
+        fsDeviceSetRootLetter( deviceLetter );
         
         if (isInWorkingDirectory) {
             fsWorkingDirectoryChange(currentWorkingDirectory, currentWorkingDirectoryLength);

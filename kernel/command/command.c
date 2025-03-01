@@ -12,6 +12,8 @@ extern uint8_t console_string_old[CONSOLE_STRING_LENGTH];
 extern uint8_t console_string_length;
 extern uint8_t console_string_length_old;
 
+extern uint8_t parameters_begin;
+
 extern uint8_t console_position;
 extern uint8_t console_line;
 
@@ -44,6 +46,7 @@ uint8_t ExecuteBinDirectory(void);
 
 uint8_t currentDeviceLetter;
 uint32_t currentWorkingDirectoryAddress;
+uint32_t currentWorkingDirectoryStack;
 
 
 uint8_t ExecuteFile(uint32_t fileAddress) {
@@ -74,7 +77,7 @@ uint8_t ExecuteFile(uint32_t fileAddress) {
     
     fsFileClose(index);
     
-    fsDeviceSetRoot( currentDeviceLetter );
+    fsDeviceSetRootLetter( currentDeviceLetter );
     fsWorkingDirectorySetAddress( currentWorkingDirectoryAddress );
     fsWorkingDirectorySetName( currentWorkingDirectoryAddress );
     
@@ -102,7 +105,7 @@ void KeyFunctionReturn(void) {
     
     // Get the filename and parameters
     uint8_t filename_length = 0;
-    uint8_t parameters_begin = 0;
+    parameters_begin = 0;
     
     for (uint8_t i=0; i <= console_string_length_old; i++) {
         
@@ -123,7 +126,6 @@ void KeyFunctionReturn(void) {
     
     // Look up function name
     if (passed == 0) {
-        
         passed = commandFunctionLookup(parameters_begin);
     }
     
@@ -136,9 +138,9 @@ void KeyFunctionReturn(void) {
             // Check working directory
             uint32_t fileAddress = fsFileExists(console_string, filename_length);
             
-            EmulatorSetParam(&console_string[parameters_begin], (console_string_length - parameters_begin) + 1);
+            EmulatorSetParameters(&console_string[parameters_begin], (console_string_length - parameters_begin) + 1);
             
-            currentDeviceLetter = fsDeviceGetRoot();
+            currentDeviceLetter = fsDeviceGetRootLetter();
             currentWorkingDirectoryAddress = fsWorkingDirectoryGetAddress();
             
             if (fileAddress != 0) {
@@ -210,7 +212,7 @@ uint8_t commandSpecialChar(void) {
         
         // Update the prompt if the device letter was changed
         
-        fsDeviceSetRoot( console_string[0] );
+        fsDeviceSetRootLetter( console_string[0] );
         
         uint8_t consolePrompt[] = {console_string[0], '>'};
         
@@ -293,14 +295,15 @@ uint8_t ExecuteBinDirectory(void) {
         return 0;
     
     // Change to home device
-    currentDeviceLetter = fsDeviceGetRoot();
+    currentDeviceLetter = fsDeviceGetRootLetter();
     lowercase(&currentDeviceLetter);
     
     // Get current directory
     currentWorkingDirectoryAddress = fsWorkingDirectoryGetAddress();
+    currentWorkingDirectoryStack = fsWorkingDirectoryGetStack();
     
     // Set root directory
-    fsDeviceSetRoot( EnvironmentGetHomeChar() );
+    fsDeviceSetRootLetter( EnvironmentGetHomeChar() );
     
     fsWorkingDirectoryClear();
     
@@ -309,7 +312,7 @@ uint8_t ExecuteBinDirectory(void) {
     uint32_t numberOfFiles = fsDirectoryGetNumberOfFiles( directoryAddress );
     
     if ((numberOfFiles == 0) | (directoryAddress == 0)) {
-        fsDeviceSetRoot( currentDeviceLetter );
+        fsDeviceSetRootLetter( currentDeviceLetter );
         
         fsWorkingDirectorySetAddress( currentWorkingDirectoryAddress );
         fsWorkingDirectorySetName( currentWorkingDirectoryAddress );
@@ -338,9 +341,10 @@ uint8_t ExecuteBinDirectory(void) {
             
             ExecuteFile(fileAddress);
             
-            fsDeviceSetRoot( currentDeviceLetter );
+            fsDeviceSetRootLetter( currentDeviceLetter );
             fsWorkingDirectorySetAddress( currentWorkingDirectoryAddress );
             fsWorkingDirectorySetName( currentWorkingDirectoryAddress );
+            fsWorkingDirectorySetStack(currentWorkingDirectoryStack);
             
             return 1;
         }
@@ -348,10 +352,11 @@ uint8_t ExecuteBinDirectory(void) {
     }
     
     // Reset previous device and directory
-    fsDeviceSetRoot( currentDeviceLetter );
+    fsDeviceSetRootLetter( currentDeviceLetter );
     
     fsWorkingDirectorySetAddress( currentWorkingDirectoryAddress );
     fsWorkingDirectorySetName( currentWorkingDirectoryAddress );
+    fsWorkingDirectorySetStack( currentWorkingDirectoryStack );
     
     return 0;
 }

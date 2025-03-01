@@ -2,37 +2,83 @@
 #include <kernel/delay.h>
 
 #include <kernel/kernel.h>
+#include <kernel/syscalls/timer/timer.h>
 
 #include <kernel/command/graph/graph.h>
 
 extern struct Driver* displayDevice;
 
+/*
+int8_t vertexBuffer[] = {-10+10, -10,  0,   10+10, 10, 10,  -10+10,  10, 0,    2, 
+                         -10+10, -10, 10,   10+10, 10,  0,   10+10, -10, 0,    3, 
+                         -10-10, -10,  0,   10-10, 10, 10,  -10-10,  10, 0,    4, 
+                         -10-10, -10, 10,   10-10, 10,  0,   10-10, -10, 0,    5};
+*/
+
+int8_t vertexBuffer[] = {
+    -10, -10, -10,   10, -10, -10,   10,  10, -10,  2, // Front face
+     10,  10, -10,  -10,  10, -10,  -10, -10, -10,  3, 
+     10, -10, -10,   10, -10,  10,   10,  10,  10,  4, // Right face
+     10,  10,  10,   10,  10, -10,   10, -10, -10,  2, 
+     10, -10,  10,  -10, -10,  10,  -10,  10,  10,  3, // Back face
+    -10,  10,  10,   10,  10,  10,   10, -10,  10,  4, 
+    -10, -10,  10,  -10, -10, -10,  -10,  10, -10,  2, // Left face
+    -10,  10, -10,  -10,  10,  10,  -10, -10,  10,  3, 
+    -10,  10, -10,   10,  10, -10,   10,  10,  10,  4, // Top face
+     10,  10,  10,  -10,  10,  10,  -10,  10, -10,  2, 
+    -10, -10, -10,  -10, -10,  10,   10, -10,  10,  3, // Bottom face
+     10, -10,  10,   10, -10, -10,  -10, -10, -10,  4 , 
+};
+
 
 void functionGRAPH(uint8_t* param, uint8_t param_length) {
     
-    uint16_t value = 1;
+    glInit();
+    glClear(0);
     
-    while (1) {
+    glBufferData(vertexBuffer, sizeof(vertexBuffer));
+    
+    // Fire up the timer
+    EnableGlobalInterrupts();
+    
+    glUniformRotation(0.0f, 0.0f, 0.0f);
+    //glUniformScale(100.0f);
+    
+    float rotationX=0.0f;
+    float rotationY=0.0f;
+    float rotationZ=0.0f;
+    
+    glUniformScale(8.0f);
+    
+    //uint64_t lastTime = time_ms();
+    
+    while(1) {
         
-        displayDevice->write(0x00000, 1);
+        //uint64_t currentTime = time_ms();
+        //uint64_t delta = currentTime - lastTime;
         
-        displayDevice->write(0x00001, 0);
-        displayDevice->write(0x00002, 0);
+        //if (delta < 4) 
+        //    continue;
+        //lastTime = currentTime;
         
-        for (uint32_t l=0; l < 8; l++) {
-            
-            displayDevice->write(0x00001, l);
-            
-            for (uint32_t c=0; c < 128; c++) {
-                
-                value += (c * 32) / (c + 1);
-                
-                displayDevice->write(0x0000a + c, value);
-                
-            }
-            
-        }
+        // Update
+        rotationX += 1.4f;
+        rotationY += 1.2f;
+        rotationZ += 1.0f;
         
+        // Render
+        glBegin(GL_LINES);
+        
+        glUniformRotation(rotationX, rotationY, rotationZ);
+        glUniformTranslate(-120.0f, 0.0f, 0.0f);
+        glDrawBuffer(0, sizeof(vertexBuffer) / 10);
+        
+        glUniformRotation(-rotationX, -rotationY, -rotationZ);
+        glUniformTranslate(120.0f, 0.0f, 0.0f);
+        glDrawBuffer(0, sizeof(vertexBuffer) / 10);
+        
+        swapBuffers();
+        glClear(0);
     }
     
     return;

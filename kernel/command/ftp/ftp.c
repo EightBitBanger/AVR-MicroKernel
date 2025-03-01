@@ -36,7 +36,7 @@ void functionFTP(uint8_t* param, uint8_t param_length) {
         
         uint16_t displayUpdate = 0;
         
-        ConsoleClearScreen();
+        ConsoleClearScreen(' ');
         
         while (1) {
             

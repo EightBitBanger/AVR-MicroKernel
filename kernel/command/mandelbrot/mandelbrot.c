@@ -66,7 +66,7 @@ void functionMandelbrot(uint8_t* param, uint8_t param_length) {
         displayDevice->write(0x00001, r);
         
         for (uint32_t c=0; c < 128; c++) 
-            displayDevice->write( 0x0000a + c, 0x00 );
+            displayDevice->write( 0x00010 + c, 0x00 );
         
     }
     
@@ -83,7 +83,7 @@ void functionMandelbrot(uint8_t* param, uint8_t param_length) {
                 displayDevice->write(0x00002, w * 8);
                 
                 for (uint32_t c=0; c < 8; c++) 
-                    displayDevice->write( 0x0000a + c, buffer[c] );
+                    displayDevice->write( 0x00010 + c, buffer[c] );
                 
             }
             
@@ -110,7 +110,7 @@ void functionMandelbrot(uint8_t* param, uint8_t param_length) {
             
             value += (c * 32) / (c + 1);
             
-            displayDevice->write(0x0000a + c, value);
+            displayDevice->write(0x00010 + c, value);
             
         }
         

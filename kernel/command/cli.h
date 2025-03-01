@@ -33,7 +33,7 @@ void ConsoleCursorDisable(void);
 void ConsoleSetCursorPosition(uint8_t position);
 void ConsoleSetBlinkRate(uint8_t rate);
 void ConsoleSetPrompt(uint8_t* prompt, uint8_t length);
-void ConsoleClearScreen(void);
+void ConsoleClearScreen(uint8_t clearToCharacter);
 
 uint8_t ConsoleGetCursorPosition(void);
 uint8_t ConsoleGetCursorLine(void);
@@ -42,6 +42,14 @@ uint8_t ConsoleWait(void);
 void ConsoleClearKeyboardString(void);
 
 void ConsolePrintKeyboardString(void);
+
+
+// Parsing
+
+uint8_t ConsoleSetPath(uint8_t* path);
+
+uint8_t* ConsoleGetParameter(uint8_t index, uint8_t delimiter);
+
 
 // Environment variables
 

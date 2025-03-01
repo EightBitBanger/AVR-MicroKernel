@@ -7,7 +7,7 @@
 
 void functionCLS(uint8_t* param, uint8_t param_length) {
     
-    ConsoleClearScreen();
+    ConsoleClearScreen(' ');
     
     ConsoleSetCursor(0, 0);
     

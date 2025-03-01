@@ -5,10 +5,6 @@
 
 #include <kernel/command/ls/ls.h>
 
-uint8_t msgDirectoryError[]    = "Invalid directory";
-uint8_t msgDirectoryListing[]  = "<DIR>";
-uint8_t msgPressAnyKey[]       = "Press any key...";
-
 void ListFile(uint32_t fileAddress);
 void ListDirectory(uint32_t fileAddress);
 
@@ -29,15 +25,16 @@ void functionLS(uint8_t* param, uint8_t param_length) {
     
     // Check if the current working directory is valid
     uint32_t directoryAddress = fsWorkingDirectoryGetAddress();
+    if (directoryAddress == 0) 
+        return;
 	
-    for (uint32_t i=0; i < 1024; i++) {
+    for (uint16_t i=0; i < 0xffff; i++) {
         
         // Get file size
         uint32_t directorySize = fsDirectoryGetSize(directoryAddress);
         
         // Get number of files
         uint32_t numberOfFiles = fsDirectoryGetNumberOfFiles(directoryAddress);
-        
         
         int32_t index = fsFileOpen(directoryAddress);
         
@@ -46,7 +43,6 @@ void functionLS(uint8_t* param, uint8_t param_length) {
         fsFileRead(index, buffer, directorySize);
         
         fsFileClose(index);
-        
         
         // List sub-directories
         
@@ -118,21 +114,6 @@ void registerCommandLS(void) {
 }
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 void ListFile(uint32_t fileAddress) {
     
     // Attributes
@@ -194,6 +175,7 @@ void ListDirectory(uint32_t fileAddress) {
     print(filename, sizeof(filename) + 1);
     printSpace(2);
     
+    uint8_t msgDirectoryListing[]  = "<DIR>";
     print(msgDirectoryListing, sizeof(msgDirectoryListing));
     
     printLn();

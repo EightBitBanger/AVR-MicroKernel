@@ -24,7 +24,7 @@ extern uint8_t lastChar;
 
 extern uint8_t shiftState;
 
-extern uint8_t console_prompt[16];
+extern uint8_t console_prompt[32];
 extern uint8_t console_prompt_length;
 
 extern uint8_t cursor_blink_rate;
@@ -45,23 +45,14 @@ void KeyFunctionPrintChar(uint8_t scanCode);
 uint8_t cliRunShell(void) {
     
     // Check the current scan code
-    uint8_t scanCode = 0;
+    uint8_t scanCode = ConsoleGetLastChar();
     
-    for (uint8_t i=0; i < 16; i++) {
-        
-        scanCode = ConsoleGetLastChar();
-        
-        if (scanCode == 0) {
-            _delay_ms(1);
-            continue;
-        }
-        
-        // Shift pressed / released
-        if (scanCode == 0x11) shiftState = 1;
-        if (scanCode == 0x12) shiftState = 0;
-        
-        break;
-    }
+    if (scanCode == 0) 
+        return 0;
+    
+    // Shift pressed / released
+    if (scanCode == 0x11) shiftState = 1;
+    if (scanCode == 0x12) shiftState = 0;
     
     if (scanCode < 0x20) {
         
@@ -146,29 +137,31 @@ void KeyFunctionPrintChar(uint8_t scanCode) {
 
 void KeyFunctionBackspace(void) {
     
-    if (console_string_length > 0) {
+    if (console_string_length == 0) 
+        return;
+    
+    // Remove last character from the console string
+    console_string[ console_string_length - 1 ] = ' ';
+    
+    // Decrement the console string length
+    if (console_position == 0) {
         
-        // Remove last character from the console string
-        console_string[ console_string_length - 1 ] = ' ';
+        console_line--;
+        console_position=21;
         
-        // Decrement the console string length
-        if (console_position == 0) {
-            
-            console_line--;
-            console_position=21;
-            
-            displayDevice->write( 0x00001, console_line);
-            
-        }
-        
-        console_string_length--;
-        console_position--;
-        
-        displayDevice->write( 0x00002, console_position);
-        displayDevice->write( 0x0000a, ' ');
-        displayDevice->write( 0x00002, console_position);
+        displayDevice->write( 0x00001, console_line);
         
     }
+    
+    console_string_length--;
+    console_position--;
+    
+    displayDevice->write( 0x00002, console_position);
+    displayDevice->write( 0x00010, ' ');
+    displayDevice->write( 0x00002, console_position);
+    
+    swapBuffers();
+    return;
 }
 
 

@@ -21,6 +21,46 @@ void functionNet(uint8_t* param, uint8_t param_length) {
     uint8_t msgNoMessages[]       = "0 messages";
     uint8_t msgDeviceNoInit[]     = "Device driver error";
     
+    
+    
+    
+    
+    /*
+    for (uint8_t p=0; p < 8; p++) {
+        
+        uint8_t* paramBegin = ConsoleGetParameter(p, '-');
+        
+        if (paramBegin != 0) {
+            
+            for (uint8_t i=0; i < CONSOLE_STRING_LENGTH; i++) {
+                
+                // Break on a space character
+                if (paramBegin[i] == ' ') 
+                    break;
+                
+                printChar( paramBegin[i] );
+                
+                // Break if the next char is a parameter
+                if (paramBegin[i + 1] == '-') 
+                    break;
+                
+            }
+            
+            printLn();
+            
+            continue;
+        }
+        
+        break;
+    }
+    */
+    
+    
+    
+    
+    
+    
+    
     // Lower case the string
     for (uint8_t i=0; i < 4; i++) 
         lowercase( &param[i] );

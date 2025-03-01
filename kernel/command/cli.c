@@ -16,6 +16,8 @@ uint8_t console_string_old[CONSOLE_STRING_LENGTH];
 uint8_t console_string_length     = 0;
 uint8_t console_string_length_old = 0;
 
+uint8_t parameters_begin;
+
 uint8_t console_position = 0;
 uint8_t console_line     = 0;
 
@@ -238,6 +240,7 @@ void ConsoleSetBlinkRate(uint8_t rate) {
     
     cursor_blink_rate = rate;
     
+    __glBusyWait();
     displayDevice->write( 3, rate);
     
     return;
@@ -249,6 +252,7 @@ void ConsoleSetCursor(uint8_t line, uint8_t position) {
     
     console_position = position;
     
+    __glBusyWait();
     displayDevice->write( 1, console_line );
     displayDevice->write( 2, console_position );
     
@@ -259,22 +263,20 @@ void ConsoleSetCursorPosition(uint8_t position) {
     
     console_position = position;
     
+    __glBusyWait();
     displayDevice->write( 2, console_position );
-    
     return;
 }
 
 void ConsoleCursorEnable(void) {
-    
+    __glBusyWait();
     displayDevice->write( 3, cursor_blink_rate);
-    
     return;
 }
 
 void ConsoleCursorDisable(void) {
-    
+    __glBusyWait();
     displayDevice->write( 3, 0);
-    
     return;
 }
 
@@ -284,22 +286,22 @@ void ConsoleSetPrompt(uint8_t* prompt, uint8_t length) {
         console_prompt[i] = prompt[i];
     
     console_prompt_length = length;
-    
     return;
 }
 
-void ConsoleClearScreen(void) {
-    
+void ConsoleClearScreen(uint8_t clearToCharacter) {
+    __glBusyWait();
     for (uint8_t l=0; l < 8; l++) {
         
         displayDevice->write(0x00001, l);
         displayDevice->write(0x00002, 0);
         
         for (uint8_t c=0; c < 21; c++) 
-            displayDevice->write( 0x0000a + c, ' ' );
+            displayDevice->write( 0x00010 + c, clearToCharacter );
         
     }
     
+    swapBuffers();
     return;
 }
 

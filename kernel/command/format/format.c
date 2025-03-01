@@ -9,9 +9,25 @@ void functionFORMAT(uint8_t* param, uint8_t param_length) {
     
     uint32_t deviceCapacity = 0;
     
-    if (param[0] == '-' && param[1] == '8') deviceCapacity = FORMAT_CAPACITY_8K;
-    if (param[0] == '-' && param[1] == '1' && param[2] == '6') deviceCapacity = FORMAT_CAPACITY_16K;
-    if (param[0] == '-' && param[1] == '3' && param[2] == '2') deviceCapacity = FORMAT_CAPACITY_32K;
+    uint8_t quickly = 0;
+    
+    // Process parameters
+    
+    for (uint8_t p=0; p < 10; p++) {
+        
+        uint8_t* paramBegin = ConsoleGetParameter(p, '-');
+        if (paramBegin == 0) 
+            break;
+        
+        if (paramBegin[0] == '8') {deviceCapacity = FORMAT_CAPACITY_8K; continue;}
+        if (paramBegin[0] == '1' && paramBegin[1] == '6') {deviceCapacity = FORMAT_CAPACITY_16K; continue;}
+        if (paramBegin[0] == '3' && paramBegin[1] == '2') {deviceCapacity = FORMAT_CAPACITY_32K; continue;}
+        
+        if (paramBegin[0] == 'q') {quickly = 1;}
+        
+        
+    }
+    
     
     uint32_t deviceCapacityCurrent=0;
     if (deviceCapacity == 0) {
@@ -24,12 +40,7 @@ void functionFORMAT(uint8_t* param, uint8_t param_length) {
     }
     
     // Quick format
-    if (param[0] == '-' && param[1] == 'q') {
-        
-        uint8_t deviceQuickFormat[] = "Quick format";
-        print(deviceQuickFormat, sizeof(deviceQuickFormat));
-        
-    } else {
+    if (quickly == 0) {
         
         uint8_t deviceCapacityMsg[] = "k bytes";
         uint8_t deviceCapacityAmount[10];
@@ -42,11 +53,15 @@ void functionFORMAT(uint8_t* param, uint8_t param_length) {
         
         print(deviceCapacityMsg, sizeof(deviceCapacityMsg));
         
+    } else {
+        
+        uint8_t deviceQuickFormat[] = "Quick format";
+        print(deviceQuickFormat, sizeof(deviceQuickFormat));
     }
     
     printLn();
     
-    uint8_t devicePressToContinue[] = "Press Y to format";
+    uint8_t devicePressToContinue[] = "Press Y to begin";
     print(devicePressToContinue, sizeof(devicePressToContinue));
     printLn();
     
@@ -67,13 +82,6 @@ void functionFORMAT(uint8_t* param, uint8_t param_length) {
     uint8_t percentageSymbole[1] = {'%'};
     
     uint8_t sectorCounter = 0;
-    
-    // Arbitrary read to trigger EEPROM cache flush
-    uint8_t dummy;
-    fs_read_byte(0, &dummy);
-    _delay_ms(10);
-    
-    uint8_t pageCounter = 0;
     
     for (uint16_t i=0; i <= 1000; i++) {
         
@@ -96,7 +104,8 @@ void functionFORMAT(uint8_t* param, uint8_t param_length) {
             
             if (sectorCounter < (FORMAT_SECTOR_SIZE - 1)) {
                 
-                if (param[0] != 'q') 
+                // Check quick format
+                if (quickly == 0) 
                     fs_write_byte(sector, ' ');
                 
                 sectorCounter++;
@@ -106,16 +115,10 @@ void functionFORMAT(uint8_t* param, uint8_t param_length) {
                 sectorCounter = 0;
             }
             
-            pageCounter++;
-            if (pageCounter > 31) {
-                pageCounter = 0;
-                fs_read_byte(0, &dummy );
-                _delay_ms(10);
-            }
-            
             if (sector < deviceCapacityBytes) 
                 continue;
             
+            // Finish the format
             i = 1000;
             
             break;
@@ -126,17 +129,15 @@ void functionFORMAT(uint8_t* param, uint8_t param_length) {
     
     _delay_ms(10);
     
-    // Device total capacity
+    // Construct the root directory
     
-    uint32_t rootAddress = fsDeviceConstructAllocationTable(0, deviceCapacityBytes);
-    
-    fsDeviceSetRootDirectory( rootAddress );
+    fsDeviceConstructAllocationTable(0, deviceCapacityBytes);
     
     // Finish as 100%
     
     ConsoleSetCursorPosition(0);
     
-    uint8_t oneHundredPercentMsg[] = {'1', '0', '0', '%'};
+    uint8_t oneHundredPercentMsg[] = "100%";
     print( oneHundredPercentMsg, sizeof(oneHundredPercentMsg) );
     
     fsWorkingDirectoryClear();
