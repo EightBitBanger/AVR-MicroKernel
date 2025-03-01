@@ -37,7 +37,7 @@ int32_t fsFileOpen(uint32_t fileAddress) {
     
     fileBeginAddress[index] = fileAddress;
     
-    return 1;
+    return index;
 }
 
 uint8_t fsFileClose(int32_t index) {
@@ -60,6 +60,10 @@ uint8_t fsFileWrite(int32_t index, uint8_t* buffer, uint32_t size) {
         return 0;
     
     if (fileBeginAddress[index] == 0) 
+        return 0;
+    
+    uint32_t fileSz = fsFileGetSize( fileBeginAddress[index] );
+    if (fileSz < size) 
         return 0;
     
     uint32_t sector = 0;
@@ -92,6 +96,10 @@ uint8_t fsFileRead(int32_t index, uint8_t* buffer, uint32_t size) {
         return 0;
     
     if (fileBeginAddress[index] == 0) 
+        return 0;
+    
+    uint32_t fileSz = fsFileGetSize( fileBeginAddress[index] );
+    if (fileSz < size) 
         return 0;
     
     uint32_t sector = 0;
