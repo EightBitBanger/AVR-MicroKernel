@@ -140,7 +140,7 @@ void InitiateServer(void) {
         
         //
         // Handle client packets
-        ConsoleClearScreen();
+        ConsoleClearScreen(' ');
         
         packetClientReturn.addr_s[0] = serverAddress[0];
         packetClientReturn.addr_s[1] = serverAddress[1];

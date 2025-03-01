@@ -1,355 +1,352 @@
+#include <stdio.h>
 #include <stdint.h>
+#include <string.h>
 
 #include <kernel/delay.h>
 #include <kernel/kernel.h>
 
 #include <kernel/emulation/x4/x4.h>
 
-/*
+#define MAX_PROGRAM_SIZE  256
 
-0x90  nop
-0x86  lda
-0x87  sta
-0x88  mov
-0x89  mov
-0xFA  inc
-0xFC  dec
+// Program memory segmentation range
+extern uint32_t __heap_begin__;
+extern uint32_t __heap_end__;
 
-0x00  add
-0x80  sub
-0xF6  mul
-0xF4  div
 
-0x0F  pop
-0xF0  pus
-
-0x38  cmp
-
-0xFE  jmp
-
-0xCC  int
-0xCD  int
-
-*/
-
-uint8_t programBuffer[256];
+// Program memory segment
+uint8_t programBuffer[MAX_PROGRAM_SIZE];
 uint32_t programSize;
 
-uint8_t param_string[16];
+// Parameters from the console
+uint8_t param_string[32];
 uint32_t param_length;
-
 
 // Emulation
 
-
 void EmulatorSetProgram(uint8_t* buffer, uint32_t size) {
-    
-    for (uint32_t i=0; i < size; i++) 
-        programBuffer[i] = buffer[i];
-    
+    memcpy(programBuffer, buffer, size);
     programSize = size;
-    
     return;
 }
 
-void EmulatorSetParam(uint8_t* buffer, uint32_t length) {
-    
-    for (uint32_t i=0; i < length; i++) 
-        param_string[i] = buffer[i];
-    
+void EmulatorSetParameters(uint8_t* parameters, uint32_t length) {
+    memcpy(param_string, parameters, length);
     param_length = length;
-    
     return;
 }
 
 void EmulatorStart(uint8_t* filename, uint8_t nameLength, uint16_t priority, uint8_t privilege, uint8_t type) {
-    
     TaskCreate(filename, nameLength, EmulateX4, priority, privilege, type);
-    
     return;
 }
 
 
-
-
-
 void EmulateX4(uint8_t messages) {
-    
     struct Bus mem_bus;
     mem_bus.read_waitstate = 2;
     mem_bus.write_waitstate = 2;
     
-    uint32_t programCounter        = 0;
-    uint32_t programCounterReturn  = 0;
+    uint8_t reg[8];          // Registers
+    uint8_t stack[100];      // Temporary stack implementation
     
-    uint8_t reg[32];
-    
-    // Temporary stack implementation
-    uint8_t stack[100];
-    uint32_t stack_ptr;
-    
+    // Counters
+    uint32_t pc = 0;         // Program counter
+    uint32_t pcRet  = 0;     // Where to return from a call
+    uint32_t stack_ptr = 0;
     // Flags
-    uint8_t flag_compare = 1;
+    uint8_t flag_compare = 0;
+    uint8_t flag_greater = 0;
     
     uint8_t consoleWritten = 1;
     
     
-    while(1) {
+    while(pc < MAX_PROGRAM_SIZE) {
         
-        uint8_t opCode = programBuffer[programCounter];
-        uint8_t argA   = programBuffer[programCounter + 1];
-        uint8_t argB   = programBuffer[programCounter + 2];
-        uint8_t argC   = programBuffer[programCounter + 3];
-        uint8_t argD   = programBuffer[programCounter + 4];
+        uint8_t opCode = programBuffer[pc];
+        uint8_t argA   = programBuffer[pc + 1];
+        uint8_t argB   = programBuffer[pc + 2];
+        uint8_t argC   = programBuffer[pc + 3];
+        uint8_t argD   = programBuffer[pc + 4];
+        uint8_t argE   = programBuffer[pc + 5];
         
-        // NOP
-        if (opCode == NOP) {
-            programCounter += 1;
-            continue;
-        }
+        pc++;
         
-        // IN Read a byte from IO space
-        if (opCode == IN) {
+        switch (opCode) {
             
-            
-            programCounter += 5;
-            continue;
-        }
-        
-        // OUT Write a byte into IO space
-        if (opCode == OUT) {
-            
-            
-            programCounter += 5;
-            continue;
-        }
-        
-        // LDA Load from memory to DX register
-        if (opCode == LDA) {
-            union Pointer ptr;
-            ptr.byte_t[0] = argA;
-            ptr.byte_t[1] = argB;
-            ptr.byte_t[2] = argC;
-            ptr.byte_t[3] = argD;
-            
-            bus_read_memory(&mem_bus, ptr.address, &reg[3]);
-            
-            programCounter += 5;
-            continue;
-        }
-        
-        // STA Store DX register to memory
-        if (opCode == STA) {
-            union Pointer ptr;
-            ptr.byte_t[0] = argA;
-            ptr.byte_t[1] = argB;
-            ptr.byte_t[2] = argC;
-            ptr.byte_t[3] = argD;
-            
-            bus_write_memory(&mem_bus, ptr.address, reg[3]);
-            
-            programCounter += 5;
-            continue;
-        }
-        
-        // MOV register into register
-        if (opCode == MOVB) {
-            reg[argA] = reg[argB];
-            programCounter += 3;
-            continue;
-        }
-        
-        // MOV byte into register
-        if (opCode == MOV) {
-            reg[argA] = argB;
-            programCounter += 3;
-            continue;
-        }
-        
-        // Increment register
-        if (opCode == INC) {
-            reg[argA]++;
-            programCounter += 2;
-            continue;
-        }
-        
-        // Decrement register
-        if (opCode == DEC) {
-            reg[argA]--;
-            programCounter += 2;
-            continue;
-        }
-        
-        
-        //
-        // Math
-        //
-        
-        // Add BX into AX
-        if (opCode == ADD) {
-            reg[0] += reg[1];
-            programCounter += 1;
-            continue;
-        }
-        
-        // Sub BX from AX
-        if (opCode == SUB) {
-            reg[0] -= reg[1];
-            programCounter += 1;
-            continue;
-        }
-        
-        // Multiply BX and CX into AX
-        if (opCode == MUL) {
-            reg[0] = reg[1] * reg[2];
-            programCounter += 1;
-            continue;
-        }
-        
-        // Divide BX by CX into AX
-        // Remainder into dx
-        if (opCode == DIV) {
-            //reg[argA] ;
-            programCounter += 1;
-            continue;
-        }
-        
-        
-        //
-        // Stack memory
-        //
-        
-        // POP from stack into a register
-        if (opCode == POP) {
-            stack_ptr--;
-            reg[argA] = stack[stack_ptr];
-            programCounter += 2;
-            continue;
-        }
-        
-        // PUSH to stack from a register
-        if (opCode == PUSH) {
-            stack[stack_ptr] = reg[argA];
-            stack_ptr++;
-            programCounter += 2;
-            continue;
-        }
-        
-        
-        // Compare byte
-        if (opCode == CMP) {
-            if (reg[argA] == argB) {
-                flag_compare = 1;
-            } else {
-                flag_compare = 0;
-            }
-            programCounter += 3;
-            continue;
-        }
-        
-        // Compare registers
-        if (opCode == CMPR) {
-            if (reg[argA] == reg[argB]) {
-                flag_compare = 1;
-            } else {
-                flag_compare = 0;
-            }
-            programCounter += 3;
-            continue;
-        }
-        
-        
-        // JUMP
-        if (opCode == JMP) {
-            union Pointer ptr;
-            ptr.byte_t[3] = argA;
-            ptr.byte_t[2] = argB;
-            ptr.byte_t[1] = argC;
-            ptr.byte_t[0] = argD;
-            programCounter = ptr.address;
-            continue;
-        }
-        
-        // Conditional jump
-        
-        // Jump if EQUAL
-        if (opCode == JE) {
-            if (flag_compare == 1) {
+            // NOP
+            case NOP:
+                continue;
+                
+            // MOV read byte from memory
+            case MOVMR: {
+                // Set the address
                 union Pointer ptr;
-                ptr.byte_t[3] = argA;
-                ptr.byte_t[2] = argB;
+                ptr.byte_t[0] = argB;
                 ptr.byte_t[1] = argC;
-                ptr.byte_t[0] = argD;
-                programCounter = ptr.address;
+                ptr.byte_t[2] = argD;
+                ptr.byte_t[3] = argE;
+                
+                // Check memory segmentation
+                if (ptr.address < __heap_begin__ || 
+                    ptr.address >= __heap_end__) {
+                    
+                    kThrow(HALT_SEGMENTATION_FAULT, ptr.address);
+                }
+                
+                bus_read_memory(&mem_bus, ptr.address, &reg[argA]);
+                pc += 5;
+                continue;
+            }
+                
+            // MOV write byte into memory
+            case MOVMW: {
+                // Set the address
+                union Pointer ptr;
+                ptr.byte_t[0] = argB;
+                ptr.byte_t[1] = argC;
+                ptr.byte_t[2] = argD;
+                ptr.byte_t[3] = argE;
+                
+                // Check memory segmentation
+                if (ptr.address < __heap_begin__ || 
+                    ptr.address >= __heap_end__) {
+                    
+                    kThrow(HALT_SEGMENTATION_FAULT, ptr.address);
+                }
+                
+                bus_write_memory(&mem_bus, ptr.address, reg[argA]);
+                pc += 5;
+                continue;
+            }
+                
+            // MOV register into register
+            case MOVR:
+                reg[argA] = reg[argB];
+                pc += 2;
+                continue;
+                
+            // MOV byte into register
+            case MOVB:
+                reg[argA] = argB;
+                pc += 2;
+                continue;
+                
+            // MOV address into register as a word
+            case MOVA:
+                reg[argA]   = argB;
+                reg[argA+1] = argC;
+                pc += 5;
+                continue;
+                
+            // Increment register
+            case INC:
+                reg[argA]++;
+                pc += 1;
+                continue;
+                
+            // Decrement register
+            case DEC:
+                reg[argA]--;
+                pc += 1;
+                continue;
+                
+            // Add BX into AX
+            case ADD:
+                reg[0] += reg[1];
+                //pc += 1;
+                continue;
+                
+            // Sub BX from AX
+            case SUB:
+                reg[0] -= reg[1];
+                //pc += 1;
+                continue;
+                
+            // Multiply BX and CX into AX
+            case MUL:
+                reg[0] = reg[1] * reg[2];
+                //pc += 1;
+                continue;
+                
+            // Divide BX by CX into AX
+            case DIV:
+                reg[0] = reg[1] / reg[2];
+                //pc += 1;
+                continue;
+                
+            // POP from stack into a register
+            case POP:
+                stack_ptr--;
+                reg[argA] = stack[stack_ptr];
+                pc += 1;
+                continue;
+                
+            // PUSH to stack from a register
+            case PUSH:
+                stack[stack_ptr] = reg[argA];
+                stack_ptr++;
+                pc += 1;
+                continue;
+                
+            // Bitwise
+            case AND:
+                reg[argA] = reg[argA] & reg[argB];
+                pc += 2;
+                continue;
+                
+            case OR:
+                reg[argA] = reg[argA] | reg[argB];
+                pc += 2;
+                continue;
+                
+            case XOR:
+                reg[argA] = reg[argA] ^ reg[argB];
+                pc += 2;
+                continue;
+                
+            case NOT:
+                reg[argA] = ~reg[argA];
+                pc += 2;
+                continue;
+                
+            // Compare byte
+            case CMP:
+                if (reg[argA] == argB) {
+                    flag_compare = 1;
+                    flag_greater = 0;
+                } else {
+                    flag_compare = 0;
+                    if (reg[argA] > argB) {
+                        flag_greater = 1;
+                    } else {
+                        flag_greater = 0;
+                    }
+                }
+                pc += 2;
+                continue;
+                
+            // Compare registers
+            case CMPR:
+                if (reg[argA] == reg[argB]) {
+                    flag_compare = 1;
+                    flag_greater = 0;
+                } else {
+                    flag_compare = 0;
+                    if (reg[argA] > reg[argB]) {
+                        flag_greater = 1;
+                    } else {
+                        flag_greater = 0;
+                    }
+                }
+                pc += 2;
+                continue;
+                
+            // JUMP
+            case JMP: {
+                
+                union Pointer ptr;
+                ptr.byte_t[0] = argA;
+                ptr.byte_t[1] = argB;
+                ptr.byte_t[2] = argC;
+                ptr.byte_t[3] = argD;
+                
+                pc = ptr.address;
+                continue;
+            }
+                
+            // Jump if EQUAL
+            case JE:
+                if (flag_compare == 1) {
+                    union Pointer ptr;
+                    ptr.byte_t[0] = argA;
+                    ptr.byte_t[1] = argB;
+                    ptr.byte_t[2] = argC;
+                    ptr.byte_t[3] = argD;
+                    pc = ptr.address;
+                    continue;
+                }
+                pc += 4;
+                continue;
+                
+            // Jump if NOT EQUAL
+            case JNE:
+                if (flag_compare == 0) {
+                    union Pointer ptr;
+                    ptr.byte_t[0] = argA;
+                    ptr.byte_t[1] = argB;
+                    ptr.byte_t[2] = argC;
+                    ptr.byte_t[3] = argD;
+                    pc = ptr.address;
+                    continue;
+                }
+                pc += 4;
+                continue;
+                
+            // Jump if GREATER than
+            case JG:
+                if (flag_greater == 1) {
+                    union Pointer ptr;
+                    ptr.byte_t[0] = argA;
+                    ptr.byte_t[1] = argB;
+                    ptr.byte_t[2] = argC;
+                    ptr.byte_t[3] = argD;
+                    pc = ptr.address;
+                    continue;
+                }
+                pc += 4;
+                continue;
+                
+            // Jump if LESS than
+            case JL:
+                if (flag_greater == 0) {
+                    union Pointer ptr;
+                    ptr.byte_t[0] = argA;
+                    ptr.byte_t[1] = argB;
+                    ptr.byte_t[2] = argC;
+                    ptr.byte_t[3] = argD;
+                    pc = ptr.address;
+                    continue;
+                }
+                pc += 4;
+                continue;
+                
+            // CALL
+            case CALL: {
+                union Pointer ptr;
+                ptr.byte_t[0] = argA;
+                ptr.byte_t[1] = argB;
+                ptr.byte_t[2] = argC;
+                ptr.byte_t[3] = argD;
+                pcRet = pc + 4;
+                pc = ptr.address;
+                continue;
+            }
+                
+            // RET return from call
+            case RET:
+                pc = pcRet;
+                pcRet=0;
+                continue;
+                
+            // Clear interrupt flag
+            case CLI: {
+                __asm__("cli");
+                continue;
+            }
+                
+            // Set interrupt flag
+            case STI: {
+                __asm__("sei");
                 continue;
             }
             
-            programCounter += 5;
-            continue;
-        }
-        
-        // Jump if NOT EQUAL
-        if (opCode == JNE) {
-            if (flag_compare == 0) {
-                union Pointer ptr;
-                ptr.byte_t[3] = argA;
-                ptr.byte_t[2] = argB;
-                ptr.byte_t[1] = argC;
-                ptr.byte_t[0] = argD;
-                programCounter = ptr.address;
-                continue;
-            }
-            
-            programCounter += 5;
-            continue;
-        }
-        
-        // CALL
-        if (opCode == CALL) {
-            union Pointer ptr;
-            ptr.byte_t[3] = argA;
-            ptr.byte_t[2] = argB;
-            ptr.byte_t[1] = argC;
-            ptr.byte_t[0] = argD;
-            programCounterReturn = programCounter + 5;
-            programCounter = ptr.address;
-            continue;
-        }
-        
-        // RET return from call
-        if (opCode == RET) {
-            
-            programCounter = programCounterReturn;
-            continue;
-        }
-        
-        
-        //
-        // Software interrupt
-        //
-        
-        // Clear interrupt flag
-        if (opCode == 0xFA) {
-            
-            __asm__("cli");
-            
-            programCounter += 1;
-            
-            continue;
-        }
-        
-        // Set interrupt flag
-        if (opCode == 0xFB) {
-            
-            __asm__("sei");
-            
-            programCounter += 1;
-            
-            continue;
         }
         
         // Interrupt routines
         if ((opCode == 0xCC) | (opCode == 0xCD)) {
+            
+            pc += 1;
             
             //
             // Display
@@ -357,39 +354,39 @@ void EmulateX4(uint8_t messages) {
             
             if (argA == 0x10) {
                 
-                // ah=01 - Print string
+                // ah=09 - Print string
                 if (reg[rAH] == 0x09) {
-                    
                     union Pointer dataOffset;
                     dataOffset.byte_t[3] = 0;
                     dataOffset.byte_t[2] = 0;
-                    dataOffset.byte_t[1] = reg[rDL];
-                    dataOffset.byte_t[0] = reg[rDH];
+                    dataOffset.byte_t[1] = reg[rDH];
+                    dataOffset.byte_t[0] = reg[rDL];
+                    
                     for (uint32_t i=0; i < programSize; i++) {
-                        
                         if (programBuffer[dataOffset.address + i] == '\0') 
                             break;
-                        
                         if (programBuffer[dataOffset.address + i] == '\n') {
                             printLn();
                             continue;
                         }
-                        
                         printChar(programBuffer[dataOffset.address + i]);
-                        
                     }
                     
                     consoleWritten = 1;
+                    continue;
                 }
                 
                 // ah=03 - Clear display
                 if (reg[rAH] == 0x03) {
-                    ConsoleClearScreen();
+                    
+                    ConsoleClearScreen(' ');
                     ConsoleSetCursor(0, 0);
                     
                     consoleWritten = 0;
+                    continue;
                 }
                 
+                continue;
             }
             
             
@@ -431,30 +428,18 @@ void EmulateX4(uint8_t messages) {
                 // Dynamically load a driver
                 // onto the driver table
                 if (reg[rAH] == 0x0A) {
-                    
                     int8_t status = LoadLibrary(param_string, param_length);
                     
-                    if (status > 0) {
-                        
-                        reg[rBL] = 1;
-                        
-                    } else {
-                        
-                        if (status == -2) {
-                            
-                            reg[rBL] = 2;
-                            
-                        } else {
-                            
-                            reg[rBL] = 0;
-                        }
-                        
-                    }
+                    if (status == -1) {reg[rBL] = 1; continue;}   // File does not exist
+                    if (status == -2) {reg[rBL] = 2; continue;}   // Corrupt driver
+                    if (status == -3) {reg[rBL] = 3; continue;}   // Already loaded
                     
+                    if (status >= 0) 
+                        reg[rBL] = 0;
+                    continue;
                 }
                 
-                
-                
+                continue;
             }
             
             
@@ -465,6 +450,12 @@ void EmulateX4(uint8_t messages) {
             
             if (argA == 0x13) {
                 
+                if (param_string[0] == ' ' || 
+                    param_length == 0) {
+                    reg[rBL] = 1;
+                    continue;
+                }
+                
                 // ah = 3Ch Create a file
                 if (reg[rAH] == 0x3C) {
                     
@@ -474,104 +465,114 @@ void EmulateX4(uint8_t messages) {
                     dataOffset.byte_t[1] = reg[rCL];
                     dataOffset.byte_t[0] = reg[rCH];
                     
-                    uint32_t fileAddress = fsFileCreate(param_string, param_length, dataOffset.address);
-                    
-                    // Set return value
+                    // Check file exists
+                    uint32_t fileAddress = fsFileExists(param_string, param_length);
                     if (fileAddress != 0) {
-                        
-                        reg[rBL] = 1;
-                        
-                        consoleWritten = 0;
-                        
-                        fsDirectoryAddFile(fsWorkingDirectoryGetAddress(), fileAddress);
-                        
-                    } else {
-                        
-                        reg[rBL] = 0;
+                        reg[rBL] = 2;
+                        continue;
                     }
                     
+                    // Create the file
+                    fileAddress = fsFileCreate(param_string, param_length, dataOffset.address);
+                    if (fileAddress == 0) {
+                        reg[rBL] = 3;
+                        continue;
+                    }
+                    
+                    reg[rBL] = 0;
+                    consoleWritten = 0;
+                    fsDirectoryAddFile(fsWorkingDirectoryGetAddress(), fileAddress);
+                    
+                    continue;
                 }
                 
                 // ah = 39h Create a directory
                 if (reg[rAH] == 0x39) {
                     
-                    uint32_t directoryAddress = fsDirectoryCreate(param_string, param_length);
-                    
-                    // Set return value
+                    // Check directory exists
+                    uint32_t directoryAddress = fsDirectoryExists(param_string, param_length);
                     if (directoryAddress != 0) {
-                        
-                        reg[rBL] = 1;
-                        
-                        consoleWritten = 0;
-                        
-                        fsDirectoryAddFile(fsWorkingDirectoryGetAddress(), directoryAddress);
-                        
-                    } else {
-                        
-                        reg[rBL] = 0;
+                        reg[rBL] = 2;
+                        continue;
                     }
                     
+                    // Create the directory
+                    directoryAddress = fsDirectoryCreate(param_string, param_length);
+                    if (directoryAddress == 0) {
+                        reg[rBL] = 3;
+                        continue;
+                    }
+                    
+                    reg[rBL] = 0;
+                    consoleWritten = 0;
+                    fsDirectoryAddFile(fsWorkingDirectoryGetAddress(), directoryAddress);
+                    
+                    continue;
                 }
                 
                 // ah = 41h Delete a file
                 if (reg[rAH] == 0x41) {
                     
-                    // Delete file
                     uint32_t fileAddress = fsFileDelete(param_string, param_length);
-                    
-                    if (fileAddress != 0) {
-                        
-                        reg[rBL] = 1;
-                        
-                        consoleWritten = 0;
-                        
-                        fsDirectoryRemoveFile(fsWorkingDirectoryGetAddress(), fileAddress);
-                        
-                    } else {
-                        
-                        reg[rBL] = 0;
+                    if (fileAddress == 0) {
+                        reg[rBL] = 2;
+                        continue;
                     }
                     
+                    reg[rBL] = 0;
+                    consoleWritten = 0;
+                    fsDirectoryRemoveFile(fsWorkingDirectoryGetAddress(), fileAddress);
+                    
+                    continue;
                 }
                 
                 // ah = 3Ah Delete a directory
                 if (reg[rAH] == 0x3A) {
                     
                     uint32_t directoryAddress = fsDirectoryDelete(param_string, param_length);
-                    
-                    if (directoryAddress != 0) {
-                        
-                        reg[rBL] = 1;
-                        
-                        consoleWritten = 0;
-                        
-                        fsDirectoryRemoveFile(fsWorkingDirectoryGetAddress(), directoryAddress);
-                        
-                    } else {
-                        
-                        reg[rBL] = 0;
+                    if (directoryAddress == 0) {
+                        reg[rBL] = 2;
+                        continue;
                     }
                     
+                    reg[rBL] = 0;
+                    consoleWritten = 0;
+                    fsDirectoryRemoveFile(fsWorkingDirectoryGetAddress(), directoryAddress);
+                    
+                    continue;
                 }
-                
                 
                 // ah = 3Bh Change the current working directory
                 if (reg[rAH] == 0x3B) {
                     
-                    consoleWritten = 0;
+                    //vfsLookup(param_string);
                     
-                    reg[rBL] = 1;
+                    // Update the global current working directory
+                    //extern uint32_t currentWorkingDirectoryAddress;
+                    //extern uint32_t currentWorkingDirectoryAddress;
+                    //extern uint32_t currentWorkingDirectoryStack;
+                    
+                    //currentWorkingDirectoryAddress = fsWorkingDirectoryGetAddress();
+                    //currentWorkingDirectoryStack   = fsWorkingDirectoryGetStack();
+                    
+                    //consoleWritten = 0;
+                    
+                    //reg[rBL] = 1;
+                    continue;
                 }
                 
                 
                 // ah = 3Ch Show current directory path
                 if (reg[rAH] == 0x3F) {
-                    
+                    /*
                     consoleWritten = 1;
                     
                     reg[rBL] = 1;
+                    */
+                    continue;
                 }
                 
+                continue;
             }
             
             
@@ -581,30 +582,17 @@ void EmulateX4(uint8_t messages) {
                 if (consoleWritten == 1) 
                     printLn();
                 
-                for (uint32_t i=0; i < 16; i++) 
-                    param_string[i] = ' ';
-                
                 return;
             }
             
-            programCounter += 2;
             continue;
         }
-        
-        programCounter++;
-        
-        // End of the line!
-        if (programCounter >= programSize) 
-            break;
         
         continue;
     }
     
     if (consoleWritten == 1) 
         printLn();
-    
-    for (uint32_t i=0; i < 16; i++) 
-        param_string[i] = ' ';
     
     return;
 }
