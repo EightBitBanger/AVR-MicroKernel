@@ -15,9 +15,9 @@ void swapBuffers(void) {
     return;
 }
 
-int8_t glInit(void) {
+int8_t glInit(uint8_t mode) {
     __glBusyWait();
-    displayDevice->write(0x00000, 4); // Display mode - Vertex buffer renderer
+    displayDevice->write(0x00000, mode);
     return 1;
 }
 
@@ -115,9 +115,9 @@ void glBufferData(int8_t* buffer, uint16_t size) {
 
 void glDrawBuffer(uint8_t begin, uint8_t size) {
     __glBusyWait();
-    displayDevice->write(0x0000C, begin);
-    displayDevice->write(0x0000D, size);
-    displayDevice->write(0x0000E, 1);
+    displayDevice->write(0x0000C, begin); // Starting offset
+    displayDevice->write(0x0000D, size);  // Number of bytes
+    displayDevice->write(0x0000E, 1);     // Trigger the draw
     __glBusyWait();
     return;
 }

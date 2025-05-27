@@ -62,13 +62,13 @@ uint8_t vfsLookup(uint8_t* path, uint8_t pathLength) {
     // Process each token (directory name)
     while (token != NULL) {
         
-        if (fsWorkingDirectoryChange(token, strlen((char*)token)+1) == 0) 
-            return 0;
+        if (fsWorkingDirectoryChange(token, strlen((char*)token)+1) != 0) 
+            return 1;
         
         // Get the next token
         token = (uint8_t*)strtok(NULL, "/");
     }
     
-    return 1;
+    return 0;
 }
 

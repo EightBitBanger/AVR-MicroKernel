@@ -62,33 +62,19 @@ int32_t TaskCreate(uint8_t* name, uint8_t name_length, void(*task_ptr)(uint8_t),
     
     newProcPtr->function = task_ptr;
     
-    // Set user access mode
-    uint8_t currentMode = VirtualAccessGetMode();
-    switch (privilege) {
-        case TASK_PRIVILEGE_KERNEL: { VirtualAccessSetMode(VIRTUAL_ACCESS_MODE_KERNEL); break; }
-        case TASK_PRIVILEGE_SERVICE: { VirtualAccessSetMode(VIRTUAL_ACCESS_MODE_SERVICE); break; }
-        default:
-        case TASK_PRIVILEGE_USER: { VirtualAccessSetMode(VIRTUAL_ACCESS_MODE_USER); break; }
-    }
-    VirtualBegin();
+	// Allocate a super block
+	VirtualAccessSetMode( VIRTUAL_ACCESS_MODE_USER );
+	VirtualBegin();
     
-    // Allocate super block
-    uint32_t blockAddress = fsDirectoryCreate(name, name_length);
-    newProcPtr->block = blockAddress;
-    if (newProcPtr->block == 0) {
-        ListRemoveNode(&ProcessNodeTable, newProcPtr);
-        free(newProcPtr);
-        return -1;
-    }
+    newProcPtr->block = fsDirectoryCreate(name, name_length);
+    fsDirectoryAddFile(dirProcAddress, newProcPtr->block);
     
-    struct FSAttribute attrProcFile = { 's', 'r', ' ', ' ' };
-    fsFileSetAttributes(blockAddress, &attrProcFile);
-    fsDirectoryAddFile(dirProcAddress, blockAddress);
+    //struct FSAttribute attrProcFile = { 's', 'r', ' ', ' ' };
+    //fsFileSetAttributes(newProcPtr->block, &attrProcFile);
     
-    // Restore previous access level
     VirtualEnd();
-    VirtualAccessSetMode(currentMode);
-    
+    VirtualAccessSetMode( VIRTUAL_ACCESS_MODE_KERNEL );
+	
     return 1;
 }
 
@@ -103,26 +89,16 @@ uint8_t TaskDestroy(int32_t index) {
 	struct Node* nodePtr = ListGetNode(ProcessNodeTable, index);
 	struct ProcessDescription* proc_desc = nodePtr->data;
 	
-	ListRemoveNode(&ProcessNodeTable, nodePtr->data);
+	ListRemoveNode(&ProcessNodeTable, proc_desc);
 	
-	// Set user access mode
-	uint8_t currentMode = VirtualAccessGetMode();
-    switch (proc_desc->privilege) {
-		case TASK_PRIVILEGE_KERNEL: {VirtualAccessSetMode( VIRTUAL_ACCESS_MODE_KERNEL ); break;}
-		case TASK_PRIVILEGE_SERVICE: {VirtualAccessSetMode( VIRTUAL_ACCESS_MODE_SERVICE ); break;}
-		default:
-        case TASK_PRIVILEGE_USER: {VirtualAccessSetMode( VIRTUAL_ACCESS_MODE_USER ); break;}
-	}
-	
+	// Free the super block
+	VirtualAccessSetMode( VIRTUAL_ACCESS_MODE_USER );
 	VirtualBegin();
     
-	// Free the super block
-	fsDirectoryRemoveFile(dirProcAddress, proc_desc->block);
-	fsFree(proc_desc->block);
+    fsDirectoryRemoveFile(dirProcAddress, proc_desc->block);
 	
-	// Restore previous access level
-	VirtualEnd();
-    VirtualAccessSetMode( currentMode );
+    VirtualEnd();
+    VirtualAccessSetMode( VIRTUAL_ACCESS_MODE_KERNEL );
 	
 	// Free the process descriptor
 	free(proc_desc);
@@ -135,7 +111,7 @@ int32_t TaskFind(uint8_t* name, uint8_t name_length) {
 	if (name_length > TASK_NAME_LENGTH_MAX)
         name_length = TASK_NAME_LENGTH_MAX;
 	
-	uint32_t index = -1;
+	int32_t index = -1;
 	
 	uint32_t numberOfTasks = ListGetSize(ProcessNodeTable);
 	for (uint32_t i=0; i < numberOfTasks; i++) {
@@ -155,12 +131,9 @@ int32_t TaskFind(uint8_t* name, uint8_t name_length) {
 }
 
 
-uint8_t GetProcInfo(int32_t index, struct ProcessDescription* proc_desc) {
-	
+struct ProcessDescription* GetProcInfo(int32_t index) {
 	struct Node* nodePtr = ListGetNode(ProcessNodeTable, index);
-	proc_desc = nodePtr->data;
-	
-	return 1;
+	return (struct ProcessDescription*)nodePtr->data;
 }
 
 uint32_t FindNextAvailableMemoryRange(void) {
@@ -239,7 +212,7 @@ void _ISR_SCHEDULER_MAIN__(void) {
         return;
     
     // Lock the mutex
-    if (MutexLock(&mux)) 
+    if (MutexLock(&mux) == 1) 
         return;
     
     procIndex++;
@@ -256,7 +229,6 @@ void _ISR_SCHEDULER_MAIN__(void) {
     // Set privilege level
     switch (proc_info->privilege) {
         case TASK_PRIVILEGE_KERNEL: { VirtualAccessSetMode(VIRTUAL_ACCESS_MODE_KERNEL); break; }
-        case TASK_PRIVILEGE_SERVICE: { VirtualAccessSetMode(VIRTUAL_ACCESS_MODE_SERVICE); break; }
         default:
         case TASK_PRIVILEGE_USER: { VirtualAccessSetMode(VIRTUAL_ACCESS_MODE_USER); break; }
     }
@@ -268,11 +240,6 @@ void _ISR_SCHEDULER_MAIN__(void) {
     // Set process heap range
     __heap_begin__ = proc_info->heap_begin;
     __heap_end__   = proc_info->heap_end;
-    
-    // Adjust task priority smoothly based on its time_slice
-    if (proc_info->time_slice > 0) {
-        proc_info->priority = (uint8_t)(TASK_PRIORITY_REALTIME + (TASK_PRIORITY_BACKGROUND - TASK_PRIORITY_REALTIME) * (1.0f - exp(-0.001f * proc_info->time_slice)));
-    }
     
     // Process task priority
     if (proc_info->counter > proc_info->priority) {

@@ -41,7 +41,6 @@ void ListAddNode(struct Node** head, void* data) {
 }
 
 void ListRemoveNode(struct Node** head, void* data) {
-    
     if (*head == NULL) 
         return;
     

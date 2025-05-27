@@ -61,21 +61,18 @@ void printInt(uint32_t integer) {
     return;
 }
 
-void printc(char* string, uint8_t length) {
+void printc(char* string) {
     __glBusyWait();
     displayDevice->write( 0x00001, console_line );
     
-    for (uint8_t i=0; i < length - 1; i++) {
-        
+    for (uint8_t i=0;; i++) {
+        if (string[i] == '\0') 
+            break;
         displayDevice->write( 0x00002, console_position );
-        
         displayDevice->write( 0x00010, string[i] );
-        
         console_position++;
-        
         continue;
     }
-    
     ConsoleSetCursorPosition(console_position);
     return;
 }
@@ -89,7 +86,6 @@ void printChar(uint8_t character) {
     displayDevice->write( 0x00010, character );
     
     console_position++;
-    
     return;
 }
 
@@ -97,20 +93,16 @@ void printLn(void) {
     __glBusyWait();
     
     if (console_line < (displayRows - 1)) {
-        
         console_line++;
-        
         displayDevice->write( 0x00001, console_line);
         
     } else {
-        
         displayDevice->write( 0x00005, 1);
     }
     
     console_position = 0;
     
     ConsoleSetCursor(console_line, console_position);
-    
     return;
 }
 

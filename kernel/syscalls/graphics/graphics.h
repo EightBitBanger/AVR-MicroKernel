@@ -3,6 +3,10 @@
 
 #include <kernel/kernel.h>
 
+#define GL_MODE_TEXT       0
+#define GL_MODE_SPRITES    2
+#define GL_MODE_GRAPHICS   4
+
 #define GL_TRIANGLES  0
 #define GL_LINES      1
 
@@ -24,7 +28,7 @@ union FloatBytes {
 
 void swapBuffers(void);
 
-int8_t glInit(void);
+int8_t glInit(uint8_t mode);
 void glClear(uint8_t character);
 
 void glBegin(uint8_t primitive);

@@ -74,12 +74,26 @@ void kInit(void) {
         if (length == 0) 
             continue;
         
+        // Create device reference file
         uint32_t fileAddress = fsFileCreate(devPtr->device_name, length, 20);
-        struct FSAttribute attrib = {' ','r',' ',' '};
         
+        struct FSAttribute attrib = {'s','r','w',' '};
         fsFileSetAttributes(fileAddress, &attrib);
         
         fsDirectoryAddFile(fsWorkingDirectoryGetAddress(), fileAddress);
+        
+        // Initiate file
+        uint32_t fileSize = fsFileGetSize(fileAddress);
+        uint8_t fileBuffer[fileSize];
+        
+        fileBuffer[0] = 'K';
+        fileBuffer[1] = 'D';
+        fileBuffer[2] = 'E';
+        fileBuffer[3] = 'V';
+        
+        int32_t fileIndex = fsFileOpen(fileAddress);
+        fsFileWrite(fileIndex, fileBuffer, fileSize);
+        fsFileClose(fileIndex);
         
         continue;
     }
@@ -172,13 +186,10 @@ void kInit(void) {
             continue;
         
         uint32_t fileSize = fsFileGetSize(fileAddress);
-        
         uint8_t driverBuffer[fileSize];
         
         int32_t index = fsFileOpen(fileAddress);
-        
         fsFileRead(index, driverBuffer, fileSize);
-        
         fsFileClose(index);
         
         uint8_t driverFilename[FILE_NAME_LENGTH];
@@ -195,7 +206,35 @@ void kInit(void) {
         
         uint32_t checkFileAddress = fsFileExists(driverFilename, driverFilenameLength);
         
+        // Check if the device does not exist on the bus
+        // The driver can be skipped
+        
+        int32_t driverFileIndex = fsFileOpen(fileAddress);
+        uint32_t driverFileSz = fsFileGetSize(fileAddress);
+        
+        uint8_t fileBuffer[driverFileSz];
+        fsFileRead(driverFileIndex, fileBuffer, driverFileSz);
+        fsFileClose(driverFileIndex);
+        
+        uint8_t numberOfDevices = GetNumberOfDevices();
+        
+        // Check if the device exists
+        uint8_t found = 0;
+        for (uint8_t d=0; d < numberOfDevices; d++) {
+            struct Device* devicePtr = GetDeviceByIndex(d);
+            
+            if (StringCompare(devicePtr->device_name, DEVICE_NAME_LENGTH, &fileBuffer[2], DEVICE_NAME_LENGTH) == 1) {
+                found = 1;
+                break;
+            }
+            continue;
+        }
+        if (found == 1) 
+            continue;
+        
+        //
         // Load the driver
+        
         int8_t libState = -32;
         if (checkFileAddress != 0) 
             libState = LoadLibrary(driverFilename, driverFilenameLength);
@@ -204,7 +243,7 @@ void kInit(void) {
         
         // Driver is linked to a device on the bus
         if (libState == 4) {
-            // Display loaded driver name
+            // Print the characters of the driver name
             for (uint32_t n=0; n < FILE_NAME_LENGTH; n++) {
                 printChar( driverBuffer[n + 2] );
                 if (driverBuffer[n + 2] == ' ') 

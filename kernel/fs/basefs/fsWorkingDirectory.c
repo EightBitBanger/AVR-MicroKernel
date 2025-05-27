@@ -78,7 +78,7 @@ uint8_t fsWorkingDirectoryChange(uint8_t* directoryName, uint8_t nameLength) {
 	for (uint8_t i=0; i < 4; i++) 
         fs_read_byte(directoryAddress + FILE_OFFSET_REF_COUNT + i, &directorySizePtr.byte_t[i]);
     
-	fs_working_directory_size = directorySizePtr.address;
+    fs_working_directory_size = directorySizePtr.address;
     
     fs_directory_stack_ptr++;
     

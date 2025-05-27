@@ -73,7 +73,7 @@ uint8_t TaskDestroy(int32_t index);
 
 int32_t TaskFind(uint8_t* name, uint8_t name_length);
 
-uint8_t GetProcInfo(int32_t index, struct ProcessDescription* proc_desc);
+struct ProcessDescription* GetProcInfo(int32_t index);
 
 uint32_t FindNextAvailableMemoryRange(void);
 

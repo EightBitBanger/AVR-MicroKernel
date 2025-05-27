@@ -25,13 +25,16 @@ int main(void) {
     
     
     {
+    /*
     uint8_t program[] = {
         0x89, 0x01, 0x03, 0xCD, 0x10, 0xCD, 0x20, 
     };
     EmulatorSetProgram(program, sizeof(program));
-    EmulateX4();
+    
+    EmulateX4( EVENT_NOMESSAGE );
     
     while(1) {}
+    */
     }
     
     
@@ -101,6 +104,7 @@ int main(void) {
     //registerCommandList();
     //registerCommandRM();
     //registerCommandTASK();
+    
     //registerCommandTest();
     
     //registerCommandGRAPHICS();
@@ -111,7 +115,7 @@ int main(void) {
     //registerCommandNet();
     
     //registerCommandFormat();
-    //registerCommandBoot();
+    registerCommandBoot();
     
     #define DONT_INCLUDE_CONSOLE_COMMANDS
     

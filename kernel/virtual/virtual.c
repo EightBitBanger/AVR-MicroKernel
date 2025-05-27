@@ -5,9 +5,6 @@
 #define __KERNEL_VIRTUAL_ACCESS_BEGIN__    0x00000000
 #define __KERNEL_VIRTUAL_ACCESS_END__      0xffffffff
 
-#define __SERVICE_VIRTUAL_ACCESS_BEGIN__   0x00002000
-#define __SERVICE_VIRTUAL_ACCESS_END__     0xffffffff
-
 #define __USER_VIRTUAL_ACCESS_BEGIN__      0x00004000
 #define __USER_VIRTUAL_ACCESS_END__        0xffffffff
 
@@ -22,8 +19,6 @@ int8_t VirtualAccessGetMode(void) {
     
     if (__virtual_address_begin__ == __KERNEL_VIRTUAL_ACCESS_BEGIN__) 
         return VIRTUAL_ACCESS_MODE_KERNEL;
-    if (__virtual_address_begin__ == __SERVICE_VIRTUAL_ACCESS_BEGIN__) 
-        return VIRTUAL_ACCESS_MODE_SERVICE;
     if (__virtual_address_begin__ == __USER_VIRTUAL_ACCESS_BEGIN__) 
         return VIRTUAL_ACCESS_MODE_USER;
     
@@ -33,23 +28,16 @@ int8_t VirtualAccessGetMode(void) {
 void VirtualAccessSetMode(uint8_t mode) {
     
     switch (mode) {
-        
+        default:
         case VIRTUAL_ACCESS_MODE_KERNEL: 
             __virtual_address_begin__ = __KERNEL_VIRTUAL_ACCESS_BEGIN__;
             __virtual_address_end__   = __KERNEL_VIRTUAL_ACCESS_END__;
             break;
         
-        case VIRTUAL_ACCESS_MODE_SERVICE: 
-            __virtual_address_begin__ = __SERVICE_VIRTUAL_ACCESS_BEGIN__;
-            __virtual_address_end__   = __SERVICE_VIRTUAL_ACCESS_END__;
-            break;
-        
-        default:
         case VIRTUAL_ACCESS_MODE_USER: 
             __virtual_address_begin__ = __USER_VIRTUAL_ACCESS_BEGIN__;
             __virtual_address_end__   = __USER_VIRTUAL_ACCESS_END__;
             break;
-        
     }
     
     return;
