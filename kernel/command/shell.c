@@ -71,7 +71,6 @@ uint8_t cliRunShell(void) {
 
 
 void KeyFunctionPrintChar(uint8_t scanCode) {
-    
     if (console_string_length >= CONSOLE_STRING_LENGTH) 
         return;
     
@@ -127,7 +126,6 @@ void KeyFunctionPrintChar(uint8_t scanCode) {
         
         console_position = 0;
         ConsoleSetCursorPosition(console_position);
-        
     }
     
     return;
@@ -136,7 +134,6 @@ void KeyFunctionPrintChar(uint8_t scanCode) {
 
 
 void KeyFunctionBackspace(void) {
-    
     if (console_string_length == 0) 
         return;
     

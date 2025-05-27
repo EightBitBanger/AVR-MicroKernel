@@ -6,34 +6,24 @@
 
 #include <kernel/command/graph/graph.h>
 
-extern struct Driver* displayDevice;
-
-/*
-int8_t vertexBuffer[] = {-10+10, -10,  0,   10+10, 10, 10,  -10+10,  10, 0,    2, 
-                         -10+10, -10, 10,   10+10, 10,  0,   10+10, -10, 0,    3, 
-                         -10-10, -10,  0,   10-10, 10, 10,  -10-10,  10, 0,    4, 
-                         -10-10, -10, 10,   10-10, 10,  0,   10-10, -10, 0,    5};
-*/
-
 int8_t vertexBuffer[] = {
-    -10, -10, -10,   10, -10, -10,   10,  10, -10,  2, // Front face
+    -10, -10, -10,   10, -10, -10,   10,  10, -10,  3, // Front face
      10,  10, -10,  -10,  10, -10,  -10, -10, -10,  3, 
-     10, -10, -10,   10, -10,  10,   10,  10,  10,  4, // Right face
+     10, -10, -10,   10, -10,  10,   10,  10,  10,  2, // Right face
      10,  10,  10,   10,  10, -10,   10, -10, -10,  2, 
      10, -10,  10,  -10, -10,  10,  -10,  10,  10,  3, // Back face
-    -10,  10,  10,   10,  10,  10,   10, -10,  10,  4, 
+    -10,  10,  10,   10,  10,  10,   10, -10,  10,  3, 
     -10, -10,  10,  -10, -10, -10,  -10,  10, -10,  2, // Left face
-    -10,  10, -10,  -10,  10,  10,  -10, -10,  10,  3, 
-    -10,  10, -10,   10,  10, -10,   10,  10,  10,  4, // Top face
+    -10,  10, -10,  -10,  10,  10,  -10, -10,  10,  2, 
+    -10,  10, -10,   10,  10, -10,   10,  10,  10,  2, // Top face
      10,  10,  10,  -10,  10,  10,  -10,  10, -10,  2, 
-    -10, -10, -10,  -10, -10,  10,   10, -10,  10,  3, // Bottom face
-     10, -10,  10,   10, -10, -10,  -10, -10, -10,  4 , 
+    -10, -10, -10,  -10, -10,  10,   10, -10,  10,  2, // Bottom face
+     10, -10,  10,   10, -10, -10,  -10, -10, -10,  2 , 
 };
 
 
 void functionGRAPH(uint8_t* param, uint8_t param_length) {
-    
-    glInit();
+    glInit(GL_MODE_GRAPHICS);
     glClear(0);
     
     glBufferData(vertexBuffer, sizeof(vertexBuffer));
@@ -48,7 +38,7 @@ void functionGRAPH(uint8_t* param, uint8_t param_length) {
     float rotationY=0.0f;
     float rotationZ=0.0f;
     
-    glUniformScale(8.0f);
+    glUniformScale(9.0f);
     
     //uint64_t lastTime = time_ms();
     
@@ -62,27 +52,31 @@ void functionGRAPH(uint8_t* param, uint8_t param_length) {
         //lastTime = currentTime;
         
         // Update
-        rotationX += 1.4f;
-        rotationY += 1.2f;
-        rotationZ += 1.0f;
+        rotationX += 3.1f;
+        rotationY += 2.1f;
+        rotationZ += 1.1f;
         
         // Render
         glBegin(GL_LINES);
+        float posOffset = 120.0f;
         
         glUniformRotation(rotationX, rotationY, rotationZ);
-        glUniformTranslate(-120.0f, 0.0f, 0.0f);
+        glUniformTranslate(-posOffset, 0.0f, 0.0f);
         glDrawBuffer(0, sizeof(vertexBuffer) / 10);
         
         glUniformRotation(-rotationX, -rotationY, -rotationZ);
-        glUniformTranslate(120.0f, 0.0f, 0.0f);
+        glUniformTranslate(posOffset, 0.0f, 0.0f);
         glDrawBuffer(0, sizeof(vertexBuffer) / 10);
         
         swapBuffers();
         glClear(0);
     }
     
+    glInit(0);
+    
     return;
 }
+
 
 void registerCommandGRAPHICS(void) {
     
@@ -92,3 +86,4 @@ void registerCommandGRAPHICS(void) {
     
     return;
 }
+

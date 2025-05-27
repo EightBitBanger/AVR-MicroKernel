@@ -50,7 +50,6 @@ uint32_t currentWorkingDirectoryStack;
 
 
 uint8_t ExecuteFile(uint32_t fileAddress) {
-    
     if (fileAddress == 0) 
         return 0;
     
@@ -69,12 +68,10 @@ uint8_t ExecuteFile(uint32_t fileAddress) {
         fs_read_byte(fileAddress + FILE_OFFSET_SIZE + i, &fileSizePtr.byte_t[i]);
     
     uint32_t programSize = fileSizePtr.address;
-    
     uint8_t programBuffer[programSize];
     
     // Load the file
     fsFileRead(index, programBuffer, programSize);
-    
     fsFileClose(index);
     
     fsDeviceSetRootLetter( currentDeviceLetter );
@@ -83,11 +80,9 @@ uint8_t ExecuteFile(uint32_t fileAddress) {
     
     // Launch the emulator
     EmulatorSetProgram( programBuffer, programSize );
-    
     EmulateX4( EVENT_NOMESSAGE );
     
     printPrompt();
-    
     return 1;
 }
 

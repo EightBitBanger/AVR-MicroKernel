@@ -5,6 +5,7 @@
 #include <kernel/delay.h>
 #include <kernel/kernel.h>
 
+#include <kernel/virtual/virtual.h>
 #include <kernel/emulation/x4/x4.h>
 
 #define MAX_PROGRAM_SIZE  256
@@ -36,12 +37,6 @@ void EmulatorSetParameters(uint8_t* parameters, uint32_t length) {
     return;
 }
 
-void EmulatorStart(uint8_t* filename, uint8_t nameLength, uint16_t priority, uint8_t privilege, uint8_t type) {
-    TaskCreate(filename, nameLength, EmulateX4, priority, privilege, type);
-    return;
-}
-
-
 void EmulateX4(uint8_t messages) {
     struct Bus mem_bus;
     mem_bus.read_waitstate = 2;
@@ -60,6 +55,9 @@ void EmulateX4(uint8_t messages) {
     
     uint8_t consoleWritten = 1;
     
+    VirtualAccessSetMode(VIRTUAL_ACCESS_MODE_USER);
+    __heap_begin__ = __virtual_address_begin__;
+    __heap_end__   = __virtual_address_end__;
     
     while(pc < MAX_PROGRAM_SIZE) {
         
@@ -88,13 +86,10 @@ void EmulateX4(uint8_t messages) {
                 ptr.byte_t[3] = argE;
                 
                 // Check memory segmentation
-                if (ptr.address < __heap_begin__ || 
-                    ptr.address >= __heap_end__) {
-                    
-                    kThrow(HALT_SEGMENTATION_FAULT, ptr.address);
-                }
+                if (ptr.address > __heap_end__) 
+                    kThrow(HALT_SEGMENTATION_FAULT, __heap_begin__ + ptr.address);
                 
-                bus_read_memory(&mem_bus, ptr.address, &reg[argA]);
+                bus_read_memory(&mem_bus, __heap_begin__ + ptr.address, &reg[argA]);
                 pc += 5;
                 continue;
             }
@@ -109,13 +104,10 @@ void EmulateX4(uint8_t messages) {
                 ptr.byte_t[3] = argE;
                 
                 // Check memory segmentation
-                if (ptr.address < __heap_begin__ || 
-                    ptr.address >= __heap_end__) {
-                    
-                    kThrow(HALT_SEGMENTATION_FAULT, ptr.address);
-                }
+                if (ptr.address > __heap_end__) 
+                    kThrow(HALT_SEGMENTATION_FAULT, __heap_begin__ + ptr.address);
                 
-                bus_write_memory(&mem_bus, ptr.address, reg[argA]);
+                bus_write_memory(&mem_bus, __heap_begin__ + ptr.address, reg[argA]);
                 pc += 5;
                 continue;
             }
@@ -153,26 +145,26 @@ void EmulateX4(uint8_t messages) {
                 
             // Add BX into AX
             case ADD:
-                reg[0] += reg[1];
-                //pc += 1;
+                reg[argA] += reg[argB];
+                pc += 2;
                 continue;
                 
             // Sub BX from AX
             case SUB:
-                reg[0] -= reg[1];
-                //pc += 1;
+                reg[argA] -= reg[argB];
+                pc += 2;
                 continue;
                 
-            // Multiply BX and CX into AX
+            // Multiply
             case MUL:
-                reg[0] = reg[1] * reg[2];
-                //pc += 1;
+                reg[argA] = reg[argB] * reg[argC];
+                pc += 3;
                 continue;
                 
-            // Divide BX by CX into AX
+            // Divide
             case DIV:
-                reg[0] = reg[1] / reg[2];
-                //pc += 1;
+                reg[argA] = reg[argB] / reg[argC];
+                pc += 3;
                 continue;
                 
             // POP from stack into a register
@@ -542,6 +534,29 @@ void EmulateX4(uint8_t messages) {
                     continue;
                 }
                 
+                // ah = 4Ch Print a file
+                if (reg[rAH] == 0x4C) {
+                    uint32_t fileAddress = fsFileExists(param_string, param_length);
+                    if (fileAddress != 0) {
+                        int32_t file = fsFileOpen(fileAddress);
+                        uint32_t fileSz = fsFileGetSize(fileAddress);
+                        
+                        uint8_t fileBuffer[fileSz];
+                        fsFileRead(file, fileBuffer, fileSz);
+                        for (unsigned int i=0; i < fileSz; i++) {
+                            if (ConsoleGetCursorPosition() >= ConsoleGetDisplayWidth()) 
+                                printLn();
+                            printChar(fileBuffer[i]);
+                        }
+                        
+                        fsFileClose(file);
+                        reg[rBL] = 0;
+                        continue;
+                    }
+                    reg[rBL] = 2;
+                    continue;
+                }
+                
                 // ah = 3Bh Change the current working directory
                 if (reg[rAH] == 0x3B) {
                     
@@ -590,6 +605,10 @@ void EmulateX4(uint8_t messages) {
         
         continue;
     }
+    
+    VirtualAccessSetMode(VIRTUAL_ACCESS_MODE_KERNEL);
+    __heap_begin__ = 0x00000000;
+    __heap_end__   = 0xffffffff;
     
     if (consoleWritten == 1) 
         printLn();

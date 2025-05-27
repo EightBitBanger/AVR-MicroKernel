@@ -19,16 +19,13 @@ struct Device {
     /// Software interrupt ID
     uint8_t device_id;
     
-    /// Physical peripheral slot where
-    /// the device is located
+    /// Physical peripheral slot where the device is located.
     uint8_t hardware_slot;
     
-    /// Hardware address pointing to the 
-    /// device on the bus
+    /// Hardware address pointing to the device on the bus.
     uint32_t hardware_address;
     
-    /// Hardware bus with which this
-    /// device is associated
+    /// Hardware bus with which this device is associated.
     struct Bus bus;
     
 };

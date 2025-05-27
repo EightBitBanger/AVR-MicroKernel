@@ -98,13 +98,10 @@ void functionCD(uint8_t* param, uint8_t param_length) {
         if (vfsLookup(param, param_length) == 0) {
             print(msgDirectoryNotFound, sizeof(msgDirectoryNotFound));
             printLn();
-            
             return;
         }
         
-        //
         // Change prompt path name
-        
         ConsoleSetPath(param);
         
         return;

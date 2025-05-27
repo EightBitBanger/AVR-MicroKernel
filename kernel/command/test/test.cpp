@@ -3,70 +3,71 @@ extern "C" {
 #include <kernel/command/test/test.h>
 }
 
-#include <kernel/array.hpp>
-#include <kernel/string.hpp>
-
-void _tsr_callback(uint8_t messages);
+extern "C" struct Driver* displayDevice;
 
 
-uint8_t applicataionBuffer[] = {
-    0x89, 0x01, 0x09, 0x83, 0x06, 0x15, 0x00, 0x00, 0x00, 0xCD, 0x10, 0x9A, 0x22, 0x00, 0x00, 0x00, 0xFE, 0x33, 0x00, 0x00, 0x00, 0x62, 0x65, 0x67, 
-    0x69, 0x6E, 0x63, 0x61, 0x6C, 0x6C, 0x63, 0x61, 0x6C, 0x6C, 0x89, 0x01, 0x09, 0x83, 0x06, 0x1A, 0x00, 0x00, 0x00, 0xCD, 0x10, 0xFE, 0x33, 0x00, 
-    0x00, 0x00, 0xCB, 0x89, 0x01, 0x09, 0x83, 0x06, 0x1E, 0x00, 0x00, 0x00, 0xCD, 0x10, 0xCD, 0x20, 0xCB, 
+/*
+int8_t vertexBuffer[] = {
+    -10, -10, -10,   10, -10, -10,   10,  10, -10,  2, // Front face
+     10,  10, -10,  -10,  10, -10,  -10, -10, -10,  2, 
+     10, -10, -10,   10, -10,  10,   10,  10,  10,  4, // Right face
+     10,  10,  10,   10,  10, -10,   10, -10, -10,  4, 
+     10, -10,  10,  -10, -10,  10,  -10,  10,  10,  3, // Back face
+    -10,  10,  10,   10,  10,  10,   10, -10,  10,  3, 
+    -10, -10,  10,  -10, -10, -10,  -10,  10, -10,  2, // Left face
+    -10,  10, -10,  -10,  10,  10,  -10, -10,  10,  2, 
+    -10,  10, -10,   10,  10, -10,   10,  10,  10,  4, // Top face
+     10,  10,  10,  -10,  10,  10,  -10,  10, -10,  4, 
+    -10, -10, -10,  -10, -10,  10,   10, -10,  10,  3, // Bottom face
+     10, -10,  10,   10, -10, -10,  -10, -10, -10,  3 , 
 };
-
-
+*/
 
 void functionTest(uint8_t* param, uint8_t param_length) {
     
-    uint32_t fileSizeTotal = sizeof(applicataionBuffer);
     
-    uint8_t filename[] = "run";
-    
-    uint32_t fileAddress = fsFileCreate(filename, sizeof(filename), fileSizeTotal);
-    
-    fsDirectoryAddFile(fsWorkingDirectoryGetAddress(), fileAddress);
-    
-    struct FSAttribute attrib = {'x', 'r', 'w', ' '};
-    fsFileSetAttributes(fileAddress, &attrib);
-    
-    int32_t index = fsFileOpen(fileAddress);
-    
-    fsFileWrite(index, applicataionBuffer, fileSizeTotal);
-    fsFileClose(index);
     
     return;
     
+    glInit(GL_MODE_SPRITES);
+    glClear(0);
+    
+    __glBusyWait();
+    displayDevice->write(0x00001, 0);
+    
+    __glBusyWait();
+    displayDevice->write(0x00002, 0);
+    
+    // Write sprite
     /*
-    if (TaskCreate(param, param_length, _tsr_callback, TASK_PRIORITY_REALTIME, TASK_PRIVILEGE_USER, TASK_TYPE_TSR) == -1) {
-        uint8_t msgFailed[] = "Failed";
-        print(msgFailed, sizeof(msgFailed));
-        return;
+    __glBusyWait();
+    displayDevice->write(0x00007, 2);
+    for (unsigned int i=0; i < 8; i++) {
+        __glBusyWait();
+        displayDevice->write(0x00010 + i, 0xff);
     }
     */
     
-    return;
-}
-
-
-void _tsr_callback(uint8_t messages) {
+    unsigned int numberOfChars = 0x0f;
+    if (param[0] == 'f') 
+        numberOfChars = 0x10;
     
-    _delay_ms(30);
-    
-    switch (messages) {
-        
-        case EVENT_INITIATE: {
-            break;
-        }
-        
-        case EVENT_SHUTDOWN: {
-            break;
-        }
-        
+    // Draw sprites
+    __glBusyWait();
+    displayDevice->write(0x00007, 1);
+    for (unsigned int i=0; i < numberOfChars; i++) {
+        __glBusyWait();
+        displayDevice->write(0x00010 + i, 1);
     }
     
+    swapBuffers();
+    
+    
+    //glInit(GL_MODE_TEXT);
+    
     return;
 }
+
 
 void registerCommandTest(void) {
     

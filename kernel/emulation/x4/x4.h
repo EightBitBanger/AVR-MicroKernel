@@ -6,7 +6,7 @@
 #define  NOP   0x90
 
 #define  MOVR  0x88  // Move a byte from a register into a register
-#define  MOVB  0x89  // Move a byte into a register byte
+#define  MOVB  0x89  // Move a byte into a register
 #define  MOVA  0x83  // Move an address into a register word
 #define  MOVMW 0x82  // Move a register byte into a memory address
 #define  MOVMR 0x81  // Move a byte from a memory address into a register
@@ -61,9 +61,6 @@
 
 void EmulatorSetProgram(uint8_t* buffer, uint32_t size);
 void EmulatorSetParameters(uint8_t* parameters, uint32_t length);
-
-void EmulatorStart(uint8_t* filename, uint8_t nameLength, uint16_t priority, uint8_t privilege, uint8_t type);
-
 
 void EmulateX4(uint8_t messages);
 

@@ -21,6 +21,9 @@ uint8_t parameters_begin;
 uint8_t console_position = 0;
 uint8_t console_line     = 0;
 
+uint8_t console_width   = 21;
+uint8_t console_height  = 8;
+
 uint8_t oldScanCodeLow  = 0;
 uint8_t oldScanCodeHigh = 0;
 
@@ -311,5 +314,24 @@ uint8_t ConsoleGetCursorPosition(void) {
 
 uint8_t ConsoleGetCursorLine(void) {
     return console_line;
+}
+
+void ConsoleSetDisplayWidth(uint16_t width) {
+    console_width = width;
+    return;
+}
+
+void ConsoleSetDisplayHeight(uint16_t height) {
+    console_height = height;
+    return;
+}
+
+
+uint16_t ConsoleGetDisplayWidth(void) {
+    return console_width;
+}
+
+uint16_t ConsoleGetDisplayHeight(void) {
+    return console_height;
 }
 

@@ -37,7 +37,6 @@ void functionBoot(uint8_t* param, uint8_t param_length) {
         (param[2] == 'i') & 
         (param[3] == 'n')) {
         
-        
         // Create 'bin' directory on the root
         uint8_t msgCreatingBins[] = "Creating binaries";
         print(msgCreatingBins, sizeof(msgCreatingBins));
@@ -55,7 +54,12 @@ void functionBoot(uint8_t* param, uint8_t param_length) {
         fsWorkingDirectoryChange(dirNameBin, sizeof(dirNameBin));
         DropFileSystemFunc();
         fsWorkingDirectoryClear();
-        
+    }
+    
+    if ((param[0] == '-') & 
+        (param[1] == 's') & 
+        (param[2] == 'y') & 
+        (param[3] == 's')) {
         
         // Create 'sys' directory on the root
         uint8_t msgCreatingDrivers[] = "Creating drivers";
@@ -91,13 +95,50 @@ void registerCommandBoot(void) {
 
 
 
-
-
-
-
-
-
 void DropFileSystemFunc(void) {
+    
+    {
+    uint8_t filename[]  = "type";
+    uint8_t program[] = {
+        0x89, 0x01, 0x4C, 0xCD, 0x13, 0xCD, 0x20, 
+    };
+    
+    uint32_t fileAddress = fsFileExists(filename, sizeof(filename)-1);
+    if (fileAddress == 0) {
+        fileAddress = fsFileCreate(filename, sizeof(filename), sizeof(program));
+        fsDirectoryAddFile(fsWorkingDirectoryGetAddress(), fileAddress);
+        
+        struct FSAttribute attrib = {'x', 'r', 'w', ' '};
+        fsFileSetAttributes(fileAddress, &attrib);
+        
+        int32_t index = fsFileOpen(fileAddress);
+        fsFileWrite(index, program, sizeof(program));
+        fsFileClose(index);
+    }
+    }
+    
+    
+    return;
+    
+    {
+    uint8_t filename[]  = "ver";
+    uint8_t program[] = {
+        0x89, 0x01, 0x09, 0x83, 0x06, 0x0D, 0x00, 0x00, 0x00, 0xCD, 0x10, 0xCD, 0x20, 0x56, 0x65, 0x72, 0x73, 0x69, 0x6F, 0x6E, 0x20, 0x30, 0x2E, 0x31, 0x2E, 0x30, 0x00 
+    };
+    
+    uint32_t fileAddress = fsFileExists(filename, sizeof(filename)-1);
+    if (fileAddress == 0) {
+        fileAddress = fsFileCreate(filename, sizeof(filename), sizeof(program));
+        fsDirectoryAddFile(fsWorkingDirectoryGetAddress(), fileAddress);
+        
+        struct FSAttribute attrib = {'x', 'r', 'w', ' '};
+        fsFileSetAttributes(fileAddress, &attrib);
+        
+        int32_t index = fsFileOpen(fileAddress);
+        fsFileWrite(index, program, sizeof(program));
+        fsFileClose(index);
+    }
+    }
     
     {
     uint8_t filename[]  = "cls";
@@ -202,27 +243,6 @@ void DropFileSystemFunc(void) {
         0x10, 0xCD, 0x20, 0x45, 0x72, 0x72, 0x6F, 0x72, 0x20, 0x64, 0x65, 0x6C, 0x65, 0x74, 0x69, 0x6E, 0x67, 0x20, 0x64, 0x69, 0x72, 0x00, 0x44, 0x69, 
         0x72, 0x20, 0x61, 0x6C, 0x72, 0x65, 0x61, 0x64, 0x79, 0x20, 0x65, 0x78, 0x69, 0x73, 0x74, 0x73, 0x00, 0x42, 0x61, 0x64, 0x20, 0x64, 0x69, 0x72, 
         0x20, 0x6E, 0x61, 0x6D, 0x65, 0x00, 
-    };
-    
-    uint32_t fileAddress = fsFileExists(filename, sizeof(filename)-1);
-    if (fileAddress == 0) {
-        fileAddress = fsFileCreate(filename, sizeof(filename), sizeof(program));
-        fsDirectoryAddFile(fsWorkingDirectoryGetAddress(), fileAddress);
-        
-        struct FSAttribute attrib = {'x', 'r', 'w', ' '};
-        fsFileSetAttributes(fileAddress, &attrib);
-        
-        int32_t index = fsFileOpen(fileAddress);
-        fsFileWrite(index, program, sizeof(program));
-        fsFileClose(index);
-    }
-    }
-    
-    {
-    uint8_t filename[]  = "ver";
-    uint8_t program[] = {
-        0x89, 0x01, 0x09, 0x83, 0x06, 0x0B, 0x00, 0x00, 0x00, 0xCD, 0x10, 0x56, 0x65, 0x72, 0x73, 0x69, 0x6F, 0x6E, 0x20, 0x30, 0x2E, 0x31, 0x2E, 0x30, 
-        0x00, 0xCD, 0x20, 
     };
     
     uint32_t fileAddress = fsFileExists(filename, sizeof(filename)-1);

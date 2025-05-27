@@ -38,6 +38,12 @@ void ConsoleClearScreen(uint8_t clearToCharacter);
 uint8_t ConsoleGetCursorPosition(void);
 uint8_t ConsoleGetCursorLine(void);
 
+void ConsoleSetDisplayWidth(uint16_t width);
+void ConsoleSetDisplayHeight(uint16_t height);
+
+uint16_t ConsoleGetDisplayWidth(void);
+uint16_t ConsoleGetDisplayHeight(void);
+
 uint8_t ConsoleWait(void);
 void ConsoleClearKeyboardString(void);
 

@@ -62,6 +62,7 @@ int8_t LoadLibrary(uint8_t* filename, uint8_t filenameLength) {
     }
     
     // Check if a driver is already servicing the hardware device
+    // that this driver is targetting
     
     uint32_t numberOfDrivers = ListGetSize(DriverTableHead);
     for (uint8_t i=0; i < numberOfDrivers; i++) {
