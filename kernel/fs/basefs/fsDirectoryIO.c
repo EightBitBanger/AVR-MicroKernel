@@ -1,17 +1,13 @@
 #include <kernel/fs/fs.h>
 
 uint32_t fsDirectoryGetSize(uint32_t directoryAddress) {
-    
     union Pointer directorySizePtr;
-    
     for (uint8_t i=0; i < 4; i++) 
         fs_read_byte(directoryAddress + FILE_OFFSET_SIZE + i, &directorySizePtr.byte_t[i]);
-    
     return directorySizePtr.address;
 }
 
 uint32_t fsDirectoryGetCapacity(uint32_t directoryAddress) {
-    
     uint32_t totalSize = 0;
     
     for (uint32_t z=0; z < FS_DIRECTORY_LISTING_MAX; z++) {

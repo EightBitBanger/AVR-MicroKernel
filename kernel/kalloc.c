@@ -9,8 +9,6 @@ uint32_t kAllocGetTotal(void) {
 
 void AllocateExternalMemory(void) {
     
-#ifdef _KERNEL_ALLOCATE_EXTERNAL_MEMORY__
-    
     ConsoleCursorDisable();
     
     uint8_t totalString[10];
@@ -69,8 +67,6 @@ void AllocateExternalMemory(void) {
     print(byteFreeString, sizeof(byteFreeString));
     
     printLn();
-    
-#endif
     
     return;
 }

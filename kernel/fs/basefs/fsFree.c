@@ -1,47 +1,18 @@
 #include <kernel/fs/fs.h>
 uint8_t fsFree(uint32_t address) {
     
-    uint8_t isHeaderDeleted = 0;
-    uint8_t clearByte = FORMAT_SECTOR_EMPTY;
+    // Get file size
+    union Pointer sizePtr;
+    for (uint8_t i = 0; i < 4; i++)
+        fs_read_byte(address + FILE_OFFSET_SIZE + i, &sizePtr.byte_t[i]);
     
-    // Get allocation size
-    union Pointer allocSize;
-    for (uint8_t i = 0; i < 4; i++) 
-        fs_read_byte(address + FILE_OFFSET_SIZE, &allocSize.byte_t[i]);
+    // Calculate number of sectors to allocate
+    uint32_t totalSectors = (sizePtr.address + (fs_sector_size-2)) / (fs_sector_size-1);
     
-    // Delete the file sectors
-    for (uint32_t sector = 0; sector < allocSize.address; sector += FORMAT_SECTOR_SIZE) {
-        
-        // Get sector header byte
-        uint8_t headerByte = 0x00;
-        fs_read_byte(address + sector, &headerByte);
-        
-        switch (headerByte) {
-            
-        case FORMAT_SECTOR_HEADER:
-            
-            // Only delete a header once
-            if (isHeaderDeleted == 1) {
-                
-                // Return to prevent damage to adjacent files
-                return 1;
-            }
-            
-            fs_write_byte(address + sector, clearByte);
-            
-            isHeaderDeleted = 1;
-            
-            break;
-            
-        case FORMAT_SECTOR_DATA:
-        case FORMAT_SECTOR_FOOTER:
-            fs_write_byte(address + sector, clearByte);
-            break;
-        }
-        
-        // Check empty sector
-        if (headerByte == FORMAT_SECTOR_EMPTY) 
-            break;
+    // Mark sectors as free
+    for (uint32_t s = 0; s < totalSectors; s++) {
+        uint32_t sectorAddr = address + (s * fs_sector_size);
+        fs_write_byte(sectorAddr + s, FORMAT_SECTOR_EMPTY);
     }
     
     return 0;

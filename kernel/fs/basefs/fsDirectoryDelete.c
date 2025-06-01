@@ -9,8 +9,11 @@ uint32_t fsDirectoryDelete(uint8_t* name, uint8_t nameLength) {
     if (directoryAddress == 0) 
         return 0;
     
-    fsFree(directoryAddress);
+    uint32_t workingAddress = fsWorkingDirectoryGetAddress();
+	if (workingAddress != 0) 
+        fsDirectoryRemoveFile(workingAddress, directoryAddress);
     
+    fsFree(directoryAddress);
     return directoryAddress;
 }
 

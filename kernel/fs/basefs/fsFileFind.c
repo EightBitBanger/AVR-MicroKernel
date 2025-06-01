@@ -33,14 +33,14 @@ uint32_t fsFileFind(uint32_t index) {
     if (fsDeviceGetCapacity() == 0)
         return 0;
     
-    uint32_t numberOfSectors = fsDeviceGetCapacity() / FORMAT_SECTOR_SIZE;
+    uint32_t numberOfSectors = fsDeviceGetCapacity() / fs_sector_size;
     
     uint32_t fileFindIndex = 0;
     
     // Check following sectors allocated to this file
     for (uint32_t sector=0; sector <= numberOfSectors; sector++) {
         
-        uint32_t currentSector = sector * FORMAT_SECTOR_SIZE;
+        uint32_t currentSector = sector * fs_sector_size;
         
         // Find an active file start byte
         uint8_t headerByte = 0;

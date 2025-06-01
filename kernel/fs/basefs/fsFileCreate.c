@@ -5,9 +5,13 @@ uint32_t fsFileCreate(uint8_t* name, uint8_t nameLength, uint32_t fileSize) {
         nameLength = FILE_NAME_LENGTH;
     
     uint32_t fileAddress = fsAllocate(fileSize);
-	
 	if (fileAddress == 0) 
         return 0;
+	
+	// Add to the current working directory
+	uint32_t workingAddress = fsWorkingDirectoryGetAddress();
+	if (workingAddress != 0) 
+        fsDirectoryAddFile(workingAddress, fileAddress);
 	
 	// Write file name
 	fsFileSetName(fileAddress, name, nameLength);

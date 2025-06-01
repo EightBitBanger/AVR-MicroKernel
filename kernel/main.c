@@ -13,47 +13,10 @@ int main(void) {
 	InitiateDeviceTable();        // Hardware device table
     KernelVectorTableInit();      // Hardware interrupt vector table
     
-#ifdef NETWORK_APPLICATION_PACKET_ROUTER
-    
-    ntInit();
-    
-    InitiateRouter();
-    
-#endif
-    
     cliInit();
     
-    
-    {
-    /*
-    uint8_t program[] = {
-        0x89, 0x01, 0x03, 0xCD, 0x10, 0xCD, 0x20, 
-    };
-    EmulatorSetProgram(program, sizeof(program));
-    
-    EmulateX4( EVENT_NOMESSAGE );
-    
-    while(1) {}
-    */
-    }
-    
-    
-    
-    
-    /*
-    SchedulerStart();
-    InterruptStartTimeCounter();
-    EnableGlobalInterrupts();
-	functionGRAPH();
-    return 1;
-    */
-    
-    
-#ifdef _KERNEL_ALLOCATE_EXTERNAL_MEMORY__
-    
+    // Check amount of external memory
     AllocateExternalMemory();
-    
-#endif
     
     // Speaker beep error codes
     
@@ -82,15 +45,7 @@ int main(void) {
     // Initiate kernel sub systems
     
     fsInit();         // File system
-    kInit();          // Setup the kernel environment
-    
-#ifdef NETWORK_APPLICATION_SERVER
-    
-    ntInit();
-    
-    InitiateServer();
-    
-#endif
+    kInit();          // Kernel environment
     
     registerCommandLS();
     registerCommandCD();
@@ -115,7 +70,7 @@ int main(void) {
     //registerCommandNet();
     
     //registerCommandFormat();
-    registerCommandBoot();
+    //registerCommandBoot();
     
     #define DONT_INCLUDE_CONSOLE_COMMANDS
     

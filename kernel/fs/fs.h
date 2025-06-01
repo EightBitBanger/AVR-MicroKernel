@@ -18,7 +18,7 @@
 
 // Sector format layout
 
-#define FORMAT_SECTOR_SIZE        32
+extern uint32_t fs_sector_size;
 
 #define FORMAT_SECTOR_HEADER      'U'
 #define FORMAT_SECTOR_DATA        'D'
@@ -32,21 +32,22 @@
 #define DEVICE_OFFSET_CAPACITY    12 // uint32     Max capacity of the device in bytes
 #define DEVICE_OFFSET_TYPE        16 // uint8      Device type specifier
 #define DEVICE_OFFSET_ROOT        17 // uint32     Pointer to the root directory
+#define DEVICE_OFFSET_SECT_SZ     21 // uint32     Size of a sector
 
 // File header layout
 
 #define FILE_NAME_LENGTH          10
 
-#define FILE_OFFSET_NAME          1  // 10 bytes   File name offset
-#define FILE_OFFSET_SIZE          11 // uint32     File size offset
-#define FILE_OFFSET_ATTRIBUTES    15 // uint32     File attribute offest
+#define FILE_OFFSET_NAME          1  // 10 bytes   File name
+#define FILE_OFFSET_SIZE          11 // uint32     File size
+#define FILE_OFFSET_ATTRIBUTES    15 // uint32     File attribute
 #define FILE_OFFSET_REF_COUNT     19 // uint32     Number of file references in this directory (if its a directory)
 #define FILE_OFFSET_FLAG          23 // uint8      Flags (bitmask)
 #define FILE_OFFSET_PARENT        24 // uint32     Pointer to parent block address
 #define FILE_OFFSET_NEXT          28 // uint32     Pointer to next block address
 
 // Directory layout
-#define FS_DIRECTORY_REF_MAX           (FORMAT_SECTOR_SIZE / 4)
+#define FS_DIRECTORY_REF_MAX           (fs_sector_size / 4)
 #define FS_DIRECTORY_LISTING_MAX       32768
 
 // Working directory
@@ -113,6 +114,8 @@ uint8_t fsDeviceCheckReady(void);
 
 /// Get the size of the device in bytes.
 uint32_t fsDeviceGetCapacity(void);
+/// Get the sector size of the device.
+uint32_t fsDeviceGetSectorSize(void);
 /// Get the root directory of the device.
 uint32_t fsDeviceGetRootContextDirectory(void);
 /// Set the root directory of the device.
@@ -136,7 +139,7 @@ uint8_t fsFormatQuick(uint32_t addressBegin, uint32_t addressEnd);
 
 /// Initiate the first sector on the device.
 /// The first sector is reserved for the allocation table.
-uint32_t fsDeviceConstructAllocationTable(uint32_t addressBegin, uint32_t addressEnd);
+uint32_t fsDeviceConstructAllocationTable(uint32_t addressBegin, uint32_t addressEnd, uint32_t sectorSize);
 
 // Files
 

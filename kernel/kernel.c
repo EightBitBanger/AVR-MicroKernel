@@ -43,13 +43,9 @@ void kInit(void) {
     // Create system directories
     
     uint8_t dirNameDev[] = "dev";
-    uint32_t dirBinAddress = fsDirectoryCreate(dirNameDev, sizeof(dirNameDev));
+    fsDirectoryCreate(dirNameDev, sizeof(dirNameDev));
     uint8_t dirNameProc[] = "proc";
     dirProcAddress = fsDirectoryCreate(dirNameProc, sizeof(dirNameProc));
-    
-    fsDirectoryAddFile(fsWorkingDirectoryGetAddress(), dirBinAddress);
-    fsDirectoryAddFile(fsWorkingDirectoryGetAddress(), dirProcAddress);
-    
     
     // Register devices on the bus
     
@@ -80,16 +76,18 @@ void kInit(void) {
         struct FSAttribute attrib = {'s','r','w',' '};
         fsFileSetAttributes(fileAddress, &attrib);
         
-        fsDirectoryAddFile(fsWorkingDirectoryGetAddress(), fileAddress);
-        
         // Initiate file
         uint32_t fileSize = fsFileGetSize(fileAddress);
         uint8_t fileBuffer[fileSize];
+        for (unsigned int i=0; i < fileSize; i++) 
+            fileBuffer[i] = ' ';
         
         fileBuffer[0] = 'K';
         fileBuffer[1] = 'D';
         fileBuffer[2] = 'E';
         fileBuffer[3] = 'V';
+        
+        fileBuffer[5] = devPtr->hardware_slot + '0';
         
         int32_t fileIndex = fsFileOpen(fileAddress);
         fsFileWrite(fileIndex, fileBuffer, fileSize);
@@ -229,7 +227,7 @@ void kInit(void) {
             }
             continue;
         }
-        if (found == 1) 
+        if (found == 0) 
             continue;
         
         //

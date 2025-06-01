@@ -9,16 +9,15 @@ uint32_t fsAllocate(uint32_t size) {
     uint32_t freeSectorCount = 0;
     uint32_t fileTargetAddress = 0;
     
-    uint32_t currentCapacity = fsDeviceGetCapacity() / FORMAT_SECTOR_SIZE;
+    uint32_t deviceCapacity = fsDeviceGetCapacity() / fs_sector_size;
     
     // Calculate sectors required to fit the file
-    //uint32_t totalSectors = (size / (FORMAT_SECTOR_SIZE - 1)) + 1;
-    uint32_t totalSectors = (size + (FORMAT_SECTOR_SIZE - 2)) / (FORMAT_SECTOR_SIZE - 1);
+    uint32_t totalSectors = (size + (fs_sector_size - 2)) / (fs_sector_size - 1);
     
     // Find free sectors
-    for (uint32_t sector = 0; sector < currentCapacity; sector++) {
+    for (uint32_t sector = 0; sector < deviceCapacity; sector++) {
         
-        uint32_t offset = __virtual_address_begin__ + (sector * FORMAT_SECTOR_SIZE);
+        uint32_t offset = __virtual_address_begin__ + (sector * fs_sector_size);
         
         // Check allocation range
         if (offset > __virtual_address_end__) {
@@ -28,15 +27,14 @@ uint32_t fsAllocate(uint32_t size) {
         // Find an empty sector
         uint8_t headerByte;
         fs_read_byte(offset, &headerByte);
-        
         if (headerByte != FORMAT_SECTOR_EMPTY) 
             continue;
         
         // Check for enough contiguous sectors
         freeSectorCount = 0;
-        for (uint32_t nextSector = sector; nextSector < currentCapacity; nextSector++) {
+        for (uint32_t nextSector = sector; nextSector < deviceCapacity; nextSector++) {
             
-            uint32_t offsetNext = __virtual_address_begin__ + (nextSector * FORMAT_SECTOR_SIZE);
+            uint32_t offsetNext = __virtual_address_begin__ + (nextSector * fs_sector_size);
             
             // Check allocation range
             if (offsetNext > __virtual_address_end__) {
@@ -47,7 +45,6 @@ uint32_t fsAllocate(uint32_t size) {
             fs_read_byte(offsetNext, &nextHeaderByte);
             
             if (nextHeaderByte == FORMAT_SECTOR_EMPTY) {
-                
                 freeSectorCount++;
                 
                 if (freeSectorCount == totalSectors) {
@@ -56,9 +53,7 @@ uint32_t fsAllocate(uint32_t size) {
                 }
                 
             } else {
-                
                 freeSectorCount = 0;
-                
                 break;
             }
         }
@@ -68,15 +63,14 @@ uint32_t fsAllocate(uint32_t size) {
             continue;
         
         // Mark the end of file sector
-        fs_write_byte(fileTargetAddress + (totalSectors * FORMAT_SECTOR_SIZE), FORMAT_SECTOR_FOOTER);
+        fs_write_byte(fileTargetAddress + (totalSectors * fs_sector_size), FORMAT_SECTOR_FOOTER);
         
         // Mark the first sector
-        uint8_t fileStartByte = FORMAT_SECTOR_HEADER;
-        fs_write_byte(fileTargetAddress, fileStartByte);
+        fs_write_byte(fileTargetAddress, FORMAT_SECTOR_HEADER);
         
         // Mark following sectors as taken
         for (uint32_t i = 0; i < totalSectors - 1; i++) 
-            fs_write_byte(fileTargetAddress + ((i + 1) * FORMAT_SECTOR_SIZE), FORMAT_SECTOR_DATA);
+            fs_write_byte(fileTargetAddress + ((i + 1) * fs_sector_size), FORMAT_SECTOR_DATA);
         
         // Blank the file name
         for (uint8_t i = 0; i < FILE_NAME_LENGTH; i++) 
