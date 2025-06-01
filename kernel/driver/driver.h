@@ -1,3 +1,39 @@
+/*
+ 
+ Driver file layout
+    
+    Driver file ID         2 bytes 'KD'
+    
+    Driver name           10 Bytes
+    
+    Marker byte            1 byte '$'
+    
+    Device ID              1 byte
+    
+    Bus read waitstate     1 byte
+    Bus write waitstate    1 byte
+    
+    Bus interface type     1 byte
+      Type 0 - Default bus
+      Type 1 - Memory bus
+      Type 2 - IO bus
+      Type 3 - Serial bus
+    
+    Hardware address       4 bytes
+    
+    
+ Function blocks
+    
+    Number of blocks       4 bytes
+    
+    [address to block a]  [address to block b]  [address to block c]...
+    
+    [begin block a] ..assembly... [return]
+    [begin block b] ..assembly... [return]
+    [begin block c] ..assembly... [return]
+    
+*/
+
 #ifndef __DRIVER_TABLE_
 #define __DRIVER_TABLE_
 
@@ -7,7 +43,6 @@
 
 #include <kernel/list.h>
 #include <kernel/device/device.h>
-
 
 struct Driver {
     

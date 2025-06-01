@@ -74,9 +74,11 @@ uint8_t ExecuteFile(uint32_t fileAddress) {
     fsFileRead(index, programBuffer, programSize);
     fsFileClose(index);
     
-    fsDeviceSetRootLetter( currentDeviceLetter );
-    fsWorkingDirectorySetAddress( currentWorkingDirectoryAddress );
-    fsWorkingDirectorySetName( currentWorkingDirectoryAddress );
+    // Return to the working directory
+    fsDeviceSetRootLetter(currentDeviceLetter);
+    fsWorkingDirectorySetAddress(currentWorkingDirectoryAddress);
+    fsWorkingDirectorySetName(currentWorkingDirectoryAddress);
+    fsWorkingDirectorySetStack(currentWorkingDirectoryStack);
     
     // Launch the emulator
     EmulatorSetProgram( programBuffer, programSize );
@@ -128,6 +130,14 @@ void KeyFunctionReturn(void) {
     // Check file executable
     if ((passed == 0) & (console_string_length_old > 0)) {
         
+        // Change to home device
+        currentDeviceLetter = fsDeviceGetRootLetter();
+        lowercase(&currentDeviceLetter);
+        
+        // Get current directory
+        currentWorkingDirectoryAddress = fsWorkingDirectoryGetAddress();
+        currentWorkingDirectoryStack = fsWorkingDirectoryGetStack();
+        
         if (fsDeviceCheckReady() == 1) {
             
             // Check working directory
@@ -135,28 +145,18 @@ void KeyFunctionReturn(void) {
             
             EmulatorSetParameters(&console_string[parameters_begin], (console_string_length - parameters_begin) + 1);
             
-            currentDeviceLetter = fsDeviceGetRootLetter();
-            currentWorkingDirectoryAddress = fsWorkingDirectoryGetAddress();
-            
             if (fileAddress != 0) {
-                
                 if (ExecuteFile( fileAddress ) == 1) {
-                    
                     ConsoleClearKeyboardString();
-                    
                     console_string_length = 0;
-                    
                     return;
                 }
             }
             
             // Check bin directory
             if (ExecuteBinDirectory() == 1) {
-                
                 ConsoleClearKeyboardString();
-                
                 console_string_length = 0;
-                
                 return;
             }
             
@@ -289,17 +289,8 @@ uint8_t ExecuteBinDirectory(void) {
     if (binDirectoryPath[0] < 0x20) 
         return 0;
     
-    // Change to home device
-    currentDeviceLetter = fsDeviceGetRootLetter();
-    lowercase(&currentDeviceLetter);
-    
-    // Get current directory
-    currentWorkingDirectoryAddress = fsWorkingDirectoryGetAddress();
-    currentWorkingDirectoryStack = fsWorkingDirectoryGetStack();
-    
-    // Set root directory
+    // Switch to the root directory
     fsDeviceSetRootLetter( EnvironmentGetHomeChar() );
-    
     fsWorkingDirectoryClear();
     
     // Get directory address and number of files
@@ -307,14 +298,15 @@ uint8_t ExecuteBinDirectory(void) {
     uint32_t numberOfFiles = fsDirectoryGetNumberOfFiles( directoryAddress );
     
     if ((numberOfFiles == 0) | (directoryAddress == 0)) {
-        fsDeviceSetRootLetter( currentDeviceLetter );
         
-        fsWorkingDirectorySetAddress( currentWorkingDirectoryAddress );
-        fsWorkingDirectorySetName( currentWorkingDirectoryAddress );
-        
+        fsDeviceSetRootLetter(currentDeviceLetter);
+        fsWorkingDirectorySetAddress(currentWorkingDirectoryAddress);
+        fsWorkingDirectorySetName(currentWorkingDirectoryAddress);
+        fsWorkingDirectorySetStack(currentWorkingDirectoryStack);
         return 0;
     }
     
+    // Search for the file in question
     for (uint32_t i=0; i < numberOfFiles; i++) {
         
         uint32_t fileAddress = fsDirectoryGetFile(directoryAddress, i);
@@ -336,23 +328,20 @@ uint8_t ExecuteBinDirectory(void) {
             
             ExecuteFile(fileAddress);
             
-            fsDeviceSetRootLetter( currentDeviceLetter );
-            fsWorkingDirectorySetAddress( currentWorkingDirectoryAddress );
-            fsWorkingDirectorySetName( currentWorkingDirectoryAddress );
+            fsDeviceSetRootLetter(currentDeviceLetter);
+            fsWorkingDirectorySetAddress(currentWorkingDirectoryAddress);
+            fsWorkingDirectorySetName(currentWorkingDirectoryAddress);
             fsWorkingDirectorySetStack(currentWorkingDirectoryStack);
-            
             return 1;
         }
         
     }
     
     // Reset previous device and directory
-    fsDeviceSetRootLetter( currentDeviceLetter );
-    
-    fsWorkingDirectorySetAddress( currentWorkingDirectoryAddress );
-    fsWorkingDirectorySetName( currentWorkingDirectoryAddress );
-    fsWorkingDirectorySetStack( currentWorkingDirectoryStack );
-    
+    fsDeviceSetRootLetter(currentDeviceLetter);
+    fsWorkingDirectorySetAddress(currentWorkingDirectoryAddress);
+    fsWorkingDirectorySetName(currentWorkingDirectoryAddress);
+    fsWorkingDirectorySetStack(currentWorkingDirectoryStack);
     return 0;
 }
 

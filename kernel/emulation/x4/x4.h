@@ -1,6 +1,8 @@
 #ifndef _EMULATOR_X4__
 #define _EMULATOR_X4__
 
+#define MAX_PROGRAM_SIZE  256
+
 // Opcodes
 
 #define  NOP   0x90
@@ -65,9 +67,12 @@ void EmulatorSetParameters(uint8_t* parameters, uint32_t length);
 void EmulateX4(uint8_t messages);
 
 
-// Compilation
+// Interrupt service callbacks
+void ISC_DisplayRoutine(void);
+void ISC_NetworkRoutine(void);
+void ISC_FileSystemRoutine(void);
 
+// Injection
 uint32_t AssembleJoin(uint8_t* buffer, uint32_t begin_address, uint8_t* source, uint32_t length);
-
 
 #endif

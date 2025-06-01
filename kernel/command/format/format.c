@@ -31,28 +31,21 @@ void functionFORMAT(uint8_t* param, uint8_t param_length) {
     
     uint32_t deviceCapacityCurrent=0;
     if (deviceCapacity == 0) {
-        
         deviceCapacityCurrent = FORMAT_CAPACITY_8K / 1024;
-        
     } else {
-        
         deviceCapacityCurrent = deviceCapacity / 1024;
     }
     
     // Quick format
     if (quickly == 0) {
-        
         uint8_t deviceCapacityMsg[] = "k bytes";
         uint8_t deviceCapacityAmount[10];
         
         uint8_t place = int_to_string(deviceCapacityCurrent, &deviceCapacityAmount[0]);
         
         print(deviceCapacityAmount, place + 1);
-        
         ConsoleSetCursorPosition( place );
-        
         print(deviceCapacityMsg, sizeof(deviceCapacityMsg));
-        
     } else {
         
         uint8_t deviceQuickFormat[] = "Quick format";
@@ -69,18 +62,16 @@ void functionFORMAT(uint8_t* param, uint8_t param_length) {
         return;
     
     uint32_t deviceCapacityBytes = (deviceCapacityCurrent * 1024);
-    
     uint32_t cyclesPerPercent = (deviceCapacityCurrent * 1024) / 100;
     
     uint32_t sector = 0;
+    uint32_t sector_size = fs_sector_size;
     
     ConsoleCursorDisable();
     
     uint16_t percentage = 0;
     uint8_t percentageString[10] = {'0'};
-    
     uint8_t percentageSymbole[1] = {'%'};
-    
     uint8_t sectorCounter = 0;
     
     for (uint16_t i=0; i <= 1000; i++) {
@@ -102,7 +93,7 @@ void functionFORMAT(uint8_t* param, uint8_t param_length) {
             
             sector++;
             
-            if (sectorCounter < (FORMAT_SECTOR_SIZE - 1)) {
+            if (sectorCounter < (sector_size - 1)) {
                 
                 // Check quick format
                 if (quickly == 0) 
@@ -130,11 +121,9 @@ void functionFORMAT(uint8_t* param, uint8_t param_length) {
     _delay_ms(10);
     
     // Construct the root directory
-    
-    fsDeviceConstructAllocationTable(0, deviceCapacityBytes);
+    fsDeviceConstructAllocationTable(0, deviceCapacityBytes, sector_size);
     
     // Finish as 100%
-    
     ConsoleSetCursorPosition(0);
     
     uint8_t oneHundredPercentMsg[] = "100%";
