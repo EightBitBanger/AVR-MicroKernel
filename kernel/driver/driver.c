@@ -127,11 +127,8 @@ struct Driver* GetDriverByName(uint8_t* name, uint8_t nameLength) {
         
         struct Driver* driverPtr = GetDriverByIndex(index);
         
-        for (uint8_t i=0; i < nameLength - 1; i++) {
-            
-            if (StringCompare(driverPtr->device.device_name, nameLength, name, nameLength) == 1)
-                return driverPtr;
-        }
+        if (StringCompare(driverPtr->device.device_name, nameLength, name, nameLength) == 1) 
+            return driverPtr;
         
         continue;
 	}

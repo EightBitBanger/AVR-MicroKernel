@@ -5,13 +5,19 @@ void(*__fs_write_byte)(struct Bus*, uint32_t, uint8_t);
 
 struct Bus fs_bus;
 
-uint32_t fs_device_address;
+struct DeviceDescriptor {
+    
+    
+    
+};
 
-uint8_t fs_device_root;
 
-uint32_t fs_sector_size = 32;
 
-extern uint32_t fileBeginAddress[16];
+uint32_t fs_device_address;    // Base address of the device
+uint8_t  fs_device_root;       // Character that represents the device
+uint32_t fs_sector_size = 32;  // Sector size on the device
+
+extern uint32_t fileBeginAddress[16]; // Open file addresses
 extern uint32_t fileSize[16];
 
 

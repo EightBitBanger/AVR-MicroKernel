@@ -20,46 +20,35 @@ void functionNet(uint8_t* param, uint8_t param_length) {
     uint8_t msgRequestTimedOut[]  = "Request timed out";
     uint8_t msgNoMessages[]       = "0 messages";
     uint8_t msgDeviceNoInit[]     = "Device driver error";
+    uint8_t msgInitFail[]         = "Initiation failed";
     
     
-    
-    
-    
-    /*
-    for (uint8_t p=0; p < 8; p++) {
-        
-        uint8_t* paramBegin = ConsoleGetParameter(p, '-');
-        
-        if (paramBegin != 0) {
-            
-            for (uint8_t i=0; i < CONSOLE_STRING_LENGTH; i++) {
-                
-                // Break on a space character
-                if (paramBegin[i] == ' ') 
-                    break;
-                
-                printChar( paramBegin[i] );
-                
-                // Break if the next char is a parameter
-                if (paramBegin[i + 1] == '-') 
-                    break;
-                
-            }
-            
+    // Check network device initiated
+    if (isInitiated == 0) {
+        if (ntInit() == 0) {
+            print(msgInitFail, sizeof(msgInitFail));
             printLn();
-            
-            continue;
+            return;
         }
-        
-        break;
+        isInitiated = 1;
     }
-    */
+    
+    if (ntCheckInitiated() == 0) {
+        print(msgDeviceNoInit, sizeof(msgDeviceNoInit));
+        printLn();
+        return;
+    }
+    
+    
+    uint8_t buffer[32];
+    ntSend(buffer, sizeof(buffer));
     
     
     
     
     
     
+    return;
     
     // Lower case the string
     for (uint8_t i=0; i < 4; i++) 
@@ -73,8 +62,7 @@ void functionNet(uint8_t* param, uint8_t param_length) {
         
         if (ntInit() == 0) {
             
-            uint8_t msgInitiated[] = "Initiation failed";
-            print(msgInitiated, sizeof(msgInitiated));
+            print(msgInitFail, sizeof(msgInitFail));
             
             printLn();
             

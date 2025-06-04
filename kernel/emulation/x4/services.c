@@ -51,7 +51,7 @@ void ISC_OperatingSystem(void) {
 
 void ISC_DisplayRoutine(void) {
     
-    // ah=09 - Print string
+    // AH = 0x09 Print string
     if (reg[rAH] == 0x09) {
         union Pointer dataOffset;
         dataOffset.byte_t[3] = 0;
@@ -73,7 +73,7 @@ void ISC_DisplayRoutine(void) {
         return;
     }
     
-    // ah=03 - Clear display
+    // AH = 0x03 Clear display
     if (reg[rAH] == 0x03) {
         
         ConsoleClearScreen(' ');
@@ -82,6 +82,7 @@ void ISC_DisplayRoutine(void) {
         flag_consoleDirty = 0;
         return;
     }
+    reg[rBL] = 1;
     return;
 }
 
@@ -94,15 +95,15 @@ void ISC_FileSystemRoutine(void) {
         return;
     }
     
-    // ah = 3Ch Create a file
+    // AH = 0x3C Create a file
     if (reg[rAH] == 0x3C) {
         
         // Get file size from the CX register
         union Pointer dataOffset;
         dataOffset.byte_t[3] = 0;
         dataOffset.byte_t[2] = 0;
-        dataOffset.byte_t[1] = reg[rCL];
-        dataOffset.byte_t[0] = reg[rCH];
+        dataOffset.byte_t[1] = reg[rCH];
+        dataOffset.byte_t[0] = reg[rCL];
         
         // Check file exists
         uint32_t fileAddress = fsFileExists(param_string, param_length);
@@ -123,7 +124,7 @@ void ISC_FileSystemRoutine(void) {
         return;
     }
     
-    // ah = 39h Create a directory
+    // AH = 0x39 Create a directory
     if (reg[rAH] == 0x39) {
         
         // Check directory exists
@@ -145,7 +146,7 @@ void ISC_FileSystemRoutine(void) {
         return;
     }
     
-    // ah = 41h Delete a file
+    // AH = 0x41 Delete a file
     if (reg[rAH] == 0x41) {
         
         uint32_t fileAddress = fsFileDelete(param_string, param_length);
@@ -159,7 +160,7 @@ void ISC_FileSystemRoutine(void) {
         return;
     }
     
-    // ah = 3Ah Delete a directory
+    // AH = 0x3A Delete a directory
     if (reg[rAH] == 0x3A) {
         
         uint32_t directoryAddress = fsDirectoryDelete(param_string, param_length);
@@ -173,7 +174,7 @@ void ISC_FileSystemRoutine(void) {
         return;
     }
     
-    // ah = 4Ch Print a file
+    // AH = 0x4C Print a file
     if (reg[rAH] == 0x4C) {
         uint32_t fileAddress = fsFileExists(param_string, param_length);
         if (fileAddress != 0) {
@@ -185,6 +186,11 @@ void ISC_FileSystemRoutine(void) {
             for (unsigned int i=0; i < fileSz; i++) {
                 if (ConsoleGetCursorPosition() >= ConsoleGetDisplayWidth()) 
                     printLn();
+                
+                if (fileBuffer[i] == '\n') {
+                    printLn();
+                    continue;
+                }
                 printChar(fileBuffer[i]);
             }
             
@@ -196,10 +202,12 @@ void ISC_FileSystemRoutine(void) {
         return;
     }
     
-    // ah = 3Bh Change the current working directory
+    /*
+    // AH = 0x3B Change the current working directory
     if (reg[rAH] == 0x3B) {
         
-        //vfsLookup(param_string);
+        //vfsLookup(param_string, param_length);
+        //ConsoleSetPath(param_string);
         
         // Update the global current working directory
         //extern uint32_t currentWorkingDirectoryAddress;
@@ -209,39 +217,69 @@ void ISC_FileSystemRoutine(void) {
         //currentWorkingDirectoryAddress = fsWorkingDirectoryGetAddress();
         //currentWorkingDirectoryStack   = fsWorkingDirectoryGetStack();
         
-        //flag_consoleDirty = 0;
-        
-        //reg[rBL] = 0;
-        return;
-    }
-    
-    
-    // ah = 3Ch Show current directory path
-    if (reg[rAH] == 0x3F) {
-        /*
-        flag_consoleDirty = 1;
+        flag_consoleDirty = 0;
         
         reg[rBL] = 0;
-        */
         return;
     }
     
+    // AH = 0x3C Show current directory path
+    if (reg[rAH] == 0x3F) {
+        flag_consoleDirty = 1;
+        reg[rBL] = 0;
+        return;
+    }
+    */
+    
+    reg[rBL] = 1;
     return;
 }
 
 
 void ISC_NetworkRoutine(void) {
     
-    // ah = 3Ch Show current directory path
-    if (reg[rAH] == 0x0a) {
-        uint8_t buffer[32];
-        
-        ntSend(buffer, sizeof(buffer));
+    // AH = 0x0A Initiate the network device
+    if (reg[rAH] == 0x0A) {
+        if (ntInit() == 0) {
+            reg[rBL] = 1;
+            return;
+        }
+        if (ntCheckInitiated() == 0) {
+            reg[rBL] = 2;
+            return;
+        }
         
         reg[rBL] = 0;
         return;
     }
     
+    // AH = 0x0C Send a message
+    // AL = 0 Data from the file
+    // AL = 1 Data from the parameter string
+    if (reg[rAH] == 0x0C) {
+        union Pointer offset;
+        offset.byte_t[3] = 0;
+        offset.byte_t[2] = 0;
+        offset.byte_t[1] = reg[rDH];
+        offset.byte_t[0] = reg[rDL];
+        
+        // Check message bounds
+        if (offset.address >= programSize || offset.address + reg[rCL] >= programSize) {
+            reg[rBL] = 1;
+            return;
+        }
+        
+        // Select data source
+        switch (reg[rAL]) {
+            case 0x00: ntSend(&programBuffer[offset.address], reg[rCL]); break;
+            case 0x01: ntSend(param_string, param_length); break;
+        }
+        
+        reg[rBL] = 0;
+        return;
+    }
+    
+    reg[rBL] = 1;
     return;
 }
 
