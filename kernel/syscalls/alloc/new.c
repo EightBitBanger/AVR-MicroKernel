@@ -15,7 +15,6 @@ extern uint32_t __heap_end__;
 
 
 uint32_t __new__(uint32_t size) {
-    
     if (size == 0) 
         return 0;
     
@@ -46,7 +45,6 @@ uint32_t __new__(uint32_t size) {
 }
 
 void __delete__(uint32_t ptr) {
-    
     if (ptr == 0) 
         return;
     

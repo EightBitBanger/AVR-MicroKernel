@@ -97,24 +97,20 @@ uint8_t int_to_string(uint32_t number, uint8_t* destination_string) {
 }
 
 void int_to_hex_string(uint32_t integer, uint8_t* string) {
-    uint8_t hex[2] = {0, 0};
-    
-    while (integer >= 16) {
-        integer -= 16;
-        hex[0]++;
+    for (int i = 0; i < 8; i++) {
+        // Grab the topmost nibble of what’s left:
+        uint8_t nibble = (integer >> 28) & 0x0F;
+        
+        // Convert 0–15 → '0'–'9' or 'a'–'f'
+        if (nibble < 10) {
+            string[i] = '0' + nibble;
+        } else {
+            string[i] = 'a' + (nibble - 10);
+        }
+        
+        // Shift off the nibble we just processed
+        integer <<= 4;
     }
-    
-    while (integer > 0) {
-        integer -= 1;
-        hex[1]++;
-    }
-    
-    if (hex[0] > 9) { hex[0] += 'a' - 10; } else { hex[0] += '0'; }
-    if (hex[1] > 9) { hex[1] += 'a' - 10; } else { hex[1] += '0'; }
-    
-    string[0] = hex[0];
-    string[1] = hex[1];
-    
     return;
 }
 

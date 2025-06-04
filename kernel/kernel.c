@@ -71,7 +71,7 @@ void kInit(void) {
             continue;
         
         // Create device reference file
-        uint32_t fileAddress = fsFileCreate(devPtr->device_name, length, 20);
+        uint32_t fileAddress = fsFileCreate(devPtr->device_name, length, 40);
         
         struct FSAttribute attrib = {'s','r','w',' '};
         fsFileSetAttributes(fileAddress, &attrib);
@@ -82,12 +82,26 @@ void kInit(void) {
         for (unsigned int i=0; i < fileSize; i++) 
             fileBuffer[i] = ' ';
         
+        // Device file header
         fileBuffer[0] = 'K';
         fileBuffer[1] = 'D';
         fileBuffer[2] = 'E';
         fileBuffer[3] = 'V';
+        fileBuffer[4] = '\n';
         
-        fileBuffer[5] = devPtr->hardware_slot + '0';
+        // Slot
+        fileBuffer[5] = 's';
+        fileBuffer[6] = 'l';
+        fileBuffer[7] = 'o';
+        fileBuffer[8] = 't';
+        fileBuffer[9] = '=';
+        fileBuffer[10] = devPtr->hardware_slot + '1';
+        fileBuffer[11] = '\n';
+        
+        // Address
+        fileBuffer[12] = '0';
+        fileBuffer[13] = 'x';
+        int_to_hex_string(devPtr->hardware_address, &fileBuffer[14]);
         
         int32_t fileIndex = fsFileOpen(fileAddress);
         fsFileWrite(fileIndex, fileBuffer, fileSize);

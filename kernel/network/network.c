@@ -16,7 +16,7 @@ uint8_t ntIsInitiated = 0;
 uint8_t ntInit(void) {
     
     uint8_t nameNetwork[] = "network";
-	networkDevice = (struct Driver*)GetDriverByName( nameNetwork, sizeof(nameNetwork) );
+	networkDevice = (struct Driver*)GetDriverByName( nameNetwork, sizeof(nameNetwork)-1 );
 	
 	if (networkDevice == nullptr) 
         return 0;
