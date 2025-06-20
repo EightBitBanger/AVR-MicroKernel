@@ -8,9 +8,9 @@ int main(void) {
     // Allow board some time to stabilize
     _delay_ms(1000);
     
-	// Initiate core kernel systems (in this order)
-	InitBakedDrivers();           // Baked device drivers
-	InitiateDeviceTable();        // Hardware device table
+    // Initiate core kernel systems (in this order)
+    InitBakedDrivers();           // Baked device drivers
+    InitiateDeviceTable();        // Hardware device table
     KernelVectorTableInit();      // Hardware interrupt vector table
     
     cliInit();
