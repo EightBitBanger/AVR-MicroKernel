@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 #include <avr/io.h>
 #include <kernel/delay.h>
 
@@ -21,3 +22,28 @@ void registerCommandDIAG(void) {
     
     return;
 }
+=======
+#include <avr/io.h>
+#include <kernel/delay.h>
+
+#include <kernel/kernel.h>
+
+#include <kernel/command/diag/diag.h>
+
+void functionDIAG(uint8_t* param, uint8_t param_length) {
+    
+    uint8_t msgTest[] = "Fuck";
+    print(msgTest, sizeof(msgTest));
+    
+    return;
+}
+
+void registerCommandDIAG(void) {
+    
+    uint8_t diagCommandName[] = "diag";
+    
+    ConsoleRegisterCommand(diagCommandName, sizeof(diagCommandName), functionDIAG);
+    
+    return;
+}
+>>>>>>> aafa4c74e0c7a446ecc0e78b8d5dac3d7bb09fcf

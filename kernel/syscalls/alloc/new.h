@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 #ifndef __SYSCALL_NEW_
 #define __SYSCALL_NEW_
 
@@ -14,3 +15,21 @@ uint32_t kAllocationsGetSize(void);
 #define delete(ptr)  __delete__(ptr)
 
 #endif
+=======
+#ifndef __SYSCALL_NEW_
+#define __SYSCALL_NEW_
+
+#include <kernel/kernel.h>
+
+uint32_t __new__(uint32_t size);
+
+void __delete__(uint32_t ptr);
+
+uint32_t kAllocationsGetSize(void);
+
+#define new(sz)  __new__(sz)
+
+#define delete(ptr)  __delete__(ptr)
+
+#endif
+>>>>>>> aafa4c74e0c7a446ecc0e78b8d5dac3d7bb09fcf
