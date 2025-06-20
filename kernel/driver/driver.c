@@ -5,7 +5,7 @@ struct Node* DriverTableHead = NULL;
 
 
 int8_t LoadLibrary(uint8_t* filename, uint8_t filenameLength) {
-    
+    /*
     uint32_t fileAddress = fsFileExists(filename, filenameLength);
     
     if (fileAddress == 0) 
@@ -116,7 +116,7 @@ int8_t LoadLibrary(uint8_t* filename, uint8_t filenameLength) {
         
         return 4;
     }
-    
+    */
     return 0;
 }
 

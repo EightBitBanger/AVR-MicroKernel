@@ -45,6 +45,7 @@ void VirtualAccessSetMode(uint8_t mode) {
 
 
 void VirtualWrite(uint32_t address, uint8_t* byte, uint32_t size) {
+    /*
     VirtualBegin();
     
     uint32_t sector = 0;
@@ -83,11 +84,13 @@ void VirtualWrite(uint32_t address, uint8_t* byte, uint32_t size) {
     }
     
     VirtualEnd();
+    */
     return;
 }
 
 
 void VirtualRead(uint32_t address, uint8_t* byte, uint32_t size) {
+    /*
     VirtualBegin();
     
     uint32_t sector = 0;
@@ -126,6 +129,7 @@ void VirtualRead(uint32_t address, uint8_t* byte, uint32_t size) {
     }
     
     VirtualEnd();
+    */
     return;
 }
 
@@ -133,22 +137,26 @@ void VirtualRead(uint32_t address, uint8_t* byte, uint32_t size) {
 uint8_t currentDevice = ' ';
 
 void VirtualBegin(void) {
+    /*
     if (currentDevice != ' ') {
         kThrow(HALT_SEGMENTATION_FAULT, 0);
         return;
     }
     currentDevice = fsDeviceGetRootLetter();
     fsDeviceSetRootLetter('x');
+    */
     return;
 }
 
 void VirtualEnd(void) {
+    /*
     if (currentDevice == ' ') {
         kThrow(HALT_SEGMENTATION_FAULT, 0);
         return;
     }
     fsDeviceSetRootLetter(currentDevice);
     currentDevice = ' ';
+    */
     return;
 }
 

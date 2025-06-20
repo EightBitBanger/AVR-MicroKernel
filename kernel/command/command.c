@@ -50,6 +50,7 @@ uint32_t currentWorkingDirectoryStack;
 
 
 uint8_t ExecuteFile(uint32_t fileAddress) {
+    /*
     if (fileAddress == 0) 
         return 0;
     
@@ -85,6 +86,7 @@ uint8_t ExecuteFile(uint32_t fileAddress) {
     EmulateX4( EVENT_NOMESSAGE );
     
     printPrompt();
+    */
     return 1;
 }
 
@@ -128,6 +130,7 @@ void KeyFunctionReturn(void) {
     
     //
     // Check file executable
+    /*
     if ((passed == 0) & (console_string_length_old > 0)) {
         
         // Change to home device
@@ -167,7 +170,7 @@ void KeyFunctionReturn(void) {
         }
         
     }
-    
+    */
     // Bad command or filename
     if ((passed == 0) & (console_string_length_old > 0)) {
         
@@ -188,7 +191,7 @@ void KeyFunctionReturn(void) {
 
 
 uint8_t commandSpecialChar(void) {
-    
+    /*
     //
     // Change device with a colon character
     
@@ -217,7 +220,7 @@ uint8_t commandSpecialChar(void) {
         
         return 1;
     }
-    
+    */
     return 0;
 }
 
@@ -272,7 +275,7 @@ uint8_t commandFunctionLookup(uint8_t params_begin) {
 
 
 uint8_t ExecuteBinDirectory(void) {
-    
+    /*
     // Get bin directory
     uint32_t pathBinLength = EnvironmentGetPathBinLength();
     
@@ -338,6 +341,7 @@ uint8_t ExecuteBinDirectory(void) {
     fsWorkingDirectorySetAddress(currentWorkingDirectoryAddress);
     fsWorkingDirectorySetName(currentWorkingDirectoryAddress);
     fsWorkingDirectorySetStack(currentWorkingDirectoryStack);
+    */
     return 0;
 }
 

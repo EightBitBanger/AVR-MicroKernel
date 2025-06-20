@@ -11,6 +11,8 @@ void ListDirectory(uint32_t fileAddress);
 
 void functionLS(uint8_t* param, uint8_t param_length) {
     
+    
+    /*
     // Check device ready
     if (fsDeviceCheckReady() == 0) {
         
@@ -100,7 +102,7 @@ void functionLS(uint8_t* param, uint8_t param_length) {
         
         continue;
     }
-    
+    */
     return;
 }
 
@@ -115,7 +117,7 @@ void registerCommandLS(void) {
 
 
 void ListFile(uint32_t fileAddress) {
-    
+    /*
     // Attributes
     struct FSAttribute attribute;
     fsFileGetAttributes(fileAddress, &attribute);
@@ -152,13 +154,13 @@ void ListFile(uint32_t fileAddress) {
     print(filesizeString, len);
     
     printLn();
-    
+    */
     return;
 }
 
 
 void ListDirectory(uint32_t fileAddress) {
-    
+    /*
     // Attributes
     struct FSAttribute attribute;
     fsFileGetAttributes(fileAddress, &attribute);
@@ -179,6 +181,6 @@ void ListDirectory(uint32_t fileAddress) {
     print(msgDirectoryListing, sizeof(msgDirectoryListing));
     
     printLn();
-    
+    */
     return;
 }

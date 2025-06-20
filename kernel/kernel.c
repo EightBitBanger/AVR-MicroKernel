@@ -16,6 +16,7 @@ struct VirtualFileSystemInterface vfs;
 
 void kInit(void) {
     
+    /*
     kPrintVersion();
     
     VirtualAccessSetMode(VIRTUAL_ACCESS_MODE_KERNEL);
@@ -283,7 +284,7 @@ void kInit(void) {
 #endif
     
     fsWorkingDirectoryClear();
-    
+    */
     return;
 }
 

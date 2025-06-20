@@ -7,15 +7,15 @@
 
 // Included console commands
 #include <kernel/command/ls/ls.h>
-#include <kernel/command/cd/cd.h>
+//#include <kernel/command/cd/cd.h>
 
-#include <kernel/command/test/test.h>
+//#include <kernel/command/test/test.h>
 
-#include <kernel/command/graph/graph.h>
+//#include <kernel/command/graph/graph.h>
 
-#include <kernel/command/boot/boot.h>
-#include <kernel/command/format/format.h>
-#include <kernel/command/list/list.h>
+//#include <kernel/command/boot/boot.h>
+//#include <kernel/command/format/format.h>
+//#include <kernel/command/list/list.h>
 
 
 /*

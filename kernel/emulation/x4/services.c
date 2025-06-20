@@ -88,7 +88,7 @@ void ISC_DisplayRoutine(void) {
 
 
 void ISC_FileSystemRoutine(void) {
-    
+    /*
     if (param_string[0] == ' ' || 
         param_length == 0) {
         reg[rBL] = 1;
@@ -201,7 +201,7 @@ void ISC_FileSystemRoutine(void) {
         reg[rBL] = 2;
         return;
     }
-    
+    */
     /*
     // AH = 0x3B Change the current working directory
     if (reg[rAH] == 0x3B) {

@@ -1,7 +1,6 @@
 #ifndef __BUS_INTERFACE_
 #define __BUS_INTERFACE_
 
-
 struct Bus {
     
     /// Number of wait cycles to perform during the read operation

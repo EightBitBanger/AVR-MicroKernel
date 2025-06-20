@@ -25,7 +25,7 @@ extern uint32_t __heap_end__;
 
 
 int32_t TaskCreate(uint8_t* name, uint8_t name_length, void(*task_ptr)(uint8_t), uint8_t priority, uint8_t privilege, uint8_t type) {
-    
+    /*
     // Find an available memory range
     uint32_t nextMemoryRange = FindNextAvailableMemoryRange();
     
@@ -74,13 +74,13 @@ int32_t TaskCreate(uint8_t* name, uint8_t name_length, void(*task_ptr)(uint8_t),
     
     VirtualEnd();
     VirtualAccessSetMode( VIRTUAL_ACCESS_MODE_KERNEL );
-	
+	*/
     return 1;
 }
 
 
 uint8_t TaskDestroy(int32_t index) {
-	
+	/*
 	uint32_t listSz = ListGetSize(ProcessNodeTable);
 	
 	if (index >= listSz) 
@@ -102,12 +102,12 @@ uint8_t TaskDestroy(int32_t index) {
 	
 	// Free the process descriptor
 	free(proc_desc);
-	
+	*/
 	return 1;
 }
 
 int32_t TaskFind(uint8_t* name, uint8_t name_length) {
-	
+	/*
 	if (name_length > TASK_NAME_LENGTH_MAX)
         name_length = TASK_NAME_LENGTH_MAX;
 	
@@ -126,8 +126,9 @@ int32_t TaskFind(uint8_t* name, uint8_t name_length) {
         index = i;
         break;
 	}
-	
-    return index;
+	return index;
+    */
+    return 0;
 }
 
 

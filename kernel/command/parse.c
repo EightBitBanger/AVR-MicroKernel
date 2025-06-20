@@ -10,7 +10,7 @@ extern uint8_t parameters_begin;
 /// Set the console prompt to the last name in the path
 /// This helps preserve space on a small display.
 uint8_t ConsoleSetPath(uint8_t* path) {
-    
+    /*
     uint8_t promptLength = 0;
     uint8_t PromptDir[20] = {fsDeviceGetRootLetter(), '/'};
     
@@ -63,7 +63,7 @@ uint8_t ConsoleSetPath(uint8_t* path) {
     PromptDir[promptLength + 1] = '>';
     
     ConsoleSetPrompt(PromptDir, promptLength + 3);
-    
+    */
     return 1;
 }
 

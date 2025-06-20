@@ -5,14 +5,13 @@ int main(void) {
     // Zero the system bus
     bus_initiate();
     
-    // Allow board some time to stabilize
+    // Allow some time to stabilize for the board level IO and logic
     _delay_ms(1000);
     
     // Initiate core kernel systems (in this order)
     InitBakedDrivers();           // Baked device drivers
     InitiateDeviceTable();        // Hardware device table
     KernelVectorTableInit();      // Hardware interrupt vector table
-    
     
     cliInit();
     
@@ -49,7 +48,7 @@ int main(void) {
     kInit();          // Kernel environment
     
     registerCommandLS();
-    registerCommandCD();
+    //registerCommandCD();
     
     //registerCommandEDIT();
     //registerCommandASM();
@@ -57,13 +56,13 @@ int main(void) {
     //registerCommandMK();
     
     //registerCommandType();
-    registerCommandList();
+    //registerCommandList();
     //registerCommandRM();
     //registerCommandTASK();
     
     //registerCommandTest();
     
-    registerCommandGRAPHICS();
+    //registerCommandGRAPHICS();
     
     //registerCommandRN();
     //registerCommandCOPY();

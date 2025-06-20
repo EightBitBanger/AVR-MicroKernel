@@ -1,184 +1,115 @@
 #include <kernel/fs/fs.h>
-
-void(*__fs_read_byte)(struct Bus*, uint32_t, uint8_t*);
-void(*__fs_write_byte)(struct Bus*, uint32_t, uint8_t);
+#include <kernel/bus/bus.h>
+#include <string.h>
 
 struct Bus fs_bus;
 
-struct DeviceDescriptor {
-    
-    uint32_t address;      // Base address of the device
-    uint8_t  root;         // Character that represents the device
-    uint32_t sector_size;  // Sector size on the device
-    
-};
-
-
-
-uint32_t fs_device_address;    // Base address of the device
-uint8_t  fs_device_root;       // Character that represents the device
-uint32_t fs_sector_size = 32;  // Sector size on the device
-
-extern uint32_t fileBeginAddress[16]; // Open file addresses
-extern uint32_t fileSize[16];
-
-
-void fsDeviceSetRootLetter(uint8_t deviceLetter) {
-    lowercase(&deviceLetter);
-    
-    fs_device_root = deviceLetter;
-    fs_device_address = 0xffffffff;
-    
-    // Memory device
-    if (deviceLetter == 'x') {
-        fs_set_type_MEM();
-        fs_device_address = 0x00000000;
-    }
-    
-    // IO device
-    if (fs_device_address == 0xffffffff) {
-        fs_set_type_IO();
-        fs_device_address = PERIPHERAL_ADDRESS_BEGIN + ((deviceLetter - 'a') * PERIPHERAL_STRIDE);
-    }
-    
-    return;
+void fs_write_byte(uint32_t address, uint8_t data) {
+    bus_write_memory(&fs_bus, address, data);
 }
 
-uint8_t fsDeviceGetRootLetter(void) {
-    uint8_t tempCaseConv = fs_device_root;
-    uppercase(&tempCaseConv);
-    return tempCaseConv;
-}
-
-uint32_t fsDeviceGetContext(void) {
-    return fs_device_address;
-}
-
-void fsDeviceSetContext(uint32_t device_address) {
-    fs_device_address = device_address;
-    return;
+void fs_read_byte(uint32_t address, uint8_t* data) {
+    bus_read_memory(&fs_bus, address, data);
 }
 
 void fsInit(void) {
-    fs_bus.read_waitstate  = 2;
+    
+    fs_bus.bus_type = 0;
+    fs_bus.read_waitstate = 2;
     fs_bus.write_waitstate = 2;
     
-    fsDeviceSetRootLetter('x');
-    return;
 }
 
-void fs_write_byte(uint32_t address, uint8_t byte) {
-    __fs_write_byte(&fs_bus, fs_device_address + address, byte);
-    return;
-}
-
-void fs_read_byte(uint32_t address, uint8_t* buffer) {
-    __fs_read_byte(&fs_bus, fs_device_address + address, buffer);
-    return;
-}
-
-void fs_set_type_IO(void) {
-    
-    __fs_read_byte  = bus_read_byte;
-    __fs_write_byte = bus_write_byte_eeprom;
-    
-    return;
-}
-
-void fs_set_type_MEM(void) {
-    __fs_read_byte  = bus_read_memory;
-    __fs_write_byte = bus_write_memory;
-    return;
-}
-
-void fs_set_type_MEM_nocache(void) {
-    __fs_read_byte  = bus_raw_read_memory;
-    __fs_write_byte = bus_raw_write_memory;
-    return;
-}
+uint8_t DeviceHeaderString[] = {0x13, 'f','s',' ',' ',' ',' ',' ',' ',' ',' '};
 
 
-uint8_t fsDeviceCheckReady(void) {
-    uint8_t deviceID[] = DEVICE_IDENTIFIER;
-    uint8_t headerByte[sizeof(deviceID)];
+struct Partition fsDeviceOpen(uint32_t deviceAddress) {
+    struct Partition part;
+    part.block_address = deviceAddress;
     
-    for (uint8_t i=0; i < sizeof(deviceID); i++) 
-        fs_read_byte(i, &headerByte[i]);
-    
-    for (uint8_t i=0; i < sizeof(deviceID); i++) 
-        if (headerByte[i] != deviceID[i]) 
-            return 0;
-    
-    // Get the device sector size
-    fs_sector_size = fsDeviceGetSectorSize();
-    
-    // Check device root directory
-    uint32_t rootDirectory = fsDeviceGetRootContextDirectory();
-    
-    if (rootDirectory == 0) 
-        return 0;
-    
-    // Check device attributes
-    struct FSAttribute attr;
-    fsFileGetAttributes(rootDirectory, &attr);
-    
-    if ((attr.executable != ' ') | (attr.readable != 'r') | (attr.writeable != 'w') | (attr.type != 'd')) 
-        return 0;
-    
-    uint32_t workingDirectory = fsWorkingDirectoryGetAddress();
-    
-    // Check working directory is valid
-    if (workingDirectory != 0) {
-        fsFileGetAttributes(workingDirectory, &attr);
-        
-        if ((attr.executable != ' ') | (attr.readable != 'r') | (attr.writeable != 'w') | (attr.type != 'd')) 
-            return 0;
-        
+    // Get device ID bytes
+    uint8_t headerID[10];
+    for (uint8_t i=0; i < sizeof(headerID); i++) {
+        fs_read_byte(part.block_address + i, &headerID[i]);
     }
     
-    // Update root working directory
-    if (fsWorkingDirectoryGetStack() == 0) 
-        fsWorkingDirectorySetAddress(rootDirectory);
-    return 1;
-}
-
-
-uint32_t fsDeviceGetCapacity(void) {
-    union Pointer sizePointer;
-    for (uint8_t i=0; i < 4; i++) 
-        fs_read_byte(DEVICE_OFFSET_CAPACITY + i, &sizePointer.byte_t[i]);
-    return sizePointer.address;
-}
-
-
-uint32_t fsDeviceGetSectorSize(void) {
-    /*
-    union Pointer deviceSectorSize;
-    for (uint8_t i=0; i < 4; i++) 
-        fs_read_byte(DEVICE_OFFSET_SECT_SZ + i, &deviceSectorSize.byte_t[i]);
+    part.block_size = fsDeviceGetSize(part);
+    part.sector_size  = fsDeviceGetSectorSize(part);
     
-    if (deviceSectorSize.address < 32) 
-        deviceSectorSize.address = 32;
-    */
-    return 32;//deviceSectorSize.address;
+    if (headerID[0] != 0x13 || headerID[1] != 'f' || headerID[2] != 's' ||
+        part.block_size == 0 || part.sector_size == 0) {
+        
+        part.block_size = 0;
+        part.sector_count = 0;
+        part.sector_size = 0;
+        return part;
+    }
+    
+    part.sector_count = part.block_size / part.sector_size;
+    return part;
 }
 
+uint32_t fsDeviceGetSize(struct Partition part) {
+    uint8_t sizeBytes[4];
+    for (uint8_t i=0; i < 4; i++) 
+        fs_read_byte(part.block_address + i + DEVICE_OFFSET_CAPACITY, &sizeBytes[i]);
+    return *((uint32_t*)&sizeBytes[0]);
+}
 
-void fsDeviceSetRootContextDirectory(uint32_t directoryAddress) {
-    union Pointer rootDirPtr;
-    rootDirPtr.address = directoryAddress;
+uint32_t fsDeviceGetSectorSize(struct Partition part) {
+    uint8_t sizeBytes[4];
     for (uint8_t i=0; i < 4; i++) 
-        fs_write_byte(DEVICE_OFFSET_ROOT + i, rootDirPtr.byte_t[i]);
+        fs_read_byte(part.block_address + i + DEVICE_OFFSET_SECT_SZ, &sizeBytes[i]);
+    return *((uint32_t*)&sizeBytes[0]);
+}
+
+DirectoryHandle fsDeviceGetRootDirectory(struct Partition part) {
+    uint8_t ptrBytes[4];
     for (uint8_t i=0; i < 4; i++) 
-        fs_write_byte(directoryAddress + FILE_OFFSET_PARENT + i, 0);
+        fs_read_byte(part.block_address + i + DEVICE_OFFSET_SECT_SZ, &ptrBytes[i]);
+    return *((uint32_t*)&ptrBytes[0]);
+}
+
+void fsDeviceFormat(struct Partition part, uint32_t begin, uint32_t end, uint32_t sectorSize) {
+    // Zero the array of sectors
+    for (unsigned int i=0; i < end; i++) 
+        fs_write_byte(part.block_address + i, ' ');
+    
+    part.block_size = end - begin;
+    part.sector_size = sectorSize;
+    part.sector_count = part.block_size / part.sector_size;
+    
+    // Mark sectors as empty
+    for (uint32_t i=0; i < part.sector_count; i++) 
+        fs_write_byte(part.block_address + (i * part.sector_size), SECTOR_FREE);
+    
+    // Initiate device header and associated information
+    for (uint32_t i=0; i < sizeof(DeviceHeaderString); i++) 
+        fs_write_byte(part.block_address + i, DeviceHeaderString[i]);
+    
+    // Set device capacity
+    uint8_t sizeBytes[4];
+    *((uint32_t*)&sizeBytes[0]) = part.block_size;
+    for (uint8_t i=0; i < 4; i++) 
+        fs_write_byte(part.block_address + i + DEVICE_OFFSET_CAPACITY, sizeBytes[i]);
+    
+    // Set the device type
+    uint8_t deviceType = 'T';
+    fs_write_byte(part.block_address + DEVICE_OFFSET_TYPE, deviceType);
+    
+    // Set the root directory pointer
+    DirectoryHandle handle = fsDirectoryCreate(part, (uint8_t*)"root");
+    
+    uint8_t ptrBytes[4];
+    *((uint32_t*)&ptrBytes[0]) = handle;
+    for (uint8_t i=0; i < 4; i++) 
+        fs_write_byte(part.block_address + i + DEVICE_OFFSET_ROOT, ptrBytes[i]);
+    
+    // Set the sector size
+    *((uint32_t*)&sizeBytes[0]) = part.sector_size;
+    for (uint8_t i=0; i < 4; i++) 
+        fs_write_byte(part.block_address + i + DEVICE_OFFSET_SECT_SZ, sizeBytes[i]);
+    
     return;
-}
-
-
-uint32_t fsDeviceGetRootContextDirectory(void) {
-    union Pointer rootDirPtr;
-    for (uint8_t i=0; i < 4; i++) 
-        fs_read_byte(DEVICE_OFFSET_ROOT + i, &rootDirPtr.byte_t[i]);
-    return rootDirPtr.address;
 }
 
