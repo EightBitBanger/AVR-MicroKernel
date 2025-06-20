@@ -13,6 +13,7 @@ int main(void) {
     InitiateDeviceTable();        // Hardware device table
     KernelVectorTableInit();      // Hardware interrupt vector table
     
+    
     cliInit();
     
     // Check amount of external memory
