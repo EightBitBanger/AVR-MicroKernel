@@ -23,15 +23,13 @@ void kInit(void) {
     
     ConsoleSetPrompt(prompt, sizeof(prompt));
     
-    
+    // Initiate memory storage
     struct Partition part = fsDeviceOpen(0x00000000);
-    
     fsDeviceFormat(&part, 0, 32768, 32);
-    uint8_t filename[] = "file";
-    FileHandle fileHandle = fsFileCreate(part, filename, 64);
-    
     DirectoryHandle rootDirectory = fsDeviceGetRootDirectory(part);
     
+    uint8_t filename[] = "file";
+    FileHandle fileHandle = fsFileCreate(part, filename, 64);
     fsDirectoryAddFile(part, rootDirectory, fileHandle);
     
     
