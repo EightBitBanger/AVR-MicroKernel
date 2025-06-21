@@ -1,4 +1,4 @@
-#include <fs/fs.h>
+#include <kernel/fs/fs.h>
 #include <stdio.h>
 #include <string.h>
 

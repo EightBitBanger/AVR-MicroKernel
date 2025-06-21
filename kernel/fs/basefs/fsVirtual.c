@@ -1,4 +1,4 @@
-#include <fs/fs.h>
+#include <kernel/fs/fs.h>
 #include <stdio.h>
 
 uint8_t vfsList(struct Partition part, DirectoryHandle handle) {

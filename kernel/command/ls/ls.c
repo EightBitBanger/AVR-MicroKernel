@@ -18,12 +18,13 @@ void functionLS(uint8_t* param, uint8_t param_length) {
     
     for (uint32_t i=0; i < totalSize; i++) {
         uint8_t filename[] = "          ";
-        FileHandle fileHandle = fsDirectoryFindByName(part, rootDirectory, filename);
+        uint32_t entryHandle = fsDirectoryFindByIndex(part, rootDirectory, i);
         
-        if (fileHandle == 0) 
+        if (entryHandle == 0) 
             break;
-        
+        fsFileGetName(part, entryHandle, filename);
         print(filename, sizeof(filename));
+        printLn();
     }
     
     /*
