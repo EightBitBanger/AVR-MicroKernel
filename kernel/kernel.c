@@ -28,9 +28,27 @@ void kInit(void) {
     fsDeviceFormat(&part, 0, 32768, 32);
     DirectoryHandle rootDirectory = fsDeviceGetRootDirectory(part);
     
+    {
+    uint8_t filename[] = "bin";
+    DirectoryHandle directoryHandle = fsDirectoryCreate(part, filename);
+    fsDirectoryAddFile(part, rootDirectory, directoryHandle);
+    }
+    {
+    uint8_t filename[] = "sys";
+    DirectoryHandle directoryHandle = fsDirectoryCreate(part, filename);
+    fsDirectoryAddFile(part, rootDirectory, directoryHandle);
+    }
+    
+    {
     uint8_t filename[] = "file";
-    FileHandle fileHandle = fsFileCreate(part, filename, 64);
+    FileHandle fileHandle = fsFileCreate(part, filename, 128);
     fsDirectoryAddFile(part, rootDirectory, fileHandle);
+    }
+    {
+    uint8_t filename[] = "test";
+    FileHandle fileHandle = fsFileCreate(part, filename, 40);
+    fsDirectoryAddFile(part, rootDirectory, fileHandle);
+    }
     
     
     
