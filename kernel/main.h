@@ -7,7 +7,7 @@
 
 // Included console commands
 #include <kernel/command/ls/ls.h>
-//#include <kernel/command/cd/cd.h>
+#include <kernel/command/cd/cd.h>
 
 //#include <kernel/command/test/test.h>
 

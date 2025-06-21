@@ -6,6 +6,20 @@
 
 void functionCD(uint8_t* param, uint8_t param_length) {
     
+    uint8_t msgDirectoryNotFound[]  = "Directory not found";
+    
+    struct Partition part = fsDeviceOpen(0x00000000);
+    DirectoryHandle rootDirectory = fsDeviceGetRootDirectory(part);
+    
+    if (fsDirectoryFindByName(part, rootDirectory, param) == 0) {
+        
+        print(msgDirectoryNotFound, sizeof(msgDirectoryNotFound));
+        printLn();
+    }
+    
+    
+    /*
+    
     if (param_length > FILE_NAME_LENGTH) 
         param_length = FILE_NAME_LENGTH;
     
@@ -165,6 +179,7 @@ void functionCD(uint8_t* param, uint8_t param_length) {
     }
     
     printLn();
+    */
     
     return;
 }

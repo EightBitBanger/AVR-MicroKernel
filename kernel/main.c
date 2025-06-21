@@ -48,7 +48,7 @@ int main(void) {
     kInit();          // Kernel environment
     
     registerCommandLS();
-    //registerCommandCD();
+    registerCommandCD();
     
     //registerCommandEDIT();
     //registerCommandASM();
