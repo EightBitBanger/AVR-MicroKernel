@@ -16,8 +16,27 @@ struct VirtualFileSystemInterface vfs;
 
 void kInit(void) {
     
-    /*
     kPrintVersion();
+    
+    // Initiate console prompt
+    uint8_t prompt[] = "x>";
+    
+    ConsoleSetPrompt(prompt, sizeof(prompt));
+    
+    
+    struct Partition part = fsDeviceOpen(0x00000000);
+    
+    fsDeviceFormat(&part, 0, 32768, 32);
+    uint8_t filename[] = "file";
+    FileHandle fileHandle = fsFileCreate(part, filename, 64);
+    
+    DirectoryHandle rootDirectory = fsDeviceGetRootDirectory(part);
+    
+    fsDirectoryAddFile(part, rootDirectory, fileHandle);
+    
+    
+    
+    /*
     
     VirtualAccessSetMode(VIRTUAL_ACCESS_MODE_KERNEL);
     

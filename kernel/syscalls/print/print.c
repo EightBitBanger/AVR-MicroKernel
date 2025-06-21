@@ -19,6 +19,22 @@ extern struct Driver* displayDevice;
 extern struct Driver* keyboadDevice;
 
 
+void printc(char* string) {
+    __glBusyWait();
+    displayDevice->write( 0x00001, console_line );
+    
+    for (uint8_t i=0;; i++) {
+        if (string[i] == '\0') 
+            break;
+        displayDevice->write( 0x00002, console_position );
+        displayDevice->write( 0x00010, string[i] );
+        console_position++;
+        continue;
+    }
+    ConsoleSetCursorPosition(console_position);
+    return;
+}
+
 void print(uint8_t* string, uint8_t length) {
     __glBusyWait();
     displayDevice->write( 0x00001, console_line );
@@ -57,22 +73,6 @@ void printInt(uint32_t integer) {
         displayDevice->write( 0x00010 + i, string[i] );
     
     console_position += (place / 2) + 1;
-    ConsoleSetCursorPosition(console_position);
-    return;
-}
-
-void printc(char* string) {
-    __glBusyWait();
-    displayDevice->write( 0x00001, console_line );
-    
-    for (uint8_t i=0;; i++) {
-        if (string[i] == '\0') 
-            break;
-        displayDevice->write( 0x00002, console_position );
-        displayDevice->write( 0x00010, string[i] );
-        console_position++;
-        continue;
-    }
     ConsoleSetCursorPosition(console_position);
     return;
 }

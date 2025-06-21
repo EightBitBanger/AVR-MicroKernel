@@ -3,9 +3,9 @@
 
 #include <kernel/kernel.h>
 
+void printc(char* string);
 void print(uint8_t* string, uint8_t length);
 void printInt(uint32_t integer);
-void printc(char* string);
 void printChar(uint8_t character);
 void printLn(void);
 void printSpace(uint8_t numberOfSpaces);

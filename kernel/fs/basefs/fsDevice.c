@@ -70,45 +70,42 @@ DirectoryHandle fsDeviceGetRootDirectory(struct Partition part) {
     return *((uint32_t*)&ptrBytes[0]);
 }
 
-void fsDeviceFormat(struct Partition part, uint32_t begin, uint32_t end, uint32_t sectorSize) {
-    // Zero the array of sectors
-    for (unsigned int i=0; i < end; i++) 
-        fs_write_byte(part.block_address + i, ' ');
+void fsDeviceFormat(struct Partition* part, uint32_t begin, uint32_t end, uint32_t sectorSize) {
     
-    part.block_size = end - begin;
-    part.sector_size = sectorSize;
-    part.sector_count = part.block_size / part.sector_size;
+    part->block_size = end - begin;
+    part->sector_size = sectorSize;
+    part->sector_count = part->block_size / part->sector_size;
     
     // Mark sectors as empty
-    for (uint32_t i=0; i < part.sector_count; i++) 
-        fs_write_byte(part.block_address + (i * part.sector_size), SECTOR_FREE);
+    for (uint32_t i=0; i < part->sector_count; i++) 
+        fs_write_byte(part->block_address + (i * part->sector_size), SECTOR_FREE);
     
     // Initiate device header and associated information
     for (uint32_t i=0; i < sizeof(DeviceHeaderString); i++) 
-        fs_write_byte(part.block_address + i, DeviceHeaderString[i]);
+        fs_write_byte(part->block_address + i, DeviceHeaderString[i]);
     
     // Set device capacity
     uint8_t sizeBytes[4];
-    *((uint32_t*)&sizeBytes[0]) = part.block_size;
+    *((uint32_t*)&sizeBytes[0]) = part->block_size;
     for (uint8_t i=0; i < 4; i++) 
-        fs_write_byte(part.block_address + i + DEVICE_OFFSET_CAPACITY, sizeBytes[i]);
+        fs_write_byte(part->block_address + i + DEVICE_OFFSET_CAPACITY, sizeBytes[i]);
     
     // Set the device type
     uint8_t deviceType = 'T';
-    fs_write_byte(part.block_address + DEVICE_OFFSET_TYPE, deviceType);
+    fs_write_byte(part->block_address + DEVICE_OFFSET_TYPE, deviceType);
     
     // Set the root directory pointer
-    DirectoryHandle handle = fsDirectoryCreate(part, (uint8_t*)"root");
+    DirectoryHandle handle = fsDirectoryCreate(*part, (uint8_t*)"root");
     
     uint8_t ptrBytes[4];
     *((uint32_t*)&ptrBytes[0]) = handle;
     for (uint8_t i=0; i < 4; i++) 
-        fs_write_byte(part.block_address + i + DEVICE_OFFSET_ROOT, ptrBytes[i]);
+        fs_write_byte(part->block_address + i + DEVICE_OFFSET_ROOT, ptrBytes[i]);
     
     // Set the sector size
-    *((uint32_t*)&sizeBytes[0]) = part.sector_size;
+    *((uint32_t*)&sizeBytes[0]) = part->sector_size;
     for (uint8_t i=0; i < 4; i++) 
-        fs_write_byte(part.block_address + i + DEVICE_OFFSET_SECT_SZ, sizeBytes[i]);
+        fs_write_byte(part->block_address + i + DEVICE_OFFSET_SECT_SZ, sizeBytes[i]);
     
     return;
 }

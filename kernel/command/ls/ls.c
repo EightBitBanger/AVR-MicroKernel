@@ -11,6 +11,19 @@ void ListDirectory(uint32_t fileAddress);
 
 void functionLS(uint8_t* param, uint8_t param_length) {
     
+    struct Partition part = fsDeviceOpen(0x00000000);
+    DirectoryHandle rootDirectory = fsDeviceGetRootDirectory(part);
+    
+    uint8_t filename[] = "file";
+    FileHandle fileHandle = fsDirectoryFindByName(part, rootDirectory, filename);
+    if (fileHandle != 0) {
+        
+        uint8_t msgWorks[] = "Works";
+        print(msgWorks, sizeof(msgWorks));
+        
+    }
+    fsDirectoryAddFile(part, rootDirectory, fileHandle);
+    
     
     /*
     // Check device ready
