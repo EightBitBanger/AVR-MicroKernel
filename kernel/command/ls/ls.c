@@ -14,8 +14,10 @@ void functionLS(uint8_t* param, uint8_t param_length) {
     struct Partition part = fsDeviceOpen(0x00000000);
     DirectoryHandle rootDirectory = fsDeviceGetRootDirectory(part);
     
-    uint32_t totalSize = fsDirectoryGetTotalSize(part, rootDirectory);
+    vfsList(part, rootDirectory);
     
+    /*
+    uint32_t totalSize = fsDirectoryGetTotalSize(part, rootDirectory);
     for (uint32_t i=0; i < totalSize; i++) {
         uint8_t filename[] = "          ";
         uint32_t entryHandle = fsDirectoryFindByIndex(part, rootDirectory, i);
@@ -26,6 +28,7 @@ void functionLS(uint8_t* param, uint8_t param_length) {
         print(filename, sizeof(filename));
         printLn();
     }
+    */
     
     /*
     // Check device ready

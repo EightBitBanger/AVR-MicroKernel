@@ -22,16 +22,15 @@ uint8_t vfsList(struct Partition part, DirectoryHandle handle) {
         if (fileAttr[3] == 'd') 
             isDirectory = 1;
         
-        fileAttr[3] = '\0';
-        print(fileAttr);
-        print(" ");
+        print(fileAttr, 3);
+        printSpace(1);
         
         
         // Print file name
         uint8_t filename[] = "          \n";
         fsFileGetName(part, entryHandle, filename);
         
-        printf((char*)filename);
+        print(filename, 10);
         
     }
     
