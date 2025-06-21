@@ -1,5 +1,5 @@
 #include <kernel/fs/fs.h>
-#include <stdio.h>
+#include <kernel/syscalls/print/print.h>
 
 uint8_t vfsList(struct Partition part, DirectoryHandle handle) {
     
@@ -9,10 +9,27 @@ uint8_t vfsList(struct Partition part, DirectoryHandle handle) {
     
     for (uint32_t i=0; i < directoryRefTotal; i++) {
         
-        uint32_t entryAddress = fsDirectoryFindByIndex(part, handle, i);
+        uint32_t entryHandle = fsDirectoryFindByIndex(part, handle, i);
         
+        
+        
+        // Print attributes
+        uint8_t fileAttr[] = "    ";
+        fsFileGetAttributes(part, entryHandle, fileAttr);
+        
+        // Check directory or file
+        uint8_t isDirectory = 0;
+        if (fileAttr[3] == 'd') 
+            isDirectory = 1;
+        
+        fileAttr[3] = '\0';
+        print(fileAttr);
+        print(" ");
+        
+        
+        // Print file name
         uint8_t filename[] = "          \n";
-        fsFileGetName(part, entryAddress, filename);
+        fsFileGetName(part, entryHandle, filename);
         
         printf((char*)filename);
         
