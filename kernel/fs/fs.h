@@ -4,8 +4,6 @@
 #include <stdint.h>
 #include <stdlib.h>
 
-#define FILE_NAME_LENGTH  10
-
 #define MAX_OPEN_FILES  16
 
 #define SECTOR_FREE    '?'
@@ -51,7 +49,7 @@ uint32_t fsDeviceGetSize(struct Partition part);
 uint32_t fsDeviceGetSectorSize(struct Partition part);
 DirectoryHandle fsDeviceGetRootDirectory(struct Partition part);
 
-void fsDeviceFormat(struct Partition* part, uint32_t begin, uint32_t end, uint32_t sectorSize);
+void fsDeviceFormat(struct Partition part, uint32_t begin, uint32_t end, uint32_t sectorSize);
 
 // Allocation
 
@@ -76,6 +74,9 @@ uint32_t fsDirectoryGetReferenceCount(struct Partition part, DirectoryHandle han
 uint8_t fsDirectoryAddFile(struct Partition part, DirectoryHandle handle, uint32_t file);
 uint8_t fsDirectoryRemoveFile(struct Partition part, DirectoryHandle handle, uint32_t file);
 
+uint32_t fsDirectoryGetTotalSize(struct Partition part, DirectoryHandle handle);
+
+uint32_t fsDirectoryFindByIndex(struct Partition part, DirectoryHandle handle, uint32_t index);
 uint32_t fsDirectoryFindByName(struct Partition part, DirectoryHandle handle, uint8_t* filename);
 
 // File IO

@@ -1,4 +1,4 @@
-#include <kernel/fs/fs.h>
+#include <fs/fs.h>
 
 void fs_write_byte(uint32_t address, uint8_t data);
 void fs_read_byte(uint32_t address, uint8_t* data);

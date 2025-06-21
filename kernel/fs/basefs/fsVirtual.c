@@ -1,7 +1,23 @@
-#include <kernel/fs/fs.h>
+#include <fs/fs.h>
 #include <stdio.h>
 
 uint8_t vfsList(struct Partition part, DirectoryHandle handle) {
+    
+    uint32_t directoryRefTotal = fsDirectoryGetTotalSize(part, handle);
+    if (directoryRefTotal == 0) 
+        return 0;
+    
+    for (uint32_t i=0; i < directoryRefTotal; i++) {
+        
+        uint32_t entryAddress = fsDirectoryFindByIndex(part, handle, i);
+        
+        uint8_t filename[] = "          \n";
+        fsFileGetName(part, entryAddress, filename);
+        
+        printf((char*)filename);
+        
+    }
+    
     /*
     uint8_t buffer[256];
     

@@ -1,4 +1,4 @@
-#include <kernel/fs/fs.h>
+#include <fs/fs.h>
 #include <stdio.h>
 #include <string.h>
 
@@ -126,6 +126,57 @@ uint8_t fsDirectoryAddFile(struct Partition part, DirectoryHandle handle, uint32
     fsFileClose(index);
     
     return 1;
+}
+
+uint32_t fsDirectoryGetTotalSize(struct Partition part, DirectoryHandle handle) {
+    uint32_t total = 0;
+    while (1) {
+        total += fsDirectoryGetReferenceCount(part, handle);
+        
+        handle = fsFileGetNextAddress(part, handle);
+        if (handle == 0) 
+            break;
+    }
+    return total;
+}
+
+uint32_t fsDirectoryFindByIndex(struct Partition part, DirectoryHandle handle, uint32_t index) {
+    uint8_t buffer[64];
+    uint32_t counter = 0;
+    
+    while (1) {
+        uint32_t refCount = fsDirectoryGetReferenceCount(part, handle);
+        
+        File fileIndex = fsFileOpen(part, handle);
+        uint32_t directorySize = fsFileGetSize(part, handle);
+        
+        fsFileRead(part, fileIndex, buffer, directorySize);
+        
+        // Check the list of files in this extent
+        for (uint32_t i=0; i < refCount; i++) {
+            // Check index found
+            if (counter == index) {
+                
+                uint8_t ptrBytes[4];
+                for (uint8_t a=0; a < 4; a++) 
+                    ptrBytes[a] = buffer[ (i * 4) + a ];
+                
+                uint32_t fileHandle = *((uint32_t*)&ptrBytes[0]);
+                
+                fsFileClose(fileIndex);
+                return fileHandle;
+            }
+            
+            counter++;
+        }
+        fsFileClose(fileIndex);
+        
+        handle = fsFileGetNextAddress(part, handle);
+        if (handle == 0) 
+            break;
+    }
+    
+    return 0;
 }
 
 uint32_t fsDirectoryFindByName(struct Partition part, DirectoryHandle handle, uint8_t* filename) {
